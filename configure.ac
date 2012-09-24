@@ -34,6 +34,10 @@ LT_INIT([win32-dll disable-static])
 LT_SYS_MODULE_EXT
 AC_SUBST(LIBTOOL_DEPS)
 
+
+# Check for libraries
+MM_CHECK_PTHREAD([], [AC_MSG_ERROR([Cannot find pthread development library])])
+
 AC_DEF_API_EXPORT_ATTRS
 
 AC_SUBST([optional_examples])
@@ -46,7 +50,7 @@ AH_TOP([#ifndef CONFIG_H
 #define CONFIG_H])
 AH_BOTTOM([#endif /*CONFIG_H*/])
 
-AC_CONFIG_FILES([Makefile src/Makefile]) 
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile]) 
 AC_OUTPUT
 
 
