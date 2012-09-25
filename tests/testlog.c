@@ -8,6 +8,7 @@
 # include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <mmlog.h>
 
 #define modname "testlog"
@@ -26,4 +27,6 @@ int main(void)
 	}
 
 	mmlog_info(modname, "Stop logging.");
+
+	return EXIT_SUCCESS;
 }
