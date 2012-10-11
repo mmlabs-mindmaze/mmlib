@@ -35,6 +35,20 @@
 # define mm_location(module)	 module
 #endif
 
+/*
+ Setup the module name (MMLOG_MODULE_NAME) as it appears in the log.
+ If it is unset, it set it to a reasonable default.
+ It is allowed to reset MMLOG_MODULE_NAME in the source code: this will
+ change the module name used for the next invocation of any  mmlog_* macro.
+*/
+#ifndef MMLOG_MODULE_NAME
+# ifdef PACKAGE_NAME
+#  define MMLOG_MODULE_NAME PACKAGE_NAME
+# else
+#  define MMLOG_MODULE_NAME "unknown"
+# endif
+#endif
+
 
 #if defined __cplusplus
 # define MMLOG_VOID_CAST static_cast<void>
@@ -45,33 +59,33 @@
 
 
 #if MMLOG_MAXLEVEL >= MMLOG_FATAL
-#  define mmlog_fatal(module, msg, ...)	mmlog_log(MMLOG_FATAL, mm_location(module), msg,  ## __VA_ARGS__)
+#  define mmlog_fatal(msg, ...)	mmlog_log(MMLOG_FATAL, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
 #else
-#  define mmlog_fatal(module, msg, ...) MMLOG_VOID_CAST(0)
+#  define mmlog_fatal(msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_ERROR
-#  define mmlog_error(module, msg, ...)	mmlog_log(MMLOG_ERROR, mm_location(module), msg,  ## __VA_ARGS__)
+#  define mmlog_error(msg, ...)	mmlog_log(MMLOG_ERROR, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
 #else
-#  define mmlog_error(module, msg, ...) MMLOG_VOID_CAST(0)
+#  define mmlog_error(msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_WARN
-#  define mmlog_warn(module, msg, ...)	mmlog_log(MMLOG_WARN, mm_location(module), msg,  ## __VA_ARGS__)
+#  define mmlog_warn(msg, ...)	mmlog_log(MMLOG_WARN, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
 #else
-#  define mmlog_warn(module, msg, ...) MMLOG_VOID_CAST(0)
+#  define mmlog_warn(msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_INFO
-#  define mmlog_info(module, msg, ...)	mmlog_log(MMLOG_INFO, mm_location(module), msg,  ## __VA_ARGS__)
+#  define mmlog_info(msg, ...)	mmlog_log(MMLOG_INFO, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
 #else
-#  define mmlog_info(module, msg, ...) MMLOG_VOID_CAST(0)
+#  define mmlog_info(msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_DEBUG
-#  define mmlog_trace(module, msg, ...)	mmlog_log(MMLOG_DEBUG, mm_location(module), msg,  ## __VA_ARGS__)
+#  define mmlog_trace(msg, ...)	mmlog_log(MMLOG_DEBUG, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
 #else
-#  define mmlog_trace(module, msg, ...) MMLOG_VOID_CAST(0)
+#  define mmlog_trace(msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #ifdef __cplusplus
