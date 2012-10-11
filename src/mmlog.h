@@ -19,6 +19,23 @@
 #endif
 
 
+/*
+ Double expansion is the usual trick to expand a preprocessor macro argument
+ into a string
+*/
+#define mm_xstringify(arg)	#arg
+#define mm_stringify(arg)	mm_xstringify(arg)
+
+/*
+ Define MMLOG_VERBOSE_LOCATION to display location with file and line
+*/
+#if MMLOG_VERBOSE_LOCATION
+# define mm_location(module)	 module " "__FILE__"("mm_stringify(__LINE__)")"
+#else
+# define mm_location(module)	 module
+#endif
+
+
 #if defined __cplusplus
 # define MMLOG_VOID_CAST static_cast<void>
 #else
@@ -26,32 +43,33 @@
 #endif
 
 
+
 #if MMLOG_MAXLEVEL >= MMLOG_FATAL
-#  define mmlog_fatal(module, msg, ...)	mmlog_log(MMLOG_FATAL, __FILE__, __LINE__, module, msg,  ## __VA_ARGS__)
+#  define mmlog_fatal(module, msg, ...)	mmlog_log(MMLOG_FATAL, mm_location(module), msg,  ## __VA_ARGS__)
 #else
 #  define mmlog_fatal(module, msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_ERROR
-#  define mmlog_error(module, msg, ...)	mmlog_log(MMLOG_ERROR, __FILE__, __LINE__, module, msg,  ## __VA_ARGS__)
+#  define mmlog_error(module, msg, ...)	mmlog_log(MMLOG_ERROR, mm_location(module), msg,  ## __VA_ARGS__)
 #else
 #  define mmlog_error(module, msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_WARN
-#  define mmlog_warn(module, msg, ...)	mmlog_log(MMLOG_WARN, __FILE__, __LINE__, module, msg,  ## __VA_ARGS__)
+#  define mmlog_warn(module, msg, ...)	mmlog_log(MMLOG_WARN, mm_location(module), msg,  ## __VA_ARGS__)
 #else
 #  define mmlog_warn(module, msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_INFO
-#  define mmlog_info(module, msg, ...)	mmlog_log(MMLOG_INFO, __FILE__, __LINE__, module, msg,  ## __VA_ARGS__)
+#  define mmlog_info(module, msg, ...)	mmlog_log(MMLOG_INFO, mm_location(module), msg,  ## __VA_ARGS__)
 #else
 #  define mmlog_info(module, msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_DEBUG
-#  define mmlog_trace(module, msg, ...)	mmlog_log(MMLOG_DEBUG, __FILE__, __LINE__, module, msg,  ## __VA_ARGS__)
+#  define mmlog_trace(module, msg, ...)	mmlog_log(MMLOG_DEBUG, mm_location(module), msg,  ## __VA_ARGS__)
 #else
 #  define mmlog_trace(module, msg, ...) MMLOG_VOID_CAST(0)
 #endif
@@ -60,8 +78,7 @@
 extern "C" {
 #endif
 
-void mmlog_log(int lvl, const char* file, int line,
-               const char* module, const char* msg, ...);
+void mmlog_log(int lvl, const char* location, const char* msg, ...);
 
 
 #ifdef __cplusplus

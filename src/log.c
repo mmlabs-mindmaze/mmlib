@@ -53,8 +53,7 @@ void init_log(void)
 
 
 API_EXPORTED
-void mmlog_log(int lvl, const char* file, int line,
-               const char* module, const char* msg, ...)
+void mmlog_log(int lvl, const char* location, const char* msg, ...)
 {
 	time_t ts;
 	struct tm tm;
@@ -74,8 +73,7 @@ void mmlog_log(int lvl, const char* file, int line,
 	strftime(timestamp, sizeof(timestamp), "%d/%m/%y %T", &tm);
 	
 	// printf message
-	fprintf(stderr, "%s %s %s(%i) %s: ", timestamp, module,
-                                             file, line, loglevel[lvl]);
+	fprintf(stderr, "%s %s %s: ", timestamp, location, loglevel[lvl]);
 	va_start(args, msg);
 	vfprintf(stderr, msg, args);
 	va_end(args);
