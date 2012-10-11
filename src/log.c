@@ -13,8 +13,13 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "mmlog.h"
+
+#ifndef MMLOG_LINE_MAXLEN
+#define MMLOG_LINE_MAXLEN	128
+#endif
 
 static pthread_once_t once_init = PTHREAD_ONCE_INIT;
 static int maxloglvl = MMLOG_WARN;
@@ -57,8 +62,10 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 {
 	time_t ts;
 	struct tm tm;
-	char timestamp[32];
+	char* cbuf;
+	size_t len, rlen;
 	va_list args;
+	char buff[MMLOG_LINE_MAXLEN];
 	
 	// Configure max level from environment
 	pthread_once(&once_init, init_log);
@@ -67,16 +74,28 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 	if (lvl > maxloglvl || lvl < 0)
 		return;
 	
+	rlen = sizeof(buff);
+
 	// format time stamp
 	ts = time(NULL);
 	localtime_r(&ts, &tm);
-	strftime(timestamp, sizeof(timestamp), "%d/%m/%y %T", &tm);
+	len = strftime(buff, sizeof(buff)-1, "%d/%m/%y %T", &tm);
+	cbuf = buff + len;
+	rlen -= len;
 	
-	// printf message
-	fprintf(stderr, "%s %s %s: ", timestamp, location, loglevel[lvl]);
+	// format message header message
+	len = snprintf(cbuf, rlen-1, " %s %s: ", location, loglevel[lvl]);
+	cbuf += len;
+	rlen -= len;
+	
+	// Format provided info
 	va_start(args, msg);
-	vfprintf(stderr, msg, args);
+	len = vsnprintf(cbuf, rlen-1, msg, args);
 	va_end(args);
-	fputc('\n', stderr);
+	cbuf[len++] = '\n';
+	rlen -= len;
+
+	// Write message on log file descriptor
+	write(STDERR_FILENO, buff, sizeof(buff)-rlen);
 }
 
