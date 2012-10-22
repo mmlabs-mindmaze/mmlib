@@ -1,0 +1,23 @@
+# French translations for mmlib package
+# Traductions françaises du paquet mmlib.
+# Copyright (C) 2012 Mindmaze SA
+# This file is distributed under the same license as the mmlib package.
+# Nicolas Bourdaud (MindMaze) <nicolas.bourdaud@mindmaze.ch>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mmlib 0.0\n"
+"Report-Msgid-Bugs-To: nicolas.bourdaud@mindmaze.ch\n"
+"POT-Creation-Date: 2012-10-22 14:55+0200\n"
+"PO-Revision-Date: 2012-10-22 14:53+0200\n"
+"Last-Translator: Nicolas Bourdaud (MindMaze) <nicolas.bourdaud@mindmaze.ch>\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/error.c:30
+msgid "The acquisition module has been disconnected."
+msgstr "Le module d'acquisition a été déconnecté."

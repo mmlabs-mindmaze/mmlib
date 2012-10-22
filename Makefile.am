@@ -1,4 +1,4 @@
 ACLOCAL_AMFLAGS = -I extra/m4 --install
-SUBDIRS = src tests
-EXTRA_DIST = autogen.sh
+SUBDIRS = po src tests
+EXTRA_DIST = build-aux/config.rpath  autogen.sh
 

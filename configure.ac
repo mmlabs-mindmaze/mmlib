@@ -33,6 +33,8 @@ AM_PROG_CC_C_O
 LT_INIT([win32-dll disable-static])
 LT_SYS_MODULE_EXT
 AC_SUBST(LIBTOOL_DEPS)
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION(0.18)
 
 
 # Check for libraries
@@ -50,7 +52,7 @@ AH_TOP([#ifndef CONFIG_H
 #define CONFIG_H])
 AH_BOTTOM([#endif /*CONFIG_H*/])
 
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile]) 
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile po/Makefile.in]) 
 AC_OUTPUT
 
 

@@ -18,7 +18,7 @@
 
 int main(void)
 {
-	setlocale(LC_MESSAGES, "");
+	setlocale(LC_ALL, "");
 
 	print_errno_info(MM_EDISCONNECTED);
 

@@ -10,7 +10,10 @@
 
 #include "mmerrno.h"
 #include <string.h>
+#include <stdlib.h>
+#include <pthread.h>
 
+#include "nls-internals.h"
 
 struct errmsg_entry {
 	int errnum;
@@ -24,7 +27,7 @@ struct errmsg_entry {
  **************************************************************************/
 static const struct errmsg_entry error_tab[] = {
 	{.errnum = MM_EDISCONNECTED,
-	 .msg = "The acquisition module has been disconnected."},
+	 .msg = N_("The acquisition module has been disconnected.")},
 };
 
 #define NUM_ERROR_ENTRY	(sizeof(error_tab)/sizeof(error_tab[0]))
@@ -34,15 +37,27 @@ static const struct errmsg_entry error_tab[] = {
  *                           Implementation                               *
  *                                                                        *
  **************************************************************************/
+static pthread_once_t translation_is_initialized = PTHREAD_ONCE_INIT;
+
+
+static
+void init_translation(void)
+{
+	bindtextdomain(PACKAGE_NAME, LOCALEDIR);
+}
+
+
 static
 const char* get_mm_errmsg(int errnum)
 {
 	const char* msg;
 	int i = errnum - error_tab[0].errnum;
 	
+	pthread_once(&translation_is_initialized, init_translation);
+
 	msg = error_tab[i].msg;
 
-	return msg; 
+	return dgettext(PACKAGE_NAME, msg); 
 }
 
 
