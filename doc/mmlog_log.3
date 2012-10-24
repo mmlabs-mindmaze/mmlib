@@ -1,0 +1,65 @@
+.\"Copyright 2012 (c) Mindmaze
+.TH MMLOG_LOG 3 2012 "MINDMAZE" "mmlib library manual"
+.SH NAME
+mmlog_log - Add a formatted message to the log file
+.SH SYNOPSIS
+.LP
+.B #include <mmlog.h>
+.sp
+.BI "void mmlog_log(int " lvl ", const char* " location ", const char* " msg ", ...);"
+.br
+.sp
+Link with
+.I -lmmlib
+.SH DESCRIPTION
+.LP
+\fBmmlog_log\fP() writes an entry in the log following the suggested format
+by the Mindmaze standard: date, time, origin, level, message. The origin
+part is specified by the \fIlocation\fP parameters. The severity part is
+defined by the \fIlvl\fP parameter which must one of this value (listed from
+the most critical to the least one):
+.RS
+.B MMLOG_FATAL
+.br
+.B MMLOG_ERROR
+.br
+.B MMLOG_WARN
+.br
+.B MMLOG_INFO 
+.br
+.B MMLOG_DEBUG
+.br
+.RE
+.LP
+The message part of log entry is formed according the format specified by
+the \fImsg\fP parameters which convert the formatting and convertion of the
+optional argument list of the function. As the format specified by
+\fImsg\fP follows the one of the \fBsprintf\fP(3) function.
+.LP
+If the parameter \fIlvl\fP is less critical than the environment variable
+\fIMMLOG_MAX_LEVEL\fP, the log entry will not be written to log and simply
+ignored.
+.LP
+Usually, users do not call mmlog_log directly but use one of the following
+macros: 
+.BR mmlog_fatal (3),
+.BR mmlog_error (3),
+.BR mmlog_warn (3),
+.BR mmlog_info (3),
+.BR mmlog_debug (3)
+.SH "RETURN VALUE"
+.LP
+None.
+.SH THREAD SAFETY
+.LP
+\fBmmlog_log\fP() is thread-safe.
+.SH EXAMPLE
+.LP
+.SH "SEE ALSO"
+.BR sprintf (3),
+.BR mmlog_fatal (3),
+.BR mmlog_error (3),
+.BR mmlog_warn (3),
+.BR mmlog_info (3),
+.BR mmlog_debug (3)
+
