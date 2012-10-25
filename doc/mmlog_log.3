@@ -50,6 +50,28 @@ macros:
 .SH "RETURN VALUE"
 .LP
 None.
+.SH ENVIRONMENT
+.LP
+You can control the output on the log at runtime using the environment
+variable \fIMMLOG_MAXLEVEL\fP. It specifies the maximum level of severity
+that must be written on the log. It must be set to one of this value:
+.RS
+.B NONE
+.br
+.B FATAL
+.br
+.B ERROR
+.br
+.B WARN
+.br
+.B INFO 
+.br
+.B DEBUG
+.br
+.RE
+.LP If the environment variable \fIMMLOG_MAXLEVEL\fP is not set or set to a
+value different from the one listed above, the maximum level output on the
+log is \fBWARN\fP.
 .SH THREAD SAFETY
 .LP
 \fBmmlog_log\fP() is thread-safe.
