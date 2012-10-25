@@ -39,4 +39,13 @@ typedef struct mppheadinfo
 }
 mppheadinfo;
 
+typedef struct epos3d
+{
+	float x;
+	float y;
+	float z;
+	int confidence;      /* Confidence in the estimation */
+}
+epos3d;
+
 #endif /* MMTYPE_H */
