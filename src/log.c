@@ -40,7 +40,7 @@ void init_log(void)
 	int i;
 	const char* envlvl;
 
-	envlvl = getenv("MM_LOG_MAXLEVEL");
+	envlvl = getenv("MMLOG_MAXLEVEL");
 	if (!envlvl)
 		return;
 	
