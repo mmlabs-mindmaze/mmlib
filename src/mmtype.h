@@ -41,11 +41,18 @@ mmheadinfo;
 
 typedef struct epos3d
 {
-	float x;
-	float y;
-	float z;
-	int confidence;      /* Confidence in the estimation */
+    float x;
+    float y;
+    float z;
+    int confidence;      /* Confidence in the estimation */
 }
 epos3d;
+
+typedef struct rotmatrix3d
+{
+    float elem[9];
+    int confidence;
+}
+rotmatrix;
 
 #endif /* MMTYPE_H */
