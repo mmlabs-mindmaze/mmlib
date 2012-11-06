@@ -7,16 +7,26 @@
 #ifndef MMTYPE_H
 #define MMTYPE_H
 
+// Image depth definitions
 #define MM_DEPTH_SIGN 0x80000000
-
 #define MM_DEPTH_1U     1
 #define MM_DEPTH_8U     8
 #define MM_DEPTH_16U   16
 #define MM_DEPTH_32F   32
-
 #define MM_DEPTH_8S  (MM_DEPTH_SIGN| 8)
 #define MM_DEPTH_16S (MM_DEPTH_SIGN|16)
 #define MM_DEPTH_32S (MM_DEPTH_SIGN|32)
+
+// Joint indexes
+#define MM_HEAD 0
+#define MM_NECK 1
+#define MM_L_SHOULDER 2
+#define MM_R_SHOULDER 3
+#define MM_L_ELBOW 4
+#define MM_R_ELBOW 5
+#define MM_L_HAND 6
+#define MM_R_HAND 7
+#define MM_TORSO 8
 
 typedef struct mmimage
 {
