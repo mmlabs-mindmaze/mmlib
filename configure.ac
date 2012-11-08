@@ -39,6 +39,7 @@ AM_GNU_GETTEXT_VERSION(0.18)
 
 # Check for libraries
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
+MM_CHECK_LIB([sqrtf], [m], MATH)
 
 AC_DEF_API_EXPORT_ATTRS
 
