@@ -38,7 +38,7 @@ AM_GNU_GETTEXT_VERSION(0.18)
 
 
 # Check for libraries
-MM_CHECK_PTHREAD([], [AC_MSG_ERROR([Cannot find pthread development library])])
+MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
 
 AC_DEF_API_EXPORT_ATTRS
 
