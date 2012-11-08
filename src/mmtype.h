@@ -55,7 +55,7 @@ typedef struct epos3d {
 typedef struct rotmatrix3d {
 	float elem[9];
 	int confidence;
-} rotmatrix;
+} rotmatrix3d;
 
 #endif /* MMTYPE_H */
 
