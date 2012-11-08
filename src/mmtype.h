@@ -57,5 +57,13 @@ typedef struct rotmatrix3d {
 	int confidence;
 } rotmatrix3d;
 
-#endif /* MMTYPE_H */
+typedef struct mmquat {
+	float w;
+	float x;
+	float y;
+	float z;
+	int confidence;
+} mmquat;
 
+
+#endif /* MMTYPE_H */
