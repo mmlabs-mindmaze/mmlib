@@ -65,5 +65,29 @@ typedef struct mmquat {
 	int confidence;
 } mmquat;
 
+typedef struct mmplane {
+	epos3d origin;
+	epos3d normal;
+} mmplane;
+
+typedef struct mmcylinder {
+	epos3d pos;
+	mmquat rot;
+	float height;
+	float radius;
+} mmcylinder;
+
+typedef struct mmsphere {
+	epos3d pos;
+	float radius;
+} mmsphere;
+
+typedef struct mmbox {
+	epos3d pos;
+	mmquat rot;
+	float height;
+	float width;
+	float depth;
+} mmbox;
 
 #endif /* MMTYPE_H */
