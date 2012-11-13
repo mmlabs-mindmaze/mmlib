@@ -46,9 +46,7 @@ typedef struct mmheadinfo {
 } mmheadinfo;
 
 typedef struct epos3d {
-	float x;
-	float y;
-	float z;
+    float v[3];
 	int confidence;	  /* Confidence in the estimation */
 } epos3d;
 
@@ -58,33 +56,25 @@ typedef struct rotmatrix3d {
 } rotmatrix3d;
 
 typedef struct mmquat {
-	float w;
-	float x;
-	float y;
-	float z;
+	float v[4];
 	int confidence;
 } mmquat;
 
-typedef struct mmplane {
-	epos3d origin;
-	epos3d normal;
-} mmplane;
-
 typedef struct mmcylinder {
-	epos3d pos;
-	mmquat rot;
+	float pos[3];
+	float rot[4];
 	float height;
 	float radius;
 } mmcylinder;
 
 typedef struct mmsphere {
-	epos3d pos;
+	float pos[3];
 	float radius;
 } mmsphere;
 
 typedef struct mmbox {
-	epos3d pos;
-	mmquat rot;
+	float pos[3];
+	float rot[4];
 	float height;
 	float width;
 	float depth;
