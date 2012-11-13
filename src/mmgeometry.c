@@ -219,41 +219,24 @@ float* plane_from_point(float *plane, const float* p)
     return plane;
 }
 
-float plane_distance(const float* plane, const float *p)
+float plane_distance(const float* p, const float* plane)
 {
     return fabs(mm_dot(plane,p,3) + plane[3])/mm_norm(plane,3);
 }
 
-float* plane_intersect(const float* plane, float* p, const float* v)
+float* plane_intersect(float* p, const float* v, const float* plane)
 {
-    float p0[] = {0.f, 0.f ,0.f};
-    float v2[3];
-    float d, denum;
+    float d,v2[3];
+    d = - (mm_dot(plane,p,3)+plane[3])/mm_dot(plane,v,3);
     memcpy(v2,v,sizeof(float)*3);
-
-    // Get a reasonable plane point
-    if (plane[0] > 0.5)
-        p0[0] = -plane[3]/plane[0];
-    else if (plane[1] > 0.5)
-        p0[1] = -plane[3]/plane[1];
-    else
-        p0[2] = -plane[3]/plane[2];
-
-    // d = (p0 - p).n / v.n
-    denum = mm_dot(v,plane,3);
-    if (denum == 0.f)
-        return p;
-    mm_subst(p0,plane,3);
-    d = mm_dot(p0,plane,3)/denum;
-    
     mm_add(p,mm_mul(v2,d,3),3);
 
 	return p;
 }
 
-float* plane_projection(const float* plane, float* p)
+float* plane_projection(float* p, const float* plane)
 {
-	return plane_intersect(plane,p,plane);
+	return plane_intersect(p,plane,plane);
 }
 
 // ----------------------------- //
@@ -275,7 +258,7 @@ bool pointing_to_cylinder(const mmcylinder* cyl, const float* p1, const float* p
     memcpy(p,p1,sizeof(float)*3);
     memcpy(v,p1,sizeof(float)*3);
 	mm_subst(v,p2,3);
-	plane_intersect(cyl_plane,p,v);
+	plane_intersect(p,v,cyl_plane);
 
 	// Compute distance between intersection and cylinder origin
 	dist = mm_norm(mm_subst(p,cyl->pos,3),3);
@@ -295,13 +278,13 @@ bool collision_with_cylinder(const mmcylinder* cyl, const float* p)
 
 	// Compute projection to cylinder plane
 	memcpy(intersec,p,sizeof(float)*3);
-	plane_projection(cyl_plane,intersec);
+	plane_projection(intersec,cyl_plane);
 
 	// Compute distance between intersection and cylinder origin
 	radius_dist = mm_norm(mm_subst(intersec,cyl->pos,3),3);
 
 	// Compute distance between original point and cylinder plane
-    height_dist = plane_distance(cyl_plane,p);
+    height_dist = plane_distance(p,cyl_plane);
 
 	return radius_dist <= cyl->radius && height_dist <= cyl->height / 2.0;
 }

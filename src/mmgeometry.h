@@ -26,14 +26,15 @@ float* mm_cross(float *v1, const float *v2);
 float* mm_rotate(float* v, const float* q);
 
 // Quaternion specific opereations
+float* quat_conjugate(float *q);
 float* quat_mul(float* q1, const float* q2);
 float* quat_inverse(float* q);
 
 // Plane operations (plane defined as ax + bx + cy + d = 0)
 float* plane_from_point(float *plane, const float* p);
-float plane_distance(const float* plane, const float* p);
-float* plane_intersect(const float* plane, float* p, const float* v);
-float* plane_projection(const float* plane, float* p);
+float plane_distance(const float* p, const float* plane);
+float* plane_intersect(float* p, const float* v, const float* plane);
+float* plane_projection(float* p, const float* plane);
 
 // Cylinder operations
 bool pointing_to_cylinder(const mmcylinder* cyl, const float* p1, const float* p2);
