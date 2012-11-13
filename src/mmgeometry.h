@@ -10,28 +10,33 @@
 #include "mmtype.h"
 #include "stdbool.h"
 
+// Conversion between quaternion and rotation matrix
 mmquat from_rotmatrix3d(rotmatrix3d* mat);
 rotmatrix3d from_quat(mmquat* q);
 
-mmquat quat_add(const mmquat* q1, const mmquat* q2);
-mmquat quat_subst(const mmquat* q1, const mmquat* q2);
-mmquat quat_mul(const mmquat* q1, const mmquat* q2);
-float quat_norm(const mmquat* q);
-mmquat quat_inverse(const mmquat* q);
+// Generic operations
+float* mm_add(float *v1, const float *v2, int size);
+float* mm_subst(float *v1, const float *v2, int size);
+float* mm_mul(float *v, float s, int size);
+float mm_dot(const float *v1, const float *v2, int size);
+float mm_norm(const float *v, int size);
 
-epos3d epos_add(const epos3d* p1, const epos3d* p2);
-epos3d epos_subst(const epos3d* p1, const epos3d* p2);
-epos3d epos_mul(const epos3d* p, float s);
-float epos_dot(const epos3d* p1, const epos3d* p2);
-epos3d epos_cross(const epos3d* p1, const epos3d* p2);
-float epos_norm(const epos3d* p);
-epos3d epos_rotate(const epos3d* p, const mmquat* q);
+// 3D Vector specific operations
+float* mm_cross(float *v1, const float *v2);
+float* mm_rotate(float* v, const float* q);
 
-epos3d plane_intersect(const mmplane* plane, const epos3d* p, const epos3d* vec);
-epos3d plane_projection(const mmplane* plane, const epos3d* p);
+// Quaternion specific opereations
+float* quat_mul(float* q1, const float* q2);
+float* quat_inverse(float* q);
 
-epos3d get_cylinder_normal(const mmcylinder* cyl);
-bool pointing_to_cylinder(const mmcylinder* cyl, const epos3d* p1, const epos3d* p2);
-bool collision_with_cylinder(const mmcylinder* cyl, const epos3d* p);
+// Plane operations (plane defined as ax + bx + cy + d = 0)
+float* plane_from_point(float *plane, const float* p);
+float plane_distance(const float* plane, const float* p);
+float* plane_intersect(const float* plane, float* p, const float* v);
+float* plane_projection(const float* plane, float* p);
+
+// Cylinder operations
+bool pointing_to_cylinder(const mmcylinder* cyl, const float* p1, const float* p2);
+bool collision_with_cylinder(const mmcylinder* cyl, const float* p);
 
 #endif /* MMGEOMETRY_H */

@@ -7,6 +7,11 @@
 
 #include "mmgeometry.h"
 #include "math.h"
+#include "string.h"
+
+// ---------------------------------------------------- //
+// ----- Quaternion <-> Rotation matrix conversion ---- //
+// ---------------------------------------------------- //
 
 mmquat from_rotmatrix3d(rotmatrix3d* mat)
 {
@@ -22,61 +27,37 @@ mmquat from_rotmatrix3d(rotmatrix3d* mat)
 	{
 		// |w| > 1/2, may as well choose w > 1/2
 		fRoot = sqrt(fTrace + 1.0f);  // 2w
-		out.w = 0.5f*fRoot;
+		out.v[0] = 0.5f*fRoot;
 		fRoot = 0.5f/fRoot;  // 1/(4w)
-		out.x = (mat->elem[7]-mat->elem[5])*fRoot;
-		out.y = (mat->elem[2]-mat->elem[6])*fRoot;
-		out.z = (mat->elem[3]-mat->elem[1])*fRoot;
+		out.v[1] = (mat->elem[7]-mat->elem[5])*fRoot;
+		out.v[2] = (mat->elem[2]-mat->elem[6])*fRoot;
+		out.v[3] = (mat->elem[3]-mat->elem[1])*fRoot;
 	}
 	else
 	{
 		// |w| <= 1/2
-		int a = 0;
-		int b = 1;
-		int c = 2;
-		int i = 0;
-		int ij = 1;
-		int ik = 2;
-		int ji = 3;
-		int j = 4;
-		int jk = 5;
-		int ki = 6;
-		int kj = 7;
-		int k = 8;
+		int a = 0; int b = 1; int c = 2;
+		int i = 0; int ij = 1; int ik = 2;
+		int ji = 3; int j = 4; int jk = 5;
+		int ki = 6; int kj = 7; int k = 8;
 		if ( mat->elem[4] > mat->elem[0] ) {
-			a = 1;
-			b = 2;
-			c = 0;
-			i = 4;
-			ij = 5;
-			ik = 3;
-			ji = 7;
-			j = 8;
-			jk = 6;
-			ki = 1;
-			kj = 2;
-			k = 0;
+			a = 1; b = 2; c = 0;
+			i = 4; ij = 5; ik = 3;
+			ji = 7; j = 8; jk = 6;
+			ki = 1; kj = 2; k = 0;
 		}
 		if ( mat->elem[8] > mat->elem[i] ) {
-			a = 2;
-			b = 0;
-			c = 1;
-			i = 8;
-			ij = 6;
-			ik = 7;
-			ji = 2;
-			j = 0;
-			jk = 1;
-			ki = 5;
-			kj = 3;
-			k = 4;
+			a = 2; b = 0; c = 1;
+			i = 8; ij = 6; ik = 7;
+			ji = 2; j = 0; jk = 1;
+			ki = 5; kj = 3; k = 4;
 		}
 
 		fRoot = sqrt(mat->elem[i]-mat->elem[j]-mat->elem[k] + 1.0f);
-		float* apkQuat[3] = { &out.x, &out.y, &out.z };
+		float* apkQuat[3] = { &out.v[1], &out.v[2], &out.v[3] };
 		*apkQuat[a] = 0.5f*fRoot;
 		fRoot = 0.5f/fRoot;
-		out.w = (mat->elem[kj]-mat->elem[jk])*fRoot;
+		out.v[0] = (mat->elem[kj]-mat->elem[jk])*fRoot;
 		*apkQuat[b] = (mat->elem[ji]+mat->elem[ij])*fRoot;
 		*apkQuat[c] = (mat->elem[ki]+mat->elem[ik])*fRoot;
 	}
@@ -90,18 +71,18 @@ rotmatrix3d from_quat(mmquat* q)
 {
 	rotmatrix3d mat;
 
-	float fTx  = q->x+q->x;
-	float fTy  = q->y+q->y;
-	float fTz  = q->z+q->z;
-	float fTwx = fTx*q->w;
-	float fTwy = fTy*q->w;
-	float fTwz = fTz*q->w;
-	float fTxx = fTx*q->x;
-	float fTxy = fTy*q->x;
-	float fTxz = fTz*q->x;
-	float fTyy = fTy*q->y;
-	float fTyz = fTz*q->y;
-	float fTzz = fTz*q->z;
+	float fTx  = q->v[1]+q->v[1];
+	float fTy  = q->v[2]+q->v[2];
+	float fTz  = q->v[3]+q->v[3];
+	float fTwx = fTx*q->v[0];
+	float fTwy = fTy*q->v[0];
+	float fTwz = fTz*q->v[0];
+	float fTxx = fTx*q->v[1];
+	float fTxy = fTy*q->v[1];
+	float fTxz = fTz*q->v[1];
+	float fTyy = fTy*q->v[2];
+	float fTyz = fTz*q->v[2];
+	float fTzz = fTz*q->v[3];
 
 	mat.elem[0] = 1.0f-(fTyy+fTzz);
 	mat.elem[1] = fTxy-fTwz;
@@ -118,201 +99,210 @@ rotmatrix3d from_quat(mmquat* q)
 	return mat;
 }
 
-mmquat quat_add(const mmquat* q1, const mmquat* q2)
+// ---------------------------- //
+// ---- Generic Operations ---- //
+// ---------------------------- //
+
+float* mm_add(float* v1, const float* v2, int size)
 {
-	mmquat q;
-	q.w = q1->w + q2->w;
-	q.x = q1->x + q2->x;
-	q.y = q1->y + q2->y;
-	q.z = q1->z + q2->z;
-	return q;
+    int i;
+    for (i=0; i<size; i++)
+        v1[i] += v2[i]; 
+	return v1;
 }
 
-mmquat quat_subst(const mmquat* q1, const mmquat* q2)
+float* mm_subst(float* v1, const float* v2, int size)
 {
-	mmquat q;
-	q.w = q1->w - q2->w;
-	q.x = q1->x - q2->x;
-	q.y = q1->y - q2->y;
-	q.z = q1->z - q2->z;
-	return q;
+    int i;
+    for (i=0; i<size; i++)
+        v1[i] -= v2[i]; 
+	return v1;
 }
 
-mmquat quat_mul(const mmquat* q1, const mmquat* q2)
+float* mm_mul(float* v, float s, int size)
 {
-	// NOTE:  Multiplication is not generally commutative, so in most
-	// cases p*q != q*p.
-	mmquat q;
-	q.w =q1->w * q2->w -q1->x * q2->x -q1->y * q2->y -q1->z * q2->z;
-	q.x =q1->w * q2->x +q1->x * q2->w +q1->y * q2->z -q1->z * q2->y;
-	q.y =q1->w * q2->y +q1->y * q2->w +q1->z * q2->x -q1->x * q2->z;
-	q.z =q1->w * q2->z +q1->z * q2->w +q1->x * q2->y -q1->y * q2->x;
-	return q;
+    int i;
+    for (i=0; i<size; i++)
+        v[i] *= s; 
+	return v;
 }
 
-
-float quat_norm(const mmquat* q)
+float mm_dot(const float* v1, const float* v2, int size)
 {
-	float norm = 0;
-	norm += q->w*q->w;
-	norm += q->x*q->x;
-	norm += q->y*q->y;
-	norm += q->z*q->z;
-	return norm;
+    float dot = 0;
+    int i;
+    for (i=0; i<size; i++)
+        dot += v1[i] * v2[i];
+    return dot;
 }
 
-
-mmquat quat_inverse(const mmquat* q)
+float mm_norm(const float* v, int size)
 {
-	mmquat out;
-	float fNorm = quat_norm(q);
-	if ( fNorm > 0.0 )
-	{
-		float fInvNorm = 1.0f/fNorm;
-		out.w = q->w*fInvNorm;
-		out.x = -q->x*fInvNorm;
-		out.y = -q->y*fInvNorm;
-		out.z = -q->z*fInvNorm;
-	}
-	return out;
+    float norm = 0;
+    int i;
+    for (i=0; i<size; i++)
+        norm += v[i] * v[i];
+    return sqrt(norm);
 }
 
-epos3d epos_add(const epos3d* p1, const epos3d* p2)
+// ------------------------------ //
+// ---- 3D Vector Operations ---- //
+// ------------------------------ //
+
+float* mm_cross(float* v1, const float* v2)
 {
-	epos3d p;
-	p.x = p1->x + p2->x;
-	p.y = p1->y + p2->y;
-	p.z = p1->z + p2->z;
-	return p;
+    float out[3];
+	out[0] = v1[1]*v2[2] - v1[2]*v2[1];
+	out[1] = v1[2]*v2[0] - v1[0]*v2[2];
+    out[2] = v1[0]*v2[1] - v1[1]*v2[0];
+    memcpy(v1,out,sizeof(float)*3);
+	return v1;
 }
 
-epos3d epos_subst(const epos3d* p1, const epos3d* p2)
-{
-	epos3d p;
-	p.x = p1->x - p2->x;
-	p.y = p1->y - p2->y;
-	p.z = p1->z - p2->z;
-	return p;
-}
-
-epos3d epos_mul(const epos3d* p, float s)
-{
-	epos3d out;
-	out.x = p->x * s;
-	out.y = p->y * s;
-	out.z = p->z * s;
-	return out;
-}
-
-float epos_dot(const epos3d* p1, const epos3d* p2)
-{
-	float out;
-	out = p1->x*p2->x + p1->y*p2->y + p1->z*p2->z;
-	return out;
-}
-
-epos3d epos_cross(const epos3d* p1, const epos3d* p2)
-{
-	epos3d p;
-	p.x = p1->y*p2->z - p1->z*p2->y;
-	p.y = p1->z*p2->x - p1->x*p2->z;
-	p.z = p1->x*p2->y - p1->y*p2->x;
-	return p;
-}
-
-float epos_norm(const epos3d* p)
-{
-	float out;
-	out = sqrt(p->x*p->x + p->y*p->y + p->z*p->z);
-	return out;
-}
-
-epos3d epos_rotate(const epos3d* p, const mmquat* q)
+float* mm_rotate(float* v, const float* q)
 {
 	// nVidia SDK implementation
-	epos3d uv, uuv, qvec;
-	qvec.x = q->x;
-	qvec.y = q->y;
-	qvec.z = q->z;
-	uv = epos_cross(&qvec,p);
-	uuv = epos_cross(&qvec,&uv);
-	uv = epos_mul(&uv,2.0f * q->w);
-	uuv = epos_mul(&uv,2.0f);
-	uuv = epos_add(&uv, &uuv);
-
-	return epos_add(p,&uuv);
+	float uv[3], uuv[3];
+	memcpy(uv,q+1,sizeof(float)*3);
+    memcpy(uuv,q+1,sizeof(float)*3);
+	mm_cross(uv,v);
+	mm_cross(uuv,uv);
+	mm_mul(uv,2.0f * q[0],3);
+	mm_mul(uuv,2.0f,3);
+	mm_add(v, mm_add(uuv,uv,3),3);
+	return v;
 }
 
-epos3d plane_intersect(const mmplane* plane, const epos3d* p, const epos3d* vec)
+// -------------------------------- //
+// ----- Quaternion operations ---- //
+// -------------------------------- //
+
+float *quat_mul(float *q1, const float *q2)
 {
-	epos3d diff, out;
-	float num, denum, d;
-	diff = epos_subst(&plane->origin,p);
-	num = epos_dot(&diff,&plane->normal);
-	denum = epos_dot(vec,&plane->normal);
-	d = num / denum;
-	out = epos_mul(vec,d);
-	return epos_add(p,&out);
+	float out[4];
+	out[0] = q1[0] * q2[0] - q1[1] * q2[1] - q1[2] * q2[2] - q1[3] * q2[3];
+	out[1] = q1[0] * q2[1] + q1[1] * q2[0] + q1[2] * q2[3] - q1[3] * q2[2];
+	out[2] = q1[0] * q2[2] + q1[2] * q2[0] + q1[3] * q2[1] - q1[1] * q2[3];
+	out[3] = q1[0] * q2[3] + q1[3] * q2[0] + q1[1] * q2[2] - q1[2] * q2[1];
+	memcpy(q1, out, sizeof(float) * 4);
+	return q1;
 }
 
-epos3d plane_projection(const mmplane* plane, const epos3d* p)
+float *quat_conjugate(float *q)
 {
-	return plane_intersect(plane,p,&plane->normal);
+	q[1] = -q[1];
+	q[2] = -q[2];
+	q[3] = -q[3];
+	return q;
 }
 
-epos3d get_cylinder_normal(const mmcylinder* cyl)
+float *quat_inverse(float *q)
 {
-	epos3d normal;
-	// Default normal (no rotation)
-	normal.x = 0.f;
-	normal.y = 1.f;
-	normal.z = 0.f;
-
-	// Compute normal corresponding to cylinder
-	normal = epos_rotate(&normal,&cyl->rot);
+	float fNorm = mm_norm(q,4);
+	if (fNorm > 0.0) {
+		float fInvNorm = 1.0f / (fNorm * fNorm);
+		q[0] *= fInvNorm;
+		q[1] *= -fInvNorm;
+		q[2] *= -fInvNorm;
+		q[3] *= -fInvNorm;
+	}
+	return q;
 }
 
-bool pointing_to_cylinder(const mmcylinder* cyl, const epos3d* p1, const epos3d* p2)
+// -------------------------- //
+// ---- Plane operations ---- //
+// -------------------------- //
+
+float* plane_from_point(float *plane, const float* p)
 {
-	epos3d vec, intersec;
-	mmplane cyl_plane;
-	double dist;
+    plane[3] = - mm_dot(plane,p,3);
+    return plane;
+}
 
-	// Compute plane corresponding to cylinder
-	cyl_plane.origin = cyl->pos;
-	cyl_plane.normal = get_cylinder_normal(cyl);
+float plane_distance(const float* plane, const float *p)
+{
+    return fabs(mm_dot(plane,p,3) + plane[3])/mm_norm(plane,3);
+}
 
-	// Compute intersection point with cylinder
-	vec = epos_subst(p1,p2);
-	intersec = plane_intersect(&cyl_plane,p1,&vec);
+float* plane_intersect(const float* plane, float* p, const float* v)
+{
+    float p0[] = {0.f, 0.f ,0.f};
+    float v2[3];
+    float d, denum;
+    memcpy(v2,v,sizeof(float)*3);
+
+    // Get a reasonable plane point
+    if (plane[0] > 0.5)
+        p0[0] = -plane[3]/plane[0];
+    else if (plane[1] > 0.5)
+        p0[1] = -plane[3]/plane[1];
+    else
+        p0[2] = -plane[3]/plane[2];
+
+    // d = (p0 - p).n / v.n
+    denum = mm_dot(v,plane,3);
+    if (denum == 0.f)
+        return p;
+    mm_subst(p0,plane,3);
+    d = mm_dot(p0,plane,3)/denum;
+    
+    mm_add(p,mm_mul(v2,d,3),3);
+
+	return p;
+}
+
+float* plane_projection(const float* plane, float* p)
+{
+	return plane_intersect(plane,p,plane);
+}
+
+// ----------------------------- //
+// ---- Cylinder operations ---- //
+// ----------------------------- //
+
+
+bool pointing_to_cylinder(const mmcylinder* cyl, const float* p1, const float* p2)
+{
+    float cyl_plane[] = { 0.f, 1.f, 0.f, 0.f };
+    float p[3],v[3];
+    float dist;
+
+    // Compute cylinder plane
+    mm_rotate(cyl_plane,cyl->rot);
+    plane_from_point(cyl_plane,cyl->pos);
+
+	// Compute intersection point with cylinder plane
+    memcpy(p,p1,sizeof(float)*3);
+    memcpy(v,p1,sizeof(float)*3);
+	mm_subst(v,p2,3);
+	plane_intersect(cyl_plane,p,v);
 
 	// Compute distance between intersection and cylinder origin
-	intersec = epos_subst(&intersec,&cyl->pos);
-	dist = epos_norm(&intersec);
+	dist = mm_norm(mm_subst(p,cyl->pos,3),3);
 
 	return dist <= cyl->radius;
 }
 
-bool collision_with_cylinder(const mmcylinder* cyl, const epos3d* p)
+bool collision_with_cylinder(const mmcylinder* cyl, const float* p)
 {
-	epos3d intersec, diff;
-	mmplane cyl_plane;
-	double radius_dist, height_dist;
+    float cyl_plane[] = { 0.f, 1.f, 0.f, 0.f };
+    float intersec[3];
+    float radius_dist, height_dist;
 
-	// Compute plane corresponding to cylinder
-	cyl_plane.origin = cyl->pos;
-	cyl_plane.normal = get_cylinder_normal(cyl);
+    // Compute cylinder plane
+    mm_rotate(cyl_plane,cyl->rot);
+    plane_from_point(cyl_plane,cyl->pos);
 
 	// Compute projection to cylinder plane
-	intersec = plane_projection(&cyl_plane,p);
+	memcpy(intersec,p,sizeof(float)*3);
+	plane_projection(cyl_plane,intersec);
 
 	// Compute distance between intersection and cylinder origin
-	diff = epos_subst(&intersec,&cyl->pos);
-	radius_dist = epos_norm(&diff);
+	radius_dist = mm_norm(mm_subst(intersec,cyl->pos,3),3);
 
-	// Compute distance between original point and intersection
-	diff = epos_subst(p,&intersec);
-	height_dist = epos_norm(&diff);
+	// Compute distance between original point and cylinder plane
+    height_dist = plane_distance(cyl_plane,p);
 
 	return radius_dist <= cyl->radius && height_dist <= cyl->height / 2.0;
 }
+
