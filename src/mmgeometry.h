@@ -7,8 +7,8 @@
 #ifndef MMGEOMETRY_H
 #define MMGEOMETRY_H
 
-#include "mmtype.h"
-#include "stdbool.h"
+#include <mmtype.h>
+#include <stdbool.h>
 
 // Conversion between quaternion and rotation matrix
 mmquat from_rotmatrix3d(rotmatrix3d* mat);

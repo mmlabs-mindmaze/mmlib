@@ -6,8 +6,8 @@
 */
 
 #include "mmgeometry.h"
-#include "math.h"
-#include "string.h"
+#include <math.h>
+#include <string.h>
 
 // ---------------------------------------------------- //
 // ----- Quaternion <-> Rotation matrix conversion ---- //
