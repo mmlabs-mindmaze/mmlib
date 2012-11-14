@@ -8,7 +8,6 @@
 #define MMGEOMETRY_H
 
 #include <mmtype.h>
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,8 +40,8 @@ float* plane_intersect(float* p, const float* v, const float* plane);
 float* plane_projection(float* p, const float* plane);
 
 // Cylinder operations
-bool pointing_to_cylinder(const mmcylinder* cyl, const float* p1, const float* p2);
-bool collision_with_cylinder(const mmcylinder* cyl, const float* p);
+int pointing_to_cylinder(const mmcylinder* cyl, const float* p1, const float* p2);
+int collision_with_cylinder(const mmcylinder* cyl, const float* p);
 
 #ifdef __cplusplus
 }

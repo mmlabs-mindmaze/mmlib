@@ -264,8 +264,8 @@ float *plane_projection(float *p, const float *plane)
 // ---- Cylinder operations ---- //
 // ----------------------------- //
 
-bool pointing_to_cylinder(const mmcylinder * cyl, const float *p1,
-			  const float *p2)
+int pointing_to_cylinder(const mmcylinder * cyl, const float *p1,
+			 const float *p2)
 {
 	float cyl_plane[] = { 0.f, 1.f, 0.f, 0.f };
 	float p[3], v[3];
@@ -287,7 +287,7 @@ bool pointing_to_cylinder(const mmcylinder * cyl, const float *p1,
 	return dist <= cyl->radius;
 }
 
-bool collision_with_cylinder(const mmcylinder * cyl, const float *p)
+int collision_with_cylinder(const mmcylinder * cyl, const float *p)
 {
 	float cyl_plane[] = { 0.f, 1.f, 0.f, 0.f };
 	float intersec[3];
