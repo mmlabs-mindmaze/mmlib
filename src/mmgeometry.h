@@ -10,6 +10,10 @@
 #include <mmtype.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Conversion between quaternion and rotation matrix
 mmquat from_rotmatrix3d(rotmatrix3d* mat);
 rotmatrix3d from_quat(mmquat* q);
@@ -39,5 +43,9 @@ float* plane_projection(float* p, const float* plane);
 // Cylinder operations
 bool pointing_to_cylinder(const mmcylinder* cyl, const float* p1, const float* p2);
 bool collision_with_cylinder(const mmcylinder* cyl, const float* p);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MMGEOMETRY_H */
