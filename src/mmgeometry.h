@@ -9,6 +9,8 @@
 #define MMGEOMETRY_H
 
 #include <mmtype.h>
+#include <string.h>
+#include <math.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,18 +33,91 @@ mmquat from_rotmatrix3d(rotmatrix3d* mat);
 rotmatrix3d from_quat(mmquat* q);
 
 // 3D Vector specific operations
-float* mm_add(float *__restrict v1, const float *__restrict v2);
-float* mm_subst(float *__restrict v1, const float *__restrict v2);
-float* mm_mul(float *v, float s);
-float mm_dot(const float *__restrict v1, const float *__restrict v2);
-float mm_norm(const float *v);
+static inline
+float* mm_add(float *__restrict v1, const float *__restrict v2)
+{
+	int i;
+	for (i = 0; i < 3; i++)
+		v1[i] += v2[i];
+	return v1;
+}
+
+static inline
+float* mm_subst(float *__restrict v1, const float *__restrict v2)
+{
+	int i;
+	for (i = 0; i < 3; i++)
+		v1[i] -= v2[i];
+	return v1;
+}
+
+static inline
+float* mm_mul(float *v, float s)
+{
+	int i;
+	for (i = 0; i < 3; i++)
+		v[i] *= s;
+	return v;
+}
+
+static inline
+float mm_dot(const float *__restrict v1, const float *__restrict v2)
+{
+	float dot = 0;
+	int i;
+	for (i = 0; i < 3; i++)
+		dot += v1[i] * v2[i];
+	return dot;
+}
+
+static inline
+float mm_norm(const float *v)
+{
+	float norm = 0;
+	int i;
+	for (i = 0; i < 3; i++)
+		norm += v[i] * v[i];
+	return sqrt(norm);
+}
+
 float* mm_cross(float *__restrict v1, const float *__restrict v2);
 float* mm_rotate(float *__restrict v, const float *__restrict q);
 
 // Quaternion specific opereations
-float* quat_conjugate(float *q);
+static inline
+float quat_norm(const float *q)
+{
+	float norm = 0;
+	int i;
+	for (i = 0; i < 4; i++)
+		norm += q[i] * q[i];
+	return norm;
+}
+
+static inline
+float *quat_conjugate(float *q)
+{
+	q[1] = -q[1];
+	q[2] = -q[2];
+	q[3] = -q[3];
+	return q;
+}
+
+static inline
+float *quat_inverse(float *q)
+{
+	float fNorm = quat_norm(q);
+	if (fNorm > 0.0) {
+		float fInvNorm = 1.0f / fNorm;
+		q[0] *= fInvNorm;
+		q[1] *= -fInvNorm;
+		q[2] *= -fInvNorm;
+		q[3] *= -fInvNorm;
+	}
+	return q;
+}
+
 float* quat_mul(float *__restrict q1, const float *__restrict q2);
-float* quat_inverse(float* q);
 
 // Plane operations (plane defined as ax + bx + cy + d = 0)
 float* plane_from_point(float *__restrict plane, const float *__restrict p);

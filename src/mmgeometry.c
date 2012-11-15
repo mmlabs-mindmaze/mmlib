@@ -123,50 +123,7 @@ rotmatrix3d from_quat(mmquat * q)
 // ------------------------------ //
 // ---- 3D Vector Operations ---- //
 // ------------------------------ //
-
-float *mm_add(float *__restrict v1, const float *__restrict v2)
-{
-	int i;
-	for (i = 0; i < 3; i++)
-		v1[i] += v2[i];
-	return v1;
-}
-
-float *mm_subst(float *__restrict v1, const float *__restrict v2)
-{
-	int i;
-	for (i = 0; i < 3; i++)
-		v1[i] -= v2[i];
-	return v1;
-}
-
-float *mm_mul(float *v, float s)
-{
-	int i;
-	for (i = 0; i < 3; i++)
-		v[i] *= s;
-	return v;
-}
-
-float mm_dot(const float *__restrict v1, const float *__restrict v2)
-{
-	float dot = 0;
-	int i;
-	for (i = 0; i < 3; i++)
-		dot += v1[i] * v2[i];
-	return dot;
-}
-
-float mm_norm(const float *v)
-{
-	float norm = 0;
-	int i;
-	for (i = 0; i < 3; i++)
-		norm += v[i] * v[i];
-	return sqrt(norm);
-}
-
-float *mm_cross(float *__restrict v1, const float *__restrict v2)
+float* mm_cross(float *__restrict v1, const float *__restrict v2)
 {
 	float out[3];
 	out[0] = v1[1]*v2[2] - v1[2]*v2[1];
@@ -203,36 +160,6 @@ float *quat_mul(float *__restrict q1, const float *__restrict q2)
 	out[3] = q1[0]*q2[3] + q1[3]*q2[0] + q1[1]*q2[2] - q1[2]*q2[1];
 	memcpy(q1, out, sizeof(out));
 	return q1;
-}
-
-float quat_norm(const float *q)
-{
-	float norm = 0;
-	int i;
-	for (i = 0; i < 4; i++)
-		norm += q[i] * q[i];
-	return norm;
-}
-
-float *quat_conjugate(float *q)
-{
-	q[1] = -q[1];
-	q[2] = -q[2];
-	q[3] = -q[3];
-	return q;
-}
-
-float *quat_inverse(float *q)
-{
-	float fNorm = quat_norm(q);
-	if (fNorm > 0.0) {
-		float fInvNorm = 1.0f / fNorm;
-		q[0] *= fInvNorm;
-		q[1] *= -fInvNorm;
-		q[2] *= -fInvNorm;
-		q[3] *= -fInvNorm;
-	}
-	return q;
 }
 
 // -------------------------- //
