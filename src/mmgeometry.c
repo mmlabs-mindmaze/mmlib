@@ -26,7 +26,7 @@ float* mm_quat_from_mat(float *__restrict quat, const float *__restrict mat)
 
 	if (fTrace > 0.0) {
 		// |w| > 1/2, may as well choose w > 1/2
-		fRoot = sqrt(fTrace + 1.0f);	// 2w
+		fRoot = sqrtf(fTrace + 1.0f);	// 2w
 		quat[0] = 0.5f * fRoot;
 		fRoot = 0.5f / fRoot;	// 1/(4w)
 		quat[1] = (mat[7] - mat[5]) * fRoot;
@@ -75,7 +75,7 @@ float* mm_quat_from_mat(float *__restrict quat, const float *__restrict mat)
 			k = 4;
 		}
 
-		fRoot = sqrt(mat[i] - mat[j] - mat[k] + 1.0f);
+		fRoot = sqrtf(mat[i] - mat[j] - mat[k] + 1.0f);
 		float *apkQuat[3] = { quat+1, quat+2, quat+3 };
 		*apkQuat[a] = 0.5f * fRoot;
 		fRoot = 0.5f / fRoot;

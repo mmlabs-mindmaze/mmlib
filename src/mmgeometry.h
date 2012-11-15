@@ -69,7 +69,7 @@ float mm_dot(const float *__restrict v1, const float *__restrict v2)
 static inline
 float mm_norm(const float *v)
 {
-	return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+	return sqrtf(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 }
 
 float* mm_cross(float *__restrict v1, const float *__restrict v2);
