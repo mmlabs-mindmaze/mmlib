@@ -32,26 +32,26 @@ int main(void)
 	float v[] = { 1.f, 2.f, 3.f };
 	const float vcheck[] = { 1.f, 2.f, 3.f };
 
-	mm_add(v, vcheck, 3);
-	mm_subst(v, vcheck, 3);
+	mm_add(v, vcheck);
+	mm_subst(v, vcheck);
 
-	if (!is_equal(v, vcheck, 3)) {
+	if (!is_equal(v, vcheck,3)) {
 		printf("add/sub test failure.\n");
 		return EXIT_FAILURE;
 	}
 
-	mm_mul(v, 4.f, 3);
-	mm_mul(v, 0.25f, 3);
+	mm_mul(v, 4.f);
+	mm_mul(v, 0.25f);
 
-	if (!is_equal(v, vcheck, 3)) {
+	if (!is_equal(v, vcheck,3)) {
 		printf("mm_mul test failure.\n");
 		return EXIT_FAILURE;
 	}
 
 	float val;
-	val = mm_norm(vcheck, 3);
+	val = mm_norm(vcheck);
 	val *= val;
-	val -= mm_dot(vcheck, vcheck, 3);
+	val -= mm_dot(vcheck, vcheck);
 
 	if (fabs(val) > FLOAT_TOLERANCE) {
 		printf("dot/norm test failure.\n");

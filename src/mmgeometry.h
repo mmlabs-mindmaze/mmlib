@@ -17,14 +17,12 @@ extern "C" {
 mmquat from_rotmatrix3d(rotmatrix3d* mat);
 rotmatrix3d from_quat(mmquat* q);
 
-// Generic operations
-float* mm_add(float *v1, const float *v2, int size);
-float* mm_subst(float *v1, const float *v2, int size);
-float* mm_mul(float *v, float s, int size);
-float mm_dot(const float *v1, const float *v2, int size);
-float mm_norm(const float *v, int size);
-
 // 3D Vector specific operations
+float* mm_add(float *v1, const float *v2);
+float* mm_subst(float *v1, const float *v2);
+float* mm_mul(float *v, float s);
+float mm_dot(const float *v1, const float *v2);
+float mm_norm(const float *v);
 float* mm_cross(float *v1, const float *v2);
 float* mm_rotate(float* v, const float* q);
 

@@ -120,55 +120,51 @@ rotmatrix3d from_quat(mmquat * q)
 	return mat;
 }
 
-// ---------------------------- //
-// ---- Generic Operations ---- //
-// ---------------------------- //
+// ------------------------------ //
+// ---- 3D Vector Operations ---- //
+// ------------------------------ //
 
-float *mm_add(float *v1, const float *v2, int size)
+float *mm_add(float *v1, const float *v2)
 {
 	int i;
-	for (i = 0; i < size; i++)
+	for (i = 0; i < 3; i++)
 		v1[i] += v2[i];
 	return v1;
 }
 
-float *mm_subst(float *v1, const float *v2, int size)
+float *mm_subst(float *v1, const float *v2)
 {
 	int i;
-	for (i = 0; i < size; i++)
+	for (i = 0; i < 3; i++)
 		v1[i] -= v2[i];
 	return v1;
 }
 
-float *mm_mul(float *v, float s, int size)
+float *mm_mul(float *v, float s)
 {
 	int i;
-	for (i = 0; i < size; i++)
+	for (i = 0; i < 3; i++)
 		v[i] *= s;
 	return v;
 }
 
-float mm_dot(const float *v1, const float *v2, int size)
+float mm_dot(const float *v1, const float *v2)
 {
 	float dot = 0;
 	int i;
-	for (i = 0; i < size; i++)
+	for (i = 0; i < 3; i++)
 		dot += v1[i] * v2[i];
 	return dot;
 }
 
-float mm_norm(const float *v, int size)
+float mm_norm(const float *v)
 {
 	float norm = 0;
 	int i;
-	for (i = 0; i < size; i++)
+	for (i = 0; i < 3; i++)
 		norm += v[i] * v[i];
 	return sqrt(norm);
 }
-
-// ------------------------------ //
-// ---- 3D Vector Operations ---- //
-// ------------------------------ //
 
 float *mm_cross(float *v1, const float *v2)
 {
@@ -184,13 +180,13 @@ float *mm_rotate(float *v, const float *q)
 {
 	// nVidia SDK implementation
 	float uv[3], uuv[3];
-	memcpy(uv, q + 1, sizeof(float) * 3);
-	memcpy(uuv, q + 1, sizeof(float) * 3);
+	memcpy(uv, q + 1, sizeof(uv));
+	memcpy(uuv, q + 1, sizeof(uuv));
 	mm_cross(uv, v);
 	mm_cross(uuv, uv);
-	mm_mul(uv, 2.0f * q[0], 3);
-	mm_mul(uuv, 2.0f, 3);
-	mm_add(v, mm_add(uuv, uv, 3), 3);
+	mm_mul(uv, 2.0f * q[0]);
+	mm_mul(uuv, 2.0f);
+	mm_add(v, mm_add(uuv, uv));
 	return v;
 }
 
@@ -205,8 +201,17 @@ float *quat_mul(float *q1, const float *q2)
 	out[1] = q1[0]*q2[1] + q1[1]*q2[0] + q1[2]*q2[3] - q1[3]*q2[2];
 	out[2] = q1[0]*q2[2] + q1[2]*q2[0] + q1[3]*q2[1] - q1[1]*q2[3];
 	out[3] = q1[0]*q2[3] + q1[3]*q2[0] + q1[1]*q2[2] - q1[2]*q2[1];
-	memcpy(q1, out, sizeof(float) * 4);
+	memcpy(q1, out, sizeof(out));
 	return q1;
+}
+
+float quat_norm(const float *q)
+{
+	float norm = 0;
+	int i;
+	for (i = 0; i < 4; i++)
+		norm += q[i] * q[i];
+	return norm;
 }
 
 float *quat_conjugate(float *q)
@@ -219,9 +224,9 @@ float *quat_conjugate(float *q)
 
 float *quat_inverse(float *q)
 {
-	float fNorm = mm_norm(q, 4);
+	float fNorm = quat_norm(q);
 	if (fNorm > 0.0) {
-		float fInvNorm = 1.0f / (fNorm * fNorm);
+		float fInvNorm = 1.0f / fNorm;
 		q[0] *= fInvNorm;
 		q[1] *= -fInvNorm;
 		q[2] *= -fInvNorm;
@@ -236,21 +241,21 @@ float *quat_inverse(float *q)
 
 float *plane_from_point(float *plane, const float *p)
 {
-	plane[3] = -mm_dot(plane, p, 3);
+	plane[3] = -mm_dot(plane, p);
 	return plane;
 }
 
 float plane_distance(const float *p, const float *plane)
 {
-	return fabs(mm_dot(plane, p, 3) + plane[3]) / mm_norm(plane, 3);
+	return fabs(mm_dot(plane, p) + plane[3]) / mm_norm(plane);
 }
 
 float *plane_intersect(float *p, const float *v, const float *plane)
 {
 	float d, v2[3];
-	d = -(mm_dot(plane, p, 3) + plane[3]) / mm_dot(plane, v, 3);
-	memcpy(v2, v, sizeof(float) * 3);
-	mm_add(p, mm_mul(v2, d, 3), 3);
+	d = -(mm_dot(plane, p) + plane[3]) / mm_dot(plane, v);
+	memcpy(v2, v, sizeof(v2));
+	mm_add(p, mm_mul(v2, d));
 
 	return p;
 }
@@ -276,13 +281,13 @@ int pointing_to_cylinder(const mmcylinder * cyl, const float *p1,
 	plane_from_point(cyl_plane, cyl->pos);
 
 	// Compute intersection point with cylinder plane
-	memcpy(p, p1, sizeof(float) * 3);
-	memcpy(v, p1, sizeof(float) * 3);
-	mm_subst(v, p2, 3);
+	memcpy(p, p1, sizeof(p));
+	memcpy(v, p1, sizeof(v));
+	mm_subst(v, p2);
 	plane_intersect(p, v, cyl_plane);
 
 	// Compute distance between intersection and cylinder origin
-	dist = mm_norm(mm_subst(p, cyl->pos, 3), 3);
+	dist = mm_norm(mm_subst(p, cyl->pos));
 
 	return dist <= cyl->radius;
 }
@@ -298,11 +303,11 @@ int collision_with_cylinder(const mmcylinder * cyl, const float *p)
 	plane_from_point(cyl_plane, cyl->pos);
 
 	// Compute projection to cylinder plane
-	memcpy(intersec, p, sizeof(float) * 3);
+	memcpy(intersec, p, sizeof(intersec));
 	plane_projection(intersec, cyl_plane);
 
 	// Compute distance between intersection and cylinder origin
-	radius_dist = mm_norm(mm_subst(intersec, cyl->pos, 3), 3);
+	radius_dist = mm_norm(mm_subst(intersec, cyl->pos));
 
 	// Compute distance between original point and cylinder plane
 	height_dist = plane_distance(p, cyl_plane);
