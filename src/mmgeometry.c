@@ -4,6 +4,9 @@
 
 	Author: Guillaume Monnard <guillaume.monnard@mindmaze.ch>
 */
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include "mmgeometry.h"
 #include <math.h>
@@ -12,7 +15,7 @@
 // ---------------------------------------------------- //
 // ----- Quaternion <-> Rotation matrix conversion ---- //
 // ---------------------------------------------------- //
-
+API_EXPORTED
 mmquat from_rotmatrix3d(rotmatrix3d* mat)
 {
 	// Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
@@ -88,6 +91,7 @@ mmquat from_rotmatrix3d(rotmatrix3d* mat)
 	return out;
 }
 
+API_EXPORTED
 rotmatrix3d from_quat(mmquat * q)
 {
 	rotmatrix3d mat;
@@ -123,6 +127,7 @@ rotmatrix3d from_quat(mmquat * q)
 // ------------------------------ //
 // ---- 3D Vector Operations ---- //
 // ------------------------------ //
+API_EXPORTED
 float* mm_cross(float *__restrict v1, const float *__restrict v2)
 {
 	float out[3];
@@ -133,6 +138,7 @@ float* mm_cross(float *__restrict v1, const float *__restrict v2)
 	return v1;
 }
 
+API_EXPORTED
 float *mm_rotate(float *__restrict v, const float *__restrict q)
 {
 	// nVidia SDK implementation
@@ -151,6 +157,7 @@ float *mm_rotate(float *__restrict v, const float *__restrict q)
 // ----- Quaternion operations ---- //
 // -------------------------------- //
 
+API_EXPORTED
 float *quat_mul(float *__restrict q1, const float *__restrict q2)
 {
 	float out[4];
@@ -166,17 +173,20 @@ float *quat_mul(float *__restrict q1, const float *__restrict q2)
 // ---- Plane operations ---- //
 // -------------------------- //
 
+API_EXPORTED
 float *plane_from_point(float *__restrict plane, const float *__restrict p)
 {
 	plane[3] = -mm_dot(plane, p);
 	return plane;
 }
 
+API_EXPORTED
 float plane_distance(const float *__restrict p, const float *__restrict plane)
 {
 	return fabs(mm_dot(plane, p) + plane[3]) / mm_norm(plane);
 }
 
+API_EXPORTED
 float *plane_intersect(float *__restrict p, const float *v,
                                             const float *plane)
 {
@@ -188,6 +198,7 @@ float *plane_intersect(float *__restrict p, const float *v,
 	return p;
 }
 
+API_EXPORTED
 float *plane_projection(float *__restrict p, const float *__restrict plane)
 {
 	return plane_intersect(p, plane, plane);
@@ -197,6 +208,7 @@ float *plane_projection(float *__restrict p, const float *__restrict plane)
 // ---- Cylinder operations ---- //
 // ----------------------------- //
 
+API_EXPORTED
 int pointing_to_cylinder(const mmcylinder * cyl, const float *p1,
 			 const float *p2)
 {
@@ -220,6 +232,7 @@ int pointing_to_cylinder(const mmcylinder * cyl, const float *p1,
 	return dist <= cyl->radius;
 }
 
+API_EXPORTED
 int collision_with_cylinder(const mmcylinder * cyl, const float *p)
 {
 	float cyl_plane[] = { 0.f, 1.f, 0.f, 0.f };
