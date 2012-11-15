@@ -94,14 +94,11 @@ float *quat_conjugate(float *q)
 static inline
 float *quat_inverse(float *q)
 {
-	float fNorm = quat_norm(q);
-	if (fNorm > 0.0) {
-		float fInvNorm = 1.0f / fNorm;
-		q[0] *= fInvNorm;
-		q[1] *= -fInvNorm;
-		q[2] *= -fInvNorm;
-		q[3] *= -fInvNorm;
-	}
+	float norminv = 1.0f / quat_norm(q);
+	q[0] *= norminv;
+	q[1] *= -norminv;
+	q[2] *= -norminv;
+	q[3] *= -norminv;
 	return q;
 }
 
