@@ -46,7 +46,7 @@ typedef struct mmheadinfo {
 } mmheadinfo;
 
 typedef struct epos3d {
-    float v[3];
+	float v[3];
 	int confidence;	  /* Confidence in the estimation */
 } epos3d;
 
