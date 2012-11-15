@@ -124,7 +124,7 @@ rotmatrix3d from_quat(mmquat * q)
 // ---- 3D Vector Operations ---- //
 // ------------------------------ //
 
-float *mm_add(float *v1, const float *v2)
+float *mm_add(float *__restrict v1, const float *__restrict v2)
 {
 	int i;
 	for (i = 0; i < 3; i++)
@@ -132,7 +132,7 @@ float *mm_add(float *v1, const float *v2)
 	return v1;
 }
 
-float *mm_subst(float *v1, const float *v2)
+float *mm_subst(float *__restrict v1, const float *__restrict v2)
 {
 	int i;
 	for (i = 0; i < 3; i++)
@@ -148,7 +148,7 @@ float *mm_mul(float *v, float s)
 	return v;
 }
 
-float mm_dot(const float *v1, const float *v2)
+float mm_dot(const float *__restrict v1, const float *__restrict v2)
 {
 	float dot = 0;
 	int i;
@@ -166,7 +166,7 @@ float mm_norm(const float *v)
 	return sqrt(norm);
 }
 
-float *mm_cross(float *v1, const float *v2)
+float *mm_cross(float *__restrict v1, const float *__restrict v2)
 {
 	float out[3];
 	out[0] = v1[1]*v2[2] - v1[2]*v2[1];
@@ -176,7 +176,7 @@ float *mm_cross(float *v1, const float *v2)
 	return v1;
 }
 
-float *mm_rotate(float *v, const float *q)
+float *mm_rotate(float *__restrict v, const float *__restrict q)
 {
 	// nVidia SDK implementation
 	float uv[3], uuv[3];
@@ -194,7 +194,7 @@ float *mm_rotate(float *v, const float *q)
 // ----- Quaternion operations ---- //
 // -------------------------------- //
 
-float *quat_mul(float *q1, const float *q2)
+float *quat_mul(float *__restrict q1, const float *__restrict q2)
 {
 	float out[4];
 	out[0] = q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2] - q1[3]*q2[3];
@@ -239,18 +239,19 @@ float *quat_inverse(float *q)
 // ---- Plane operations ---- //
 // -------------------------- //
 
-float *plane_from_point(float *plane, const float *p)
+float *plane_from_point(float *__restrict plane, const float *__restrict p)
 {
 	plane[3] = -mm_dot(plane, p);
 	return plane;
 }
 
-float plane_distance(const float *p, const float *plane)
+float plane_distance(const float *__restrict p, const float *__restrict plane)
 {
 	return fabs(mm_dot(plane, p) + plane[3]) / mm_norm(plane);
 }
 
-float *plane_intersect(float *p, const float *v, const float *plane)
+float *plane_intersect(float *__restrict p, const float *v,
+                                            const float *plane)
 {
 	float d, v2[3];
 	d = -(mm_dot(plane, p) + plane[3]) / mm_dot(plane, v);
@@ -260,7 +261,7 @@ float *plane_intersect(float *p, const float *v, const float *plane)
 	return p;
 }
 
-float *plane_projection(float *p, const float *plane)
+float *plane_projection(float *__restrict p, const float *__restrict plane)
 {
 	return plane_intersect(p, plane, plane);
 }

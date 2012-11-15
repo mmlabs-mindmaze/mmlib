@@ -3,6 +3,7 @@
 	All right reserved
 
 	Author: Guillaume Monnard <guillaume.monnard@mindmaze.ch>
+	        Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
 */
 #ifndef MMGEOMETRY_H
 #define MMGEOMETRY_H
@@ -30,24 +31,26 @@ mmquat from_rotmatrix3d(rotmatrix3d* mat);
 rotmatrix3d from_quat(mmquat* q);
 
 // 3D Vector specific operations
-float* mm_add(float *v1, const float *v2);
-float* mm_subst(float *v1, const float *v2);
+float* mm_add(float *__restrict v1, const float *__restrict v2);
+float* mm_subst(float *__restrict v1, const float *__restrict v2);
 float* mm_mul(float *v, float s);
-float mm_dot(const float *v1, const float *v2);
+float mm_dot(const float *__restrict v1, const float *__restrict v2);
 float mm_norm(const float *v);
-float* mm_cross(float *v1, const float *v2);
-float* mm_rotate(float* v, const float* q);
+float* mm_cross(float *__restrict v1, const float *__restrict v2);
+float* mm_rotate(float *__restrict v, const float *__restrict q);
 
 // Quaternion specific opereations
 float* quat_conjugate(float *q);
-float* quat_mul(float* q1, const float* q2);
+float* quat_mul(float *__restrict q1, const float *__restrict q2);
 float* quat_inverse(float* q);
 
 // Plane operations (plane defined as ax + bx + cy + d = 0)
-float* plane_from_point(float *plane, const float* p);
-float plane_distance(const float* p, const float* plane);
-float* plane_intersect(float* p, const float* v, const float* plane);
-float* plane_projection(float* p, const float* plane);
+float* plane_from_point(float *__restrict plane, const float *__restrict p);
+float plane_distance(const float *__restrict p,
+                     const float *__restrict plane);
+float* plane_intersect(float *__restrict p, const float *v,
+                                            const float *plane);
+float* plane_projection(float *__restrict p, const float *__restrict plane);
 
 // Cylinder operations
 int pointing_to_cylinder(const mmcylinder* cyl, const float* p1, const float* p2);
