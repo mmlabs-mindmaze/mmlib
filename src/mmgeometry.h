@@ -36,48 +36,40 @@ rotmatrix3d from_quat(mmquat* q);
 static inline
 float* mm_add(float *__restrict v1, const float *__restrict v2)
 {
-	int i;
-	for (i = 0; i < 3; i++)
-		v1[i] += v2[i];
+	v1[0] += v2[0];
+	v1[1] += v2[1];
+	v1[2] += v2[2];
 	return v1;
 }
 
 static inline
 float* mm_subst(float *__restrict v1, const float *__restrict v2)
 {
-	int i;
-	for (i = 0; i < 3; i++)
-		v1[i] -= v2[i];
+	v1[0] -= v2[0];
+	v1[1] -= v2[1];
+	v1[2] -= v2[2];
 	return v1;
 }
 
 static inline
 float* mm_mul(float *v, float s)
 {
-	int i;
-	for (i = 0; i < 3; i++)
-		v[i] *= s;
+	v[0] *= s;
+	v[1] *= s;
+	v[2] *= s;
 	return v;
 }
 
 static inline
 float mm_dot(const float *__restrict v1, const float *__restrict v2)
 {
-	float dot = 0;
-	int i;
-	for (i = 0; i < 3; i++)
-		dot += v1[i] * v2[i];
-	return dot;
+	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
 }
 
 static inline
 float mm_norm(const float *v)
 {
-	float norm = 0;
-	int i;
-	for (i = 0; i < 3; i++)
-		norm += v[i] * v[i];
-	return sqrt(norm);
+	return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 }
 
 float* mm_cross(float *__restrict v1, const float *__restrict v2);
@@ -87,11 +79,7 @@ float* mm_rotate(float *__restrict v, const float *__restrict q);
 static inline
 float quat_norm(const float *q)
 {
-	float norm = 0;
-	int i;
-	for (i = 0; i < 4; i++)
-		norm += q[i] * q[i];
-	return norm;
+	return q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3];
 }
 
 static inline
