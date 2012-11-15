@@ -16,24 +16,22 @@
 // ----- Quaternion <-> Rotation matrix conversion ---- //
 // ---------------------------------------------------- //
 API_EXPORTED
-mmquat from_rotmatrix3d(rotmatrix3d* mat)
+float* mm_quat_from_mat(float *__restrict quat, const float *__restrict mat)
 {
 	// Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
 	// article "Quaternion Calculus and Fast Animation".
 
-	mmquat out;
-
-	float fTrace = mat->elem[0] + mat->elem[4] + mat->elem[8];
+	float fTrace = mat[0] + mat[4] + mat[8];
 	float fRoot;
 
 	if (fTrace > 0.0) {
 		// |w| > 1/2, may as well choose w > 1/2
 		fRoot = sqrt(fTrace + 1.0f);	// 2w
-		out.v[0] = 0.5f * fRoot;
+		quat[0] = 0.5f * fRoot;
 		fRoot = 0.5f / fRoot;	// 1/(4w)
-		out.v[1] = (mat->elem[7] - mat->elem[5]) * fRoot;
-		out.v[2] = (mat->elem[2] - mat->elem[6]) * fRoot;
-		out.v[3] = (mat->elem[3] - mat->elem[1]) * fRoot;
+		quat[1] = (mat[7] - mat[5]) * fRoot;
+		quat[2] = (mat[2] - mat[6]) * fRoot;
+		quat[3] = (mat[3] - mat[1]) * fRoot;
 	} else {
 		// |w| <= 1/2
 		int a = 0;
@@ -48,7 +46,7 @@ mmquat from_rotmatrix3d(rotmatrix3d* mat)
 		int ki = 6;
 		int kj = 7;
 		int k = 8;
-		if (mat->elem[4] > mat->elem[0]) {
+		if (mat[4] > mat[0]) {
 			a = 1;
 			b = 2;
 			c = 0;
@@ -62,7 +60,7 @@ mmquat from_rotmatrix3d(rotmatrix3d* mat)
 			kj = 2;
 			k = 0;
 		}
-		if (mat->elem[8] > mat->elem[i]) {
+		if (mat[8] > mat[i]) {
 			a = 2;
 			b = 0;
 			c = 1;
@@ -77,18 +75,16 @@ mmquat from_rotmatrix3d(rotmatrix3d* mat)
 			k = 4;
 		}
 
-		fRoot = sqrt(mat->elem[i] - mat->elem[j] - mat->elem[k] + 1.0f);
-		float *apkQuat[3] = { &out.v[1], &out.v[2], &out.v[3] };
+		fRoot = sqrt(mat[i] - mat[j] - mat[k] + 1.0f);
+		float *apkQuat[3] = { quat+1, quat+2, quat+3 };
 		*apkQuat[a] = 0.5f * fRoot;
 		fRoot = 0.5f / fRoot;
-		out.v[0] = (mat->elem[kj] - mat->elem[jk]) * fRoot;
-		*apkQuat[b] = (mat->elem[ji] + mat->elem[ij]) * fRoot;
-		*apkQuat[c] = (mat->elem[ki] + mat->elem[ik]) * fRoot;
+		quat[0] = (mat[kj] - mat[jk]) * fRoot;
+		*apkQuat[b] = (mat[ji] + mat[ij]) * fRoot;
+		*apkQuat[c] = (mat[ki] + mat[ik]) * fRoot;
 	}
 
-	out.confidence = mat->confidence;
-
-	return out;
+	return quat;
 }
 
 API_EXPORTED
