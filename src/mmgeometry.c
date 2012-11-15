@@ -88,34 +88,30 @@ float* mm_quat_from_mat(float *__restrict quat, const float *__restrict mat)
 }
 
 API_EXPORTED
-rotmatrix3d from_quat(mmquat * q)
+float* mm_mat_from_quat(float *__restrict mat, const float *__restrict quat)
 {
-	rotmatrix3d mat;
+	float fTx = quat[1] + quat[1];
+	float fTy = quat[2] + quat[2];
+	float fTz = quat[3] + quat[3];
+	float fTwx = fTx * quat[0];
+	float fTwy = fTy * quat[0];
+	float fTwz = fTz * quat[0];
+	float fTxx = fTx * quat[1];
+	float fTxy = fTy * quat[1];
+	float fTxz = fTz * quat[1];
+	float fTyy = fTy * quat[2];
+	float fTyz = fTz * quat[2];
+	float fTzz = fTz * quat[3];
 
-	float fTx = q->v[1] + q->v[1];
-	float fTy = q->v[2] + q->v[2];
-	float fTz = q->v[3] + q->v[3];
-	float fTwx = fTx * q->v[0];
-	float fTwy = fTy * q->v[0];
-	float fTwz = fTz * q->v[0];
-	float fTxx = fTx * q->v[1];
-	float fTxy = fTy * q->v[1];
-	float fTxz = fTz * q->v[1];
-	float fTyy = fTy * q->v[2];
-	float fTyz = fTz * q->v[2];
-	float fTzz = fTz * q->v[3];
-
-	mat.elem[0] = 1.0f - (fTyy + fTzz);
-	mat.elem[1] = fTxy - fTwz;
-	mat.elem[2] = fTxz + fTwy;
-	mat.elem[3] = fTxy + fTwz;
-	mat.elem[4] = 1.0f - (fTxx + fTzz);
-	mat.elem[5] = fTyz - fTwx;
-	mat.elem[6] = fTxz - fTwy;
-	mat.elem[7] = fTyz + fTwx;
-	mat.elem[8] = 1.0f - (fTxx + fTyy);
-
-	mat.confidence = q->confidence;
+	mat[0] = 1.0f - (fTyy + fTzz);
+	mat[1] = fTxy - fTwz;
+	mat[2] = fTxz + fTwy;
+	mat[3] = fTxy + fTwz;
+	mat[4] = 1.0f - (fTxx + fTzz);
+	mat[5] = fTyz - fTwx;
+	mat[6] = fTxz - fTwy;
+	mat[7] = fTyz + fTwx;
+	mat[8] = 1.0f - (fTxx + fTyy);
 
 	return mat;
 }

@@ -29,8 +29,8 @@ extern "C" {
 #endif
 
 // Conversion between quaternion and rotation matrix
-rotmatrix3d from_quat(mmquat* q);
 float* mm_quat_from_mat(float *__restrict q, const float *__restrict m);
+float* mm_mat_from_quat(float *__restrict m, const float *__restrict q);
 
 // 3D Vector specific operations
 static inline
