@@ -15,7 +15,7 @@
 #define MMLOG_DEBUG	4
 
 #ifndef MMLOG_MAXLEVEL
-#  define MMLOG_MAXLEVEL	MMLOG_WARN
+#  define MMLOG_MAXLEVEL	MMLOG_DEBUG
 #endif
 
 
