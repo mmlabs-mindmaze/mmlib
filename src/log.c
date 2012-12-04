@@ -18,7 +18,7 @@
 #include "mmlog.h"
 
 #ifndef MMLOG_LINE_MAXLEN
-#define MMLOG_LINE_MAXLEN	128
+#define MMLOG_LINE_MAXLEN	256
 #endif
 
 static pthread_once_t once_init = PTHREAD_ONCE_INIT;
