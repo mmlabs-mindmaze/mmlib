@@ -83,10 +83,13 @@
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_DEBUG
-#  define mmlog_trace(msg, ...)	mmlog_log(MMLOG_DEBUG, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
+#  define mmlog_debug(msg, ...)	mmlog_log(MMLOG_DEBUG, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
 #else
-#  define mmlog_trace(msg, ...) MMLOG_VOID_CAST(0)
+#  define mmlog_debug(msg, ...) MMLOG_VOID_CAST(0)
 #endif
+
+/* Use mmlog_debug instead, provided only for backward compatibility */
+#define mmlog_trace	mmlog_debug
 
 #ifdef __cplusplus
 extern "C" {
