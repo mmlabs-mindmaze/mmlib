@@ -1,0 +1,10 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: mmlib
+Upstream-Contact: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
+Source: http://mindmaze1.epfl.ch
+
+Files: *
+Copyright: 2012, Mindmaze SA
+License: proprietary
+ Copyright (C) 2012  MindMaze SA
+ All right reserved
