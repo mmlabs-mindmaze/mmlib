@@ -23,6 +23,9 @@ override_dh_autoreconf:
 override_dh_auto_configure:
 	dh_auto_configure -- $(CONFFLAGS)
 
+override_dh_auto_clean:
+	if [ -f Makefile ] ; then make maintainer-clean ; fi
+
 override_dh_strip:
 	dh_strip --dbg-package=libmmlib0-dbg
 
