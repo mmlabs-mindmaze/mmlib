@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2012  MindMaze SA
+    Copyright (C) 2012-2013  MindMaze SA
     All right reserved
 
     Author: Guillaume Monnard <guillaume.monnard@mindmaze.ch>
@@ -29,12 +29,12 @@
 #define MM_TORSO 8
 
 typedef struct mmimage {
-	int nChannels;    /* Most functions support 1,2,3 or 4 channels */
-	int depth;        /* Pixel depth in bits: U for unsigned, S for
-	                     signed and F for floating point */
-	int width;        /* Image width in pixels. */
-	int height;       /* Image height in pixels. */
-	void *imageData;  /* Pointer to image data. */
+	int nch;     /* Most functions support 1,2,3 or 4 channels */
+	int depth;   /* Pixel depth in bits: U for unsigned, S for
+	                signed and F for floating point */
+	int width;   /* Image width in pixels. */
+	int height;  /* Image height in pixels. */
+	void* data;  /* Pointer to image data. */
 } mmimage;
 
 typedef struct mmheadinfo {
