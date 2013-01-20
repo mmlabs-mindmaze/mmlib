@@ -35,7 +35,7 @@ LT_SYS_MODULE_EXT
 AC_SUBST(LIBTOOL_DEPS)
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION(0.18)
-
+AM_PATH_CHECK()
 
 # Check for libraries
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
