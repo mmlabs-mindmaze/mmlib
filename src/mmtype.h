@@ -60,24 +60,4 @@ typedef struct mmquat {
 	int confidence;
 } mmquat;
 
-typedef struct mmcylinder {
-	float pos[3];
-	float rot[4];
-	float height;
-	float radius;
-} mmcylinder;
-
-typedef struct mmsphere {
-	float pos[3];
-	float radius;
-} mmsphere;
-
-typedef struct mmbox {
-	float pos[3];
-	float rot[4];
-	float height;
-	float width;
-	float depth;
-} mmbox;
-
 #endif /* MMTYPE_H */

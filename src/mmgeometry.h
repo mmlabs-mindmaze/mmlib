@@ -112,10 +112,6 @@ float* plane_intersect(float *__restrict p, const float *v,
                                             const float *plane);
 float* plane_projection(float *__restrict p, const float *__restrict plane);
 
-// Cylinder operations
-int pointing_to_cylinder(const mmcylinder* cyl, const float* p1, const float* p2);
-int collision_with_cylinder(const mmcylinder* cyl, const float* p);
-
 #ifdef __cplusplus
 }
 #endif
