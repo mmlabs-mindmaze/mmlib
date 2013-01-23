@@ -1,8 +1,9 @@
 /*
-    Copyright (C) 2012  MindMaze SA
+    Copyright (C) 2012-2013  MindMaze SA
     All right reserved
 
     Author: Guillaume Monnard <guillaume.monnard@mindmaze.ch>
+            Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
 */
 #if HAVE_CONFIG_H
 #include <config.h>
@@ -18,6 +19,40 @@
 
 static const float vcheck[] = { 1.f, 2.f, 3.f };
 
+static const float refquat[][4] = {
+	[0] = {0,       0.447,  0.447,   0.775},
+	[1] = {0.707,   0.316,  0.316,   0.548},
+	[2] = {0,       0,      1,       0},
+	[3] = {1,       0,      0,       0},
+	[4] = {0.70711, 0,     -0.70711, 0},
+};
+
+static const float refmat[][9] = {
+	[0] = {-0.600867987,  0.399618,     0.692849994,
+	        0.399618,    -0.600867987,  0.692849994,
+	        0.692849994,  0.692849994,  0.200764
+	},
+	[1] = { 0.19968003,  -0.575159967,  0.793160081,
+	        0.974584043,  0.19968003,  -0.100488037,
+	       -0.100488037,  0.793160081,  0.600575924
+	},
+	[2] = {-1,            0,            0,
+	        0,            1,            0,
+	        0,            0,           -1
+	},
+	[3] = { 1,            0,            0,
+	        0,            1,            0,
+	        0,            0,            1
+	},
+	[4] = { 0,            0,           -1,
+	        0,            1,            0,
+	        1,            0,            0
+	},
+
+};
+
+#define NUM_REF	(sizeof(refquat)/sizeof(refquat[0]))
+
 static
 int is_equal(const float *v1, const float *v2, int size)
 {
@@ -30,6 +65,24 @@ int is_equal(const float *v1, const float *v2, int size)
 	else
 		return 0;
 }
+
+
+START_TEST(mat_from_quat_test)
+{
+	float mat[9];
+	mm_mat_from_quat(mat, refquat[_i]);
+	fail_if(!is_equal(mat, refmat[_i], 9), "iteration %i failed", _i);
+}
+END_TEST
+
+
+START_TEST(quat_from_mat_test)
+{
+	float quat[4];
+	mm_quat_from_mat(quat, refmat[_i]);
+	fail_if(!is_equal(quat, refquat[_i], 4), "iteration %i failed", _i);
+}
+END_TEST
 
 
 START_TEST(add_sub_test)
@@ -96,6 +149,8 @@ Suite* geometry_suite(void)
 
 	/* Core test case */
 	TCase *tc_core = tcase_create("Core");
+	tcase_add_loop_test(tc_core, mat_from_quat_test, 0, NUM_REF);
+	tcase_add_loop_test(tc_core, quat_from_mat_test, 0, NUM_REF);
 	tcase_add_test(tc_core, add_sub_test);
 	tcase_add_test(tc_core, multiply_test);
 	tcase_add_test(tc_core, norm_dot_test);
