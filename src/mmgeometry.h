@@ -27,6 +27,12 @@ extern "C" {
 # endif
 #endif
 
+# if 3 < __GNUC__ || (3 == __GNUC__ && 1 <= __GNUC_MINOR__)
+# define DEPRECATED __attribute__ ((deprecated))
+#else
+# define DEPRECATED
+#endif
+
 // Conversion between quaternion and rotation matrix
 float* mm_quat_from_mat(float *restrict q, const float *restrict m);
 float* mm_mat_from_quat(float *restrict m, const float *restrict q);
