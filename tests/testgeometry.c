@@ -70,7 +70,7 @@ int is_equal(const float *v1, const float *v2, int size)
 START_TEST(mat_from_quat_test)
 {
 	float mat[9];
-	mm_mat_from_quat(mat, refquat[_i]);
+	mm_mat3_from_quat(mat, refquat[_i]);
 	fail_if(!is_equal(mat, refmat[_i], 9), "iteration %i failed", _i);
 }
 END_TEST
@@ -79,7 +79,7 @@ END_TEST
 START_TEST(quat_from_mat_test)
 {
 	float quat[4];
-	mm_quat_from_mat(quat, refmat[_i]);
+	mm_quat_from_mat3(quat, refmat[_i]);
 	fail_if(!is_equal(quat, refquat[_i], 4), "iteration %i failed", _i);
 }
 END_TEST

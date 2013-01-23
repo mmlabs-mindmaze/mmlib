@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2012  MindMaze SA
+	Copyright (C) 2012-2013  MindMaze SA
 	All right reserved
 
 	Author: Guillaume Monnard <guillaume.monnard@mindmaze.ch>
@@ -16,7 +16,7 @@
 // ----- Quaternion <-> Rotation matrix conversion ---- //
 // ---------------------------------------------------- //
 API_EXPORTED
-float* mm_quat_from_mat(float *restrict quat, const float *restrict mat)
+float* mm_quat_from_mat3(float *restrict quat, const float *restrict mat)
 {
 	// Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
 	// article "Quaternion Calculus and Fast Animation".
@@ -87,8 +87,16 @@ float* mm_quat_from_mat(float *restrict quat, const float *restrict mat)
 	return quat;
 }
 
+
 API_EXPORTED
-float* mm_mat_from_quat(float *restrict mat, const float *restrict quat)
+float* mm_quat_from_mat(float *restrict quat, const float *restrict mat)
+{
+	return mm_quat_from_mat3(quat, mat);
+}
+
+
+API_EXPORTED
+float* mm_mat3_from_quat(float *restrict mat, const float *restrict quat)
 {
 	float fTx = quat[1] + quat[1];
 	float fTy = quat[2] + quat[2];
@@ -114,6 +122,13 @@ float* mm_mat_from_quat(float *restrict mat, const float *restrict quat)
 	mat[8] = 1.0f - (fTxx + fTyy);
 
 	return mat;
+}
+
+
+API_EXPORTED
+float* mm_mat_from_quat(float *restrict mat, const float *restrict quat)
+{
+	return mm_mat3_from_quat(mat, quat);
 }
 
 // ------------------------------ //
