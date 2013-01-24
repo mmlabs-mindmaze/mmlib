@@ -1,5 +1,5 @@
-mmlib (0.0.0~~experimental) UNRELEASED; urgency=low
+mmlib (0.0.0~~experimental) prealpha; urgency=low
 
   * Initial debian package.
 
- -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Tue, 18 Dec 2012 11:30:08 +0100
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Thu, 24 Jan 2013 10:22:18 +0100
