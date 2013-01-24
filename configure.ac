@@ -20,7 +20,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config/config.h])
 
 # Setup automake
-AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 color-tests subdir-objects parallel-tests])
+AM_INIT_AUTOMAKE([no-dist-gzip dist-xz color-tests subdir-objects parallel-tests])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 
@@ -35,7 +35,7 @@ LT_SYS_MODULE_EXT
 AC_SUBST(LIBTOOL_DEPS)
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION(0.18)
-
+AM_PATH_CHECK()
 
 # Check for libraries
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)

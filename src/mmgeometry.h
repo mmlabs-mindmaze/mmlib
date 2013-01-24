@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2012  MindMaze SA
+	Copyright (C) 2012-2013  MindMaze SA
 	All right reserved
 
 	Author: Guillaume Monnard <guillaume.monnard@mindmaze.ch>
@@ -18,23 +18,32 @@ extern "C" {
 
 /* GCC 2.95 and later have "__restrict"; C99 compilers have
    "restrict", and "configure" may have defined "restrict".  */
-#ifndef __restrict
-# if ! (2 < __GNUC__ || (2 == __GNUC__ && 95 <= __GNUC_MINOR__))
-#  if defined restrict || 199901L <= __STDC_VERSION__
-#   define __restrict restrict
-#  else
-#   define __restrict
-#  endif
+#if ! (199901L <= __STDC_VERSION__ || defined restrict)
+# if 2 < __GNUC__ || (2 == __GNUC__ && 95 <= __GNUC_MINOR__) \
+     || defined __restrict
+#  define restrict __restrict
+# else
+#  define restrict
 # endif
 #endif
 
+# if 3 < __GNUC__ || (3 == __GNUC__ && 1 <= __GNUC_MINOR__)
+# define DEPRECATED __attribute__ ((deprecated))
+#else
+# define DEPRECATED
+#endif
+
 // Conversion between quaternion and rotation matrix
-float* mm_quat_from_mat(float *__restrict q, const float *__restrict m);
-float* mm_mat_from_quat(float *__restrict m, const float *__restrict q);
+float* mm_quat_from_mat3(float *restrict q, const float *restrict m);
+float* mm_mat3_from_quat(float *restrict m, const float *restrict q);
+
+// Use the above function instead of these one
+float* mm_quat_from_mat(float *restrict q, const float *restrict m) DEPRECATED;
+float* mm_mat_from_quat(float *restrict m, const float *restrict q) DEPRECATED;
 
 // 3D Vector specific operations
 static inline
-float* mm_add(float *__restrict v1, const float *__restrict v2)
+float* mm_add(float *restrict v1, const float *restrict v2)
 {
 	v1[0] += v2[0];
 	v1[1] += v2[1];
@@ -43,7 +52,7 @@ float* mm_add(float *__restrict v1, const float *__restrict v2)
 }
 
 static inline
-float* mm_subst(float *__restrict v1, const float *__restrict v2)
+float* mm_subst(float *restrict v1, const float *restrict v2)
 {
 	v1[0] -= v2[0];
 	v1[1] -= v2[1];
@@ -61,7 +70,7 @@ float* mm_mul(float *v, float s)
 }
 
 static inline
-float mm_dot(const float *__restrict v1, const float *__restrict v2)
+float mm_dot(const float *restrict v1, const float *restrict v2)
 {
 	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
 }
@@ -72,8 +81,8 @@ float mm_norm(const float *v)
 	return sqrtf(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 }
 
-float* mm_cross(float *__restrict v1, const float *__restrict v2);
-float* mm_rotate(float *__restrict v, const float *__restrict q);
+float* mm_cross(float *restrict v1, const float *restrict v2);
+float* mm_rotate(float *restrict v, const float *restrict q);
 
 // Quaternion specific opereations
 static inline
@@ -102,19 +111,15 @@ float *quat_inverse(float *q)
 	return q;
 }
 
-float* quat_mul(float *__restrict q1, const float *__restrict q2);
+float* quat_mul(float *restrict q1, const float *restrict q2);
 
 // Plane operations (plane defined as ax + bx + cy + d = 0)
-float* plane_from_point(float *__restrict plane, const float *__restrict p);
-float plane_distance(const float *__restrict p,
-                     const float *__restrict plane);
-float* plane_intersect(float *__restrict p, const float *v,
+float* plane_from_point(float *restrict plane, const float *restrict p);
+float plane_distance(const float *restrict p,
+                     const float *restrict plane);
+float* plane_intersect(float *restrict p, const float *v,
                                             const float *plane);
-float* plane_projection(float *__restrict p, const float *__restrict plane);
-
-// Cylinder operations
-int pointing_to_cylinder(const mmcylinder* cyl, const float* p1, const float* p2);
-int collision_with_cylinder(const mmcylinder* cyl, const float* p);
+float* plane_projection(float *restrict p, const float *restrict plane);
 
 #ifdef __cplusplus
 }
