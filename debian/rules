@@ -12,7 +12,6 @@ else
 	export DEB_CFLAGS_MAINT_APPEND=-Wall -Wextra
 endif
 export DEB_LDFLAGS_MAINT_APPEND=-Wl,-Bsymbolic-functions
-export DEB_BUILD_MAINT_OPTIONS=hardening=-all,+format,+relro
 
 %:
 	dh  $@ --with autoreconf
