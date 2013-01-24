@@ -1,8 +1,9 @@
 libmmlib.so.0 libmmlib0 #MINVER#
- collision_with_cylinder@Base 0.0.0~~experimental
  mm_cross@Base 0.0.0~~experimental
- mm_mat_from_quat@Base 0.0.0~~experimental
- mm_quat_from_mat@Base 0.0.0~~experimental
+ mm_mat3_from_quat@Base 0.0.0~~experimental
+ mm_quat_from_mat3@Base 0.0.0~~experimental
+ (optional)mm_mat_from_quat@Base 0.0.0~~experimental
+ (optional)mm_quat_from_mat@Base 0.0.0~~experimental
  mm_rotate@Base 0.0.0~~experimental
  mmlog_log@Base 0.0.0~~experimental
  mmstrerror@Base 0.0.0~~experimental
@@ -11,5 +12,4 @@ libmmlib.so.0 libmmlib0 #MINVER#
  plane_from_point@Base 0.0.0~~experimental
  plane_intersect@Base 0.0.0~~experimental
  plane_projection@Base 0.0.0~~experimental
- pointing_to_cylinder@Base 0.0.0~~experimental
  quat_mul@Base 0.0.0~~experimental
