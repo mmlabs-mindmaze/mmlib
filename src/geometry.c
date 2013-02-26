@@ -131,6 +131,25 @@ float* mm_mat_from_quat(float *restrict mat, const float *restrict quat)
 	return mm_mat3_from_quat(mat, quat);
 }
 
+
+API_EXPORTED
+float mm_aaxis_from_mat3(float *restrict axis, const float *restrict m)
+{
+	float q[4];
+	float sc;
+
+	mm_quat_from_mat3(q, m);
+
+	sc = mm_norm(q+1);
+	if (sc > 1e-6) {
+		axis[0] = q[1] / sc;
+		axis[1] = q[2] / sc;
+		axis[2] = q[3] / sc;
+	}
+
+	return 2*acosf(q[0]);
+}
+
 // ------------------------------ //
 // ---- 3D Vector Operations ---- //
 // ------------------------------ //
