@@ -1,3 +1,9 @@
+mmlib (0.0.0~~experimental2) prealpha; urgency=low
+
+  * new error codes (for database connection)
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 01 Mar 2013 10:38:50 +0100
+
 mmlib (0.0.0~~experimental) prealpha; urgency=low
 
   * Initial debian package.
