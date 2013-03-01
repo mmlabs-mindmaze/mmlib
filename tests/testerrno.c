@@ -21,6 +21,8 @@ int main(void)
 	setlocale(LC_ALL, "");
 
 	print_errno_info(MM_EDISCONNECTED);
+	print_errno_info(MM_EUNKNOWNUSER);
+	print_errno_info(MM_EWRONGPWD);
 
 	return EXIT_SUCCESS;
 }

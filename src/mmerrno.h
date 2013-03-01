@@ -11,6 +11,8 @@
 #include <errno.h>
 
 #define MM_EDISCONNECTED	1000
+#define MM_EUNKNOWNUSER		1001
+#define MM_EWRONGPWD		1002
 
 const char* mmstrerror(int errnum);
 int mmstrerror_r(int errnum, char *buf, size_t buflen);
