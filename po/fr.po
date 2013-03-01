@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mmlib 0.0\n"
 "Report-Msgid-Bugs-To: nicolas.bourdaud@mindmaze.ch\n"
-"POT-Creation-Date: 2012-10-22 14:55+0200\n"
+"POT-Creation-Date: 2013-03-01 09:53+0100\n"
 "PO-Revision-Date: 2012-10-22 14:53+0200\n"
 "Last-Translator: Nicolas Bourdaud (MindMaze) <nicolas.bourdaud@mindmaze.ch>\n"
 "Language-Team: French\n"
@@ -21,3 +21,11 @@ msgstr ""
 #: src/error.c:30
 msgid "The acquisition module has been disconnected."
 msgstr "Le module d'acquisition a été déconnecté."
+
+#: src/error.c:31
+msgid "User unknown"
+msgstr "Utilisateur inconnu"
+
+#: src/error.c:32
+msgid "Wrong password"
+msgstr "Mot de passe erroné"
