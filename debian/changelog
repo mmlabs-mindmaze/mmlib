@@ -1,8 +1,8 @@
-mmlib (0.0.0~~experimental3) UNRELEASED; urgency=low
+mmlib (0.0.0~~experimental3) prealpha; urgency=low
 
   * Added angle axis - quaternion conversion
 
- -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 15 Mar 2013 15:57:47 +0100
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 15 Mar 2013 18:40:52 +0100
 
 mmlib (0.0.0~~experimental2) prealpha; urgency=low
 
