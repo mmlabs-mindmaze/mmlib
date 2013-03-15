@@ -1,4 +1,5 @@
 libmmlib.so.0 libmmlib0 #MINVER#
+ mm_aaxis_from_mat3@Base 0.0.0~~experimental3
  mm_cross@Base 0.0.0~~experimental
  mm_mat3_from_quat@Base 0.0.0~~experimental
  mm_quat_from_mat3@Base 0.0.0~~experimental
