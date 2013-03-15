@@ -41,6 +41,9 @@ float* mm_mat3_from_quat(float *restrict m, const float *restrict q);
 float* mm_quat_from_mat(float *restrict q, const float *restrict m) DEPRECATED;
 float* mm_mat_from_quat(float *restrict m, const float *restrict q) DEPRECATED;
 
+// Conversion between quaternion, rotation matrix and angle axis
+float mm_aaxis_from_mat3(float *restrict axis, const float *restrict m);
+
 // 3D Vector specific operations
 static inline
 float* mm_add(float *restrict v1, const float *restrict v2)

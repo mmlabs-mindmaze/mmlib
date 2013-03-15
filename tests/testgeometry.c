@@ -51,6 +51,15 @@ static const float refmat[][9] = {
 
 };
 
+// in aaxis, the first 3 components are axis, the 4th is angle in radians
+static const float refaaxis[][4] = {
+	[0] = { 0.44688,  0.44688,  0.77498,  3.1416},
+	[1] = { 0.44688,  0.44688,  0.77498,  1.5710},
+	[2] = { 0,        1,        0,        3.1416},
+	[3] = { 0,        0,        0,        0},
+	[4] = { 0,       -1,        0,        1.5708},
+};
+
 #define NUM_REF	(sizeof(refquat)/sizeof(refquat[0]))
 
 static
@@ -65,6 +74,15 @@ int is_equal(const float *v1, const float *v2, int size)
 	else
 		return 0;
 }
+
+
+START_TEST(aaxis_from_mat3_test)
+{
+	float aaxis[4];
+	aaxis[3] = mm_aaxis_from_mat3(aaxis, refmat[_i]);
+	fail_if(!is_equal(aaxis, refaaxis[_i], 4), "iter %i failed", _i);
+}
+END_TEST
 
 
 START_TEST(mat_from_quat_test)
@@ -151,6 +169,7 @@ Suite* geometry_suite(void)
 	TCase *tc_core = tcase_create("Core");
 	tcase_add_loop_test(tc_core, mat_from_quat_test, 0, NUM_REF);
 	tcase_add_loop_test(tc_core, quat_from_mat_test, 0, NUM_REF);
+	tcase_add_loop_test(tc_core, aaxis_from_mat3_test, 0, NUM_REF);
 	tcase_add_test(tc_core, add_sub_test);
 	tcase_add_test(tc_core, multiply_test);
 	tcase_add_test(tc_core, norm_dot_test);
