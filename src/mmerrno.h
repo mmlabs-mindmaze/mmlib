@@ -14,7 +14,16 @@
 #define MM_EUNKNOWNUSER		1001
 #define MM_EWRONGPWD		1002
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 const char* mmstrerror(int errnum);
 int mmstrerror_r(int errnum, char *buf, size_t buflen);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MMERRNO */
