@@ -13,6 +13,29 @@
 
 #include "mmskeleton.h"
 
+static
+void bone_dfs(const struct mmskel* skel, int cur, int par, void* funcdata,
+              void (bone_func)(const struct mmskel*, int, int, void*))
+{
+	bone_func(skel, cur, par, funcdata);
+
+	par = cur;
+	cur = skel->bones[par].child;
+	while (cur != -1) {
+		bone_dfs(skel, cur, par, funcdata, bone_func);
+		cur = skel->bones[cur].brother;
+	}
+}
+
+
+static
+void set_parent_iter(const struct mmskel* skel, int c, int par, void* data)
+{
+	(void)skel;
+	int* parent = data;
+	parent[c] = par;
+}
+
 
 static
 const char* get_joint_name(const struct mmskel* restrict skel, int boneind)
@@ -99,6 +122,17 @@ int skl_add_to(struct mmskel* skel, const char* parent, const char* name)
 		return -1;
 
 	return skl_add(skel, par, name);
+}
+
+
+API_EXPORTED
+int skl_parentlist(const struct mmskel* sk, int* parent)
+{
+	if (!sk || !parent)
+		return -1;
+
+	bone_dfs(sk, 0, -1, parent, set_parent_iter);
+	return 0;
 }
 
 

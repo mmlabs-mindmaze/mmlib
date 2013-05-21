@@ -40,6 +40,7 @@ struct mmskel {
 
 int skl_init(struct mmskel* sk);
 void skl_deinit(struct mmskel* sk);
+int skl_parentlist(const struct mmskel* sk, int* parent);
 int skl_find(const struct mmskel* restrict sk, const char* name);
 int skl_add(struct mmskel* sk, int par, const char* name);
 int skl_add_to(struct mmskel* sk, const char* parent, const char* name);
