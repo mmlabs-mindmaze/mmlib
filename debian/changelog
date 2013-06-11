@@ -1,3 +1,9 @@
+mmlib (0.0.0~~experimental5) UNRELEASED; urgency=low
+
+  * Added skeleton function
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Tue, 11 Jun 2013 15:22:44 +0200
+
 mmlib (0.0.0~~experimental3) prealpha; urgency=low
 
   * Added angle axis - quaternion conversion
