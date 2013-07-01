@@ -30,6 +30,7 @@ static const struct errmsg_entry error_tab[] = {
 	 .msg = N_("The acquisition module has been disconnected.")},
 	{.errnum = MM_EUNKNOWNUSER, .msg = N_("User unknown")},
 	{.errnum = MM_EWRONGPWD, .msg = N_("Wrong password")},
+	{.errnum = MM_EWRONGSTATE, .msg = N_("Object in wrong state")},
 };
 
 #define NUM_ERROR_ENTRY	(sizeof(error_tab)/sizeof(error_tab[0]))

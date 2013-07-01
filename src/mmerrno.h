@@ -13,6 +13,7 @@
 #define MM_EDISCONNECTED	1000
 #define MM_EUNKNOWNUSER		1001
 #define MM_EWRONGPWD		1002
+#define MM_EWRONGSTATE		1003
 
 
 #ifdef __cplusplus
