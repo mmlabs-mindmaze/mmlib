@@ -10,6 +10,7 @@
 #include <libintl.h>
 
 #define N_(msg)	msg
-#define _(msg)	gettext(PACKAGE_NAME, msg)
+#define _(msg)	dgettext(PACKAGE_NAME, msg)
+#define _domaindir(podir)	bindtextdomain(PACKAGE_NAME, podir)
 
 #endif /* NLS_INTERNALS_H */

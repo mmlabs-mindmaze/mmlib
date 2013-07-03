@@ -45,21 +45,18 @@ static pthread_once_t translation_is_initialized = PTHREAD_ONCE_INIT;
 static
 void init_translation(void)
 {
-	bindtextdomain(PACKAGE_NAME, LOCALEDIR);
+	_domaindir(LOCALEDIR);
 }
 
 
 static
 const char* get_mm_errmsg(int errnum)
 {
-	const char* msg;
 	int i = errnum - error_tab[0].errnum;
 	
 	pthread_once(&translation_is_initialized, init_translation);
 
-	msg = error_tab[i].msg;
-
-	return dgettext(PACKAGE_NAME, msg); 
+	return _(error_tab[i].msg);
 }
 
 
