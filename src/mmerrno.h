@@ -14,6 +14,7 @@
 #define MM_EUNKNOWNUSER		1001
 #define MM_EWRONGPWD		1002
 #define MM_EWRONGSTATE		1003
+#define MM_ETOOMANY		1004
 
 
 #ifdef __cplusplus
