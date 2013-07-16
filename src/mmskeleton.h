@@ -45,6 +45,7 @@ int skl_find(const struct mmskel* restrict sk, const char* name);
 int skl_add(struct mmskel* sk, int par, const char* name);
 int skl_add_to(struct mmskel* sk, const char* parent, const char* name);
 int skl_load_data(struct mmskel* skel, int fd);
+int skl_save_data(struct mmskel* skel, int fd);
 
 
 #ifdef __cplusplus

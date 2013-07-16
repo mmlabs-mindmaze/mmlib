@@ -59,6 +59,23 @@ const char* get_joint_name(const struct mmskel* restrict skel, int boneind)
 }
 
 
+static
+int save_bone_data(const struct mmskel* skel, int c, int par, void* data)
+{
+	int wsize;
+	const char *bone, *parent;
+	const float* pos = skel->bones[c].pos;
+	FILE* fp = data;
+
+	bone = get_joint_name(skel, c);
+	parent = (par >= 0) ? get_joint_name(skel, par) : NULL;
+
+	wsize = fprintf(fp, "\n|%s|%s|%f|%f|%f|",
+	                    parent, bone, pos[0], pos[1], pos[2]);
+	return (wsize >= 0) ? 0 : -1;
+}
+
+
 API_EXPORTED
 int skl_find(const struct mmskel* restrict skel, const char* name)
 {
@@ -232,6 +249,45 @@ int skl_load_data(struct mmskel* skel, int fd)
 
 error:
 	mmlog_error("skl_load_data() failed: %s", mmstrerror(errno));
+	if (fp)
+		fclose(fp);
+	else if (newfd != -1)
+		close(newfd);
+	return -1;
+}
+
+
+API_EXPORTED
+int skl_save_data(struct mmskel* skel, int fd)
+{
+	int nf, newfd = -1;
+	FILE* fp = NULL;
+
+	if (!skel) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if ((newfd = dup(fd)) == -1
+	  || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
+	  || !(fp = fdopen(newfd, "w")) )
+		goto error;
+
+	// Write file format magic number
+	nf = fwrite(skel_magic_number, sizeof(skel_magic_number), 1, fp);
+	if (nf != 1)
+		goto error;
+
+	// Search the graph (depth first search)
+	// and write data for each node
+	if (bone_dfs(skel, 0, -1, fp, save_bone_data))
+		goto error;
+
+	fclose(fp);
+	return 0;
+
+error:
+	mmlog_error("skl_save_data() failed: %s", mmstrerror(errno));
 	if (fp)
 		fclose(fp);
 	else if (newfd != -1)
