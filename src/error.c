@@ -33,6 +33,7 @@ static const struct errmsg_entry error_tab[] = {
 	{.errnum = MM_EWRONGSTATE, .msg = N_("Object in wrong state")},
 	{.errnum = MM_ETOOMANY,
 	 .msg = N_("Too many entities have been requested")},
+	{.errnum = MM_ENOTFOUND, .msg = N_("Object not found")},
 };
 
 #define NUM_ERROR_ENTRY	(sizeof(error_tab)/sizeof(error_tab[0]))

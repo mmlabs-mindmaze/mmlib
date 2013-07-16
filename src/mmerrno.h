@@ -15,6 +15,7 @@
 #define MM_EWRONGPWD		1002
 #define MM_EWRONGSTATE		1003
 #define MM_ETOOMANY		1004
+#define MM_ENOTFOUND		1005
 
 
 #ifdef __cplusplus
