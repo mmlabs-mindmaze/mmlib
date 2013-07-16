@@ -16,6 +16,7 @@
 #define MM_EWRONGSTATE		1003
 #define MM_ETOOMANY		1004
 #define MM_ENOTFOUND		1005
+#define MM_EBADFMT		1006
 
 
 #ifdef __cplusplus
