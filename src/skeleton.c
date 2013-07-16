@@ -149,6 +149,12 @@ void skl_deinit(struct mmskel* skel)
 	free(skel->bones);
 	free(skel->name_idx);
 	free(skel->strcache);
+
+	skel->bones = NULL;
+	skel->name_idx = NULL;
+	skel->strcache = NULL;
+	skel->nbone = 0;
+	skel->cachelen = 0;
 }
 
 
