@@ -12,6 +12,8 @@
 #include <string.h>
 
 #include "mmskeleton.h"
+#include "mmlog.h"
+#include "mmerrno.h"
 
 static
 void bone_dfs(const struct mmskel* skel, int cur, int par, void* funcdata,
@@ -118,8 +120,10 @@ int skl_add_to(struct mmskel* skel, const char* parent, const char* name)
 	int par = parent ? skl_find(skel, parent) : -1;
 	
 	// Check that a bone parent has been found when one is specified
-	if (parent && par == -1)
+	if (parent && par == -1) {
+		errno = MM_ENOTFOUND;
 		return -1;
+	}
 
 	return skl_add(skel, par, name);
 }
