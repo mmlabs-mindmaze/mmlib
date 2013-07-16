@@ -10,10 +10,16 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "mmskeleton.h"
 #include "mmlog.h"
 #include "mmerrno.h"
+
+static
+const char skel_magic_number[] = {'%', 'M', 'M', 'S', 'K', 'E', 'L', '0'};
 
 static
 void bone_dfs(const struct mmskel* skel, int cur, int par, void* funcdata,
@@ -170,3 +176,61 @@ int skl_init(struct mmskel* skel)
 	return 0;
 }
 
+
+API_EXPORTED
+int skl_load_data(struct mmskel* skel, int fd)
+{
+	char magic[sizeof(skel_magic_number)];
+	char bone[32], parent[32];
+	float pos[3];
+	int nf, ind, root, newfd = -1;
+	FILE* fp = NULL;
+
+	if (!skel) {
+		errno = EINVAL;
+		return -1;
+	}
+	skl_init(skel);
+
+	if ((newfd = dup(fd)) == -1
+	  || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
+	  || !(fp = fdopen(newfd, "r")) )
+		goto error;
+
+	// Check file format
+	if ( (nf = fread(magic, sizeof(magic), 1, fp)) < 1
+	    || memcmp(magic, skel_magic_number, sizeof(magic))) {
+		if (nf == 1)
+			errno = MM_EBADFMT;
+		goto error;
+	}
+
+	// Loop over the file and add each bone
+	while (!feof(fp)) {
+		nf = fscanf(fp, " |%31[^|]|%32[^|]|%f|%f|%f| ",
+		                parent, bone, &pos[0], &pos[1], &pos[2]);
+		if (nf < 5) {
+			if (!ferror(fp))
+				errno = MM_EBADFMT;
+			goto error;
+		}
+
+		root = !strcmp(parent, "NULL");
+		if (skl_add_to(skel, root ? NULL : parent, bone))
+			goto error;
+
+		ind = skl_find(skel, bone);
+		memcpy(skel->bones[ind].pos, pos, sizeof(pos));
+	}
+
+	fclose(fp);
+	return 0;
+
+error:
+	mmlog_error("skl_load_data() failed: %s", mmstrerror(errno));
+	if (fp)
+		fclose(fp);
+	else if (newfd != -1)
+		close(newfd);
+	return -1;
+}
