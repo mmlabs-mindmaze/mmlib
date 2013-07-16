@@ -22,26 +22,30 @@ static
 const char skel_magic_number[] = {'%', 'M', 'M', 'S', 'K', 'E', 'L', '0'};
 
 static
-void bone_dfs(const struct mmskel* skel, int cur, int par, void* funcdata,
-              void (bone_func)(const struct mmskel*, int, int, void*))
+int bone_dfs(const struct mmskel* skel, int cur, int par, void* funcdata,
+              int (bone_func)(const struct mmskel*, int, int, void*))
 {
-	bone_func(skel, cur, par, funcdata);
+	if (bone_func(skel, cur, par, funcdata))
+		return -1;
 
 	par = cur;
 	cur = skel->bones[par].child;
 	while (cur != -1) {
-		bone_dfs(skel, cur, par, funcdata, bone_func);
+		if (bone_dfs(skel, cur, par, funcdata, bone_func))
+			return -1;
 		cur = skel->bones[cur].brother;
 	}
+	return 0;
 }
 
 
 static
-void set_parent_iter(const struct mmskel* skel, int c, int par, void* data)
+int set_parent_iter(const struct mmskel* skel, int c, int par, void* data)
 {
 	(void)skel;
 	int* parent = data;
 	parent[c] = par;
+	return 0;
 }
 
 
