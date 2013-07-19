@@ -68,7 +68,7 @@ int save_bone_data(const struct mmskel* skel, int c, int par, void* data)
 	FILE* fp = data;
 
 	bone = get_joint_name(skel, c);
-	parent = (par >= 0) ? get_joint_name(skel, par) : NULL;
+	parent = (par >= 0) ? get_joint_name(skel, par) : "NULL";
 
 	wsize = fprintf(fp, "\n|%s|%s|%f|%f|%f|",
 	                    parent, bone, pos[0], pos[1], pos[2]);
