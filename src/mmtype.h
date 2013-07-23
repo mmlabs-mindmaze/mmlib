@@ -15,8 +15,8 @@
 #define MM_DEPTH_8U     8
 #define MM_DEPTH_16U   16
 #define MM_DEPTH_32F   32
-#define MM_DEPTH_8S  (MM_DEPTH_SIGN| 8)
-#define MM_DEPTH_16S (MM_DEPTH_SIGN|16)
+#define MM_DEPTH_8S  (MM_DEPTH_SIGN|MM_DEPTH_8U)
+#define MM_DEPTH_16S (MM_DEPTH_SIGN|MM_DEPTH_16U)
 #define MM_DEPTH_32S (MM_DEPTH_SIGN|32)
 
 /* Joint indexes */
