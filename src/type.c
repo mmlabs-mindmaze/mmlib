@@ -15,6 +15,6 @@ API_EXPORTED
 size_t mmimage_buffer_size(const mmimage* img)
 {
 	return ( img->width * img->height * img->nch
-		* ( img->depth & MM_SIGN_MASK ) + 7 ) / 8;
+		* ( img->depth & ~MM_DEPTH_SIGN ) + 7 ) / 8;
 }
 

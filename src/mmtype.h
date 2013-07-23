@@ -11,7 +11,6 @@
 
 /* Image depth definitions */
 #define MM_DEPTH_SIGN 0x80000000
-#define MM_SIGN_MASK  0x3fffffff
 #define MM_DEPTH_1U     1
 #define MM_DEPTH_8U     8
 #define MM_DEPTH_16U   16
