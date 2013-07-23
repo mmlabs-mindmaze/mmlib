@@ -14,110 +14,36 @@
 #include <stdlib.h>
 #include <check.h>
 
-#define IMG_WIDTH 640
-#define IMG_HEIGHT 480
+struct img_size {
+	int w, h;
+	int d;
+	int nch;
+	size_t sz;
+};
 
-START_TEST(bsize_1u_test)
+static const
+struct img_size exp_imgsz[] = {
+	{.w = 9, .h = 1, .d = MM_DEPTH_1U, .nch = 1, .sz = 2},
+	{.w = 640, .h = 480, .d = MM_DEPTH_8U, .nch = 1, .sz = 640*480},
+	{.w = 640, .h = 480, .d = MM_DEPTH_8U, .nch = 3, .sz = 640*480*3},
+	{.w = 640, .h = 480, .d = MM_DEPTH_16U, .nch = 1, .sz = 640*480*2},
+	{.w = 640, .h = 480, .d = MM_DEPTH_32F, .nch = 1, .sz = 640*480*4},
+	{.w = 640, .h = 480, .d = MM_DEPTH_8S, .nch = 1, .sz = 640*480},
+	{.w = 640, .h = 480, .d = MM_DEPTH_16S, .nch = 1, .sz = 640*480*2},
+	{.w = 640, .h = 480, .d = MM_DEPTH_32S, .nch = 1, .sz = 640*480*4},
+};
+#define NUM_IMG_SIZE	(sizeof(exp_imgsz)/sizeof(exp_imgsz[0]))
+
+START_TEST(buffer_size_test)
 {
 	mmimage img =  {
-		.width = 9,
-		.height = 1,
-		.depth = MM_DEPTH_1U,
-		.nch = 1,
+		.width = exp_imgsz[_i].w,
+		.height = exp_imgsz[_i].h,
+		.depth = exp_imgsz[_i].d,
+		.nch = exp_imgsz[_i].nch,
 		.data = NULL
 	};
-	ck_assert(mmimage_buffer_size(&img) == 2);
-}
-END_TEST
-
-START_TEST(bsize_8u_test)
-{
-	mmimage img =  {
-		.width = IMG_WIDTH,
-		.height = IMG_HEIGHT,
-		.depth = MM_DEPTH_8U,
-		.nch = 1,
-		.data = NULL
-	};
-	ck_assert(mmimage_buffer_size(&img) == IMG_WIDTH * IMG_HEIGHT);
-}
-END_TEST
-
-START_TEST(bsize_8uc3_test)
-{
-	mmimage img =  {
-		.width = IMG_WIDTH,
-		.height = IMG_HEIGHT,
-		.depth = MM_DEPTH_8U,
-		.nch = 3,
-		.data = NULL
-	};
-	ck_assert(mmimage_buffer_size(&img) == IMG_WIDTH * IMG_HEIGHT * 3);
-}
-END_TEST
-
-START_TEST(bsize_16u_test)
-{
-	mmimage img =  {
-		.width = IMG_WIDTH,
-		.height = IMG_HEIGHT,
-		.depth = MM_DEPTH_16U,
-		.nch = 1,
-		.data = NULL
-	};
-	ck_assert(mmimage_buffer_size(&img) == IMG_WIDTH * IMG_HEIGHT * 2);
-}
-END_TEST
-
-START_TEST(bsize_32f_test)
-{
-	mmimage img =  {
-		.width = IMG_WIDTH,
-		.height = IMG_HEIGHT,
-		.depth = MM_DEPTH_32F,
-		.nch = 1,
-		.data = NULL
-	};
-	ck_assert(mmimage_buffer_size(&img) == IMG_WIDTH * IMG_HEIGHT * 4);
-}
-END_TEST
-
-START_TEST(bsize_8s_test)
-{
-	mmimage img =  {
-		.width = IMG_WIDTH,
-		.height = IMG_HEIGHT,
-		.depth = MM_DEPTH_8S,
-		.nch = 1,
-		.data = NULL
-	};
-	ck_assert(mmimage_buffer_size(&img) == IMG_WIDTH * IMG_HEIGHT);
-}
-END_TEST
-
-START_TEST(bsize_16s_test)
-{
-	mmimage img =  {
-		.width = IMG_WIDTH,
-		.height = IMG_HEIGHT,
-		.depth = MM_DEPTH_16S,
-		.nch = 1,
-		.data = NULL
-	};
-	ck_assert(mmimage_buffer_size(&img) == IMG_WIDTH * IMG_HEIGHT * 2);
-}
-END_TEST
-
-START_TEST(bsize_32s_test)
-{
-	mmimage img =  {
-		.width = IMG_WIDTH,
-		.height = IMG_HEIGHT,
-		.depth = MM_DEPTH_32S,
-		.nch = 1,
-		.data = NULL
-	};
-	ck_assert(mmimage_buffer_size(&img) == IMG_WIDTH * IMG_HEIGHT * 4);
+	ck_assert(mmimage_buffer_size(&img) == exp_imgsz[_i].sz);
 }
 END_TEST
 
@@ -128,14 +54,7 @@ Suite* type_suite(void)
 
 	/* Core test case */
 	TCase *tc_core = tcase_create("Core");
-	tcase_add_test(tc_core, bsize_1u_test);
-	tcase_add_test(tc_core, bsize_8u_test);
-	tcase_add_test(tc_core, bsize_8uc3_test);
-	tcase_add_test(tc_core, bsize_16u_test);
-	tcase_add_test(tc_core, bsize_32f_test);
-	tcase_add_test(tc_core, bsize_8s_test);
-	tcase_add_test(tc_core, bsize_16s_test);
-	tcase_add_test(tc_core, bsize_32s_test);
+	tcase_add_loop_test(tc_core, buffer_size_test, 0, NUM_IMG_SIZE);
 	suite_add_tcase(s, tc_core);
 
 	return s;
