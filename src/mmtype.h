@@ -59,6 +59,14 @@ typedef struct mmquat {
 	int confidence;
 } mmquat;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 size_t mmimage_buffer_size(const mmimage* img);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MMTYPE_H */
