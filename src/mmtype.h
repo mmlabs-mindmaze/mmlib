@@ -1,8 +1,5 @@
 /*
-    Copyright (C) 2012-2013  MindMaze SA
-    All right reserved
-
-    Author: Guillaume Monnard <guillaume.monnard@mindmaze.ch>
+   @mindmaze_header@
 */
 #ifndef MMTYPE_H
 #define MMTYPE_H

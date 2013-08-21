@@ -1,3 +1,5 @@
+# @mindmaze_header@
+
 # - If the library source code has changed at all since the last update,
 # then increment revision.
 # - If any interfaces have been added, removed, or changed since the last

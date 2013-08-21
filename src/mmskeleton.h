@@ -1,8 +1,5 @@
 /*
-	Copyright (C) 2013  MindMaze SA
-	All right reserved
-
-	Author: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
+   @mindmaze_header@
 */
 #ifndef MMSKELETON_H
 #define MMSKELETON_H

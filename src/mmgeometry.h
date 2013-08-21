@@ -1,9 +1,5 @@
 /*
-	Copyright (C) 2012-2013  MindMaze SA
-	All right reserved
-
-	Author: Guillaume Monnard <guillaume.monnard@mindmaze.ch>
-	        Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
+   @mindmaze_header@
 */
 #ifndef MMGEOMETRY_H
 #define MMGEOMETRY_H

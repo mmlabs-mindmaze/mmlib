@@ -1,8 +1,5 @@
 /*
-	Copyright (C) 2012-2013  MindMaze SA
-	All right reserved
-
-	Author: Guillaume Monnard <guillaume.monnard@mindmaze.ch>
+   @mindmaze_header@
 */
 #if HAVE_CONFIG_H
 # include <config.h>
