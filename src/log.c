@@ -1,8 +1,5 @@
 /*
-    Copyright (C) 2012  MindMaze SA
-    All right reserved
-
-    Author: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
+   @mindmaze_header@
 */
 #if HAVE_CONFIG_H
 # include <config.h>

@@ -1,3 +1,5 @@
+# @mindmaze_header@
+
 # - If the library source code has changed at all since the last update,
 # then increment revision.
 # - If any interfaces have been added, removed, or changed since the last
@@ -35,7 +37,7 @@ LT_SYS_MODULE_EXT
 AC_SUBST(LIBTOOL_DEPS)
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION(0.18)
-AM_PATH_CHECK()
+PKG_CHECK_MODULES_EXT(CHECK, [check])
 
 # Check for libraries
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)

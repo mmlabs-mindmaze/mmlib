@@ -1,8 +1,5 @@
 /*
-    Copyright (C) 2012  MindMaze SA
-    All right reserved
-
-    Author: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
+   @mindmaze_header@
 */
 #ifndef MMERRNO_H
 #define MMERRNO_H
@@ -13,6 +10,10 @@
 #define MM_EDISCONNECTED	1000
 #define MM_EUNKNOWNUSER		1001
 #define MM_EWRONGPWD		1002
+#define MM_EWRONGSTATE		1003
+#define MM_ETOOMANY		1004
+#define MM_ENOTFOUND		1005
+#define MM_EBADFMT		1006
 
 
 #ifdef __cplusplus

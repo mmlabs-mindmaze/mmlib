@@ -1,8 +1,5 @@
 /*
-    Copyright (C) 2012  MindMaze SA
-    All right reserved
-
-    Author: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
+   @mindmaze_header@
 */
 #if HAVE_CONFIG_H
 # include <config.h>
@@ -30,6 +27,11 @@ static const struct errmsg_entry error_tab[] = {
 	 .msg = N_("The acquisition module has been disconnected.")},
 	{.errnum = MM_EUNKNOWNUSER, .msg = N_("User unknown")},
 	{.errnum = MM_EWRONGPWD, .msg = N_("Wrong password")},
+	{.errnum = MM_EWRONGSTATE, .msg = N_("Object in wrong state")},
+	{.errnum = MM_ETOOMANY,
+	 .msg = N_("Too many entities have been requested")},
+	{.errnum = MM_ENOTFOUND, .msg = N_("Object not found")},
+	{.errnum = MM_EBADFMT, .msg = N_("Bad format")},
 };
 
 #define NUM_ERROR_ENTRY	(sizeof(error_tab)/sizeof(error_tab[0]))
@@ -45,21 +47,18 @@ static pthread_once_t translation_is_initialized = PTHREAD_ONCE_INIT;
 static
 void init_translation(void)
 {
-	bindtextdomain(PACKAGE_NAME, LOCALEDIR);
+	_domaindir(LOCALEDIR);
 }
 
 
 static
 const char* get_mm_errmsg(int errnum)
 {
-	const char* msg;
 	int i = errnum - error_tab[0].errnum;
 	
 	pthread_once(&translation_is_initialized, init_translation);
 
-	msg = error_tab[i].msg;
-
-	return dgettext(PACKAGE_NAME, msg); 
+	return _(error_tab[i].msg);
 }
 
 

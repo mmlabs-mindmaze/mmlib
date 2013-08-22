@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mmlib 0.0\n"
 "Report-Msgid-Bugs-To: nicolas.bourdaud@mindmaze.ch\n"
-"POT-Creation-Date: 2013-03-01 09:53+0100\n"
+"POT-Creation-Date: 2013-08-21 22:50+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,14 +17,30 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/error.c:30
+#: src/error.c:27
 msgid "The acquisition module has been disconnected."
 msgstr ""
 
-#: src/error.c:31
+#: src/error.c:28
 msgid "User unknown"
 msgstr ""
 
-#: src/error.c:32
+#: src/error.c:29
 msgid "Wrong password"
+msgstr ""
+
+#: src/error.c:30
+msgid "Object in wrong state"
+msgstr ""
+
+#: src/error.c:32
+msgid "Too many entities have been requested"
+msgstr ""
+
+#: src/error.c:33
+msgid "Object not found"
+msgstr ""
+
+#: src/error.c:34
+msgid "Bad format"
 msgstr ""

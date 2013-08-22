@@ -1,11 +1,10 @@
 /*
-    Copyright (C) 2012-2013  MindMaze SA
-    All right reserved
-
-    Author: Guillaume Monnard <guillaume.monnard@mindmaze.ch>
+   @mindmaze_header@
 */
 #ifndef MMTYPE_H
 #define MMTYPE_H
+
+#include <stddef.h>
 
 /* Image depth definitions */
 #define MM_DEPTH_SIGN 0x80000000
@@ -13,8 +12,8 @@
 #define MM_DEPTH_8U     8
 #define MM_DEPTH_16U   16
 #define MM_DEPTH_32F   32
-#define MM_DEPTH_8S  (MM_DEPTH_SIGN| 8)
-#define MM_DEPTH_16S (MM_DEPTH_SIGN|16)
+#define MM_DEPTH_8S  (MM_DEPTH_SIGN|MM_DEPTH_8U)
+#define MM_DEPTH_16S (MM_DEPTH_SIGN|MM_DEPTH_16U)
 #define MM_DEPTH_32S (MM_DEPTH_SIGN|32)
 
 /* Joint indexes */
@@ -59,5 +58,7 @@ typedef struct mmquat {
 	float v[4];
 	int confidence;
 } mmquat;
+
+size_t mmimage_buffer_size(const mmimage* img);
 
 #endif /* MMTYPE_H */
