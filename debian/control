@@ -3,7 +3,7 @@ Section: libs
 Priority: extra
 Maintainer: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
 Build-Depends: debhelper (>= 9), dh-autoreconf,
- pkg-config, gnulib, gettext, check
+ pkg-config, gnulib, libltdl-dev, gettext, check
 Standards-Version: 3.9.3
 Vcs-Git: ssh://mindmaze1.epfl.ch/srv/shared/git_repositories/mmlib.git
 Homepage: http://mindmaze1.epfl.ch
