@@ -6,6 +6,7 @@ libmmlib.so.0 libmmlib0 #MINVER#
  (optional)mm_mat_from_quat@Base 0.0.0~~experimental
  (optional)mm_quat_from_mat@Base 0.0.0~~experimental
  mm_rotate@Base 0.0.0~~experimental
+ mmimage_buffer_size@Base 0.0.0
  mmlog_log@Base 0.0.0~~experimental
  mmstrerror@Base 0.0.0~~experimental
  mmstrerror_r@Base 0.0.0~~experimental
@@ -19,4 +20,6 @@ libmmlib.so.0 libmmlib0 #MINVER#
  skl_deinit@Base 0.0.0~~experimental5
  skl_find@Base 0.0.0~~experimental5
  skl_init@Base 0.0.0~~experimental5
+ skl_load_data@Base 0.0.0
  skl_parentlist@Base 0.0.0~~experimental5
+ skl_save_data@Base 0.0.0
