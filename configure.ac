@@ -42,6 +42,7 @@ PKG_CHECK_MODULES_EXT(CHECK, [check])
 # Check for libraries
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
 MM_CHECK_LIB([sqrtf], [m], MATH)
+PKG_CHECK_MODULES_EXT(GNUTLS, [gnutls])
 
 AC_DEF_API_EXPORT_ATTRS
 
