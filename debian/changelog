@@ -1,4 +1,4 @@
-mmlib (0.0.1) UNRELEASED; urgency=low
+mmlib (0.0.1) testing; urgency=low
 
   * New module version:
     - Add license check
@@ -9,7 +9,7 @@ mmlib (0.0.1) UNRELEASED; urgency=low
   * Add dependency on pciutils
   * Disable unit test during package building
 
- -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 30 Aug 2013 07:54:36 +0200
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 30 Aug 2013 11:32:55 +0200
 
 mmlib (0.0.0) testing; urgency=low
 
