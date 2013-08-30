@@ -44,3 +44,15 @@ Description: MindMaze helper library (Debugging symbols)
  geometry.
  .
  This package provides the debugging symbols for the library.
+
+Package: mmlib-bin
+Section: utils
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: MindMaze helper library (support programs)
+ mmlib is the general purpose library providing helper functions to other
+ module. It provides facilities for logging, error reporting and basic
+ geometry.
+ .
+ This package provides the support programs useful for installation or
+ deployment. In particular it ships the authorization token manager program.
