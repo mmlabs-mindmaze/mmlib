@@ -1,0 +1,75 @@
+.\"@mindmaze_header@
+.TH MMLICENSE 1 2013 "MINDMAZE" "mmlib library manual"
+.SH NAME
+mmlicense - program to manage the hardware authorization token
+.SH SYNOPSIS
+.SY mmlicense 
+.OP \-\-cert file
+.OP \-\-privkey file
+.OP \-\-signature-dir dir
+.OP \-\-hw\-file file
+.RB { allow | check }
+.SY mmlicense 
+.RB { \-\-help | \-h }
+.br
+.SH DESCRIPTION
+.LP
+.B mmlicense
+is the software that manages the hardware authorization tokens. Those tokens
+allow to run Mindmaze software on a hardware and are generated from a X509
+certificate. More precisely each token corresponds to a signature of the
+hardware description by a certificate recognized by the Mindmaze Certificate
+Authority (CA).
+.LP
+Unless the \fB\-h\fP, or \fB\-\-help\fP option is given, one of the commands
+below must be present:
+.TP 4
+.B allow
+Generate a authorization token for the current hardware. The X509
+certificate and its private key used for signature are expected to be
+located respectiveley at ~/.config/mindmaze/default.crt and
+~/.config/mindmaze/mindmaze/default.key. The generated token will be
+placed in the folder ~/.config/mindmaze.
+.
+.TP
+.B check
+The authorization token verification as if it were run at execution of
+a mindmaze software. If no token for the host hardware is found either in
+/etc/mindmaze or ~/config/mindmaze folder or if the signature bundled in the
+token does not match the hardware info or if the certificate is invalid in
+regard of the mindmaze CA, then the check will fail.
+.LP
+.SH OPTIONS
+.TP 4
+.BI \-\-cert= file
+Use the specified \fIfile\fP for the X509 certificate for generating the
+authorization token.
+.
+.TP
+.BI \-\-privkey= file
+Use the specified \fIfile\fP for the private key for generating the
+authorization token. It must be the private corresponding to the public key
+bundled in the specified X509 certificate (be it implicitely or explicitely
+set with the \fB\-\-cert\fP option).
+.
+.TP
+.BI \-\-signature-dir= dir
+Place the generated token in the \fIdir\fP folder instead of
+~/.config/mindmaze.
+.
+.TP 
+.BI \-\-hw\-file= file
+Use the specified hardware info to generate a token instead of the hardware
+of the host system.
+.
+.TP
+.B \-\-help|\-h
+Display the command-line help
+.SH ENVIRONMENT
+.TP 4
+.B XDG_CONFIG_HOME
+If set, all the path relative to ~/.config are replaced using
+$XDG_CONFIG_HOME.
+.SH "SEE ALSO"
+.BR pki-gen-client-cert (1)
+

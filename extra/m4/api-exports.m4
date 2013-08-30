@@ -11,12 +11,12 @@ case $host in
 		;;
 esac
 if test $HAVE_VISIBILITY = 1 -a $os_support !=  "win32"; then
-     AC_DEFINE(LOCAL_FN, [__attribute__ ((visibility ("hidden")))],
+     AC_DEFINE(LOCAL_SYMBOL, [__attribute__ ((visibility ("hidden")))],
      	[attribute of the non-exported symbols])
      AC_DEFINE(API_EXPORTED, [__attribute__ ((visibility ("default")))],
      	[attribute of the symbols exported in the API])
 else
-     AC_DEFINE(LOCAL_FN, [], [attribute of the non-exported symbols])
+     AC_DEFINE(LOCAL_SYMBOL, [], [attribute of the non-exported symbols])
      AC_DEFINE(API_EXPORTED, [], [attribute of the symbols exported in the API])
 fi
 ])

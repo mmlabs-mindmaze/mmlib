@@ -10,7 +10,7 @@
 # set age to 0.
 
 m4_define([lib_current],0)
-m4_define([lib_revision],0)
+m4_define([lib_revision],1)
 m4_define([lib_age],0)
 
 # Setup autoconf
@@ -42,6 +42,7 @@ PKG_CHECK_MODULES_EXT(CHECK, [check])
 # Check for libraries
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
 MM_CHECK_LIB([sqrtf], [m], MATH)
+PKG_CHECK_MODULES_EXT(GNUTLS, [gnutls])
 
 AC_DEF_API_EXPORT_ATTRS
 
@@ -55,7 +56,7 @@ AH_TOP([#ifndef CONFIG_H
 #define CONFIG_H])
 AH_BOTTOM([#endif /*CONFIG_H*/])
 
-AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile
+AC_CONFIG_FILES([Makefile src/Makefile data/Makefile doc/Makefile
                  tests/Makefile po/Makefile.in]) 
 AC_OUTPUT
 
