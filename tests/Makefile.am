@@ -8,3 +8,4 @@ testtype_LDADD = $(CHECK_LIBS) $(top_builddir)/src/libmmlib.la
 
 check_PROGRAMS = testlog testerrno testgeometry testtype
 TESTS = testlog testerrno testgeometry testtype
+TESTS_ENVIRONMENT = XDG_CONFIG_HOME=$(top_srcdir)/data
