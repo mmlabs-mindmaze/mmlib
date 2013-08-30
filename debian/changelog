@@ -5,6 +5,7 @@ mmlib (0.0.1) UNRELEASED; urgency=low
   * Add libgnutls-dev as build-depends
   * Install predefined tokens with libmmlib0
   * Install mmlicense in mmlib-bin package
+  * Install development manpages in libmmlib-dev
 
  -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 30 Aug 2013 07:54:36 +0200
 
