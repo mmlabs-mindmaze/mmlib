@@ -1,2 +1,3 @@
+/etc/mindmaze
 /usr/lib/*/libmmlib.so.*
 /usr/share
