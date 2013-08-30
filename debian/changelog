@@ -2,7 +2,7 @@ mmlib (0.0.1) UNRELEASED; urgency=low
 
   * New module version:
     - Add license check
-  * Add libgnutls-dev as build-depends
+  * Add libgnutls-dev and ca-certificates-mindmaze as build-depends
   * Install predefined tokens with libmmlib0
   * Install mmlicense in mmlib-bin package
   * Install development manpages in libmmlib-dev
