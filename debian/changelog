@@ -1,3 +1,11 @@
+mmlib (0.0.1) UNRELEASED; urgency=low
+
+  * New module version:
+    - Add license check
+  * Add libgnutls-dev as build-depends
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 30 Aug 2013 07:54:36 +0200
+
 mmlib (0.0.0) testing; urgency=low
 
   * Added skeleton save/load
