@@ -10,7 +10,7 @@
 # set age to 0.
 
 m4_define([lib_current],0)
-m4_define([lib_revision],1)
+m4_define([lib_revision],2)
 m4_define([lib_age],0)
 
 # Setup autoconf
@@ -38,6 +38,9 @@ AC_SUBST(LIBTOOL_DEPS)
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION(0.18)
 PKG_CHECK_MODULES_EXT(CHECK, [check])
+AC_CHECK_PROG(certtool_check, [certtool], [yes], [no])
+AS_IF([test "x$certtool_check" = xno],
+      [AC_MSG_ERROR([certtool is missing. Please install gnutls-bin])])
 
 # Check for libraries
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
@@ -56,7 +59,7 @@ AH_TOP([#ifndef CONFIG_H
 #define CONFIG_H])
 AH_BOTTOM([#endif /*CONFIG_H*/])
 
-AC_CONFIG_FILES([Makefile src/Makefile data/Makefile doc/Makefile
+AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile
                  tests/Makefile po/Makefile.in]) 
 AC_OUTPUT
 

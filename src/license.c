@@ -20,6 +20,7 @@
 #include "license.h"
 
 #define HASH_ALGO	GNUTLS_DIG_SHA1
+#define MMSYSCONFDIR	SYSCONFDIR"/mindmaze"
 
 static
 const unsigned char ca_inl[] = {
@@ -313,7 +314,7 @@ int read_signature(gnutls_x509_crt_t crt, const gnutls_datum_t* hw,
 	int r;
 
 	get_fingerprint_str(hw, fingerprint);
-	sprintf(tmp, "%s/mindmaze/%s.sig", path, fingerprint);
+	sprintf(tmp, "%s/%s.sig", path, fingerprint);
 	f = fopen(tmp, "r");
 	if (f == NULL)
 		return errno;
@@ -352,11 +353,12 @@ int check_signature(const char* hwfile)
 	gnutls_x509_crt_t crt, ca;
 	char tmp[128];
 	const char* homecfg = getenv("XDG_CONFIG_HOME");
+	const char* altdir = getenv("MM_LIC_ALTDIR");
 
-	if (!homecfg) {
-		sprintf(tmp, "%s/.config", getenv("HOME"));
-		homecfg = tmp;
-	}
+	if (homecfg)
+		sprintf(tmp, "%s/mindmaze", homecfg);
+	else
+		sprintf(tmp, "%s/.config/mindmaze", getenv("HOME"));
 
 	gnutls_x509_crt_init(&crt);
 
@@ -364,9 +366,13 @@ int check_signature(const char* hwfile)
 	gnutls_x509_crt_init(&ca);
 	gnutls_x509_crt_import(ca, &ca_data, GNUTLS_X509_FMT_DER);
 
-	r = read_control_sig(crt, &hw, ca, SYSCONFDIR);
+	r = read_control_sig(crt, &hw, ca, MMSYSCONFDIR);
 	if (r)
-		r = read_control_sig(crt, &hw, ca, homecfg);
+		r = read_control_sig(crt, &hw, ca, tmp);
+	if (r && altdir) {
+		fprintf(stderr, "searching in %s\n", altdir);
+		r = read_control_sig(crt, &hw, ca, altdir);
+	}
 
 	gnutls_x509_crt_deinit(ca);
 	gnutls_x509_crt_deinit(crt);

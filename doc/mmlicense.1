@@ -9,9 +9,10 @@ mmlicense - program to manage the hardware authorization token
 .OP \-\-signature-dir dir
 .OP \-\-hw\-file file
 .RB { allow | check }
+.YS
 .SY mmlicense 
 .RB { \-\-help | \-h }
-.br
+.YS
 .SH DESCRIPTION
 .LP
 .B mmlicense
@@ -25,19 +26,21 @@ Unless the \fB\-h\fP, or \fB\-\-help\fP option is given, one of the commands
 below must be present:
 .TP 4
 .B allow
-Generate a authorization token for the current hardware. The X509
+Generate an authorization token for the current hardware. The X509
 certificate and its private key used for signature are expected to be
-located respectiveley at ~/.config/mindmaze/default.crt and
-~/.config/mindmaze/mindmaze/default.key. The generated token will be
-placed in the folder ~/.config/mindmaze.
+located respectively at ~/.config/mindmaze/default.crt and
+~/.config/mindmaze/default.key. The generated token will be placed in the
+folder ~/.config/mindmaze. Use
+.BR pki-gen-client-cert (1)
+if you do not have already a Mindmaze certificate.
 .
 .TP
 .B check
 The authorization token verification as if it were run at execution of
 a mindmaze software. If no token for the host hardware is found either in
-/etc/mindmaze or ~/config/mindmaze folder or if the signature bundled in the
-token does not match the hardware info or if the certificate is invalid in
-regard of the mindmaze CA, then the check will fail.
+/etc/mindmaze or ~/.config/mindmaze folder or if the signature bundled in
+the token does not match the hardware info or if the certificate is invalid
+in regard of the mindmaze CA, then the check will fail.
 .LP
 .SH OPTIONS
 .TP 4
@@ -48,9 +51,9 @@ authorization token.
 .TP
 .BI \-\-privkey= file
 Use the specified \fIfile\fP for the private key for generating the
-authorization token. It must be the private corresponding to the public key
-bundled in the specified X509 certificate (be it implicitely or explicitely
-set with the \fB\-\-cert\fP option).
+authorization token. It must be the private key corresponding to the public
+key bundled in the specified X509 certificate (be it implicitely or
+explicitely set with the \fB\-\-cert\fP option).
 .
 .TP
 .BI \-\-signature-dir= dir
@@ -70,6 +73,16 @@ Display the command-line help
 .B XDG_CONFIG_HOME
 If set, all the path relative to ~/.config are replaced using
 $XDG_CONFIG_HOME.
+.TP
+.B MM_LIC_ALTDIR
+If set, the license check will search for a valid token in the folder
+specified by $MM_LIC_ALTDIR. This search in done addition to the
+search perform in the usual folder. This environment variable is intended
+for automated build system. It is worth noting that although this variable
+is mentioned in
+.B mmlicense
+manpage, it is of course understood by the mmlib library when the token
+check is performed at runtime.
 .SH "SEE ALSO"
 .BR pki-gen-client-cert (1)
 
