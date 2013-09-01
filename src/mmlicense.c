@@ -74,7 +74,7 @@ void print_usage(const char* execname, int success)
 		" (default: %s/mindmaze/default.key)\n"
 		"\t--signature-dir=DIR : folder where the signature will "
 	        "be put (default: %s/mindmaze)\n"
-		"\t--hw-filer=FILE     : the hw dump used for signature "
+		"\t--hw-file=FILE     : the hw dump used for signature "
 		"(default: output of 'lspci -n')\n"
 		"\t--help | -h         : display this help\n",
 		execname, homecfg, homecfg, homecfg);
