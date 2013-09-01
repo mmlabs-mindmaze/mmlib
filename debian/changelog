@@ -3,6 +3,7 @@ mmlib (0.0.2) UNRELEASED; urgency=low
   * New module version:
     - robustify build
   * Declare breakage of old libmmlib0 by libmmlib-dev
+  * Add missing build-deps of gnutls-bin
 
  -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Sun, 01 Sep 2013 18:18:37 +0200
 
