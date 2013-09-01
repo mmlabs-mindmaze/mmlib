@@ -25,6 +25,7 @@ Package: libmmlib-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
+Breaks: libmmlib0 (<< 0.0.1)
 Depends: libmmlib0 (= ${binary:Version}), ${misc:Depends}
 Description: MindMaze helper library (Developement files)
  mmlib is the general purpose library providing helper functions to other
