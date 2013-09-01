@@ -352,6 +352,7 @@ int check_signature(const char* hwfile)
 	gnutls_x509_crt_t crt, ca;
 	char tmp[128];
 	const char* homecfg = getenv("XDG_CONFIG_HOME");
+	const char* altdir = getenv("MM_LIC_ALTDIR");
 
 	if (!homecfg) {
 		sprintf(tmp, "%s/.config", getenv("HOME"));
@@ -367,6 +368,8 @@ int check_signature(const char* hwfile)
 	r = read_control_sig(crt, &hw, ca, SYSCONFDIR);
 	if (r)
 		r = read_control_sig(crt, &hw, ca, homecfg);
+	if (r && altdir)
+		r = read_control_sig(crt, &hw, ca, altdir);
 
 	gnutls_x509_crt_deinit(ca);
 	gnutls_x509_crt_deinit(crt);
