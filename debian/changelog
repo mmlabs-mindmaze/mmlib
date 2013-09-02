@@ -1,4 +1,4 @@
-mmlib (0.0.2) UNRELEASED; urgency=low
+mmlib (0.0.2) testing; urgency=low
 
   * New module version:
     - robustify build
@@ -6,7 +6,7 @@ mmlib (0.0.2) UNRELEASED; urgency=low
   * Add missing build-deps of gnutls-bin
   * Re-enable unit tests during package building
 
- -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Sun, 01 Sep 2013 18:18:37 +0200
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Mon, 02 Sep 2013 08:39:18 +0200
 
 mmlib (0.0.1) testing; urgency=low
 
