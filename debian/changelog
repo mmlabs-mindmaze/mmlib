@@ -1,3 +1,10 @@
+mmlib (0.0.3) testing; urgency=low
+
+  * New module version:
+    - Fix memory leak in read signature
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 06 Sep 2013 12:46:39 +0200
+
 mmlib (0.0.2) testing; urgency=low
 
   * New module version:
