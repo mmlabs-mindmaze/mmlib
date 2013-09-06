@@ -265,11 +265,15 @@ int read_issuer(gnutls_x509_crt_t crt, FILE* f)
 	if (!crtdat.data)
 		return -1;
 
-	if (fread(crtdat.data, crtdat.size, 1, f) < 1)
-		return errno;
+	if (fread(crtdat.data, crtdat.size, 1, f) < 1) {
+		r = errno;
+		goto exit;
+	}
 	
 	r = gnutls_x509_crt_import(crt, &crtdat, GNUTLS_X509_FMT_DER);
 
+exit:
+	free(crtdat.data);
 	return r;
 }
 
