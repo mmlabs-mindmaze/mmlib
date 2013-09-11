@@ -8,10 +8,11 @@ noinst_LTLIBRARIES = liblicense.la
 bin_PROGRAMS = mmlicense
 
 BUILT_SOURCES = ca-file.inl
+CLEANFILES = ca-file.inl
 ca_file = /etc/ssl/certs/Mindmaze_CA.pem
 
 ca-file.inl: $(ca_file)
-	certtool -i --outder < $^ \
+	$(AM_V_GEN)certtool -i --outder < $^ \
 	| od -t x1 -An \
 	| sed -r 's/([[:alnum:]]+)/0x\1,/g' > $@
 
