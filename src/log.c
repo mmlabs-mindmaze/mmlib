@@ -80,7 +80,7 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 	rlen -= len;
 	
 	// format message header message
-	len = snprintf(cbuf, rlen-1, " %s %s: ", location, loglevel[lvl]);
+	len = snprintf(cbuf, rlen-1, " %s %s : ", loglevel[lvl], location);
 	cbuf += len;
 	rlen -= len;
 	
