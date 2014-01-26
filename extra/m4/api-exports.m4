@@ -13,7 +13,7 @@ esac
 if test $HAVE_VISIBILITY = 1 -a $os_support !=  "win32"; then
      AC_DEFINE(LOCAL_SYMBOL, [__attribute__ ((visibility ("hidden")))],
      	[attribute of the non-exported symbols])
-     AC_DEFINE(API_EXPORTED, [__attribute__ ((visibility ("default")))],
+     AC_DEFINE(API_EXPORTED, [__attribute__ ((visibility ("protected")))],
      	[attribute of the symbols exported in the API])
 else
      AC_DEFINE(LOCAL_SYMBOL, [], [attribute of the non-exported symbols])
