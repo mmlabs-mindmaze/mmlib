@@ -1,0 +1,37 @@
+.\"@mindmaze_header@
+.TH MMTIC 3 2014 "MINDMAZE" "mmlib library manual"
+.SH NAME
+mmtic - Start an iteration of profiling
+.br
+mmtoc - Add a point of measure to an iteration
+.SH SYNOPSIS
+.LP
+.B #include <mmprofile.h>
+.sp
+.BI "void mmtic();"
+.br
+.BI "void mmtoc();"
+.sp
+Link with
+.I -lmmlib
+.SH DESCRIPTION
+.LP
+.BR mmtic ()
+starts an iteration of profiling. It updates the timing statistics with the
+previous data if applicable and reset the metadata for a new timing
+iteration. Finally it measures the timestamp of the iteration start.
+.LP
+.BR mmtoc ()
+Add simply a new point of measure to the current iteration of profiling. If
+the maximum number of point of measure per iteration has been reached, then
+the new point will silently be ignored.
+.LP
+The way the time is measured depends on the type of timer set by the
+.BR mmprofile_reset (3)
+function.
+.SH "RETURN VALUE"
+.LP
+None.
+.SH "SEE ALSO"
+.BR mmprofile_reset (3),
+.BR mmprofile_print (3)
