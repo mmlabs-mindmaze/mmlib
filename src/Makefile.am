@@ -25,8 +25,10 @@ libmmlib_la_SOURCES = mmlog.h log.c \
 		      mmtype.h type.c    \
 		      license-check.c license.h \
 		      mmskeleton.h skeleton.c	\
-		      mmgeometry.h geometry.c
-libmmlib_la_LIBADD = $(PTHREAD_LIB) $(MATH_LIB) liblicense.la
+		      mmgeometry.h geometry.c   \
+		      mmprofile.h profile.c
+libmmlib_la_LIBADD = $(PTHREAD_LIB) $(MATH_LIB) $(CLOCK_LIB) \
+                     liblicense.la
 
 mmlicense_SOURCES = mmlicense.c
 mmlicense_LDADD = $(GNUTLS_LIBS) liblicense.la

@@ -15,9 +15,12 @@ if test $HAVE_VISIBILITY = 1 -a $os_support !=  "win32"; then
      	[attribute of the non-exported symbols])
      AC_DEFINE(API_EXPORTED, [__attribute__ ((visibility ("protected")))],
      	[attribute of the symbols exported in the API])
+     AC_DEFINE(API_EXPORTED_RELOCATABLE, [__attribute__ ((visibility ("default")))],
+        [attribute of the relocatable symbols exported in the API])
 else
      AC_DEFINE(LOCAL_SYMBOL, [], [attribute of the non-exported symbols])
      AC_DEFINE(API_EXPORTED, [], [attribute of the symbols exported in the API])
+     AC_DEFINE(API_EXPORTED_RELOCATABLE, [], [attribute of the relocatable symbols exported in the API])
 fi
 ])
 
