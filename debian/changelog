@@ -5,6 +5,7 @@ mmlib (0.1.0) UNRELEASED; urgency=low
     - Improve readibility of log
   * Update libmmlib0 symbols of the new module version
   * Turn compilation warnings into error
+  * Update homepage
 
  -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Mon, 03 Feb 2014 14:27:02 +0100
 

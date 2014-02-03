@@ -6,8 +6,8 @@ Build-Depends: debhelper (>= 9), dh-autoreconf,
  pkg-config, gnulib, libltdl-dev, gettext, check, libgnutls-dev, gnutls-bin,
  ca-certificates-mindmaze, pciutils
 Standards-Version: 3.9.3
-Vcs-Git: ssh://mindmaze1.epfl.ch/srv/shared/git_repositories/mmlib.git
-Homepage: http://mindmaze1.epfl.ch
+Vcs-Git: gitolite:mmlib.git
+Homepage: http://intranet.mindmaze.ch
 
 Package: libmmlib0
 Architecture: any
