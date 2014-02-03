@@ -290,12 +290,13 @@ int check_hwinfo_sig(gnutls_x509_crt_t crt,
 	gnutls_pubkey_init(&pub);
 	gnutls_pubkey_import_x509(pub, crt, 0);
 
-	fread(&sig.size, sizeof(sig.size), 1, f);
-	sig.data = malloc(sig.size);
-	if (!sig.data)
+	if ( fread(&sig.size, sizeof(sig.size), 1, f) != 1
+	  || !(sig.data = malloc(sig.size))
+	  || fread(sig.data, sig.size, 1, f) != 1 ) {
+		free(sig.data);
 		return -1;
+	}
 
-	fread(sig.data, sig.size, 1, f);
 
 	gnutls_pubkey_get_verify_algorithm(pub, &sig, &hash);
 	r = gnutls_pubkey_verify_data(pub, hash, hw, &sig);
