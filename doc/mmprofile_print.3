@@ -1,0 +1,38 @@
+.\"@mindmaze_header@
+.TH MMPROFILE_PRINT 3 2014 "MINDMAZE" "mmlib library manual"
+.SH NAME
+mmprofile_print - Print the timing statistics gathered so far
+.SH SYNOPSIS
+.LP
+.B #include <mmprofile.h>
+.sp
+.BI "int mmprofile_print(int " mask ", int " fd ");"
+.sp
+Link with
+.I -lmmlib
+.SH DESCRIPTION
+.LP
+\fBmmprofile_print\fP() prints the timing statistics on the file descriptor
+specified by \fIfd\fP. The printed statistics between each consecutive point of
+measure is controlled by the \fImask\fP parameter which will a bitwise-or'd
+combination of the following flags:
+.TP 12
+.B PROF_CURR
+display the value of the current iteration
+.TP
+.B PROF_MIN
+display the min value since the last print
+.TP
+.B PROF_MAX
+display the max value since the last print
+.TP
+.B PROF_MEAN
+display the average value since the last print
+.SH "RETURN VALUE"
+.LP
+0 in case of success, -1 otherwise with errno set accordingly. The possible
+error are the same as the one in \fBwrite\fP(2)
+.SH "SEE ALSO"
+.BR mmprofile_reset (3),
+.BR mmtic (3),
+.BR write (2)

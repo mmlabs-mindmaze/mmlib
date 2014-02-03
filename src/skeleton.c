@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <locale.h>
 
 #include "mmskeleton.h"
 #include "mmlog.h"
@@ -195,14 +196,33 @@ int skl_init(struct mmskel* skel)
 }
 
 
+/**
+ * skl_load_data() - Read skeleton from a file descriptor
+ * @skel:       Pointer to the skeleton data
+ * @fd:         File descriptor to load the data from
+ *
+ * Load the skeleton data from a file descriptor. Since the source is
+ * specified by a file descriptor, this function can be used to load data
+ * possibly through IPC. To avoid any issues, the skeleton are reinitialized
+ * at the beginning of the function. Thus it is not necessary to call
+ * skl_init() beforehand.
+ *
+ * In order to avoid bad loading of the data, it is performed
+ * with POSIX locale set. The previous locale is of course restored before
+ * leaving the function.
+ *
+ * Returns: 0 in case of success, -1 otherwise and errno is set represent
+ * the error.
+ */
 API_EXPORTED
 int skl_load_data(struct mmskel* skel, int fd)
 {
 	char magic[sizeof(skel_magic_number)];
 	char bone[32], parent[32];
 	float pos[3];
-	int nf, ind, root, newfd = -1;
+	int nf, ind, root, newfd = -1, ret = -1;
 	FILE* fp = NULL;
+	locale_t skl_loc = (locale_t)0, prev_loc = (locale_t)0;
 
 	if (!skel) {
 		errno = EINVAL;
@@ -212,15 +232,17 @@ int skl_load_data(struct mmskel* skel, int fd)
 
 	if ((newfd = dup(fd)) == -1
 	  || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
+	  || !(skl_loc = newlocale(LC_NUMERIC_MASK, "POSIX", (locale_t)0))
+	  || !(prev_loc = uselocale(skl_loc))
 	  || !(fp = fdopen(newfd, "r")) )
-		goto error;
+		goto exit;
 
 	// Check file format
 	if ( (nf = fread(magic, sizeof(magic), 1, fp)) < 1
 	    || memcmp(magic, skel_magic_number, sizeof(magic))) {
 		if (nf == 1)
 			errno = MM_EBADFMT;
-		goto error;
+		goto exit;
 	}
 
 	// Loop over the file and add each bone
@@ -230,35 +252,58 @@ int skl_load_data(struct mmskel* skel, int fd)
 		if (nf < 5) {
 			if (!ferror(fp))
 				errno = MM_EBADFMT;
-			goto error;
+			goto exit;
 		}
 
 		root = !strcmp(parent, "NULL");
 		if (skl_add_to(skel, root ? NULL : parent, bone))
-			goto error;
+			goto exit;
 
 		ind = skl_find(skel, bone);
 		memcpy(skel->bones[ind].pos, pos, sizeof(pos));
 	}
 
-	fclose(fp);
-	return 0;
+	ret = 0;
 
-error:
-	mmlog_error("skl_load_data() failed: %s", mmstrerror(errno));
+exit:
+	if (ret)
+		mmlog_error("skl_load_data() failed: %s", mmstrerror(errno));
+
 	if (fp)
 		fclose(fp);
 	else if (newfd != -1)
 		close(newfd);
-	return -1;
+
+	uselocale(prev_loc);
+	if (skl_loc != (locale_t)0)
+		freelocale(skl_loc);
+
+	return ret;
 }
 
 
+/**
+ * skl_save_data() - Save skeleton on a file descriptor
+ * @skel:       Pointer to the skeleton data
+ * @fd:         File descriptor to write the data to
+ *
+ * Save the skeleton data on a file descriptor. Since the target is
+ * specified by a file descriptor, this function can be used to save data
+ * possibly through IPC.
+ *
+ * In order to avoid bad representation in data, the loading is performed
+ * with POSIX locale set.  The previous locale is of course restored before
+ * leaving the function.
+ *
+ * Returns: 0 in case of success, -1 otherwise and errno is set represent
+ * the error.
+ */
 API_EXPORTED
 int skl_save_data(struct mmskel* skel, int fd)
 {
-	int nf, newfd = -1;
+	int nf, newfd = -1, ret = -1;
 	FILE* fp = NULL;
+	locale_t skl_loc = (locale_t)0, prev_loc = (locale_t)0;
 
 	if (!skel) {
 		errno = EINVAL;
@@ -267,27 +312,35 @@ int skl_save_data(struct mmskel* skel, int fd)
 
 	if ((newfd = dup(fd)) == -1
 	  || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
+	  || !(skl_loc = newlocale(LC_NUMERIC_MASK, "POSIX", (locale_t)0))
+	  || !(prev_loc = uselocale(skl_loc))
 	  || !(fp = fdopen(newfd, "w")) )
-		goto error;
+		goto exit;
 
 	// Write file format magic number
 	nf = fwrite(skel_magic_number, sizeof(skel_magic_number), 1, fp);
 	if (nf != 1)
-		goto error;
+		goto exit;
 
 	// Search the graph (depth first search)
 	// and write data for each node
 	if (bone_dfs(skel, 0, -1, fp, save_bone_data))
-		goto error;
+		goto exit;
 
-	fclose(fp);
-	return 0;
+	ret = 0;
 
-error:
-	mmlog_error("skl_save_data() failed: %s", mmstrerror(errno));
+exit:
+	if (ret)
+		mmlog_error("skl_save_data() failed: %s", mmstrerror(errno));
+
 	if (fp)
 		fclose(fp);
 	else if (newfd != -1)
 		close(newfd);
-	return -1;
+
+	uselocale(prev_loc);
+	if (skl_loc != (locale_t)0)
+		freelocale(skl_loc);
+
+	return ret;
 }

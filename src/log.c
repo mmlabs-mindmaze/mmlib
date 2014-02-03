@@ -18,7 +18,6 @@
 #define MMLOG_LINE_MAXLEN	256
 #endif
 
-static pthread_once_t once_init = PTHREAD_ONCE_INIT;
 static int maxloglvl = MMLOG_WARN;
 
 static
@@ -30,6 +29,9 @@ const char* const loglevel[] = {
 	[MMLOG_DEBUG] = "DEBUG",
 };
 #define NLEVEL (sizeof(loglevel)/sizeof(loglevel[0]))
+
+static
+void init_log(void) __attribute__ ((constructor));
 
 static
 void init_log(void)
@@ -61,12 +63,10 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 	struct tm tm;
 	char* cbuf;
 	size_t len, rlen;
+	ssize_t r;
 	va_list args;
 	char buff[MMLOG_LINE_MAXLEN];
 	
-	// Configure max level from environment
-	pthread_once(&once_init, init_log);
-
 	// Do not log something higher than the max level set by environment
 	if (lvl > maxloglvl || lvl < 0)
 		return;
@@ -81,7 +81,7 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 	rlen -= len;
 	
 	// format message header message
-	len = snprintf(cbuf, rlen-1, " %s %s: ", location, loglevel[lvl]);
+	len = snprintf(cbuf, rlen-1, " %-5s %-16s : ", loglevel[lvl], location);
 	cbuf += len;
 	rlen -= len;
 	
@@ -93,6 +93,13 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 	rlen -= len;
 
 	// Write message on log file descriptor
-	write(STDERR_FILENO, buff, sizeof(buff)-rlen);
+	cbuf = buff;
+	len = sizeof(buff)-rlen;
+	do {
+		if ((r = write(STDERR_FILENO, cbuf, len)) < 0)
+			return;
+		len -= r;
+		cbuf += r;
+	} while (len);
 }
 

@@ -9,15 +9,15 @@
 # - If any interfaces have been removed since the last public release, then
 # set age to 0.
 
-m4_define([lib_current],0)
-m4_define([lib_revision],3)
-m4_define([lib_age],0)
+m4_define([lib_current],1)
+m4_define([lib_revision],0)
+m4_define([lib_age],1)
 
 # Setup autoconf
 AC_INIT(mmlib,[lib_current.lib_revision],[nicolas.bourdaud@mindmaze.ch])
 AC_CONFIG_SRCDIR([src/mmlog.h])
 #AC_CONFIG_LIBOBJ_DIR([lib])
-AC_CONFIG_MACRO_DIR([extra/m4])
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config/config.h])
 
@@ -45,9 +45,11 @@ AS_IF([test "x$certtool_check" = xno],
 # Check for libraries
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
 MM_CHECK_LIB([sqrtf], [m], MATH)
+MM_CHECK_LIB([clock_gettime], [rt], CLOCK)
 PKG_CHECK_MODULES_EXT(GNUTLS, [gnutls])
 
 AC_DEF_API_EXPORT_ATTRS
+MM_CC_WARNFLAGS
 
 AC_SUBST([optional_examples])
 AC_SUBST([CURRENT],[lib_current])

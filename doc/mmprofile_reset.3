@@ -1,0 +1,37 @@
+.\"@mindmaze_header@
+.TH MMPROFILE_RESET 3 2014 "MINDMAZE" "mmlib library manual"
+.SH NAME
+mmprofile_reset - Reset the statistics and change the timer
+.SH SYNOPSIS
+.LP
+.B #include <mmprofile.h>
+.sp
+.BI "void mmprofile_reset(int " cputime ");"
+.sp
+Link with
+.I -lmmlib
+.SH DESCRIPTION
+.LP
+\fBmmprofile_reset\fP() reset the timing statistics, ie, reset the min, max,
+mean values as well as the number of point used in one iteration.
+Additionally it provides a ways to change the type of timer used for
+measure.
+.P
+If the \fIcputime\fP argument is non zero, it will use a timer based on CPU's
+instruction counter. This timer has a very fine granularity (of the order of
+very few nanoseconds) but it does not take measure time spent on sleeping
+while waiting certain event (disk IO, mutex/cond, etc...). This timer
+indicates the processing power spent on tasks.
+.P
+Alternatively if \fIcputime\fP is zero, it will use a timer based on wall clock.
+This timer has bigger granularity (order of hundred nanoseconds) and report
+time spent at sleeping. The indicates the realtime update will performing
+certain task.
+.P
+At startup, the profile functions are configured to use CPU based timer.
+.SH "RETURN VALUE"
+.LP
+None.
+.SH "SEE ALSO"
+.BR mmprofile_print (3),
+.BR mmtic (3)

@@ -41,8 +41,8 @@ static const struct errmsg_entry error_tab[] = {
  *                           Implementation                               *
  *                                                                        *
  **************************************************************************/
-static pthread_once_t translation_is_initialized = PTHREAD_ONCE_INIT;
-
+static
+void init_translation(void)  __attribute__ ((constructor));
 
 static
 void init_translation(void)
@@ -55,9 +55,6 @@ static
 const char* get_mm_errmsg(int errnum)
 {
 	int i = errnum - error_tab[0].errnum;
-	
-	pthread_once(&translation_is_initialized, init_translation);
-
 	return _(error_tab[i].msg);
 }
 

@@ -6,11 +6,11 @@ EXTRA_DIST = \
 
 LDADD = $(top_builddir)/src/libmmlib.la
 AM_CPPFLAGS = -I$(top_srcdir)/src $(CHECK_CPPFLAGS)
-AM_CFLAGS = $(CHECK_CFLAGS)
+AM_CFLAGS = $(CHECK_CFLAGS) $(MM_WARNFLAGS)
 
 testgeometry_LDADD = $(CHECK_LIBS) $(top_builddir)/src/libmmlib.la
 testtype_LDADD = $(CHECK_LIBS) $(top_builddir)/src/libmmlib.la
 
-check_PROGRAMS = testlog testerrno testgeometry testtype
-TESTS = testlog testerrno testgeometry testtype
+check_PROGRAMS = testlog testerrno testgeometry testtype testprofile
+TESTS = testlog testerrno testgeometry testtype testprofile
 TESTS_ENVIRONMENT = MM_LIC_ALTDIR=$(srcdir)/tokens
