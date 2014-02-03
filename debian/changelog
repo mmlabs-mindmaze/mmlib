@@ -1,4 +1,4 @@
-mmlib (0.1.0) UNRELEASED; urgency=low
+mmlib (0.1.0) unstable; urgency=low
 
   * New module version 0.1.0:
     - Add profiling functions
@@ -7,7 +7,7 @@ mmlib (0.1.0) UNRELEASED; urgency=low
   * Turn compilation warnings into error
   * Update homepage
 
- -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Mon, 03 Feb 2014 14:27:02 +0100
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Mon, 03 Feb 2014 15:24:34 +0100
 
 mmlib (0.0.3) testing; urgency=low
 
