@@ -45,6 +45,7 @@ AS_IF([test "x$certtool_check" = xno],
 # Check for libraries
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
 MM_CHECK_LIB([sqrtf], [m], MATH)
+MM_CHECK_LIB([clock_gettime], [rt], CLOCK)
 PKG_CHECK_MODULES_EXT(GNUTLS, [gnutls])
 
 AC_DEF_API_EXPORT_ATTRS
