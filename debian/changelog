@@ -1,3 +1,12 @@
+mmlib (0.1.0) UNRELEASED; urgency=low
+
+  * New module version 0.1.0:
+    - Add profiling functions
+    - Improve readibility of log
+  * Update libmmlib0 symbols of the new module version
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Mon, 03 Feb 2014 14:27:02 +0100
+
 mmlib (0.0.3) testing; urgency=low
 
   * New module version:

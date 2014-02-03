@@ -8,8 +8,12 @@ libmmlib.so.0 libmmlib0 #MINVER#
  mm_rotate@Base 0.0.0~~experimental
  mmimage_buffer_size@Base 0.0.0
  mmlog_log@Base 0.0.0~~experimental
+ mmprofile_print@Base 0.1.0
+ mmprofile_reset@Base 0.1.0
  mmstrerror@Base 0.0.0~~experimental
  mmstrerror_r@Base 0.0.0~~experimental
+ mmtic@Base 0.1.0
+ mmtoc@Base 0.1.0
  plane_distance@Base 0.0.0~~experimental
  plane_from_point@Base 0.0.0~~experimental
  plane_intersect@Base 0.0.0~~experimental
