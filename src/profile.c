@@ -297,7 +297,6 @@ int mmprofile_print(int mask, int fd)
 		}
 
 		str[len++] = '\n';
-		str[len++] = '\0';
 
 		// Write line to file
 		buf = str;
