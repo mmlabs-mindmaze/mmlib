@@ -17,7 +17,7 @@ m4_define([lib_age],0)
 AC_INIT(mmlib,[lib_current.lib_revision],[nicolas.bourdaud@mindmaze.ch])
 AC_CONFIG_SRCDIR([src/mmlog.h])
 #AC_CONFIG_LIBOBJ_DIR([lib])
-AC_CONFIG_MACRO_DIR([extra/m4])
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config/config.h])
 
