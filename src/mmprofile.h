@@ -15,7 +15,7 @@ extern "C" {
 
 void mmtic(void);
 void mmtoc(void);
-void mmprofile_print(int mask, int fd);
+int mmprofile_print(int mask, int fd);
 void mmprofile_reset(int cputime);
 
 #ifdef __cplusplus

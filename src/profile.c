@@ -242,14 +242,17 @@ void mmtoc(void)
  *   - PROF_MIN:  display the min value since the last reset
  *   - PROF_MAX:  display the max value since the last reset
  *   - PROF_MEAN: display the average value since the last reset
+ *
+ * Returns: 0 in case of success, -1 otherwise with errno set accordingly
  */
 API_EXPORTED
-void mmprofile_print(int mask, int fd)
+int mmprofile_print(int mask, int fd)
 {
 	int i;
 	int64_t dt;
-	char str[512];
+	char str[512], *buf;
 	size_t len;
+	ssize_t r;
 	double mean;
 
 	update_diffs();
@@ -295,8 +298,18 @@ void mmprofile_print(int mask, int fd)
 
 		str[len++] = '\n';
 		str[len++] = '\0';
-		write(fd, str, len);
+
+		// Write line to file
+		buf = str;
+		do {
+			if ((r = write(fd, buf, len)) < 0)
+				return -1;
+			len -= r;
+			buf += r;
+		} while (len);
 	}
+
+	return 0;
 }
 
 

@@ -6,7 +6,7 @@ mmprofile_print - Print the timing statistics gathered so far
 .LP
 .B #include <mmprofile.h>
 .sp
-.BI "void mmprofile_print(int " mask ", int " fd ");"
+.BI "int mmprofile_print(int " mask ", int " fd ");"
 .sp
 Link with
 .I -lmmlib
@@ -30,7 +30,9 @@ display the max value since the last print
 display the average value since the last print
 .SH "RETURN VALUE"
 .LP
-None.
+0 in case of success, -1 otherwise with errno set accordingly. The possible
+error are the same as the one in \fBwrite\fP(2)
 .SH "SEE ALSO"
 .BR mmprofile_reset (3),
-.BR mmtic (3)
+.BR mmtic (3),
+.BR write (2)
