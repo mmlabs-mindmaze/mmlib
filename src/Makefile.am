@@ -29,6 +29,9 @@ libmmlib_la_SOURCES = mmlog.h log.c \
 		      mmprofile.h profile.c
 libmmlib_la_LIBADD = $(PTHREAD_LIB) $(MATH_LIB) $(CLOCK_LIB) \
                      liblicense.la
+libmmlib_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined \
+                     -version-info $(CURRENT):$(REVISION):$(AGE) 
+
 
 mmlicense_SOURCES = mmlicense.c
 mmlicense_LDADD = $(GNUTLS_LIBS) liblicense.la
