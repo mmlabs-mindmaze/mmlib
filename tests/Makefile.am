@@ -6,7 +6,7 @@ EXTRA_DIST = \
 
 LDADD = $(top_builddir)/src/libmmlib.la
 AM_CPPFLAGS = -I$(top_srcdir)/src $(CHECK_CPPFLAGS)
-AM_CFLAGS = $(CHECK_CFLAGS)
+AM_CFLAGS = $(CHECK_CFLAGS) $(MM_WARNFLAGS)
 
 testgeometry_LDADD = $(CHECK_LIBS) $(top_builddir)/src/libmmlib.la
 testtype_LDADD = $(CHECK_LIBS) $(top_builddir)/src/libmmlib.la

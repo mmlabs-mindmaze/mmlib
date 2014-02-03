@@ -1,6 +1,7 @@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" \
               -DSYSCONFDIR=\"$(sysconfdir)\" \
               $(GNUTLS_CPPFLAGS)
+AM_CFLAGS = $(MM_WARNFLAGS)
 
 include_HEADERS = mmlog.h mmerrno.h mmtype.h mmgeometry.h mmskeleton.h
 lib_LTLIBRARIES = libmmlib.la

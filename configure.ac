@@ -49,6 +49,7 @@ MM_CHECK_LIB([clock_gettime], [rt], CLOCK)
 PKG_CHECK_MODULES_EXT(GNUTLS, [gnutls])
 
 AC_DEF_API_EXPORT_ATTRS
+MM_CC_WARNFLAGS
 
 AC_SUBST([optional_examples])
 AC_SUBST([CURRENT],[lib_current])
