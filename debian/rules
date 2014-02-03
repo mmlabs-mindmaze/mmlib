@@ -4,12 +4,10 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-CONFFLAGS = 
+CONFFLAGS = --enable-warn-all=error
 
 ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	export DEB_CFLAGS_MAINT_APPEND=-O3 -Wall -Wextra
-else
-	export DEB_CFLAGS_MAINT_APPEND=-Wall -Wextra
+	export DEB_CFLAGS_MAINT_APPEND=-O3
 endif
 export DEB_LDFLAGS_MAINT_APPEND=-Wl,-Bsymbolic-functions
 
