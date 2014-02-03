@@ -63,6 +63,7 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 	struct tm tm;
 	char* cbuf;
 	size_t len, rlen;
+	ssize_t r;
 	va_list args;
 	char buff[MMLOG_LINE_MAXLEN];
 	
@@ -92,6 +93,13 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 	rlen -= len;
 
 	// Write message on log file descriptor
-	write(STDERR_FILENO, buff, sizeof(buff)-rlen);
+	cbuf = buff;
+	len = sizeof(buff)-rlen;
+	do {
+		if ((r = write(STDERR_FILENO, cbuf, len)) < 0)
+			return;
+		len -= r;
+		cbuf += r;
+	} while (len);
 }
 
