@@ -36,14 +36,6 @@ typedef struct mmimage {
 	void* data;  /* Pointer to image data. */
 } mmimage;
 
-typedef struct mmheadinfo {
-	float x;          /* Head center in image coordinates. */
-	float y;
-	float width;      /* Size of the head, representing ellipse axis. */
-	float height;
-	float angle;      /* Rotation of the head in the image plane. */
-} mmheadinfo;
-
 typedef struct epos3d {
 	float v[3];
 	int confidence;	  /* Confidence in the estimation */
