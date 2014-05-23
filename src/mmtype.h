@@ -51,6 +51,27 @@ typedef struct mmquat {
 	int confidence;
 } mmquat;
 
+
+/**
+ * struct camera_calibration - Calibration parameters of a camera
+ * @focal:       focal lengths expressed in pixel units
+ * @principal:   principal point that is usually at the image center
+ * @distradial:  radial distortion coefficients in the order [k1 k2 k3 k4 k5 k6]
+ * @disttangent: radial distortion coefficients in the order [p1 p2]
+ * @rotation:    rotation matrix of the camera in the reference frame
+ * @translation: translation of the focal point in the reference frame
+ *
+ * See http://docs.opencv.org/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
+ */
+struct camera_calibration {
+	float focal[2];
+	float principal[2];
+	float distradial[6]; //k1 k2 p1 p2 k3 k4 k5 k6
+	float disttangent[2];
+	float rotation[9];
+	float translation[3];
+};
+
 /**
  * DOC: Pixel formats
  *
