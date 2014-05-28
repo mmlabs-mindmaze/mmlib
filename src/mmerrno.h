@@ -14,6 +14,7 @@
 #define MM_ETOOMANY		1004
 #define MM_ENOTFOUND		1005
 #define MM_EBADFMT		1006
+#define MM_ENOCALIB		1007
 
 
 #ifdef __cplusplus

@@ -32,6 +32,7 @@ static const struct errmsg_entry error_tab[] = {
 	 .msg = N_("Too many entities have been requested")},
 	{.errnum = MM_ENOTFOUND, .msg = N_("Object not found")},
 	{.errnum = MM_EBADFMT, .msg = N_("Bad format")},
+	{.errnum = MM_ENOCALIB, .msg = N_("Calibration needed")},
 };
 
 #define NUM_ERROR_ENTRY	(sizeof(error_tab)/sizeof(error_tab[0]))
