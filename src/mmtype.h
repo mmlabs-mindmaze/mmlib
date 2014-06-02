@@ -54,6 +54,7 @@ typedef struct mmquat {
 
 /**
  * struct camera_calibration - Calibration parameters of a camera
+ * @resolution:  resolution along each axis
  * @focal:       focal lengths expressed in pixel units
  * @principal:   principal point that is usually at the image center
  * @distradial:  radial distortion coefficients in the order [k1 k2 k3 k4 k5 k6]
@@ -64,6 +65,7 @@ typedef struct mmquat {
  * See http://docs.opencv.org/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
  */
 struct camera_calibration {
+	int   resolution[2];
 	float focal[2];
 	float principal[2];
 	float distradial[6]; //k1 k2 p1 p2 k3 k4 k5 k6
