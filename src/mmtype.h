@@ -68,7 +68,7 @@ struct camera_calibration {
 	int   resolution[2];
 	float focal[2];
 	float principal[2];
-	float distradial[6]; //k1 k2 p1 p2 k3 k4 k5 k6
+	float distradial[6];
 	float disttangent[2];
 	float rotation[9];
 	float translation[3];
