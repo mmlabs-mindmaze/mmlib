@@ -1,3 +1,12 @@
+mmlib (0.2.0) UNRELEASED; urgency=medium
+
+  * New module version 0.2.0:
+    - added new image descriptor
+    - struct camera_calibration
+  * Update libmmlib0 symbols of the new module version
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Tue, 03 Jun 2014 18:22:56 +0200
+
 mmlib (0.1.0) unstable; urgency=low
 
   * New module version 0.1.0:
