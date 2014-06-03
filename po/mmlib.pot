@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: mmlib 0.0\n"
+"Project-Id-Version: mmlib 1.0\n"
 "Report-Msgid-Bugs-To: nicolas.bourdaud@mindmaze.ch\n"
-"POT-Creation-Date: 2013-08-21 22:50+0200\n"
+"POT-Creation-Date: 2014-06-03 18:02+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,4 +43,8 @@ msgstr ""
 
 #: src/error.c:34
 msgid "Bad format"
+msgstr ""
+
+#: src/error.c:35
+msgid "Calibration needed"
 msgstr ""
