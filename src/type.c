@@ -11,6 +11,8 @@
 #include "mmlog.h"
 #include "mmtype.h"
 
+#define CACHE_LINE_SIZE	64
+
 /**
  * mmimg_pixel_size() - get the size in byte a pixel in a specified format
  * @pixfmt:     pixel format
@@ -65,7 +67,7 @@ error:
  *
  * This function will modify the image description for having a stride
  * compatible with the specified alignment. If this alignment is 0, the
- * computed stride will correspond to the case of packed data lines.
+ * function will choose an good alignment for you.
  *
  * Return: 0 in case of sucess, otherwise -1 with errno set appropriately.
  */
@@ -86,7 +88,7 @@ int mmimg_set_stride(struct mm_imgdesc* img, size_t alignment)
 
 	// Round up the next multiple of alignment
 	if (!alignment)
-		alignment = 1;
+		alignment = CACHE_LINE_SIZE;
 	remainder = stride % alignment;
 	if (remainder)
 		stride += alignment - remainder;
@@ -123,7 +125,7 @@ void* mmimg_alloc_buffer(const struct mm_imgdesc* img)
 	bsize = img->height*img->stride;
 
 	// TODO: calculate alignment suitable for CPU at runtime
-	if (posix_memalign(&ptr, 64, bsize)) {
+	if (posix_memalign(&ptr, CACHE_LINE_SIZE, bsize)) {
 		free(ptr);
 		return NULL;
 	}
