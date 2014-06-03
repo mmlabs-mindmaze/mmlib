@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mmlib 0.0\n"
 "Report-Msgid-Bugs-To: nicolas.bourdaud@mindmaze.ch\n"
-"POT-Creation-Date: 2013-08-21 22:50+0200\n"
+"POT-Creation-Date: 2014-06-03 18:02+0200\n"
 "PO-Revision-Date: 2012-10-22 14:53+0200\n"
 "Last-Translator: Nicolas Bourdaud (MindMaze) <nicolas.bourdaud@mindmaze.ch>\n"
 "Language-Team: French\n"
@@ -43,3 +43,7 @@ msgstr "Objet non trouvé"
 #: src/error.c:34
 msgid "Bad format"
 msgstr "Mauvais format"
+
+#: src/error.c:35
+msgid "Calibration needed"
+msgstr "Calibration requise"

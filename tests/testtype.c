@@ -10,6 +10,13 @@
 #include <stdlib.h>
 #include <check.h>
 
+#define NUMEL(array) (sizeof(array)/sizeof(array[0]))
+
+/**************************************************************************
+ *                                                                        *
+ *                          struct mmimage tests                          *
+ *                                                                        *
+ **************************************************************************/
 struct img_size {
 	int w, h;
 	int d;
@@ -28,7 +35,7 @@ struct img_size exp_imgsz[] = {
 	{.w = 640, .h = 480, .d = MM_DEPTH_16S, .nch = 1, .sz = 640*480*2},
 	{.w = 640, .h = 480, .d = MM_DEPTH_32S, .nch = 1, .sz = 640*480*4},
 };
-#define NUM_IMG_SIZE	(sizeof(exp_imgsz)/sizeof(exp_imgsz[0]))
+
 
 START_TEST(buffer_size_test)
 {
@@ -43,6 +50,87 @@ START_TEST(buffer_size_test)
 }
 END_TEST
 
+
+/**************************************************************************
+ *                                                                        *
+ *                         struct mm_imgdesc tests                        *
+ *                                                                        *
+ **************************************************************************/
+#define MAX_WIDTH	160
+#define MAX_ALIGNMENT	32
+
+struct pixsize {
+	unsigned int fmt;
+	size_t sz;
+};
+
+static const
+struct pixsize exp_pixsz[] = {
+	{.fmt = MM_PIXFMT_MONO8, .sz = 1},
+	{.fmt = MM_PIXFMT_MONO16, .sz = 2},
+	{.fmt = MM_PIXFMT_BGRA, .sz = 4},
+	{.fmt = MM_PIXFMT_RGBA, .sz = 4},
+	{.fmt = MM_PIXFMT_BGR, .sz = 3},
+	{.fmt = MM_PIXFMT_RGB, .sz = 3},
+	{.fmt = 0xFFFFFFFF, .sz = 0},
+};
+
+
+START_TEST(pixel_size_test)
+{
+	unsigned int pixel_format = exp_pixsz[_i].fmt;
+	size_t pixel_size = exp_pixsz[_i].sz;
+	ck_assert(mmimg_pixel_size(pixel_format) == pixel_size);
+}
+END_TEST
+
+
+START_TEST(valid_stride_test)
+{
+	unsigned int ifmt;
+	size_t pixel_size, alignment = _i;
+	struct mm_imgdesc img = { .height = 120 };
+
+	for (ifmt = 0; ifmt < NUMEL(exp_pixsz); ifmt++) {
+		img.pixformat = exp_pixsz[ifmt].fmt;
+		pixel_size = mmimg_pixel_size(img.pixformat);
+
+		for (img.width = 1; img.width < MAX_WIDTH; img.width++) {
+			mmimg_set_stride(&img, alignment);
+			ck_assert(img.stride >= img.width*pixel_size);
+			ck_assert(img.stride % alignment == 0);
+		}
+	}
+}
+END_TEST
+
+
+START_TEST(alloc_imgbuf_test)
+{
+	void* buffer;
+	struct mm_imgdesc img = {
+		.width = 235,
+		.height = 120,
+		.pixformat = MM_PIXFMT_BGR,
+	};
+
+	mmimg_set_stride(&img, _i);
+	buffer = mmimg_alloc_buffer(&img);
+	ck_assert(buffer != NULL);
+
+	// check the whole allocated buffer is writable
+	memset(buffer, 0, img.height*img.stride);
+
+	free(buffer);
+}
+END_TEST
+
+
+/**************************************************************************
+ *                                                                        *
+ *                             test suite setup                           *
+ *                                                                        *
+ **************************************************************************/
 static
 Suite* type_suite(void)
 {
@@ -50,7 +138,10 @@ Suite* type_suite(void)
 
 	/* Core test case */
 	TCase *tc_core = tcase_create("Core");
-	tcase_add_loop_test(tc_core, buffer_size_test, 0, NUM_IMG_SIZE);
+	tcase_add_loop_test(tc_core, buffer_size_test, 0, NUMEL(exp_imgsz));
+	tcase_add_loop_test(tc_core, pixel_size_test, 0, NUMEL(exp_pixsz));
+	tcase_add_loop_test(tc_core, valid_stride_test, 1, MAX_ALIGNMENT);
+	tcase_add_loop_test(tc_core, alloc_imgbuf_test, 0, MAX_ALIGNMENT);
 	suite_add_tcase(s, tc_core);
 
 	return s;
