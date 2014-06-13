@@ -1,3 +1,9 @@
+mmlib (0.2.0+1) unstable; urgency=medium
+
+  * Added C++11 compatibility patch for mmlog.h
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 13 Jun 2014 10:10:09 +0200
+
 mmlib (0.2.0) unstable; urgency=medium
 
   * New module version 0.2.0:
