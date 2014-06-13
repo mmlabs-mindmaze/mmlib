@@ -27,7 +27,7 @@
  Define MMLOG_VERBOSE_LOCATION to display location with file and line
 */
 #if MMLOG_VERBOSE_LOCATION
-# define mm_location(module)	 module " "__FILE__"("mm_stringify(__LINE__)")"
+# define mm_location(module)	 module " " __FILE__ "(" mm_stringify( __LINE__ ) ")"
 #else
 # define mm_location(module)	 module
 #endif
