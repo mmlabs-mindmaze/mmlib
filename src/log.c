@@ -18,7 +18,7 @@
 #define MMLOG_LINE_MAXLEN	256
 #endif
 
-static int maxloglvl = MMLOG_WARN;
+static int maxloglvl = MMLOG_INFO;
 
 static
 const char* const loglevel[] = {
