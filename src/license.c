@@ -342,7 +342,8 @@ int read_control_sig(gnutls_x509_crt_t crt, const gnutls_datum_t* hw,
 	if ((r = read_signature(crt, hw, path)))
 		return r;
 
-	if ((r = gnutls_x509_crt_verify(crt, &ca, 1, 0, &status)))
+	if ((r = gnutls_x509_crt_verify(crt, &ca, 1,
+	                       GNUTLS_VERIFY_DISABLE_TIME_CHECKS, &status)))
 		return r;
 
 	return (status & GNUTLS_CERT_INVALID) ?
