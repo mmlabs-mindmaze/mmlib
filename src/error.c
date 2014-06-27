@@ -33,6 +33,7 @@ static const struct errmsg_entry error_tab[] = {
 	{.errnum = MM_ENOTFOUND, .msg = N_("Object not found")},
 	{.errnum = MM_EBADFMT, .msg = N_("Bad format")},
 	{.errnum = MM_ENOCALIB, .msg = N_("Calibration needed")},
+	{.errnum = MM_ENOINERTIAL, .msg = N_("Missing inertial sensors")},
 };
 
 #define NUM_ERROR_ENTRY	(sizeof(error_tab)/sizeof(error_tab[0]))
