@@ -1,3 +1,10 @@
+mmlib (0.2.0+2) unstable; urgency=medium
+
+  * Add MM_ENOINERTIAL error code
+  * Remove validity time check for authorization token check
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Mon, 30 Jun 2014 14:12:00 +0200
+
 mmlib (0.2.0+1) unstable; urgency=medium
 
   * Added C++11 compatibility patch for mmlog.h
