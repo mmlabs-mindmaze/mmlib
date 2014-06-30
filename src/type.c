@@ -125,10 +125,8 @@ void* mmimg_alloc_buffer(const struct mm_imgdesc* img)
 	bsize = img->height*img->stride;
 
 	// TODO: calculate alignment suitable for CPU at runtime
-	if (posix_memalign(&ptr, CACHE_LINE_SIZE, bsize)) {
-		free(ptr);
+	if (posix_memalign(&ptr, CACHE_LINE_SIZE, bsize))
 		return NULL;
-	}
 
 	return ptr;
 }
