@@ -92,7 +92,7 @@ struct camera_calibration {
  * MM_PIXFMT_COMP_MONO|MM_PIXFMT_UINT16|   mono  | M0 M0 M1 M1 M2 M2 M3 M4
  * MM_PIXFMT_COMP_HSV|MM_PIXFMT_UINT16 |  H,S,V  | H0 H0 S0 S0 V0 V0 H1 H1
  *
- * MM_PIXFMT_RGBA (MM_PIXFMT_COMP_BGRA | MM_PIXFMT_UINT8) is then the same
+ * MM_PIXFMT_BGRA (MM_PIXFMT_COMP_BGRA | MM_PIXFMT_UINT8) is then the same
  * as in OpenCV, but beware, it is the same as ARGB in Qt (on little endian
  * platform).
  */
