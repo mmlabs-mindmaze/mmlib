@@ -38,15 +38,11 @@ AC_SUBST(LIBTOOL_DEPS)
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION(0.18)
 PKG_CHECK_MODULES_EXT(CHECK, [check])
-AC_CHECK_PROG(certtool_check, [certtool], [yes], [no])
-AS_IF([test "x$certtool_check" = xno],
-      [AC_MSG_ERROR([certtool is missing. Please install gnutls-bin])])
 
 # Check for libraries
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
 MM_CHECK_LIB([sqrtf], [m], MATH)
 MM_CHECK_LIB([clock_gettime], [rt], CLOCK)
-PKG_CHECK_MODULES_EXT(GNUTLS, [gnutls])
 
 AC_DEF_API_EXPORT_ATTRS
 MM_CC_WARNFLAGS
