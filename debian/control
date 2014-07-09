@@ -3,8 +3,7 @@ Section: libs
 Priority: extra
 Maintainer: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
 Build-Depends: debhelper (>= 9), dh-autoreconf,
- pkg-config, gnulib, libltdl-dev, gettext, check, libgnutls-dev, gnutls-bin,
- ca-certificates-mindmaze, pciutils
+ pkg-config, gnulib, libltdl-dev, gettext, check
 Standards-Version: 3.9.3
 Vcs-Git: gitolite:mmlib.git
 Homepage: http://intranet.mindmaze.ch
@@ -13,7 +12,7 @@ Package: libmmlib0
 Architecture: any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${shlibs:Depends}, ${misc:Depends}, pciutils
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: MindMaze helper library (shared lib)
  mmlib is the general purpose library providing helper functions to other
  module. It provides facilities for logging, error reporting and basic
@@ -46,15 +45,3 @@ Description: MindMaze helper library (Debugging symbols)
  geometry.
  .
  This package provides the debugging symbols for the library.
-
-Package: mmlib-bin
-Section: utils
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: MindMaze helper library (support programs)
- mmlib is the general purpose library providing helper functions to other
- module. It provides facilities for logging, error reporting and basic
- geometry.
- .
- This package provides the support programs useful for installation or
- deployment. In particular it ships the authorization token manager program.
