@@ -74,7 +74,7 @@ int is_equal(const float *v1, const float *v2, int size)
 
 START_TEST(aaxis_from_mat3_test)
 {
-	float aaxis[4];
+	float aaxis[4] = {NAN, NAN, NAN, NAN};
 	aaxis[3] = mm_aaxis_from_mat3(aaxis, refmat[_i]);
 	fail_if(!is_equal(aaxis, refaaxis[_i], 4), "iter %i failed", _i);
 }
@@ -83,7 +83,9 @@ END_TEST
 
 START_TEST(mat_from_quat_test)
 {
-	float mat[9];
+	float mat[9] = {NAN, NAN, NAN,
+	                NAN, NAN, NAN,
+	                NAN, NAN, NAN};
 	mm_mat3_from_quat(mat, refquat[_i]);
 	fail_if(!is_equal(mat, refmat[_i], 9), "iteration %i failed", _i);
 }
@@ -92,7 +94,7 @@ END_TEST
 
 START_TEST(quat_from_mat_test)
 {
-	float quat[4];
+	float quat[4] = {NAN, NAN, NAN, NAN};
 	mm_quat_from_mat3(quat, refmat[_i]);
 	fail_if(!is_equal(quat, refquat[_i], 4), "iteration %i failed", _i);
 }
