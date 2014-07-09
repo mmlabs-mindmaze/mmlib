@@ -142,6 +142,10 @@ float mm_aaxis_from_mat3(float *restrict axis, const float *restrict m)
 		axis[0] = q[1] / sc;
 		axis[1] = q[2] / sc;
 		axis[2] = q[3] / sc;
+	} else {
+		axis[0] = 1.0f;
+		axis[1] = 0.0f;
+		axis[2] = 0.0f;
 	}
 
 	return 2*acosf(q[0]);
