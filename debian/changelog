@@ -1,10 +1,10 @@
-mmlib (0.2.2+1) UNRELEASED; urgency=medium
+mmlib (0.2.2+1) unstable; urgency=medium
 
   * Really new module version 0.2.2:
     - Update error message for MM_ENOINERTIAL
     - Removes mmlicence manpage
 
- -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Tue, 15 Jul 2014 03:26:41 +0200
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Tue, 15 Jul 2014 03:28:34 +0200
 
 mmlib (0.2.2) unstable; urgency=medium
 
