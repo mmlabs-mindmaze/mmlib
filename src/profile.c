@@ -15,6 +15,7 @@
 
 #define SEC_IN_NSEC	1000000000
 #define NUM_TS_MAX	16
+#define MAX_LABEL_LEN	64
 
 #define MIN(a, b) ((a) <= (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -35,6 +36,8 @@ static struct timespec timestamps[NUM_TS_MAX];  // current iteration measure
 static int64_t max_diff_ts[NUM_TS_MAX];         // max time difference
 static int64_t min_diff_ts[NUM_TS_MAX];         // min time difference
 static int64_t sum_diff_ts[NUM_TS_MAX];  // sum of time difference overall
+static char* labels[NUM_TS_MAX];
+static char label_storage[MAX_LABEL_LEN*NUM_TS_MAX];
 
 
 /**************************************************************************
@@ -142,6 +145,10 @@ void estimate_toc_overhead()
 		mmtoc();
 		mmtoc();
 
+		mmtic();
+		mmtoc_label("");
+		mmtoc_label("");
+
 		// Remove the first measure to avoid cold cache effect
 		if (i == 0)
 			reset_diffs();
@@ -188,6 +195,22 @@ void init_profile(void)
 }
 
 
+static
+int max_label_len(void)
+{
+	int i, max, len;
+
+	max = 0;
+	for (i = 1; i < num_ts; i++) {
+		len = 0;
+		if (labels[i])
+			len = strlen(labels[i]);
+		max = MAX(max, len);
+	}
+
+	return max;
+}
+
 /**************************************************************************
  *                                                                        *
  *                           API implementation                           *
@@ -230,6 +253,32 @@ void mmtoc(void)
 
 
 /**
+ * mmtoc_label() - Add a new point of measure associated with a label
+ * @label:      string to appear in front of measure point at result display
+ *
+ * This function is the same as mmtoc() excepting it provides a way to label
+ * the meansure point. Beware than only the first occurence of a label
+ * associated with a measure point will be retained. Any subsequent call to
+ * mmtoc_label() at the same measure point index will be the same as calling
+ * mmtoc().
+ *
+ * NOTE: Contrary to the usual API functions, mmtoc_label() uses the
+ * attribute API_EXPORTED_RELOCATABLE. This is done on purpose. See NOTE of
+ * estimate_toc_overhead().
+ */
+API_EXPORTED_RELOCATABLE
+void mmtoc_label(const char* label)
+{
+	// Copy label if it the first time to appear
+	if (!labels[next_ts]) {
+		labels[next_ts] = &label_storage[next_ts*MAX_LABEL_LEN];
+		strncpy(labels[next_ts], label, MAX_LABEL_LEN-1);
+	}
+	local_toc();
+}
+
+
+/**
  * mmprofile_print() - Print the timing statistics gathered so far
  * @mask:       combination of flags indicating statistics must be printed
  * @fd:         file descriptor to which the statistics must be printed
@@ -248,7 +297,7 @@ void mmtoc(void)
 API_EXPORTED
 int mmprofile_print(int mask, int fd)
 {
-	int i;
+	int i, label_width;
 	int64_t dt;
 	char str[512], *buf;
 	size_t len;
@@ -256,8 +305,13 @@ int mmprofile_print(int mask, int fd)
 	double mean;
 
 	update_diffs();
+	label_width = max_label_len();
+
 	for (i = 0; i < num_ts; i++) {
-		sprintf(str, "%2i: ", i);
+		if (label_width)
+			sprintf(str, "%*s: ", label_width, labels[i]);
+		else
+			sprintf(str, "%2i: ", i);
 		len = strlen(str);
 
 		if (mask & PROF_CURR) {
@@ -336,8 +390,14 @@ int mmprofile_print(int mask, int fd)
 API_EXPORTED
 void mmprofile_reset(int cputime)
 {
+	unsigned int i;
+
 	clock_id = cputime ? CLOCK_PROCESS_CPUTIME_ID : CLOCK_MONOTONIC_RAW;
 
 	estimate_toc_overhead();
 	reset_diffs();
+
+	labels[0] = label_storage;
+	for (i = 1; i < sizeof(labels)/sizeof(labels[0]); i++)
+		labels[i] = NULL;
 }

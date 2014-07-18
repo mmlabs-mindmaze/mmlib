@@ -40,6 +40,32 @@ void print_profile(void)
 }
 
 
+static
+void print_profile_labelled(void)
+{
+	int i, j;
+	volatile int x;
+
+	for (i = 0; i < 100; i++) {
+		x = 2;
+		mmtic();
+		x /= 2;
+		if (x == 1)
+			x /= 10;
+		mmtoc_label("First step");
+		for (j = 0; j < 10; j++)
+			x *= 2;
+		mmtoc_label("Second step");
+		x = 2;
+		for (j = 0; j < 50; j++)
+			x *= 2;
+		mmtoc_label("Last step");
+	}
+
+	mmprofile_print(PROF_MEAN|PROF_MIN|PROF_MAX, OUTFD);
+}
+
+
 int main(void)
 {
 	dprintf(OUTFD, "Timing with default settings\n");
@@ -52,6 +78,10 @@ int main(void)
 	dprintf(OUTFD, "\nTiming with CPU based timer\n");
 	mmprofile_reset(1);
 	print_profile();
+
+	dprintf(OUTFD, "\nLabelled mmtoc()\n");
+	mmprofile_reset(1);
+	print_profile_labelled();
 
 	return EXIT_SUCCESS;
 }
