@@ -16,9 +16,24 @@
 #define SEC_IN_NSEC	1000000000
 #define NUM_TS_MAX	16
 #define MAX_LABEL_LEN	64
+#define VALUESTR_LEN	7
+#define UNITSTR_LEN	3
 
 #define MIN(a, b) ((a) <= (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+struct unit {
+	int64_t scale;
+	char name[8];
+};
+
+const struct unit unit_list[] = {
+	{1L, "ns"},
+	{1000L, "us"},
+	{1000000L, "ms"},
+	{1000000000L, "s"},
+};
+#define NUM_UNIT ((int)(sizeof(unit_list)/sizeof(unit_list[0])))
 
 /**************************************************************************
  *                                                                        *
@@ -195,6 +210,17 @@ void init_profile(void)
 }
 
 
+/**************************************************************************
+ *                                                                        *
+ *                           result display helpers                       *
+ *                                                                        *
+ **************************************************************************/
+
+/**
+ * max_label_len() - Get the maximum length of registered labels
+ *
+ * Returns: the maximum length
+ */
 static
 int max_label_len(void)
 {
@@ -202,7 +228,7 @@ int max_label_len(void)
 
 	max = 0;
 	for (i = 1; i < num_ts; i++) {
-		len = 0;
+		len = 2;
 		if (labels[i])
 			len = strlen(labels[i]);
 		max = MAX(max, len);
@@ -210,6 +236,171 @@ int max_label_len(void)
 
 	return max;
 }
+
+
+/**
+ * compute_requested_timings() - Compute and store result in an array
+ * @mask:       mask of the requested timings computation
+ * @num_points: number of time measure (ie number of call to mmtoc())
+ * @data:       array (num_col x @num_points) receiving the results
+ *
+ * Returns: the number of differents timing computation requested, i.e. the
+ * number of columns in @data array.
+ */
+static
+int compute_requested_timings(int mask, int num_points, int64_t data[])
+{
+	int i, icol = 0;
+	double mean;
+
+	if (mask & PROF_CURR) {
+		for (i = 0; i < num_points; i++) {
+			data[i + icol*num_points] = get_diff_ts(i+1);
+		}
+		icol++;
+	}
+
+	if (mask & PROF_MEAN) {
+		for (i = 0; i < num_points; i++) {
+			mean = (double)sum_diff_ts[i+1] / num_iter;
+			data[i + icol*num_points] = mean;
+		}
+		icol++;
+	}
+
+	if (mask & PROF_MIN) {
+		for (i = 0; i < num_points; i++) {
+			data[i + icol*num_points] = min_diff_ts[i+1];
+		}
+		icol++;
+	}
+
+	if (mask & PROF_MAX) {
+		for (i = 0; i < num_points; i++) {
+			data[i + icol*num_points] = max_diff_ts[i+1];
+		}
+		icol++;
+	}
+
+	return icol;
+}
+
+
+/**
+ * get_display_unit() - get the index of suitable unit
+ * @num_points: number of rows in @data (number of call to mmtoc())
+ * @num_cols:   number of columns in @data
+ *
+ * Returns: index of the suitable unit in unit_list array
+ */
+static
+int get_display_unit(int num_points, int num_cols, int64_t data[])
+{
+	int i;
+	int64_t minval, maxval;
+
+	minval = INT64_MAX;
+	maxval = 0;
+
+	for (i = 0; i < num_cols*num_points; i++) {
+		minval = MIN(minval, data[i]);
+		maxval = MAX(maxval, data[i]);
+	}
+
+	// select the most suitable unit based on the min and max value
+	for (i = 0; i < NUM_UNIT-1; i++) {
+		if ( minval < unit_list[i].scale*100
+		  || (maxval - minval) < unit_list[i].scale )
+			break;
+	}
+
+	return i;
+}
+
+
+/**
+ * formar_header_line() - print the result table header in string
+ * @mask:               the requested timing computations
+ * @label_width:        maximum length of a registered label
+ * @str:                output string
+ *
+ * Returns: number of bytes written in the output string
+ */
+static
+int format_header_line(int mask, int label_width, char str[])
+{
+	int len;
+
+	len = sprintf(str, "%*s |", label_width, "");
+
+	if (mask & PROF_CURR) {
+		len += sprintf(str+len, "%*s %*s |",
+		               VALUESTR_LEN, "current",
+		               UNITSTR_LEN, "");
+	}
+
+	if (mask & PROF_MEAN) {
+		len += sprintf(str+len, "%*s %*s |",
+		               VALUESTR_LEN, "mean",
+		               UNITSTR_LEN, "");
+	}
+
+	if (mask & PROF_MIN) {
+		len += sprintf(str+len, "%*s %*s |",
+		               VALUESTR_LEN, "min",
+		               UNITSTR_LEN, "");
+	}
+
+	if (mask & PROF_MAX) {
+		len += sprintf(str+len, "%*s %*s |",
+		               VALUESTR_LEN, "max",
+		               UNITSTR_LEN, "");
+	}
+
+	str[len++] = '\n';
+	memset(str+len, '-', len-1);
+	len += len-1;
+	str[len++] = '\n';
+
+	return len;
+}
+
+
+/**
+ * formar_result_line() - print a line of the result table
+ * @ncol:       number of columns in @data
+ * @num_points: number of rows in @data (number of call to mmtoc())
+ * @v:          index of the desired line in the table (first is 0)
+ * @unit_index: index of the unit to use to display the result
+ * @label_width:        maximum length of a registered label
+ * @data:       array (num_col x @num_points) containing the results
+ * @str:        output string
+ *
+ * Returns: number of bytes written in the output string
+ */
+static
+int format_result_line(int ncol, int num_points, int v, int unit_index,
+                       int label_width, const int64_t data[], char str[])
+{
+	int i, len;
+	int64_t scale = unit_list[unit_index].scale;
+	const char* unitname = unit_list[unit_index].name;
+
+	if (labels[v+1])
+		len = sprintf(str, "%*s |", label_width, labels[v+1]);
+	else
+		len = sprintf(str, "%*i |", label_width, v+1);
+
+	for (i = 0; i < ncol; i++) {
+		len += sprintf(str+len, "%*"PRIi64" %*s |",
+		               VALUESTR_LEN, data[i*num_points+v]/scale,
+		               UNITSTR_LEN, unitname);
+	}
+
+	str[len++] = '\n';
+	return len;
+}
+
 
 /**************************************************************************
  *                                                                        *
@@ -297,60 +488,27 @@ void mmtoc_label(const char* label)
 API_EXPORTED
 int mmprofile_print(int mask, int fd)
 {
-	int i, label_width;
-	int64_t dt;
+	int i, ncol, num_points, label_width, unit_index;
 	char str[512], *buf;
 	size_t len;
 	ssize_t r;
-	double mean;
+	int64_t data[4*NUM_TS_MAX];
 
 	update_diffs();
+
 	label_width = max_label_len();
+	num_points = num_ts-1;
+	ncol = compute_requested_timings(mask, num_points, data);
+	unit_index = get_display_unit(ncol, num_points, data);
 
 	for (i = 0; i < num_ts; i++) {
-		if (label_width)
-			sprintf(str, "%*s: ", label_width, labels[i]);
+		if (i == 0)
+			len = format_header_line(mask, label_width, str);
 		else
-			sprintf(str, "%2i: ", i);
-		len = strlen(str);
+			len = format_result_line(ncol, num_points, i-1,
+			                         unit_index, label_width,
+			                         data, str);
 
-		if (mask & PROF_CURR) {
-			if (i != 0) {
-				dt = get_diff_ts(i);
-				sprintf(str+len, "%12"PRIi64" ns, ", dt);
-			} else
-				strcpy(str+len, "      curr     , ");
-			len = strlen(str);
-		}
-
-		if (mask & PROF_MEAN) {
-			if (i != 0) {
-				mean = (double)sum_diff_ts[i] / num_iter;
-				sprintf(str+len, "%12f ns, ", mean);
-			} else
-				strcpy(str+len, "      mean     , ");
-			len = strlen(str);
-		}
-
-		if (mask & PROF_MIN) {
-			if (i != 0) {
-				dt = min_diff_ts[i];
-				sprintf(str+len, "%12"PRIi64" ns, ", dt);
-			} else
-				strcpy(str+len, "       min     , ");
-			len = strlen(str);
-		}
-
-		if (mask & PROF_MAX) {
-			if (i != 0) {
-				dt = max_diff_ts[i];
-				sprintf(str+len, "%12"PRIi64" ns, ", dt);
-			} else
-				strcpy(str+len, "       max     , ");
-			len = strlen(str);
-		}
-
-		str[len++] = '\n';
 
 		// Write line to file
 		buf = str;
