@@ -76,11 +76,15 @@ int main(void)
 	print_profile();
 
 	dprintf(OUTFD, "\nTiming with CPU based timer\n");
-	mmprofile_reset(1);
+	mmprofile_reset(PROF_RESET_CPUCLOCK);
 	print_profile();
 
-	dprintf(OUTFD, "\nLabelled mmtoc()\n");
-	mmprofile_reset(1);
+	dprintf(OUTFD, "\nLabelled mmtoc() 1st\n");
+	mmprofile_reset(PROF_RESET_CPUCLOCK);
+	print_profile_labelled();
+
+	dprintf(OUTFD, "\nLabelled mmtoc() label kept\n");
+	mmprofile_reset(PROF_RESET_CPUCLOCK|PROF_RESET_KEEPLABEL);
 	print_profile_labelled();
 
 	return EXIT_SUCCESS;

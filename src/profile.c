@@ -526,36 +526,51 @@ int mmprofile_print(int mask, int fd)
 
 /**
  * mmprofile_reset() - Reset the statistics and change the timer
- * @cputime:    Indicates whether the time must be based on CPU or wall clock
+ * @flags:	bit-OR comination of flags influencing the reset behavior.
  *
  * Reset the timing statistics, ie, reset the min, max, mean values as well
- * as the number of point used in one iteration. Additionally it provides a
- * ways to change the type of timer used for measure.
+ * as the number of point used in one iteration and the associated labels.
+ * Additionally it provides a ways to change the type of timer used for
+ * measure.
  *
- * If the cputime argument is non zero, it will use a timer based on CPU's
+ * The @flags arguments allows to change the behavior of the reset.  If the
+ * PROF_RESET_CPUCLOCK flag is set, it will use a timer based on CPU's
  * instruction counter. This timer has a very fine granularity (of the order
  * of very few nanoseconds) but it does not take measure time spent on
  * sleeping while waiting certain event (disk io, mutex/cond, etc...). This
  * timer indicates the processing power spent on tasks.
  *
- * Alternatively if cputime is zero, it will use a timer based on wall
- * clock. This timer has bigger granularity (order of hundred nanoseconds)
- * and report time spent at sleeping. The indicates the realtime update will
- * performing certain task.
+ * Alternatively if PROF_RESET_CPUCLOCK is not set, it will use a timer
+ * based on wall clock. This timer has bigger granularity (order of hundred
+ * nanoseconds) and report time spent at sleeping. The indicates the
+ * realtime update will performing certain task.
+ *
+ * If the PROF_RESET_KEEPLABEL flag is set in the @flags argument, the
+ * labels associated with each measure point will be kept over the reset.
+ * In practice, this provides a way to avoid the overhead of of label copy
+ * when using mmtoc_label(): an initial iteration will copy the label and
+ * the measurements are reset after this first iteration while keeping the
+ * label. Then the subsequent call to mmtoc_label() will not be affected by
+ * the string copy overhead.
  *
  * At startup, the function are configured to use CPU based timer.
  */
 API_EXPORTED
-void mmprofile_reset(int cputime)
+void mmprofile_reset(int flags)
 {
 	unsigned int i;
 
-	clock_id = cputime ? CLOCK_PROCESS_CPUTIME_ID : CLOCK_MONOTONIC_RAW;
+	if (flags & PROF_RESET_CPUCLOCK)
+		clock_id = CLOCK_PROCESS_CPUTIME_ID;
+	else
+		clock_id = CLOCK_MONOTONIC_RAW;
 
 	estimate_toc_overhead();
 	reset_diffs();
 
-	labels[0] = label_storage;
-	for (i = 1; i < sizeof(labels)/sizeof(labels[0]); i++)
-		labels[i] = NULL;
+	if (!(flags & PROF_RESET_KEEPLABEL)) {
+		labels[0] = label_storage;
+		for (i = 1; i < sizeof(labels)/sizeof(labels[0]); i++)
+			labels[i] = NULL;
+	}
 }
