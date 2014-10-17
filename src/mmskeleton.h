@@ -61,8 +61,8 @@ int skl_save_data(struct mmskel* skel, int fd);
 #define MSK_RWRI "rwri"
 #define MSK_RTH1 "rth1"
 #define MSK_RTHT "rtht"
-#define MSK_LMID1 "lmid1"
-#define MSK_LMIDT "lmidt"
+#define MSK_RMID1 "rmid1"
+#define MSK_RMIDT "rmidt"
 
 #ifdef __cplusplus
 }
