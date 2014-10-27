@@ -16,8 +16,8 @@
 #define SEC_IN_NSEC	1000000000
 #define NUM_TS_MAX	16
 #define MAX_LABEL_LEN	64
-#define VALUESTR_LEN	7
-#define UNITSTR_LEN	3
+#define VALUESTR_LEN	8
+#define UNITSTR_LEN	2
 
 #define MIN(a, b) ((a) <= (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -383,7 +383,7 @@ int format_result_line(int ncol, int num_points, int v, int unit_index,
                        int label_width, const int64_t data[], char str[])
 {
 	int i, len;
-	int64_t scale = unit_list[unit_index].scale;
+	double value, scale = unit_list[unit_index].scale;
 	const char* unitname = unit_list[unit_index].name;
 
 	if (labels[v+1])
@@ -392,8 +392,9 @@ int format_result_line(int ncol, int num_points, int v, int unit_index,
 		len = sprintf(str, "%*i |", label_width, v+1);
 
 	for (i = 0; i < ncol; i++) {
-		len += sprintf(str+len, "%*"PRIi64" %*s |",
-		               VALUESTR_LEN, data[i*num_points+v]/scale,
+		value = data[i*num_points+v]/scale;
+		len += sprintf(str+len, "%*.2f %*s |",
+		               VALUESTR_LEN, value,
 		               UNITSTR_LEN, unitname);
 	}
 
