@@ -307,7 +307,7 @@ static
 int get_display_unit(int num_points, int num_cols, int64_t data[], int mask)
 {
 	int i;
-	int64_t minval, maxval;
+	int64_t minval, maxval, scale;
 
 	// Use the specified unit if one has been forced by the mask
 	for (i = 0; i < NUM_UNIT; i++) {
@@ -325,8 +325,9 @@ int get_display_unit(int num_points, int num_cols, int64_t data[], int mask)
 
 	// select the most suitable unit based on the min and max value
 	for (i = 0; i < NUM_UNIT-1; i++) {
-		if ( minval < unit_list[i].scale*100
-		  || (maxval - minval) < unit_list[i].scale )
+		scale = unit_list[i].scale;
+		if ( (minval < scale*100 && maxval < scale*10000)
+		  || (maxval - minval) < scale )
 			break;
 	}
 
