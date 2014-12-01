@@ -37,6 +37,10 @@ void print_profile(void)
 	}
 
 	mmprofile_print(PROF_MEAN|PROF_MIN|PROF_MAX, OUTFD);
+	mmprofile_print(PROF_DEFAULT|PROF_FORCE_NSEC, OUTFD);
+	mmprofile_print(PROF_DEFAULT|PROF_FORCE_USEC, OUTFD);
+	mmprofile_print(PROF_DEFAULT|PROF_FORCE_MSEC, OUTFD);
+	mmprofile_print(PROF_DEFAULT|PROF_FORCE_SEC, OUTFD);
 }
 
 

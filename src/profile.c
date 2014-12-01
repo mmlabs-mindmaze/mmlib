@@ -18,20 +18,28 @@
 #define MAX_LABEL_LEN	64
 #define VALUESTR_LEN	8
 #define UNITSTR_LEN	2
+#define UNIT_MASK	0x70
 
 #define MIN(a, b) ((a) <= (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+/**
+ * struct unit - time unit definition
+ * @scale:      scale at which the unit must be preferred
+ * @name:       name which must appear in the textual results
+ * @forcemask:  mask which force the unit to be used.
+ */
 struct unit {
 	int64_t scale;
 	char name[8];
+	int forcemask;
 };
 
 const struct unit unit_list[] = {
-	{1L, "ns"},
-	{1000L, "us"},
-	{1000000L, "ms"},
-	{1000000000L, "s"},
+	{1L, "ns", PROF_FORCE_NSEC},
+	{1000L, "us", PROF_FORCE_USEC},
+	{1000000L, "ms", PROF_FORCE_MSEC},
+	{1000000000L, "s", PROF_FORCE_SEC},
 };
 #define NUM_UNIT ((int)(sizeof(unit_list)/sizeof(unit_list[0])))
 
@@ -290,14 +298,22 @@ int compute_requested_timings(int mask, int num_points, int64_t data[])
  * get_display_unit() - get the index of suitable unit
  * @num_points: number of rows in @data (number of call to mmtoc())
  * @num_cols:   number of columns in @data
+ * @data:       array (num_col x @num_points) holding the results
+ * @mask:       mask supplied by user to possibly force use of a unit
  *
  * Returns: index of the suitable unit in unit_list array
  */
 static
-int get_display_unit(int num_points, int num_cols, int64_t data[])
+int get_display_unit(int num_points, int num_cols, int64_t data[], int mask)
 {
 	int i;
 	int64_t minval, maxval;
+
+	// Use the specified unit if one has been forced by the mask
+	for (i = 0; i < NUM_UNIT; i++) {
+		if (unit_list[i].forcemask == (mask & UNIT_MASK))
+			return i;
+	}
 
 	minval = INT64_MAX;
 	maxval = 0;
@@ -482,7 +498,10 @@ void mmtoc_label(const char* label)
  *   - PROF_CURR: display the value of the current iteration
  *   - PROF_MIN:  display the min value since the last reset
  *   - PROF_MAX:  display the max value since the last reset
- *   - PROF_MEAN: display the average value since the last reset
+ *   - PROF_FORCE_NSEC: force result display in nanoseconds
+ *   - PROF_FORCE_USEC: force result display in microseconds
+ *   - PROF_FORCE_MSEC: force result display in milliseconds
+ *   - PROF_FORCE_SEC: force result display in seconds
  *
  * Returns: 0 in case of success, -1 otherwise with errno set accordingly
  */
@@ -500,7 +519,7 @@ int mmprofile_print(int mask, int fd)
 	label_width = max_label_len();
 	num_points = num_ts-1;
 	ncol = compute_requested_timings(mask, num_points, data);
-	unit_index = get_display_unit(ncol, num_points, data);
+	unit_index = get_display_unit(ncol, num_points, data, mask);
 
 	for (i = 0; i < num_ts; i++) {
 		if (i == 0)
