@@ -35,6 +35,7 @@ struct unit {
 	int forcemask;
 };
 
+static
 const struct unit unit_list[] = {
 	{1L, "ns", PROF_FORCE_NSEC},
 	{1000L, "us", PROF_FORCE_USEC},
