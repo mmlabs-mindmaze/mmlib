@@ -17,6 +17,7 @@ libmmlib.so.0 libmmlib0 #MINVER#
  mmstrerror_r@Base 0.0.0~~experimental
  mmtic@Base 0.1.0
  mmtoc@Base 0.1.0
+ mmtoc_label@Base 0.3.0
  plane_distance@Base 0.0.0~~experimental
  plane_from_point@Base 0.0.0~~experimental
  plane_intersect@Base 0.0.0~~experimental
