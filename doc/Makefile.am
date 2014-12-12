@@ -4,6 +4,6 @@ dist_man_MANS = mmlog_log.3	\
                 mmlog_warn.3	\
                 mmlog_info.3	\
                 mmlog_debug.3	\
-                mmtic.3 mmtoc.3 \
+                mmtic.3 mmtoc.3 mmtoc_label.3 \
                 mmprofile_print.3 \
                 mmprofile_reset.3

@@ -11,6 +11,8 @@ mmtoc - Add a point of measure to an iteration
 .BI "void mmtic();"
 .br
 .BI "void mmtoc();"
+.br
+.BI "void mmtoc_label(const char* " label ");
 .sp
 Link with
 .I -lmmlib
@@ -25,6 +27,25 @@ iteration. Finally it measures the timestamp of the iteration start.
 Add simply a new point of measure to the current iteration of profiling. If
 the maximum number of point of measure per iteration has been reached, then
 the new point will silently be ignored.
+.LP
+.BR mmtoc_label ()
+is the same as
+.BR mmtoc ()
+excepting it provides a way to label the meansure point. Beware than only
+the first occurence of a label associated with a measure point will be
+retained. Any subsequent call to
+.BR mmtoc_label ()
+at the same measure point will be the same as calling
+.BR mmtoc ().
+.LP
+Care must be taken if a precision of few microseconds or less is desired
+with
+.BR mmtoc_label ().
+The label copy has indeed overhead.  However this overhead has influence
+only on the iteration that will actually copy the label string, thus will
+affect only the current and max timing measures. The influence on the mean
+will be negligible if the number of iterations is large enough. Therefore
+results must be interpreted in the light of this short coming.
 .LP
 The way the time is measured depends on the type of timer set by the
 .BR mmprofile_reset (3)

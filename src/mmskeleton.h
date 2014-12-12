@@ -44,6 +44,25 @@ int skl_add_to(struct mmskel* sk, const char* parent, const char* name);
 int skl_load_data(struct mmskel* skel, int fd);
 int skl_save_data(struct mmskel* skel, int fd);
 
+// Joint ids used
+#define MSK_VL5 "vl5"
+#define MSK_VT1 "vt1"
+#define MSK_SKB "skb"
+#define MSK_SKT "skt"
+#define MSK_LSHO "lsho"
+#define MSK_LELB "lelb"
+#define MSK_LWRI "lwri"
+#define MSK_LTH1 "lth1"
+#define MSK_LTHT "ltht"
+#define MSK_LMID1 "lmid1"
+#define MSK_LMIDT "lmidt"
+#define MSK_RSHO "rsho"
+#define MSK_RELB "relb"
+#define MSK_RWRI "rwri"
+#define MSK_RTH1 "rth1"
+#define MSK_RTHT "rtht"
+#define MSK_RMID1 "rmid1"
+#define MSK_RMIDT "rmidt"
 
 #ifdef __cplusplus
 }
