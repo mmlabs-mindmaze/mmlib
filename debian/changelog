@@ -1,9 +1,9 @@
-mmlib (0.3.1) UNRELEASED; urgency=medium
+mmlib (0.3.1) unstable; urgency=medium
 
   * New module version 0.3.1:
     - Updated translation
 
- -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Wed, 05 Aug 2015 17:55:37 +0200
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Wed, 05 Aug 2015 17:58:11 +0200
 
 mmlib (0.3.0) unstable; urgency=medium
 
