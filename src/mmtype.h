@@ -163,6 +163,7 @@ extern "C" {
 MMLIB_API size_t mmimg_pixel_size(unsigned int pixel_format);
 MMLIB_API int mmimg_set_stride(struct mm_imgdesc* img, size_t alignment);
 MMLIB_API void* mmimg_alloc_buffer(const struct mm_imgdesc* img);
+MMLIB_API void mmimg_free_buffer(void* img_buff);
 
 MMLIB_API size_t mmimage_buffer_size(const mmimage* img);
 

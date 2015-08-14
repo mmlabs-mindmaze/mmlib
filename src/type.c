@@ -106,7 +106,7 @@ int mmimg_set_stride(struct mm_imgdesc* img, size_t alignment)
  * provided in argument. The allocated buffer will have an optimal alignment
  * suitable for the CPU.
  *
- * To deallocate the returned buffer, use free() of the C standard library.
+ * To deallocate the returned buffer, you must use mmimg_free_buffer().
  *
  * Return: the pointer to the allocated buffer in case of success, NULL
  * otherwise with errno set appropriately.
@@ -133,6 +133,17 @@ void* mmimg_alloc_buffer(const struct mm_imgdesc* img)
 	}
 
 	return ptr;
+}
+
+
+/**
+ * mmimg_free_buffer() - free buffer allocated with mmimg_alloc_buffer()
+ * @img_buff:   image buffer
+ */
+API_EXPORTED
+void mmimg_free_buffer(void* img_buff)
+{
+	free(img_buff);
 }
 
 

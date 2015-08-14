@@ -122,7 +122,7 @@ START_TEST(alloc_imgbuf_test)
 	// check the whole allocated buffer is writable
 	memset(buffer, 0, img.height*img.stride);
 
-	free(buffer);
+	mmimg_free_buffer(buffer);
 }
 END_TEST
 
