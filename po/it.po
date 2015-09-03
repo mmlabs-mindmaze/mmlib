@@ -19,41 +19,41 @@ msgstr ""
 
 #: src/error.c:27
 msgid "The acquisition module has been disconnected."
-msgstr "Die Verbindung zum Erfassungsmodul wurde unterbrochen."
+msgstr "Il modulo di acquisizione è stato scollegato."
 
 #: src/error.c:28
 msgid "User unknown"
-msgstr "Nutzer unbekannt"
+msgstr "Utente sconosciuto"
 
 #: src/error.c:29
 msgid "Wrong password"
-msgstr "Falsches Passwort"
+msgstr "Password errata"
 
 #: src/error.c:30
 msgid "Object in wrong state"
-msgstr "Objekt hat falschen Status"
+msgstr "Oggetto in uno stato non corretto"
 
 #: src/error.c:32
 msgid "Too many entities have been requested"
-msgstr "Es wurden zu viele Einheiten angefordert"
+msgstr "Troppi elementi richiesti"
 
 #: src/error.c:33
 msgid "Object not found"
-msgstr "Objekt nicht gefunden"
+msgstr "Oggetto non trovato"
 
 #: src/error.c:34
 msgid "Bad format"
-msgstr "Falsches Format"
+msgstr "Formato non corretto"
 
 #: src/error.c:35
 msgid "Calibration needed"
-msgstr "Kalibrierung erforderlich"
+msgstr "Calibrazione necessaria"
 
 #: src/error.c:36
 msgid ""
 "Hand trackers not detected.\n"
 "Please ensure the USB dongle is connected \n"
 "and the sensors are switched on"
-msgstr "HandTracker nicht erkannt.\n"
-"Bitte prüfen, ob der USB-Dongle eingesteckt \n"
-"und die Sensoren eingeschaltet sind"
+msgstr "HandTracker non rilevati.\n"
+"Assicurarsi che il supporto USB sia collegato\n"
+"e i sensori siano attivi"
