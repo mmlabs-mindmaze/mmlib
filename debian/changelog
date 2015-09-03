@@ -1,3 +1,10 @@
+mmlib (0.3.2) unstable; urgency=medium
+
+  * New module version 0.3.2:
+    - Updates translation (It + Ge)
+
+ -- Sebastien Lasserre <lasserre@mindmazesrv03.mindmaze.ch>  Thu, 03 Sep 2015 09:17:01 +0200
+
 mmlib (0.3.1) unstable; urgency=medium
 
   * New module version 0.3.1:
