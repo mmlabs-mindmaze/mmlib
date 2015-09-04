@@ -10,6 +10,7 @@ check_PROGRAMS = \
 	testgeometry \
 	testtype \
 	testprofile \
+	testinternals \
 	$(eol)
 
 TESTS = $(check_PROGRAMS)
@@ -29,3 +30,5 @@ testtype_LDADD = $(CHECK_LIBS) $(MMLIB)
 testprofile_SOURCES = testprofile.c
 testprofile_LDADD = $(MMLIB)
 
+testinternals_SOURCES = testinternals.c
+testinternals_LDADD = $(CHECK_LIBS)
