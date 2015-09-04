@@ -99,7 +99,8 @@ size_t format_log_str(char* restrict buff, size_t blen,
 	rlen -= len;
 	
 	// Format provided info and append end of line
-	len = vsnprintf(buff, rlen-1, msg, args);
+	len = vsnprintf(buff, rlen, msg, args);
+	len = (len < rlen-1) ? len : rlen-1;	// handle truncation case
 	buff[len++] = '\n';
 	rlen -= len;
 
