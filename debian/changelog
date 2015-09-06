@@ -1,3 +1,10 @@
+mmlib (0.3.3) unstable; urgency=medium
+
+  * New module version 0.3.3:
+    - Fix buffer overfow in mmlog
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Sun, 06 Sep 2015 19:34:48 +0200
+
 mmlib (0.3.2) unstable; urgency=medium
 
   * New module version 0.3.2:
