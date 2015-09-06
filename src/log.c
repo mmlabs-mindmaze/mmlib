@@ -56,45 +56,79 @@ void init_log(void)
 }
 
 
-API_EXPORTED
-void mmlog_log(int lvl, const char* location, const char* msg, ...)
+/**
+ * format_log_str() - generate log string on supplied buffer
+ * @buffer:     buffer that must receive the log string
+ * @blen:       maximum size of @buffer
+ * @lvl:        level of the log line
+ * @location:   module name at the origin of the log
+ * @msg:        format controlling the log message
+ * @args:       argument list of supplied for @msg
+ *
+ * This function generates the log string according to @lvl, @location and
+ * the supplied message that must be formatted with respect to the format
+ * @msg and the argument list in @args.
+ *
+ * NOTE: The string is meant to be written as such to log file with write()
+ * system call. In consequence, please pay attention that the log string
+ * written in @buffer IS NOT null terminated!
+ *
+ * Return: the number of byte written on @buffer.
+ */
+static
+size_t format_log_str(char* restrict buff, size_t blen,
+                      int lvl, const char* restrict location,
+                      const char* restrict msg, va_list args)
 {
 	time_t ts;
 	struct tm tm;
-	char* cbuf;
 	size_t len, rlen;
-	ssize_t r;
-	va_list args;
-	char buff[MMLOG_LINE_MAXLEN];
-	
-	// Do not log something higher than the max level set by environment
-	if (lvl > maxloglvl || lvl < 0)
-		return;
-	
-	rlen = sizeof(buff);
+
+	rlen = blen;
 
 	// format time stamp
 	ts = time(NULL);
 	localtime_r(&ts, &tm);
-	len = strftime(buff, sizeof(buff)-1, "%d/%m/%y %T", &tm);
-	cbuf = buff + len;
+	len = strftime(buff, blen, "%d/%m/%y %T", &tm);
+	buff += len;
 	rlen -= len;
 	
 	// format message header message
-	len = snprintf(cbuf, rlen-1, " %-5s %-16s : ", loglevel[lvl], location);
-	cbuf += len;
+	len = snprintf(buff, rlen-1, " %-5s %-16s : ", loglevel[lvl], location);
+	buff += len;
 	rlen -= len;
 	
-	// Format provided info
-	va_start(args, msg);
-	len = vsnprintf(cbuf, rlen-1, msg, args);
-	va_end(args);
-	cbuf[len++] = '\n';
+	// Format provided info and append end of line
+	len = vsnprintf(buff, rlen, msg, args);
+	len = (len < rlen-1) ? len : rlen-1;	// handle truncation case
+	buff[len++] = '\n';
 	rlen -= len;
+
+	// Return the length of string without null terminator
+	return blen - rlen;
+}
+
+
+API_EXPORTED
+void mmlog_log(int lvl, const char* location, const char* msg, ...)
+{
+	ssize_t r;
+	size_t len;
+	char* cbuf;
+	va_list args;
+	char buff[MMLOG_LINE_MAXLEN];
+
+	// Do not log something higher than the max level set by environment
+	if (lvl > maxloglvl || lvl < 0)
+		return;
+
+	// Format log string onto buffer
+	va_start(args, msg);
+	len = format_log_str(buff, sizeof(buff), lvl, location, msg, args);
+	va_end(args);
 
 	// Write message on log file descriptor
 	cbuf = buff;
-	len = sizeof(buff)-rlen;
 	do {
 		if ((r = write(STDERR_FILENO, cbuf, len)) < 0)
 			return;
