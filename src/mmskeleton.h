@@ -49,6 +49,7 @@ int skl_save_data(struct mmskel* skel, int fd);
 #define MSK_VT1 "vt1"
 #define MSK_SKB "skb"
 #define MSK_SKT "skt"
+#define MSK_LSTE "lste"
 #define MSK_LSHO "lsho"
 #define MSK_LELB "lelb"
 #define MSK_LWRI "lwri"
@@ -56,6 +57,7 @@ int skl_save_data(struct mmskel* skel, int fd);
 #define MSK_LTHT "ltht"
 #define MSK_LMID1 "lmid1"
 #define MSK_LMIDT "lmidt"
+#define MSK_RSTE "rste"
 #define MSK_RSHO "rsho"
 #define MSK_RELB "relb"
 #define MSK_RWRI "rwri"
@@ -69,4 +71,3 @@ int skl_save_data(struct mmskel* skel, int fd);
 #endif
 
 #endif /* MMSKELETON_H */
-
