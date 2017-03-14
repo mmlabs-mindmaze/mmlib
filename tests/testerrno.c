@@ -20,6 +20,7 @@ int main(void)
 	print_errno_info(MM_EDISCONNECTED);
 	print_errno_info(MM_EUNKNOWNUSER);
 	print_errno_info(MM_EWRONGPWD);
+	print_errno_info(MM_ECAMERROR);
 
 	return EXIT_SUCCESS;
 }

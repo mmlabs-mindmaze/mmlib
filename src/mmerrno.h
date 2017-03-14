@@ -16,6 +16,7 @@
 #define MM_EBADFMT		1006
 #define MM_ENOCALIB		1007
 #define MM_ENOINERTIAL		1008
+#define MM_ECAMERROR		1009
 
 
 #ifdef __cplusplus
