@@ -1,0 +1,146 @@
+mmlib (0.3.3) unstable; urgency=medium
+
+  * New module version 0.3.3:
+    - Fix buffer overfow in mmlog
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Sun, 06 Sep 2015 19:34:48 +0200
+
+mmlib (0.3.2) unstable; urgency=medium
+
+  * New module version 0.3.2:
+    - Updates translation (It + Ge)
+
+ -- Sebastien Lasserre <lasserre@mindmazesrv03.mindmaze.ch>  Thu, 03 Sep 2015 09:17:01 +0200
+
+mmlib (0.3.1) unstable; urgency=medium
+
+  * New module version 0.3.1:
+    - Updated translation
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Wed, 05 Aug 2015 17:58:11 +0200
+
+mmlib (0.3.0) unstable; urgency=medium
+
+  * New module version 0.3.0:
+    - Added labelled toc for profiling
+    - Add skeleton joint name definition of new mindmaze standard
+  * Update libmmlib0 symbols of the new module version 
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 12 Dec 2014 16:34:46 +0100
+
+mmlib (0.2.2+1) unstable; urgency=medium
+
+  * Really new module version 0.2.2:
+    - Update error message for MM_ENOINERTIAL
+    - Removes mmlicence manpage
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Tue, 15 Jul 2014 03:28:34 +0200
+
+mmlib (0.2.2) unstable; urgency=medium
+
+  * Update error message for MM_ENOINERTIAL 
+  * Removes mmlicence manpage
+
+ -- Sébastien Lasserre <sebastien.lasserre@mindmaze.ch>  Mon, 14 Jul 2014 22:36:22 +0200
+
+mmlib (0.2.1) unstable; urgency=medium
+
+  * New module version 0.2.1:
+    - Remove licence check and associated utils
+  * drop mmlib-bin package
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Wed, 09 Jul 2014 12:23:50 +0200
+
+mmlib (0.2.0+2) unstable; urgency=medium
+
+  * Add MM_ENOINERTIAL error code
+  * Remove validity time check for authorization token check
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Mon, 30 Jun 2014 14:12:00 +0200
+
+mmlib (0.2.0+1) unstable; urgency=medium
+
+  * Added C++11 compatibility patch for mmlog.h
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 13 Jun 2014 10:10:09 +0200
+
+mmlib (0.2.0) unstable; urgency=medium
+
+  * New module version 0.2.0:
+    - added new image descriptor
+    - struct camera_calibration
+  * Update libmmlib0 symbols of the new module version
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Tue, 03 Jun 2014 18:27:39 +0200
+
+mmlib (0.1.0) unstable; urgency=low
+
+  * New module version 0.1.0:
+    - Add profiling functions
+    - Improve readibility of log
+  * Update libmmlib0 symbols of the new module version
+  * Turn compilation warnings into error
+  * Update homepage
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Mon, 03 Feb 2014 15:24:34 +0100
+
+mmlib (0.0.3) testing; urgency=low
+
+  * New module version:
+    - Fix memory leak in read signature
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 06 Sep 2013 12:46:39 +0200
+
+mmlib (0.0.2) testing; urgency=low
+
+  * New module version:
+    - robustify build
+  * Declare breakage of old libmmlib0 by libmmlib-dev
+  * Add missing build-deps of gnutls-bin
+  * Re-enable unit tests during package building
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Mon, 02 Sep 2013 08:39:18 +0200
+
+mmlib (0.0.1) testing; urgency=low
+
+  * New module version:
+    - Add license check
+  * Add libgnutls-dev and ca-certificates-mindmaze as build-depends
+  * Install predefined tokens with libmmlib0
+  * Install mmlicense in mmlib-bin package
+  * Install development manpages in libmmlib-dev
+  * Add dependency on pciutils
+  * Disable unit test during package building
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 30 Aug 2013 11:32:55 +0200
+
+mmlib (0.0.0) testing; urgency=low
+
+  * Added skeleton save/load
+  * New error codes defined
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Thu, 22 Aug 2013 08:26:35 +0200
+
+mmlib (0.0.0~~experimental5) prealpha; urgency=low
+
+  * Added skeleton function
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Tue, 11 Jun 2013 15:28:07 +0200
+
+mmlib (0.0.0~~experimental3) prealpha; urgency=low
+
+  * Added angle axis - quaternion conversion
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 15 Mar 2013 18:40:52 +0100
+
+mmlib (0.0.0~~experimental2) prealpha; urgency=low
+
+  * new error codes (for database connection)
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 01 Mar 2013 10:38:50 +0100
+
+mmlib (0.0.0~~experimental) prealpha; urgency=low
+
+  * Initial debian package.
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Thu, 24 Jan 2013 10:22:18 +0100
