@@ -10,7 +10,7 @@
 # set age to 0.
 
 m4_define([lib_current],3)
-m4_define([lib_revision],3)
+m4_define([lib_revision],4)
 m4_define([lib_age],3)
 
 # Setup autoconf

@@ -1,3 +1,11 @@
+mmlib (0.3.4) unstable; urgency=medium
+
+  * New module version 0.3.4:
+    - Add sternoclavicular joints ids
+    - Add MM_ECAMERROR errno
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Tue, 16 May 2017 12:06:18 +0200
+
 mmlib (0.3.3) unstable; urgency=medium
 
   * New module version 0.3.3:
