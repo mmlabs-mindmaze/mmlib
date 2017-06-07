@@ -4,6 +4,8 @@
 #ifndef MMLOG_H
 #define MMLOG_H
 
+#include "mmpredefs.h"
+
 #define MMLOG_NONE	-1
 #define MMLOG_FATAL	0
 #define MMLOG_ERROR	1
@@ -17,33 +19,12 @@
 
 
 /*
- Double expansion is the usual trick to expand a preprocessor macro argument
- into a string
-*/
-#define MM_XSTRINGIFY(arg)	#arg
-#define MM_STRINGIFY(arg)	MM_XSTRINGIFY(arg)
-
-/*
  Define MMLOG_VERBOSE_LOCATION to display location with file and line
 */
 #if MMLOG_VERBOSE_LOCATION
 # define MM_LOCATION(module)	 module " " __FILE__ "(" MM_STRINGIFY( __LINE__ ) ")"
 #else
 # define MM_LOCATION(module)	 module
-#endif
-
-/*
- Setup the module name (MMLOG_MODULE_NAME) as it appears in the log.
- If it is unset, it set it to a reasonable default.
- It is allowed to reset MMLOG_MODULE_NAME in the source code: this will
- change the module name used for the next invocation of any  mmlog_* macro.
-*/
-#ifndef MMLOG_MODULE_NAME
-# ifdef PACKAGE_NAME
-#  define MMLOG_MODULE_NAME PACKAGE_NAME
-# else
-#  define MMLOG_MODULE_NAME "unknown"
-# endif
 #endif
 
 

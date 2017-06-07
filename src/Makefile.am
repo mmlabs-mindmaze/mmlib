@@ -3,7 +3,7 @@ AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" \
 AM_CFLAGS = $(MM_WARNFLAGS)
 
 include_HEADERS = mmlog.h mmerrno.h mmtype.h mmgeometry.h mmskeleton.h \
-                  mmprofile.h
+                  mmprofile.h mmpredefs.h
 lib_LTLIBRARIES = libmmlib.la
 
 libmmlib_la_SOURCES = mmlog.h log.c \
