@@ -6,6 +6,8 @@
 
 #include <stddef.h>
 #include <errno.h>
+#include "mmtype.h"
+#include "mmpredefs.h"
 
 /**
  * DOC: error codes
@@ -106,13 +108,164 @@
 #define MM_ENOINERTIAL		1008
 #define MM_ECAMERROR		1009
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 const char* mmstrerror(int errnum);
 int mmstrerror_r(int errnum, char *buf, size_t buflen);
+
+/**
+ * mm_raise_error() - set and log an error
+ * @errnum:     error class number
+ * @desc:       description intended for developper (printf-like extensible)
+ *
+ * Set the state of an error in the running thread. If @errnum is 0, the
+ * thread error state will kept untouched.
+ *
+ * Although this can be used like a function, this is a macro which will
+ * enrich the error state with the origin of the error (module, function,
+ * source code file and line number).
+ *
+ * This must be called the closest place where the error is detected. Ie, if
+ * you call a mindmaze function that sets the error and you, you shall not
+ * the error because your callee has failed, the only thing that might be
+ * done is this case would be adding a log line (if necessary). On the other
+ * side, if you call function from third party, the error state will of course not
+ * be set, it will then be your responsibility once you detect the
+ * third-party call has failed to set the error state using mm_raise_error().
+ *
+ * Return: 0 is @errnum is 0, -1 otherwise.
+ */
+#define mm_raise_error(errnum, desc, ...) \
+		mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, NULL, desc,  ## __VA_ARGS__ )
+
+/**
+ * mm_raise_error_with_extid() - set and log an error with an extented error id
+ * @errnum:     error class number
+ * @extid:      extended error id (identifier of a specific error case)
+ * @desc:       description intended for developper (printf-like extensible)
+ *
+ * Same as mm_raise_error() with an extended error id set to @extid. If @extid
+ * is NULL, the effect is exactly the same as calling mm_raise_error().
+ *
+ * An extended error id is a string identifier that is meant to inform the
+ * layer that interact with the enduser (like therapist) about the reason of
+ * the error. With this identifier, the UI layer can display a error
+ * message that makes sense to the end user. Example, the cameralink camera can
+ * detect a HW problem due to ESD. When this happens, the acquisition driver
+ * will set an hardware error class (like MM_ECAMERROR) with an extid set to
+ * "clcam-esd-detected". The UI of the final product will recognise the
+ * extended identifier and display to the appropriate message (with the
+ * right language) that make sense in the context of the usage of the
+ * product and maybe what the enduser has to do.
+ *
+ * Return: 0 is @errnum is 0, -1 otherwise.
+ */
+#define mm_raise_error_with_extid(errnum, extid, desc, ...) \
+		mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, extid, desc,  ## __VA_ARGS__ )
+
+/**
+ * mm_raise_error_full() - set and log an error (function backend)
+ * @errnum:     error class number
+ * @module:     module name
+ * @func:       function name at the origin of the error
+ * @srcfile:    filename of source code at the origin of the error
+ * @srcline:    line number of file at the origin of the error
+ * @extid:      extended error id (identifier of a specific error case)
+ * @desc:       description intended for developper (printf-like extensible)
+ *
+ * This function is the actual function invoked by the mm_raise_error() and
+ * mm_raise_error_with_extid() macros. You are advised to use the macros instead
+ * unless you want to build your own wrapper.
+ *
+ * Return: 0 is @errnum is 0, -1 otherwise.
+ */
+int mm_raise_error_full(int errnum, const char* module, const char* func,
+                        const char* srcfile, int srcline,
+                        const char* extid, const char* desc, ...);
+
+/**
+ * mm_save_errorstate() - Save the error state on an opaque data holder
+ * @state:      data holder of the error state
+ *
+ * Use this function to save the current error state to data holder pointed by
+ * @state. The content of @state may be copied around even between threads and
+ * different processes.
+ *
+ * The reciprocal of this function is mm_set_errorstate().
+ */
+int mm_save_errorstate(struct mm_error_state* state);
+
+/**
+ * mm_set_errorstate() - Save the error state of the calling thread
+ * @state:      pointer to the data holding of the error state
+ *
+ * Use this function to restore the error state of the calling thread from the information pointed by @state. Combined with mm_error_state(), you:
+ * - handle an error from a called function and recover the error state before
+ * the failed function
+ * - Copy the error state of a failed function whose call may have been
+ * offloaded to a different thread or even different process
+ *
+ * The reciprocal of this function is mm_save_errorstate().
+ */
+int mm_set_errorstate(const struct mm_error_state* state);
+
+
+/**
+ * mm_print_lasterror() - display last error info on standard output
+ * @info:       string describing the context where the error has been
+ *              encountered. It can be enriched by variable argument in the
+ *              printf-like style. It may be NULL, in such a case, only the
+ *              error state is described.
+ */
+void mm_print_lasterror(const char* info, ...);
+
+/**
+ * mm_get_lasterror_number() - get error number of last error in the thread
+ *
+ * Return: the error number (0 if no error has been set in the thread)
+ */
+int mm_get_lasterror_number();
+
+/**
+ * mm_get_lasterror_desc() - get error description of last error in thread
+ *
+ * Return: the error description ("" if no error)
+ */
+const char* mm_get_lasterror_desc();
+
+/**
+ * mm_get_lasterror_location() - get file location of last error in the thread
+ *
+ * Return: the file location that is at the origin of the error in the format
+ * "filename:linenum" ("" if no error)
+ */
+const char* mm_get_lasterror_location();
+
+/**
+ * mm_get_lasterror_extid() - get error extended id of last error in the thread
+ *
+ * This function provides the extended id of the last error set in the calling
+ * thread. The extended id is a string identifier destinated for the UI layer
+ * of the software stack to identify a error specific situation(See explanation in mm_raise_error_with_extid()).
+ *
+ * Please note that not all error report are supposed to report an error
+ * extended id (they actually should be a minority). If none has been provided
+ * when the last error has been set, the extid provided by this function will
+ * be NULL.
+ *
+ * Return: the error extended id if one has been set by the last error, NULL
+ * otherwise.
+ */
+const char* mm_get_lasterror_extid();
+
+/**
+ * mm_get_lasterror_module() - module at the source the last error in the thread
+ *
+ * Return: the module name that is at the origin of the error ("" if no error)
+ */
+const char* mm_get_lasterror_module();
 
 #ifdef __cplusplus
 }

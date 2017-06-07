@@ -6,9 +6,13 @@
 #endif
 
 #include "mmerrno.h"
+#include "mmlog.h"
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <assert.h>
 
 #include "nls-internals.h"
 
@@ -104,3 +108,169 @@ int mmstrerror_r(int errnum, char *buf, size_t buflen)
 	return 0;
 }
 
+
+/******************************************************************
+ *                                                                *
+ *                    Error state API                             *
+ *                                                                *
+ ******************************************************************/
+
+struct error_info {
+	int errnum;             //< error class (standard and mindmaze errno value)
+	char extended_id[64];   //< message to display to end user if has not been caught before
+	char module[32];        //< module that has generated the error
+	char location[256];     //< which function/file/line has generated the error
+	char desc[256];         //< message intended to developer
+};
+
+
+// info of the last error IN THE THREAD
+static __thread struct error_info last_error;
+
+API_EXPORTED
+int mm_raise_error_full(int errnum, const char* module, const char* func,
+                      const char* srcfile, int srcline,
+                      const char* extid, const char* desc_fmt, ...)
+{
+	va_list args;
+	struct error_info* state;
+
+	if (!errnum)
+		return 0;
+
+	if (!module)
+		module = "unknown";
+
+	if (!func)
+		func = "unknown";
+
+	if (!srcfile)
+		srcfile = "unknown";
+
+	if (!extid)
+		extid = "";
+
+	state = &last_error;
+
+	// Copy the fields that don't need formatting
+	state->errnum = errnum;
+	strncpy(state->module, module, sizeof(state->module)-1);
+	strncpy(state->extended_id, extid, sizeof(state->extended_id)-1);
+
+	// format source location field
+	snprintf(state->location, sizeof(state->location), "%s() in %s:%i", func, srcfile, srcline);
+
+	// format description
+	va_start(args, desc_fmt);
+	vsnprintf(state->desc, sizeof(state->desc), desc_fmt, args);
+	va_end(args);
+
+	// Set errno for backward compatibility, ie case of module that has
+	// been updated to use mm_error* but whose client code (user of this
+	// module) is not using yet mm_error*
+	errno = errnum;
+
+	mmlog_log(MMLOG_ERROR, module, "%s (%s)", state->desc, state->location);
+	return -1;
+}
+
+API_EXPORTED
+int mm_save_errorstate(struct mm_error_state* state)
+{
+	assert(sizeof(*state) >= sizeof(last_error));
+
+	memcpy(state, &last_error, sizeof(last_error));
+	return 0;
+}
+
+API_EXPORTED
+int mm_set_errorstate(const struct mm_error_state* state)
+{
+	assert(sizeof(*state) >= sizeof(last_error));
+
+	memcpy(&last_error, state, sizeof(last_error));
+
+	// Set errno for backward compatibility, ie case of module that has
+	// been updated to use mm_error* but whose client code (user of this
+	// module) is not using yet mm_error*
+	errno = last_error.errnum;
+
+	return 0;
+}
+
+API_EXPORTED
+void mm_print_lasterror(const char* info, ...)
+{
+	va_list args;
+
+	// Print context info if supplied
+	if (info) {
+		va_start(args, info);
+		vprintf(info, args);
+		va_end(args);
+		printf("\n");
+	}
+
+	// No error state is set, not in errno
+	if (!last_error.errnum && !errno) {
+		printf("No error found in the state\n");
+		return;
+	}
+
+	// No error state is set, but something is in errno
+	if (!last_error.errnum && errno) {
+		printf("Error only found in errno: %i, %s\n",
+		       errno, mmstrerror(errno));
+		return;
+	}
+
+	// Print the error state
+	printf("Last error reported:\n"
+	       "\terrnum=%i : %s\n"
+	       "\tmodule: %s\n"
+	       "\tlocation: %s\n"
+	       "\tdescription: %s\n"
+	       "\textented_id: %s\n",
+	       last_error.errnum, mmstrerror(last_error.errnum),
+	       last_error.module,
+	       last_error.location,
+	       last_error.desc,
+	       last_error.extended_id);
+}
+
+API_EXPORTED
+int mm_get_lasterror_number(void)
+{
+	return last_error.errnum;
+}
+
+
+API_EXPORTED
+const char* mm_get_lasterror_desc(void)
+{
+	return last_error.desc;
+}
+
+API_EXPORTED
+const char* mm_get_lasterror_location(void)
+{
+	return last_error.location;
+}
+
+
+API_EXPORTED
+const char* mm_get_lasterror_extid(void)
+{
+	// Don't return an empty string if extid is not set
+	if (last_error.extended_id[0] == '\0')
+		return NULL;
+
+	return last_error.extended_id;
+}
+
+
+API_EXPORTED
+const char* mm_get_lasterror_module()
+{
+	return last_error.module;
+}

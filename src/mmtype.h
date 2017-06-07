@@ -6,6 +6,10 @@
 
 #include <stddef.h>
 
+struct mm_error_state {
+	char data[1024];
+};
+
 /* Image depth definitions */
 #define MM_DEPTH_SIGN 0x80000000
 #define MM_DEPTH_1U     1
