@@ -20,16 +20,16 @@
  Double expansion is the usual trick to expand a preprocessor macro argument
  into a string
 */
-#define mm_xstringify(arg)	#arg
-#define mm_stringify(arg)	mm_xstringify(arg)
+#define MM_XSTRINGIFY(arg)	#arg
+#define MM_STRINGIFY(arg)	MM_XSTRINGIFY(arg)
 
 /*
  Define MMLOG_VERBOSE_LOCATION to display location with file and line
 */
 #if MMLOG_VERBOSE_LOCATION
-# define mm_location(module)	 module " " __FILE__ "(" mm_stringify( __LINE__ ) ")"
+# define MM_LOCATION(module)	 module " " __FILE__ "(" MM_STRINGIFY( __LINE__ ) ")"
 #else
-# define mm_location(module)	 module
+# define MM_LOCATION(module)	 module
 #endif
 
 /*
@@ -56,31 +56,31 @@
 
 
 #if MMLOG_MAXLEVEL >= MMLOG_FATAL
-#  define mmlog_fatal(msg, ...)	mmlog_log(MMLOG_FATAL, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
+#  define mmlog_fatal(msg, ...)	mmlog_log(MMLOG_FATAL, MM_LOCATION(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
 #else
 #  define mmlog_fatal(msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_ERROR
-#  define mmlog_error(msg, ...)	mmlog_log(MMLOG_ERROR, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
+#  define mmlog_error(msg, ...)	mmlog_log(MMLOG_ERROR, MM_LOCATION(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
 #else
 #  define mmlog_error(msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_WARN
-#  define mmlog_warn(msg, ...)	mmlog_log(MMLOG_WARN, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
+#  define mmlog_warn(msg, ...)	mmlog_log(MMLOG_WARN, MM_LOCATION(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
 #else
 #  define mmlog_warn(msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_INFO
-#  define mmlog_info(msg, ...)	mmlog_log(MMLOG_INFO, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
+#  define mmlog_info(msg, ...)	mmlog_log(MMLOG_INFO, MM_LOCATION(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
 #else
 #  define mmlog_info(msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_DEBUG
-#  define mmlog_debug(msg, ...)	mmlog_log(MMLOG_DEBUG, mm_location(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
+#  define mmlog_debug(msg, ...)	mmlog_log(MMLOG_DEBUG, MM_LOCATION(MMLOG_MODULE_NAME), msg,  ## __VA_ARGS__)
 #else
 #  define mmlog_debug(msg, ...) MMLOG_VOID_CAST(0)
 #endif
