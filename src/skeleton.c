@@ -50,8 +50,10 @@ int set_parent_iter(const struct mmskel* skel, int c, int par, void* data)
 static
 const char* get_joint_name(const struct mmskel* restrict skel, int boneind)
 {
-	if (boneind >= skel->nbone || boneind < 0)
+	if (boneind >= skel->nbone || boneind < 0) {
+		mm_raise_error(MM_ENOTFOUND, "Joint %i not in the admissible range [0-%i]", boneind, skel->nbone);
 		return NULL;
+	}
 
 	return skel->strcache + skel->name_idx[boneind];
 }
@@ -70,7 +72,11 @@ int save_bone_data(const struct mmskel* skel, int c, int par, void* data)
 
 	wsize = fprintf(fp, "\n|%s|%s|%f|%f|%f|",
 	                    parent, bone, pos[0], pos[1], pos[2]);
-	return (wsize >= 0) ? 0 : -1;
+	if (wsize < 0) {
+		mm_raise_error(errno, "cannot write bone line: %s", strerror(errno));
+		return -1;
+	}
+	return 0;
 }
 
 
@@ -84,6 +90,7 @@ int skl_find(const struct mmskel* restrict skel, const char* name)
 			return i;
 	}
 
+	mm_raise_error(MM_ENOTFOUND, "Cannot find joint %s in skeleton", name);
 	return -1;
 }
 
@@ -110,6 +117,7 @@ int skl_add(struct mmskel* skel, int par, const char* jname)
 		free((strcache != skel->strcache) ? strcache : NULL);
 		free((bones != skel->bones) ? bones : NULL);
 		free((name_idx != skel->name_idx) ? name_idx : NULL);
+		mm_raise_error(errno, "Cannot resize skeleton internal buffers");
 		return -1;
 	}
 
@@ -146,7 +154,6 @@ int skl_add_to(struct mmskel* skel, const char* parent, const char* name)
 	
 	// Check that a bone parent has been found when one is specified
 	if (parent && par == -1) {
-		errno = MM_ENOTFOUND;
 		return -1;
 	}
 
@@ -157,8 +164,10 @@ int skl_add_to(struct mmskel* skel, const char* parent, const char* name)
 API_EXPORTED
 int skl_parentlist(const struct mmskel* sk, int* parent)
 {
-	if (!sk || !parent)
+	if (!sk || !parent) {
+		mm_raise_error(EINVAL, "Missing argument");
 		return -1;
+	}
 
 	bone_dfs(sk, 0, -1, parent, set_parent_iter);
 	return 0;
@@ -211,8 +220,8 @@ int skl_init(struct mmskel* skel)
  * with POSIX locale set. The previous locale is of course restored before
  * leaving the function.
  *
- * Returns: 0 in case of success, -1 otherwise and errno is set represent
- * the error.
+ * Returns: 0 in case of success, -1 otherwise and error state is set
+ * accordingly
  */
 API_EXPORTED
 int skl_load_data(struct mmskel* skel, int fd)
@@ -225,7 +234,7 @@ int skl_load_data(struct mmskel* skel, int fd)
 	locale_t skl_loc = (locale_t)0, prev_loc = (locale_t)0;
 
 	if (!skel) {
-		errno = EINVAL;
+		mm_raise_error(EINVAL, "Skeleton argument not set");
 		return -1;
 	}
 	skl_init(skel);
@@ -267,7 +276,7 @@ int skl_load_data(struct mmskel* skel, int fd)
 
 exit:
 	if (ret)
-		mmlog_error("skl_load_data() failed: %s", mmstrerror(errno));
+		mm_raise_error(errno, "skl_load_data() failed: %s", mmstrerror(errno));
 
 	if (fp)
 		fclose(fp);
@@ -295,8 +304,8 @@ exit:
  * with POSIX locale set.  The previous locale is of course restored before
  * leaving the function.
  *
- * Returns: 0 in case of success, -1 otherwise and errno is set represent
- * the error.
+ * Returns: 0 in case of success, -1 otherwise and error state is set
+ * accordingly
  */
 API_EXPORTED
 int skl_save_data(struct mmskel* skel, int fd)
@@ -306,7 +315,7 @@ int skl_save_data(struct mmskel* skel, int fd)
 	locale_t skl_loc = (locale_t)0, prev_loc = (locale_t)0;
 
 	if (!skel) {
-		errno = EINVAL;
+		mm_raise_error(EINVAL, "Skeleton argument not set");
 		return -1;
 	}
 
@@ -314,13 +323,17 @@ int skl_save_data(struct mmskel* skel, int fd)
 	  || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
 	  || !(skl_loc = newlocale(LC_NUMERIC_MASK, "POSIX", (locale_t)0))
 	  || !(prev_loc = uselocale(skl_loc))
-	  || !(fp = fdopen(newfd, "w")) )
+	  || !(fp = fdopen(newfd, "w")) ) {
+		mm_raise_error(errno, "Cannot change locale or use fd - %s", mmstrerror(errno));
 		goto exit;
+	}
 
 	// Write file format magic number
 	nf = fwrite(skel_magic_number, sizeof(skel_magic_number), 1, fp);
-	if (nf != 1)
+	if (nf != 1) {
+		mm_raise_error(errno, "Cannot write magic number - %s", mmstrerror(errno));
 		goto exit;
+	}
 
 	// Search the graph (depth first search)
 	// and write data for each node
@@ -330,9 +343,6 @@ int skl_save_data(struct mmskel* skel, int fd)
 	ret = 0;
 
 exit:
-	if (ret)
-		mmlog_error("skl_save_data() failed: %s", mmstrerror(errno));
-
 	if (fp)
 		fclose(fp);
 	else if (newfd != -1)

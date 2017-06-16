@@ -6,7 +6,8 @@
 #endif
 
 #include <stdlib.h>
-#include <errno.h>
+#include <mmerrno.h>
+#include <string.h>
 
 #include "mmlog.h"
 #include "mmtype.h"
@@ -54,8 +55,7 @@ size_t mmimg_pixel_size(unsigned int pixfmt)
 	};
 
 error:
-	mmlog_error("Unknown pixel format: %08x", pixfmt);
-	errno = EINVAL;
+	mm_raise_error(EINVAL, "Unknown pixel format: %08x", pixfmt);
 	return 0;
 }
 
@@ -77,7 +77,7 @@ int mmimg_set_stride(struct mm_imgdesc* img, size_t alignment)
 	unsigned int stride, remainder;
 
 	if (!img) {
-		errno = EINVAL;
+		mm_raise_error(EINVAL, "Missing img argument");
 		return -1;
 	}
 
@@ -116,17 +116,21 @@ void* mmimg_alloc_buffer(const struct mm_imgdesc* img)
 {
 	void* ptr;
 	size_t bsize;
+	int ret;
 
 	if (!img) {
-		errno = EINVAL;
+		mm_raise_error(EINVAL, "Missing img argument");
 		return NULL;
 	}
 
 	bsize = img->height*img->stride;
 
 	// TODO: calculate alignment suitable for CPU at runtime
-	if (posix_memalign(&ptr, CACHE_LINE_SIZE, bsize))
+	ret = posix_memalign(&ptr, CACHE_LINE_SIZE, bsize);
+	if (ret) {
+		mm_raise_error(ret, "Cannot allocate img buffer: %s", strerror(ret));
 		return NULL;
+	}
 
 	return ptr;
 }
