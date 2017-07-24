@@ -78,6 +78,13 @@ struct camera_calibration {
 	float translation[3];
 };
 
+
+/**************************************************************************
+ *                                                                        *
+ *                             Image data types                           *
+ *                                                                        *
+ **************************************************************************/
+
 /**
  * DOC: Pixel formats
  *
@@ -161,5 +168,158 @@ size_t mmimage_buffer_size(const mmimage* img);
 #ifdef __cplusplus
 }
 #endif
+
+
+/**************************************************************************
+ *                                                                        *
+ *                 Calibration interfaces definitions                     *
+ *                                                                        *
+ **************************************************************************/
+
+#define MM_CALIB_RUN            -1
+#define MM_CALIB_CANCELLED      -2
+
+/* Element types */
+#define MM_CELT_BUTTON          0
+#define MM_CELT_TEXT            1
+#define MM_CELT_INDICATOR       2
+#define MM_CELT_BAR             3
+
+/* Element states */
+#define MM_CELTST_OK            0x00    // state
+#define MM_CELTST_WARN          0x01    // state
+#define MM_CELTST_FAIL          0x02    // state
+#define MM_CELTST_LOW           0x10    // state
+#define MM_CELTST_HIGH          0x11    // state
+#define MM_CELTST_DISABLE       0x04    // flag
+#define MM_CELTST_INVISIBLE     0x08    // flag
+
+/* Soft limits
+ If those limits are not respected, the client will not crashed. However the
+ calibrated module is not ensured that the panel will display fully every
+ label or element beyond the limits.
+ */
+#define MM_CALIB_BUTTON_RIGHT   0
+#define MM_CALIB_MINBUTTON      1
+#define MM_CALIB_MAXBUTTON      4
+#define MM_CALIB_MAXINDICATOR   8
+#define MM_CALIB_MAXBAR         1
+#define MM_CALIB_MAXTEXT        3
+#define MM_CALIB_MAXIMG         1
+#define MM_CALIB_INDIC_MAXLEN   32
+#define MM_CALIB_BUTTON_MAXLEN  16
+#define MM_CALIB_TEXT_MAXLEN    128
+#define MM_CALIB_BAR_MAXLEN     32
+#define MM_CALIB_TITLE_MAXLEN   64
+#define MM_CALIB_MAXVALUE       INT_MAX
+
+
+/**
+ * Description of a new calibration panel
+ */
+struct mm_calib_paneldesc {
+	int num_text;           //! number of text element
+	int num_button;         //! number of button element (minimum MM_CALIB_MINBUTTON)
+	int num_indicator;      //! number of indicator
+	int num_bar;            //! number of progress bar element
+	int num_img;            //! number of image slot
+	const char* title;      //! title to display in the new calibration panel
+};
+
+
+/**
+ * struct mm_calibration_cb - Callback to the GUI for the calibration
+ */
+struct mm_calibration_cb {
+	// Pointer to the pointer to supply in callbacks
+	void* data;
+
+	/**
+	 * create_img() - configure a new image be available in gui in specified slot
+	 * @ptr:        user provided pointer @mm_calibration_cb.data
+	 * @desc:       image format descriptor the image that will be passed
+	 * @slot:       image slot to configure
+	 *
+	 * Return: pointer to the image buffer to be used for the new image update
+	 */
+	void* (*create_img)(void* ptr, const struct mm_imgdesc* des, int slot);
+
+	/**
+	 * update_img() - signal that a new image content is available in the specified slot
+	 * @ptr:        user provided pointer @mm_calibration_cb.data
+	 * @slot:       image slot to update
+	 *
+	 * Return: pointer to the image buffer to be used for the new image update
+	 */
+	void* (*update_img)(void* ptr, int slot);
+
+	/**
+	 * update_label() - update label of specified calibration element
+	 * @ptr:        user provided pointer @mm_calibration_cb.data
+	 * @elt_type:   element type to update (MM_CELT_*)
+	 * @slot:       slot of the element of type @elt_type to update
+	 * @label:      new label to display
+	 */
+	void  (*update_label)(void* ptr, int elt_type, int slot, const char* label);
+
+	/**
+	 * update_state() - update state of specified calibration element
+	 * @ptr:        user provided pointer @mm_calibration_cb.data
+	 * @elt_type:   element type to update
+	 * @slot:       slot of the element of type @elt_type to update
+	 * @state:      state to change (MM_CELTST_* with mask of MM_CELTST_DISABLE and/or MM_CELTST_INVISIBLE)
+	 */
+	void  (*update_state)(void* ptr, int elt_type, int slot, int state);
+
+	/**
+	 * update_value() - update value displayed in specified calibration element
+	 * @ptr:        user provided pointer @mm_calibration_cb.data
+	 * @elt_type:   element type to update
+	 * @slot:       slot of the element of type @elt_type to update
+	 * @value:      value to change
+	 */
+	void  (*update_value)(void* ptr, int elt_type, int slot, int value);
+
+	/**
+	 * define_panel() - discard content of previous calibration panel and setup a new one
+	 * @ptr:        user provided pointer @mm_calibration_cb.data
+	 * @paneldesc:  description of the new panel
+	 */
+	void  (*define_panel)(void* ptr, const struct mm_calib_paneldesc* paneldesc);
+
+	/**
+	 * check_answer() - Get the response of calibration feedback
+	 * @ptr:        user provided pointer @mm_calibration_cb.data
+	 *
+	 * This callback allows the module to be calibrated to inspect if a
+	 * button has been clicked since the last call to this callback. The
+	 * callback will return:
+	 * - MM_CALIB_CANCELLED: if calibration has been cancelled.
+	 * - the button index: if one button has been clicked and that has
+	 * not been reported since the last call to this callback.
+	 * - MM_CALIB_RUN: if not button has been clicked since last call
+	 * and the calibration has not been cancelled.
+	 *
+	 * Return: the index of the last button clicked, MM_CALIB_RUN or
+	 * MM_CALIB_CANCELLED.
+	 */
+	int   (*check_answer)(void* ptr);
+
+	/**
+	 * check_click() - Get the pointer click or touch of an image slot
+	 * @ptr:        user provided pointer @mm_calibration_cb.data
+	 * @img_slot:   image slot of the click
+	 * @x:          pointer to value receiving the position abscissa
+	 * @y:          pointer to value receiving the position ordinate
+	 *
+	 * Similar to check_answer(), get the position of the last click (or
+	 * touch) on any of the image slots.
+	 *
+	 * Return: 0 if no new click is available, 1 if a new click has been
+	 * reported on one image slot.
+	 */
+	int   (*check_click)(void* ptr, int* img_slot, float* x, float* y);
+};
+
 
 #endif /* MMTYPE_H */
