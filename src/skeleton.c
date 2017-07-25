@@ -16,6 +16,38 @@
 #include "mmlog.h"
 #include "mmerrno.h"
 
+
+struct locale_store {
+	locale_t prevloc;
+	locale_t newloc;
+};
+
+static
+int push_default_locale(struct locale_store* store)
+{
+	locale_t loc, prev_loc;
+
+	loc = newlocale(LC_NUMERIC_MASK, "POSIX", (locale_t)0);
+	if (!loc)
+		return -1;
+
+	prev_loc = uselocale(loc);
+	if (!prev_loc)
+		return -1;
+
+	store->prevloc = prev_loc;
+	store->newloc = loc;
+	return 0;
+}
+
+static
+void pop_locale(struct locale_store* store)
+{
+	uselocale(store->prevloc);
+	if (store->newloc != (locale_t)0)
+		freelocale(store->newloc);
+}
+
 static
 const char skel_magic_number[] = {'%', 'M', 'M', 'S', 'K', 'E', 'L', '0'};
 
@@ -231,7 +263,7 @@ int skl_load_data(struct mmskel* skel, int fd)
 	float pos[3];
 	int nf, ind, root, newfd = -1, ret = -1;
 	FILE* fp = NULL;
-	locale_t skl_loc = (locale_t)0, prev_loc = (locale_t)0;
+	struct locale_store locstore = {0};
 
 	if (!skel) {
 		mm_raise_error(EINVAL, "Skeleton argument not set");
@@ -241,8 +273,7 @@ int skl_load_data(struct mmskel* skel, int fd)
 
 	if ((newfd = dup(fd)) == -1
 	  || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
-	  || !(skl_loc = newlocale(LC_NUMERIC_MASK, "POSIX", (locale_t)0))
-	  || !(prev_loc = uselocale(skl_loc))
+	  || push_default_locale(&locstore)
 	  || !(fp = fdopen(newfd, "r")) )
 		goto exit;
 
@@ -283,9 +314,7 @@ exit:
 	else if (newfd != -1)
 		close(newfd);
 
-	uselocale(prev_loc);
-	if (skl_loc != (locale_t)0)
-		freelocale(skl_loc);
+	pop_locale(&locstore);
 
 	return ret;
 }
@@ -312,7 +341,7 @@ int skl_save_data(struct mmskel* skel, int fd)
 {
 	int nf, newfd = -1, ret = -1;
 	FILE* fp = NULL;
-	locale_t skl_loc = (locale_t)0, prev_loc = (locale_t)0;
+	struct locale_store locstore = {0};
 
 	if (!skel) {
 		mm_raise_error(EINVAL, "Skeleton argument not set");
@@ -321,8 +350,7 @@ int skl_save_data(struct mmskel* skel, int fd)
 
 	if ((newfd = dup(fd)) == -1
 	  || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
-	  || !(skl_loc = newlocale(LC_NUMERIC_MASK, "POSIX", (locale_t)0))
-	  || !(prev_loc = uselocale(skl_loc))
+	  || push_default_locale(&locstore)
 	  || !(fp = fdopen(newfd, "w")) ) {
 		mm_raise_error(errno, "Cannot change locale or use fd - %s", mmstrerror(errno));
 		goto exit;
@@ -348,9 +376,7 @@ exit:
 	else if (newfd != -1)
 		close(newfd);
 
-	uselocale(prev_loc);
-	if (skl_loc != (locale_t)0)
-		freelocale(skl_loc);
+	pop_locale(&locstore);
 
 	return ret;
 }
