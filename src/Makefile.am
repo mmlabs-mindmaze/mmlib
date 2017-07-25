@@ -16,6 +16,7 @@ include_HEADERS = \
 	mmprofile.h \
 	mmpredefs.h \
 	mmlib.h \
+	mmtime.h \
 	$(eol)
 
 lib_LTLIBRARIES = libmmlib.la
@@ -31,6 +32,7 @@ libmmlib_la_SOURCES = \
 	mmlib.h \
 	alloc.c \
 	utils.c \
+	mmtime.h time.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS = \
@@ -39,7 +41,6 @@ libmmlib_la_CPPFLAGS = \
 
 libmmlib_la_LIBADD = \
 	$(MATH_LIB) \
-	$(CLOCK_LIB) \
 	$(eol)
 
 libmmlib_la_LDFLAGS = \
@@ -52,9 +53,11 @@ libmmlib_la_LDFLAGS = \
 if OS_TYPE_POSIX
 
 libmmlib_la_SOURCES += \
+	time-posix.c \
 	$(eol)
 
 libmmlib_la_LIBADD += \
+	$(CLOCK_LIB) \
 	$(eol)
 
 endif
@@ -75,6 +78,8 @@ $(defexec_DATA): libmmlib.la
 endif
 
 libmmlib_la_SOURCES += \
+	time-win32.c \
+	clock-win32.h clock-win32.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \
@@ -82,6 +87,7 @@ libmmlib_la_CPPFLAGS += \
 	$(eol)
 
 libmmlib_la_LIBADD += \
+	-lpowrprof \
 	$(eol)
 
 endif
