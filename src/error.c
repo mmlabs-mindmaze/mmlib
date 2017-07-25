@@ -74,6 +74,15 @@ const char* mmstrerror(int errnum)
 }
 
 
+#ifdef _WIN32
+static
+int strerror_r(int errnum, char *strerrbuf, size_t buflen)
+{
+	return strerror_s(strerrbuf, buflen, errnum);
+}
+#endif
+
+
 API_EXPORTED
 int mmstrerror_r(int errnum, char *buf, size_t buflen)
 {
