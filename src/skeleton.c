@@ -8,14 +8,47 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <locale.h>
 
 #include "mmskeleton.h"
 #include "mmlog.h"
 #include "mmerrno.h"
 
+#ifdef _WIN32
+#  include <io.h>
+#else
+#  include <unistd.h>
+#  include <fcntl.h>
+#endif
+
+
+#ifdef _WIN32
+
+struct locale_store {
+	int is_init;
+	const char* prev_loc;
+};
+
+static
+int push_default_locale(struct locale_store* store)
+{
+	//TODO use _condigthreadlocale
+	store->prev_loc = setlocale(LC_NUMERIC, NULL);
+	setlocale(LC_NUMERIC, "C");
+	store->is_init = 1;
+	return 0;
+}
+
+static
+void pop_locale(struct locale_store* store)
+{
+	if (!store->is_init)
+		return;
+
+	setlocale(LC_NUMERIC, store->prev_loc);
+}
+
+#else // Use POSIX
 
 struct locale_store {
 	locale_t prevloc;
@@ -47,6 +80,8 @@ void pop_locale(struct locale_store* store)
 	if (store->newloc != (locale_t)0)
 		freelocale(store->newloc);
 }
+
+#endif
 
 static
 const char skel_magic_number[] = {'%', 'M', 'M', 'S', 'K', 'E', 'L', '0'};
@@ -272,7 +307,9 @@ int skl_load_data(struct mmskel* skel, int fd)
 	skl_init(skel);
 
 	if ((newfd = dup(fd)) == -1
+#ifndef _WIN32
 	  || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
+#endif
 	  || push_default_locale(&locstore)
 	  || !(fp = fdopen(newfd, "r")) )
 		goto exit;
@@ -349,7 +386,9 @@ int skl_save_data(struct mmskel* skel, int fd)
 	}
 
 	if ((newfd = dup(fd)) == -1
+#ifndef _WIN32
 	  || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
+#endif
 	  || push_default_locale(&locstore)
 	  || !(fp = fdopen(newfd, "w")) ) {
 		mm_raise_error(errno, "Cannot change locale or use fd - %s", mmstrerror(errno));
