@@ -37,7 +37,20 @@ LT_SYS_MODULE_EXT
 AC_SUBST(LIBTOOL_DEPS)
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION(0.19)
-PKG_CHECK_MODULES_EXT(CHECK, [check])
+
+# Optional build of 'check' based tests
+PKG_CHECK_MODULES_EXT(CHECK, [check], [has_check=yes], [has_check=no])
+AC_ARG_WITH([check], AC_HELP_STRING([--with-check], [Build and run check based tests. @<:@default=detect@:>@]),
+	    [], [with_check=detect])
+AS_CASE([$with_check],
+        [yes], [AS_IF([test "$has_check" != no],
+	              [build_check_tests=yes],
+		      [AC_MSG_FAILURE([check required but not found])])
+	       ],
+        [no], [build_check_tests=no],
+        [detect], [build_check_tests=$has_check],
+        [AC_MSG_FAILURE([invalid argument for '--with-check' option])])
+AM_CONDITIONAL(BUILD_CHECK_TESTS, [test "$build_check_tests" = yes])
 
 # Check for libraries
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
