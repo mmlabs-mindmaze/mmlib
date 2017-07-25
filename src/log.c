@@ -5,14 +5,33 @@
 # include <config.h>
 #endif
 
-#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <time.h>
+
+#ifdef _WIN32
+#  include <io.h>
+#  define STDERR_FILENO 2
+#else
+#  include <unistd.h>
+#endif
 
 #include "mmlog.h"
+
+#ifdef _MSC_VER
+#  define restrict __restrict
+#  define ssize_t int
+#endif
+
+#if _WIN32
+#  if HAS_LOCALTIME_S
+#    define localtime_r(time, tm) localtime_s((tm), (time))
+#  else
+#    define localtime_r(time, tm) do {*(tm) = *(localtime(time));} while (0)
+#  endif
+#endif
 
 #ifndef MMLOG_LINE_MAXLEN
 #define MMLOG_LINE_MAXLEN	256
@@ -30,11 +49,7 @@ const char* const loglevel[] = {
 };
 #define NLEVEL (sizeof(loglevel)/sizeof(loglevel[0]))
 
-static
-void init_log(void) __attribute__ ((constructor));
-
-static
-void init_log(void)
+MM_CONSTRUCTOR(init_log)
 {
 	int i;
 	const char* envlvl;
@@ -89,7 +104,7 @@ size_t format_log_str(char* restrict buff, size_t blen,
 	// format time stamp
 	ts = time(NULL);
 	localtime_r(&ts, &tm);
-	len = strftime(buff, blen, "%d/%m/%y %T", &tm);
+	len = strftime(buff, blen, "%d/%m/%y %H:%M:%S", &tm);
 	buff += len;
 	rlen -= len;
 	

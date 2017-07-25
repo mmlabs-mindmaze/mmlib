@@ -56,6 +56,7 @@ AM_CONDITIONAL(BUILD_CHECK_TESTS, [test "$build_check_tests" = yes])
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
 MM_CHECK_LIB([sqrtf], [m], MATH)
 MM_CHECK_LIB([clock_gettime], [rt], CLOCK)
+MM_CHECK_LIB([localtime64_s], [], LOCALTIME_S, [AC_DEFINE([HAS_LOCALTIME_S], [1], [Define if localtime_s is present])])
 
 AC_DEF_API_EXPORT_ATTRS
 MM_CC_WARNFLAGS
