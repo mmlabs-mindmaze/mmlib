@@ -1,6 +1,9 @@
 eol=
 
-AM_CPPFLAGS = -I$(top_srcdir)/src $(CHECK_CPPFLAGS)
+AM_CPPFLAGS = \
+	-I$(top_srcdir)/src \
+	$(CHECK_CPPFLAGS) \
+	$(eol)
 AM_CFLAGS = $(CHECK_CFLAGS) $(MM_WARNFLAGS)
 MMLIB = $(top_builddir)/src/libmmlib.la
 
