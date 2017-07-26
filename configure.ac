@@ -59,6 +59,7 @@ MM_CHECK_LIB([clock_gettime], [rt], CLOCK)
 MM_CHECK_LIB([localtime64_s], [], LOCALTIME_S, [AC_DEFINE([HAS_LOCALTIME_S], [1], [Define if localtime_s is present])])
 
 AC_DEF_API_EXPORT_ATTRS
+AC_SET_HOSTSYSTEM
 MM_CC_WARNFLAGS
 
 AC_SUBST([optional_examples])

@@ -39,3 +39,24 @@ libmmlib_la_LDFLAGS = \
 	-no-undefined \
         -version-info $(CURRENT):$(REVISION):$(AGE) \
 	$(eol)
+
+
+if OS_TYPE_POSIX
+
+libmmlib_la_SOURCES += \
+	$(eol)
+
+libmmlib_la_LIBADD += \
+	$(eol)
+
+endif
+
+if OS_TYPE_WIN32
+
+libmmlib_la_SOURCES += \
+	$(eol)
+
+libmmlib_la_LIBADD += \
+	$(eol)
+
+endif
