@@ -11,6 +11,7 @@
 
 #include "mmlog.h"
 #include "mmtype.h"
+#include "mmlib.h"
 
 #define CACHE_LINE_SIZE	64
 
@@ -114,9 +115,7 @@ int mmimg_set_stride(struct mm_imgdesc* img, size_t alignment)
 API_EXPORTED
 void* mmimg_alloc_buffer(const struct mm_imgdesc* img)
 {
-	void* ptr;
 	size_t bsize;
-	int ret;
 
 	if (!img) {
 		mm_raise_error(EINVAL, "Missing img argument");
@@ -126,13 +125,7 @@ void* mmimg_alloc_buffer(const struct mm_imgdesc* img)
 	bsize = img->height*img->stride;
 
 	// TODO: calculate alignment suitable for CPU at runtime
-	ret = posix_memalign(&ptr, CACHE_LINE_SIZE, bsize);
-	if (ret) {
-		mm_raise_error(ret, "Cannot allocate img buffer: %s", strerror(ret));
-		return NULL;
-	}
-
-	return ptr;
+	return mm_aligned_alloc(CACHE_LINE_SIZE, bsize);
 }
 
 
@@ -143,7 +136,7 @@ void* mmimg_alloc_buffer(const struct mm_imgdesc* img)
 API_EXPORTED
 void mmimg_free_buffer(void* img_buff)
 {
-	free(img_buff);
+	mm_aligned_free(img_buff);
 }
 
 
