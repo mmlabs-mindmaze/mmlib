@@ -58,10 +58,12 @@ if OS_TYPE_POSIX
 libmmlib_la_SOURCES += \
 	time-posix.c \
 	file-posix.c \
+	shm-posix.c \
 	$(eol)
 
 libmmlib_la_LIBADD += \
 	$(CLOCK_LIB) \
+	$(SHM_LIB) \
 	$(eol)
 
 endif
@@ -86,6 +88,7 @@ libmmlib_la_SOURCES += \
 	clock-win32.h clock-win32.c \
 	utils-win32.h utils-win32.c \
 	file-win32.c \
+	shm-win32.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \

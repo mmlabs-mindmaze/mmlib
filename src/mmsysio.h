@@ -599,6 +599,137 @@ MMLIB_API void mm_rewinddir(MMDIR* dir);
 MMLIB_API const struct mm_dirent* mm_readdir(MMDIR* dir);
 
 
+/**************************************************************************
+ *                            memory mapping                              *
+ **************************************************************************/
+
+#define MM_MAP_READ     0x00000001
+#define MM_MAP_WRITE	0x00000002
+#define MM_MAP_EXEC     0x00000004
+#define MM_MAP_SHARED   0x00000008
+
+#define MM_MAP_RDWR	(MM_MAP_READ | MM_MAP_WRITE)
+#define MM_MAP_PRIVATE  0x00000000
+
+
+/**
+ * mm_mapfile() - map pages of memory
+ * @fd:         file descriptor of file to map in memory
+ * @offset:     offset within the file from which the mapping must start
+ * @len:        length of the mapping
+ * @mflags:     control how the mapping is done
+ *
+ * The mm_mapfile() function establishes a mapping between a process'
+ * address space and a portion or the entirety of a file or shared memory
+ * object represented by @fd. The portion of the object to map can be
+ * controlled by the parameters @offset and @len. @offset must be a multiple
+ * of page size.
+ *
+ * The flags in parameters @mflags determines whether read, write, execute,
+ * or some combination of accesses are permitted to the data being mapped.
+ * The requested access can of course cannot grant more permission than the
+ * one associated with @fd.
+ *
+ * MM_MAP_READ
+ *   Data can be read
+ * MM_MAP_WRITE
+ *   Data can be written
+ * MM_MAP_EXEC
+ *   Data can be executed
+ * MM_MAP_SHARED
+ *   Change to mapping are shared
+ *
+ * If MM_MAP_SHARED is specified, write change the underlying object.
+ * Otherwise, modifications to the mapped data by the calling process will
+ * be visible only to the calling process and shall not change the
+ * underlying object.
+ *
+ * The mm_mapfile() function adds an extra reference to the file associated
+ * with the file descriptor @fd which is not removed by a subsequent
+ * mm_close() on that file descriptor. This reference will be removed when
+ * there are no more mappings to the file.
+ *
+ * Return: The starting address of the mapping in case of success.
+ * Otherwise NULL is returned and error state is set accordingly.
+ */
+MMLIB_API void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags);
+
+
+/**
+ * mm_unmap() - unmap pages of memory
+ * @addr:       starting address of memory block to unmap
+ *
+ * Remove a memory mapping previously established. @addr must be NULL or must
+ * have been returned by a successfull call to mm_mapfile(). If @addr is NULL,
+ * mm_unmap() do nothing.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set.
+ */
+MMLIB_API int mm_unmap(void* addr);
+
+
+/**
+ * mm_shm_open() - open a shared memory object
+ * @name:       name of the shared memory object
+ * @oflag:      flags controlling the open operation
+ * @mode:       permission if object is created
+ *
+ * This function establishes a connection between a shared memory object and
+ * a file descriptor. The @name argument points to a string naming a shared
+ * memory object. If successful, the file descriptor for the shared memory
+ * object is the lowest numbered file descriptor not currently open for that
+ * process.
+ *
+ * The file status flags and file access modes of the open file description
+ * are according to the value of @oflag. It must contains the exactly one of
+ * the following: %O_RDONLY, %O_RDWR. It can contains any combination of the
+ * remaining flags: %O_CREAT, %O_EXCL, %O_TRUNC. The meaning of these
+ * constant is exactly the same as for mm_open().
+ *
+ * When a shared memory object is created, the state of the shared memory
+ * object, including all data associated with the shared memory object,
+ * persists until the shared memory object is unlinked and all other
+ * references are gone. It is unspecified whether the name and shared memory
+ * object state remain valid after a system reboot.
+ *
+ * Once a new shared memory object has been created, it can be removed with
+ * a call to mm_shm_unlink().
+ *
+ * Return: a non-negative integer representing the file descriptor in case
+ * of success. Otherwise -1 is returned with error state set accordingly.
+ */
+MMLIB_API int mm_shm_open(const char* name, int oflag, int mode);
+
+
+/**
+ * mm_anon_shm() - Creates an anonymous memory object
+ *
+ * This function creates an anonymous shared memory object (ie nameless) and
+ * establishes a connection between it and a file descriptor. If successful,
+ * the file descriptor for the shared memory object is the lowest numbered
+ * file descriptor not currently open for that process.
+ *
+ * Return: a non-negative integer representing the file descriptor in case
+ * of success. Otherwise -1 is returned with error state set accordingly.
+ */
+MMLIB_API int mm_anon_shm(void);
+
+
+/**
+ * The mm_shm_unlink() removes the name of the shared memory
+ * object named by the string pointed to by @name.
+ *
+ * If one or more references to the shared memory object exist when the object
+ * is unlinked, the name is removed before mm_shm_unlink() returns, but the
+ * removal of the memory object contents is postponed until all open and
+ * map references to the shared memory object have been removed.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
+MMLIB_API int mm_shm_unlink(const char* name);
+
+
 #ifdef __cplusplus
 }
 #endif
