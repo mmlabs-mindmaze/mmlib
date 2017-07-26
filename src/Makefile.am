@@ -30,7 +30,6 @@ libmmlib_la_SOURCES = \
 	$(eol)
 
 libmmlib_la_LIBADD = \
-	$(PTHREAD_LIB) \
 	$(MATH_LIB) \
 	$(CLOCK_LIB) \
 	$(eol)
