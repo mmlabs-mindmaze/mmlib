@@ -15,6 +15,7 @@ include_HEADERS = \
 	mmskeleton.h \
 	mmprofile.h \
 	mmpredefs.h \
+	mmlib.h \
 	$(eol)
 
 lib_LTLIBRARIES = libmmlib.la
@@ -27,6 +28,8 @@ libmmlib_la_SOURCES = \
 	mmskeleton.h skeleton.c	\
 	mmgeometry.h geometry.c   \
 	mmprofile.h profile.c \
+	mmlib.h \
+	alloc.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS = \

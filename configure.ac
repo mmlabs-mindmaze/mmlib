@@ -57,6 +57,7 @@ AM_CONDITIONAL(BUILD_CHECK_TESTS, [test "$build_check_tests" = yes])
 AM_CONDITIONAL(TAP_SUPPORT_IN_CHECK, [test "x$tap_in_check" = xyes])
 
 # Check for libraries
+AC_CHECK_FUNCS([posix_memalign aligned_alloc _aligned_malloc], [break])
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
 MM_CHECK_LIB([sqrtf], [m], MATH)
 MM_CHECK_LIB([clock_gettime], [rt], CLOCK)
