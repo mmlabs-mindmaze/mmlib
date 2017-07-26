@@ -59,6 +59,7 @@ libmmlib_la_SOURCES += \
 	time-posix.c \
 	file-posix.c \
 	shm-posix.c \
+	process-posix.c \
 	$(eol)
 
 libmmlib_la_LIBADD += \
@@ -89,6 +90,7 @@ libmmlib_la_SOURCES += \
 	utils-win32.h utils-win32.c \
 	file-win32.c \
 	shm-win32.c \
+	process-win32.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \

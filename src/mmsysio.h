@@ -600,6 +600,130 @@ MMLIB_API const struct mm_dirent* mm_readdir(MMDIR* dir);
 
 
 /**************************************************************************
+ *                             Process spawning                           *
+ **************************************************************************/
+#ifdef _WIN32
+typedef DWORD mm_pid_t;
+#else
+typedef pid_t mm_pid_t;
+#endif
+
+/**
+ * struct mm_remap_fd - file descriptor mapping for child creation
+ * @child_fd:   file descriptor in the child
+ * @parent_fd:  file descriptor in the parent process to @child_fd must be
+ *              mapped. If @child_fd must be specifically closed in the
+ *              child, @parent_fd can be set to -1;
+ *
+ * Use in combination of mm_spawn(), this structure is meant to be in an
+ * array that define the file descriptor remapping in child.
+ */
+struct mm_remap_fd {
+	int child_fd;
+	int parent_fd;
+};
+
+#define MM_SPAWN_DAEMONIZE 0x00000001
+#define MM_SPAWN_KEEP_FDS  0x00000002  // Keep all inheritable fd in child
+
+/**
+ * mm_spawn() - spawn a new process
+ * @child_pid:  pointer receiving the child process pid
+ * @path:       path to the executable file
+ * @num_map     number of element in the @fd_map array
+ * @fd_map:     array of file descriptor remapping to pass into the child
+ * @flags:      spawn flags
+ * @argv:       null-terminated array of string containing the command
+ *              arguments (starting with command). Can be NULL.
+ * @envp:       null-terminated array of strings specifying the environment
+ *              of the executed program. If it is NULL, it inherit its
+ *              environment from the calling process
+ *
+ * This function creates a new process executing the file located at @path
+ * and the pid the of created child is set in the variable pointed by
+ * @child_pid.
+ *
+ * The child process will inherit only the open file descriptors specified
+ * in the @fd_map array whose length is indicated by @num_map. For each
+ * element in @fd_map, a file descriptor numbered as specified in
+ * &mm_remap_fd.child_fd is available at child startup referencing the
+ * same file description as the corresponding &mm_remap_fd.parent_fd
+ * in the calling process. This means that after successful execution of
+ * mm_spawn() two reference of the same file will exist and the underlying
+ * file will be actually closed when all file descriptor  referencing it
+ * will be closed. The @fd_map array is processed sequentially so a mapping
+ * in the first element can be overrided in the next elements. If an element
+ * in @fd_map has a &mm_remap_fd.parent_fd field set to -1, it means that
+ * the corresponding @fd_map has a &mm_remap_fd.child_fd must not opened in
+ * the child process.
+ *
+ * For conveniency, the standard input, output and error are inherited by
+ * default in the child process. If any of those file are meant to be closed
+ * or redirected in the child, this can simply be done by adding element in
+ * @fd_map that redirect a standard file descriptor in the parent, or close
+ * them (by setting &mm_remap_fd.parent_fd to -1.
+ *
+ * @flags must contains a OR-combination or 0 or any number of the following
+ * flags:
+ *
+ * MM_SPAWN_DAEMONIZE
+ *   the created process will be detached from calling process and will
+ *   survive to its parent death (a daemon in the UNIX terminology).
+ * MM_SPAWN_KEEP_FDS
+ *   All open file descriptors in the calling process that are inherintable are
+ *   kept in the child with the same index. All the other file descriptor are
+ *   closed. Unless specified otherwise, all file descriptor created in mmlib
+ *   API are not inheritable. If this flag is specified, @num_map and
+ *   @fd_map argument are ignored.
+ *
+ * The argument @argv, if not null, is an array of character pointers to
+ * null-terminated strings. The application shall ensure that the last
+ * member of this array is a null pointer. These strings constitutes
+ * the argument list available to the new process image. The value in
+ * argv[0] should point to a filename that is associated with the process
+ * being started. If @argv is NULL, the behavior is as if mm_spawn() were
+ * called with a two array argument, @argv[0] = @path, @argv[1] = NULL.
+ *
+ * The argument @envp is an array of character pointers to null-terminated
+ * strings. These strings constitutes the environment for the new
+ * process image. The @envp array is terminated by a null pointer. If @envp
+ * is NULL, the new process use the same environment of the calling process
+ * at the time of the mm_spawn() call.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
+MMLIB_API int mm_spawn(mm_pid_t* child_pid, const char* path,
+                       int num_map, const struct mm_remap_fd* fd_map,
+                       int flags, char* const* argv, char* const* envp);
+
+#define MM_WSTATUS_CODEMASK     0x000000FF
+#define MM_WSTATUS_EXITED       0x00000100
+#define MM_WSTATUS_SIGNALED     0x00000200
+
+/**
+ * mm_wait_process() - wait for a child process to terminate
+ * @pid:        PID of child process
+ * @status:     location where to put status of the child process
+ *
+ * This function get the status of a the child process whose PID is @pid. If
+ * the child process is not terminated yet, the function will block until
+ * the child is terminated.
+ *
+ * If @status is not NULL, it refers to a location that will receive the
+ * status information of the terminated process. The information is a mask
+ * of MM_WSTATUS_* indicating wheter the child has terminated because of
+ * normal termination or abnormal one and the exit code (or signal number).
+ * To be accessible in the status information, the return code of a child
+ * program must be between 0 and 255.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
+MMLIB_API int mm_wait_process(mm_pid_t pid, int* status);
+
+
+/**************************************************************************
  *                            memory mapping                              *
  **************************************************************************/
 

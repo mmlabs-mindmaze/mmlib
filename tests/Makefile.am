@@ -3,6 +3,8 @@ eol=
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
+	-DBUILDDIR=\"$(abs_builddir)\" \
+	-DEXEEXT=\"$(EXEEXT)\" \
 	$(CHECK_CPPFLAGS) \
 	$(eol)
 AM_CFLAGS = $(CHECK_CFLAGS) $(MM_WARNFLAGS)
@@ -19,21 +21,25 @@ else
 TAP_LOG_DRIVER = $(LOG_DRIVER)
 endif #TAP_SUPPORT_IN_CHECK
 
-check_PROGRAMS = \
+TESTS = \
 	testlog \
 	testerrno \
 	testprofile \
 	testfile \
+	testprocess \
 	$(eol)
 
 if BUILD_CHECK_TESTS
-check_PROGRAMS += \
+TESTS += \
 	testinternals \
 	testapi.tap \
 	$(eol)
 endif
 
-TESTS = $(check_PROGRAMS)
+check_PROGRAMS = \
+	$(TESTS) \
+	child-proc \
+	$(eol)
 
 testlog_SOURCES = testlog.c
 testlog_LDADD = $(MMLIB)
@@ -46,6 +52,12 @@ testprofile_LDADD = $(MMLIB)
 
 testfile_SOURCES = testfile.c
 testfile_LDADD = $(MMLIB)
+
+testprocess_SOURCES = testprocess.c
+testprocess_LDADD = $(MMLIB)
+
+child_proc_SOURCES = child-proc.c
+child_proc_LDADD = $(MMLIB)
 
 testinternals_SOURCES = testinternals.c
 testinternals_LDADD = $(CHECK_LIBS)
