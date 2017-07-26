@@ -5,7 +5,6 @@
 # include <config.h>
 #endif
 
-#include <time.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +12,7 @@
 #include <unistd.h>
 #include "mmprofile.h"
 #include "mmpredefs.h"
+#include "mmtime.h"
 
 #define SEC_IN_NSEC	1000000000
 #define NUM_TS_MAX	16
@@ -195,7 +195,7 @@ void local_toc(void)
 {
 	struct timespec ts;
 
-	clock_gettime(clock_id, &ts);
+	mm_gettime(clock_id, &ts);
 
 	if (next_ts == NUM_TS_MAX-1)
 		return;
@@ -583,9 +583,9 @@ void mmprofile_reset(int flags)
 	unsigned int i;
 
 	if (flags & PROF_RESET_CPUCLOCK)
-		clock_id = CLOCK_PROCESS_CPUTIME_ID;
+		clock_id = MM_CLK_CPU_PROCESS;
 	else
-		clock_id = CLOCK_MONOTONIC_RAW;
+		clock_id = MM_CLK_MONOTONIC_RAW;
 
 	estimate_toc_overhead();
 	reset_diffs();
