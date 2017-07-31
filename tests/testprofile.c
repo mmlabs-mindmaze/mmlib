@@ -9,10 +9,9 @@
 #include "mmprofile.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <time.h>
 
-#define OUTFD	STDOUT_FILENO
+#define OUTFD	1 //STDOUT_FILENO
 
 static
 void print_profile(void)
@@ -72,22 +71,27 @@ void print_profile_labelled(void)
 
 int main(void)
 {
-	dprintf(OUTFD, "Timing with default settings\n");
+	printf("Timing with default settings\n");
+	fflush(stdout);
 	print_profile();
 
-	dprintf(OUTFD, "\nTiming with wall clock timer\n");
+	printf("\nTiming with wall clock timer\n");
+	fflush(stdout);
 	mmprofile_reset(0);
 	print_profile();
 
-	dprintf(OUTFD, "\nTiming with CPU based timer\n");
+	printf("\nTiming with CPU based timer\n");
+	fflush(stdout);
 	mmprofile_reset(PROF_RESET_CPUCLOCK);
 	print_profile();
 
-	dprintf(OUTFD, "\nLabelled mmtoc() 1st\n");
+	printf("\nLabelled mmtoc() 1st\n");
+	fflush(stdout);
 	mmprofile_reset(PROF_RESET_CPUCLOCK);
 	print_profile_labelled();
 
-	dprintf(OUTFD, "\nLabelled mmtoc() label kept\n");
+	printf("\nLabelled mmtoc() label kept\n");
+	fflush(stdout);
 	mmprofile_reset(PROF_RESET_CPUCLOCK|PROF_RESET_KEEPLABEL);
 	print_profile_labelled();
 
