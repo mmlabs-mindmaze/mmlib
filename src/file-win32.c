@@ -182,6 +182,8 @@ API_EXPORTED
 ssize_t mm_read(int fd, void* buf, size_t nbyte)
 {
 	ssize_t rsz;
+	struct mmipc_msg ipcmsg;
+	struct iovec iov;
 	int fd_info;
 
 	fd_info = get_fd_info_checked(fd);
@@ -193,6 +195,13 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 	case FD_TYPE_NORMAL:
 	case FD_TYPE_PIPE:
 		rsz = mmlib_read(fd, buf, nbyte);
+		break;
+
+	case FD_TYPE_IPCDGRAM:
+		iov.iov_base = buf;
+		iov.iov_len = nbyte;
+		ipcmsg = (struct mmipc_msg) {.iov = &iov, .num_iov = 1};
+		rsz = mmipc_recvmsg(fd, &ipcmsg);
 		break;
 
 	case FD_TYPE_MSVCRT:
@@ -212,6 +221,8 @@ API_EXPORTED
 ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 {
 	ssize_t rsz;
+	struct mmipc_msg ipcmsg;
+	struct iovec iov;
 	int fd_info;
 
 	fd_info = get_fd_info_checked(fd);
@@ -223,6 +234,13 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 	case FD_TYPE_NORMAL:
 	case FD_TYPE_PIPE:
 		rsz = mmlib_write(fd, buf, nbyte);
+		break;
+
+	case FD_TYPE_IPCDGRAM:
+		iov.iov_base = (void*)buf;
+		iov.iov_len = nbyte;
+		ipcmsg = (struct mmipc_msg) {.iov = &iov, .num_iov = 1};
+		rsz = mmipc_sendmsg(fd, &ipcmsg);
 		break;
 
 	case FD_TYPE_MSVCRT:

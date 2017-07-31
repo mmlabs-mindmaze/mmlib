@@ -60,6 +60,7 @@ libmmlib_la_SOURCES += \
 	file-posix.c \
 	shm-posix.c \
 	process-posix.c \
+	local-ipc-posix.c \
 	$(eol)
 
 libmmlib_la_LIBADD += \
@@ -91,6 +92,7 @@ libmmlib_la_SOURCES += \
 	file-win32.c \
 	shm-win32.c \
 	process-win32.c \
+	local-ipc-win32.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \

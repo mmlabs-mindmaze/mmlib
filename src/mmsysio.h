@@ -12,12 +12,20 @@
 #include <sys/stat.h>
 
 #ifdef _WIN32
+#include <mswsock.h>
 #include <io.h>
 #else
+#include <sys/socket.h>
 #include <unistd.h>
 #endif
 
 #include "mmpredefs.h"
+
+/**
+ * struct iovec - structure for scatter/gather I/O.
+ * @iov_base:   Base address of a memory region for input or output
+ * @iov_len:    The size of the memory pointed to by @iov_base
+ */
 
 #ifdef _WIN32
 // structure for scatter-gather RW operation
@@ -853,6 +861,148 @@ MMLIB_API int mm_anon_shm(void);
  */
 MMLIB_API int mm_shm_unlink(const char* name);
 
+
+/**************************************************************************
+ *                        Interprocess communication                      *
+ **************************************************************************/
+
+/**
+ * struct mmipc_msg - structure for IPC message
+ * @iov:        scatter/gather array
+ * @fds:        array of file descriptor to pass/receive
+ * @num_iov:    number of element in @iov
+ * @num_fds:    number of file descriptors in @fds
+ * @flags:      flags on received message
+ * @num_fds_max: maximum number of file descriptors in @fds
+ */
+struct mmipc_msg {
+	struct iovec* iov;
+	int* fds;
+	int num_iov;
+	int num_fds;
+	int flags;
+	int num_fds_max;
+};
+
+struct mmipc_srv;
+
+/**
+ * mmipc_srv_create() - Create a IPC server
+ * @addr:       path to which the server must listen
+ *
+ * This creates a server instance that will listen to the path specified by
+ * argument @path. This path does not have necessarily a connection with the
+ * filesystem pathnames. However it obey to the same syntax.
+ *
+ * Only one IPC server instance can listen to same address. If there is
+ * already another server, this function will fail.
+ *
+ * Return: pointer to IPC server in case of success. NULL otherwise with
+ * error state set accordingly
+ */
+MMLIB_API struct mmipc_srv* mmipc_srv_create(const char* addr);
+
+
+/**
+ * mmipc_srv_destroy() - Destroy IPC server
+ * @srv:        server to destroy
+ *
+ * This function destroy the server referenced to by @srv. The path to which
+ * server was listening become available for new call to mmipc_srv_create().
+ * However, if there were accepted connection still opened, it is
+ * unspecified whether the name will be available before all connection are
+ * closed or not. If there were client connection pending that had not been
+ * accepted by the server yet, those will be dropped.
+ *
+ * Destroying a server does not affect accepted connections which will
+ * survive until they are specifically closed with mm_close().
+ */
+MMLIB_API void mmipc_srv_destroy(struct mmipc_srv* srv);
+
+
+/**
+ * mmipc_srv_accept() - accept a incoming connection
+ * @srv:        IPC server
+ *
+ * This function extracts the first connection on the queue of pending
+ * connections, and allocate a new file descriptor for that connection (the
+ * lowest number available). If there are no connection pending, the
+ * function will block until one arrives.
+ *
+ * Return: a non-negative integer representing the file descriptor in case
+ * of success. Otherwise -1 is returned with error state set accordingly.
+ */
+MMLIB_API int mmipc_srv_accept(struct mmipc_srv* srv);
+
+
+/**
+ * mmipc_connect() - connect a client to an IPC server
+ * @addr:       path to which the client must connect
+ *
+ * Client-side conterpart of mmipc_srv_accept(), this functions attempts to
+ * connect to a server listening to @addr if there are any. If one is found,
+ * it allocates a new file descriptor for that connection (the lowest number
+ * available). If there are no server listening to @addr, the function will
+ * block until one server does.
+ *
+ * Return: a non-negative integer representing the file descriptor in case
+ * of success. Otherwise -1 is returned with error state set accordingly.
+ */
+MMLIB_API int mmipc_connect(const char* addr);
+
+
+/**
+ * mmipc_connected_pair() - create a pair of connected IPC endpoints
+ * @fds:        array receiving the file descriptor of the 2 endpoints
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
+MMLIB_API int mmipc_connected_pair(int fds[2]);
+
+
+/**
+ * mmipc_sendmsg() - send message to ICP endpoint
+ * @fd:         file descriptor of an IPC connection endpoint
+ * @msg:        IPC message
+ *
+ * If space is not available at the sending endpoint to hold the message to be
+ * transmitted, the function will block until space is available. The
+ * message sent in @msg is a datagram: either all could have been
+ * transmitted, either none and the function would fail.
+ *
+ * File descriptors can also be transmitted to the receiving endpoint along a
+ * message with the @msg->fds and @msg->num_fds fields. The file descriptors
+ * listed here are duplicated for the process holding the other endpoint.
+ *
+ * Return: the number of bytes sent in case of success, -1 otherwise with
+ * error state set accordingly.
+ */
+MMLIB_API ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg);
+
+
+/**
+ * mmipc_recvmsg() - recv message from IPC endpoint
+ * @fd:         file descriptor of an IPC connection endpoint
+ * @msg:        IPC message
+ *
+ * This function receives a message. The message received is a datagram: if
+ * the data received is smaller that requested, the function will return a
+ * smaller message and its size will be reported by the return value.
+ * Controversely if a message is too long to fit in the supplied buffers in
+ * @msg->iov, the excess bytes will be discarded and the flag %MSG_TRUNC
+ * will be set in @msg->flags.
+ *
+ * You can receive file descriptors along with the message in @msg->fds and
+ * @msg->num_fds fields. Similarly to the data message, if the buffer
+ * holding the file descriptor is too small, the files descriptor in excess
+ * will be discarded (implicitely closing them, ensuring no descriptor leak to
+ * occur) and the flag %MSG_CTRUNC will be set in @msg->flags.
+ *
+ * Return: the number of bytes received in case of success, -1 otherwise with
+ * error state set accordingly.
+ */
+MMLIB_API ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg);
 
 #ifdef __cplusplus
 }
