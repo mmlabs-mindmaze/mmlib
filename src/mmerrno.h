@@ -6,6 +6,7 @@
 
 #include <stddef.h>
 #include <errno.h>
+#include <string.h>
 #include "mmtype.h"
 #include "mmpredefs.h"
 
@@ -139,6 +140,9 @@ MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
  */
 #define mm_raise_error(errnum, desc, ...) \
 		mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, NULL, desc,  ## __VA_ARGS__ )
+
+#define mm_raise_from_errno(desc, ...) \
+	mm_raise_error_full(errno, MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, NULL, desc ": %s", ##__VA_ARGS__, strerror(errno))
 
 /**
  * mm_raise_error_with_extid() - set and log an error with an extented error id
