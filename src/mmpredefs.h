@@ -72,4 +72,11 @@
 
 #endif
 
+
+/*
+ Macros to get the number of element in a C array.
+ */
+#define MM_NELEM(arr)	((int)(sizeof(arr)/sizeof(arr[0])))
+
+
 #endif
