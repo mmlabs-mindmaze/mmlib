@@ -421,6 +421,34 @@ int format_result_line(int ncol, int num_points, int v, int unit_index,
 }
 
 
+/**
+ * full_mm_write() - full write of buffer succed or error is reported
+ * @fd:         file descriptor to write to
+ * @buf:        buffer to transfer
+ * @len:        size of @buf
+ *
+ * Return: 0 if full buffer has been written to @fd, -1 otherwise with error
+ * state set accordingly
+ */
+static
+int full_mm_write(int fd, const void* buf, size_t len)
+{
+	const void* cbuf = buf;
+	ssize_t rsz;
+
+	while (len) {
+		rsz = mm_write(fd, cbuf, len);
+		if (rsz < 0)
+			return -1;
+
+		len -= rsz;
+		cbuf += rsz;
+	}
+
+	return 0;
+}
+
+
 /**************************************************************************
  *                                                                        *
  *                           API implementation                           *
@@ -511,9 +539,8 @@ API_EXPORTED
 int mmprofile_print(int mask, int fd)
 {
 	int i, ncol, num_points, label_width, unit_index;
-	char str[512], *buf;
+	char str[512];
 	size_t len;
-	ssize_t r;
 	int64_t data[4*NUM_TS_MAX];
 
 	update_diffs();
@@ -533,16 +560,12 @@ int mmprofile_print(int mask, int fd)
 
 
 		// Write line to file
-		buf = str;
-		do {
-			if ((r = mm_write(fd, buf, len)) < 0)
-				return -1;
-			len -= r;
-			buf += r;
-		} while (len);
+		if (full_mm_write(fd, str, len))
+			return -1;
 	}
 
-	return 0;
+	sprintf(str, "toc overhead = %li ns\n", (long)toc_overhead);
+	return full_mm_write(fd, str, strlen(str));
 }
 
 
