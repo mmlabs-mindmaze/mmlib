@@ -74,6 +74,35 @@
 
 
 /*
+ Define LIKELY() and UNLIKELY() macros to help compiler to optimize the
+ right conditional branch. DO NOT ABUSE OF THEM. If you use it, you need to be
+ sure that is the correct branching to optimize. In doubt, let the compiler
+ do its guess.
+ */
+#if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)
+
+#  ifndef LIKELY
+#    define LIKELY(x)   __builtin_expect(!!(x), 1)
+#  endif
+
+#  ifndef UNLIKELY
+#    define UNLIKELY(x) __builtin_expect(!!(x), 0)
+#  endif
+
+#else // most likely msvc
+
+#  ifndef LIKELY
+#    define LIKELY(x)   (x)
+#  endif
+
+#  ifndef UNLIKELY
+#    define UNLIKELY(x) (x)
+#  endif
+
+#endif
+
+
+/*
  Macros to get the number of element in a C array.
  */
 #define MM_NELEM(arr)	((int)(sizeof(arr)/sizeof(arr[0])))
