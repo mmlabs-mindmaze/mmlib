@@ -30,6 +30,7 @@ libmmlib_la_SOURCES = \
 	mmprofile.h profile.c \
 	mmlib.h \
 	alloc.c \
+	utils.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS = \
