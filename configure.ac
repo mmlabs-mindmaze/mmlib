@@ -59,6 +59,7 @@ AM_CONDITIONAL(TAP_SUPPORT_IN_CHECK, [test "x$tap_in_check" = xyes])
 # Check for libraries
 AC_CHECK_FUNCS([posix_memalign aligned_alloc _aligned_malloc], [break])
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
+MM_CHECK_FUNCS([pthread_mutex_consistent], [], [], [$PTHREAD_LIB])
 MM_CHECK_LIB([sqrtf], [m], MATH)
 MM_CHECK_LIB([clock_gettime], [rt], CLOCK)
 MM_CHECK_LIB([localtime64_s], [], LOCALTIME_S, [AC_DEFINE([HAS_LOCALTIME_S], [1], [Define if localtime_s is present])])

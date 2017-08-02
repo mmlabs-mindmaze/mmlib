@@ -109,5 +109,88 @@ error:
 #define unwrap_handle_from_fd(p_hnd, fd) \
 	unwrap_handle_from_fd_with_logctx(p_hnd, fd, __func__, __FILE__, __LINE__)
 
+
+/**************************************************************************
+ *                                                                        *
+ *                         thread related utils                           *
+ *                                                                        *
+ **************************************************************************/
+
+/**
+ * get_tid() - fast inline replacement for GetCurrentThreadId()
+ *
+ * This function is a replacement of GetCurrentThreadId() without involving any
+ * library call. This is just a lookup in the thread information block provided
+ * by the Windows NT kernel which is held in the GS segment register (offset
+ * 0x48) in case of 64 bits or FS segment register (offset 0x24) in case of 32
+ * bits.
+ *
+ * Return: the ID of the current thread
+ */
+static inline
+DWORD get_tid(void)
+{
+	DWORD tid;
+#if defined(__x86_64) || defined(_M_X64)
+	tid = __readgsdword(0x48);
+#elif defined(__i386__) || defined(_M_IX86)
+	tid = __readfsdword(0x24);
+#else
+	tid = GetCurrentThreadId();
+#endif
+	return tid;
+}
+
+
+static inline
+void* read_teb_address(unsigned long offset)
+{
+#if defined(__x86_64) || defined(_M_X64)
+	return (void*)__readgsqword(offset);
+#elif defined(__i386__) || defined(_M_IX86)
+	return (void*)__readfsdword(offset);
+#else
+	return (((char*)NtCurrentTeb())+offset);
+#endif
+}
+
+#define TEB_OFFSET(member)	(offsetof(struct _TEB, member))
+#define NUM_TLS_SLOTS		(MM_NELEM(((struct _TEB*)0)->TlsSlots))
+
+
+/**
+ * tls_get_value() - fast inline replacement for TlsGetValue()
+ * @index:	The TLS index allocated by the TlsAlloc() function
+ *
+ * This function is a replacement of TlsGetValue() without involving any
+ * library call. It does the same but by directly interrogating the thread
+ * information block.
+ *
+ * Return: If the function succeeds, the return value is the value stored in
+ * the calling thread's TLS slot associated with the specified index. NULL
+ * is returned if no data has been previously associated for this thread.
+ *
+ * NOTE: The function does not perform any parameter validation, it is
+ * important that @index argument is a really a value returned by
+ * TlsAlloc().
+ */
+static inline
+void* tls_get_value(DWORD index)
+{
+	unsigned long offset;
+	void** tls_exp_slots;
+
+	if (index < NUM_TLS_SLOTS) {
+		offset = TEB_OFFSET(TlsSlots) + index*sizeof(PVOID);
+		return read_teb_address(offset);
+	}
+
+	tls_exp_slots = read_teb_address(TEB_OFFSET(TlsExpansionSlots));
+	if (!tls_exp_slots)
+		return NULL;
+
+	return tls_exp_slots[index - NUM_TLS_SLOTS];
+}
+
 #endif
 

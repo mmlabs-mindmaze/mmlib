@@ -18,9 +18,11 @@ include_HEADERS = \
 	mmlib.h \
 	mmtime.h \
 	mmsysio.h \
+	mmthread.h \
 	$(eol)
 
 lib_LTLIBRARIES = libmmlib.la
+pkglibexec_PROGRAMS =
 
 libmmlib_la_SOURCES = \
 	mmlog.h log.c \
@@ -36,10 +38,12 @@ libmmlib_la_SOURCES = \
 	mmtime.h time.c \
 	mmsysio.h \
 	file.c \
+	mmthread.h \
 	$(eol)
 
 libmmlib_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
+	-DLIBEXECDIR='"$(pkglibexecdir)"' \
 	$(eol)
 
 libmmlib_la_LIBADD = \
@@ -61,11 +65,13 @@ libmmlib_la_SOURCES += \
 	shm-posix.c \
 	process-posix.c \
 	local-ipc-posix.c \
+	thread-posix.c \
 	$(eol)
 
 libmmlib_la_LIBADD += \
 	$(CLOCK_LIB) \
 	$(SHM_LIB) \
+	$(PTHREAD_LIB) \
 	$(eol)
 
 endif
@@ -93,6 +99,11 @@ libmmlib_la_SOURCES += \
 	shm-win32.c \
 	process-win32.c \
 	local-ipc-win32.c \
+	thread-win32.c \
+	atomic-win32.h \
+	mutex-lockval.h \
+	lock-referee-proto.h \
+	pshared-lock.h pshared-lock.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \
@@ -102,6 +113,25 @@ libmmlib_la_CPPFLAGS += \
 
 libmmlib_la_LIBADD += \
 	-lpowrprof \
+	$(eol)
+
+pkglibexec_PROGRAMS += lock-referee
+
+lock_referee_SOURCES = \
+	lock-referee-proto.h \
+	lock-referee-server.c \
+	clock-win32.h clock-win32.c \
+	$(eol)
+
+lock_referee_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-DWIN32_LEAN_AND_MEAN \
+	-DMMLOG_MODULE_NAME=\"lock-referee\" \
+	$(eol)
+
+lock_referee_LDADD = \
+	-lpowrprof \
+	-ladvapi32 \
 	$(eol)
 
 endif
