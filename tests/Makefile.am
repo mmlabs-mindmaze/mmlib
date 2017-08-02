@@ -40,6 +40,7 @@ endif
 check_PROGRAMS = \
 	$(TESTS) \
 	child-proc \
+	perflock \
 	tests-child-proc \
 	$(eol)
 
@@ -60,6 +61,9 @@ testprocess_LDADD = $(MMLIB)
 
 child_proc_SOURCES = child-proc.c
 child_proc_LDADD = $(MMLIB)
+
+perflock_SOURCES = perflock.c
+perflock_LDADD = $(MMLIB)
 
 testinternals_SOURCES = testinternals.c
 testinternals_LDADD = $(CHECK_LIBS)
