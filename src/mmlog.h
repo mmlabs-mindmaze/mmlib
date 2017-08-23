@@ -5,6 +5,7 @@
 #define MMLOG_H
 
 #include "mmpredefs.h"
+#include <stdlib.h>
 
 #define MMLOG_NONE	-1
 #define MMLOG_FATAL	0
@@ -69,12 +70,20 @@
 /* Use mmlog_debug instead, provided only for backward compatibility */
 #define mmlog_trace	mmlog_debug
 
+#define mm_crash(msg, ...) do { \
+  mmlog_log(MMLOG_FATAL, MM_LOCATION(MMLOG_MODULE_NAME), msg, ## __VA_ARGS__); \
+  abort(); } while (0)
+
+#define mm_check(expr, ...) \
+  do { if (!(expr)) { \
+      mm_crash("MM_CHECK(" #expr ") failed. " __VA_ARGS__); \
+    } } while (0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void mmlog_log(int lvl, const char* location, const char* msg, ...);
-
 
 #ifdef __cplusplus
 }
