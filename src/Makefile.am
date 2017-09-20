@@ -38,6 +38,7 @@ libmmlib_la_SOURCES = \
 	mmtime.h time.c \
 	mmsysio.h \
 	file.c \
+	socket.c \
 	mmthread.h \
 	$(eol)
 
@@ -66,6 +67,7 @@ libmmlib_la_SOURCES += \
 	process-posix.c \
 	local-ipc-posix.c \
 	thread-posix.c \
+	socket-posix.c \
 	$(eol)
 
 libmmlib_la_LIBADD += \
@@ -104,6 +106,7 @@ libmmlib_la_SOURCES += \
 	mutex-lockval.h \
 	lock-referee-proto.h \
 	pshared-lock.h pshared-lock.c \
+	socket-win32.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \
@@ -113,6 +116,7 @@ libmmlib_la_CPPFLAGS += \
 
 libmmlib_la_LIBADD += \
 	-lpowrprof \
+	-lws2_32 \
 	$(eol)
 
 if LOCKSERVER_IN_MMLIB_DLL

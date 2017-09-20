@@ -197,6 +197,10 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 		rsz = mmlib_read(fd, buf, nbyte);
 		break;
 
+	case FD_TYPE_SOCKET:
+		rsz = mm_recv(fd, buf, nbyte, 0);
+		break;
+
 	case FD_TYPE_IPCDGRAM:
 		iov.iov_base = buf;
 		iov.iov_len = nbyte;
@@ -234,6 +238,10 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 	case FD_TYPE_NORMAL:
 	case FD_TYPE_PIPE:
 		rsz = mmlib_write(fd, buf, nbyte);
+		break;
+
+	case FD_TYPE_SOCKET:
+		rsz = mm_send(fd, buf, nbyte, 0);
 		break;
 
 	case FD_TYPE_IPCDGRAM:
