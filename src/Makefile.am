@@ -17,6 +17,7 @@ include_HEADERS = \
 	mmpredefs.h \
 	mmlib.h \
 	mmtime.h \
+	mmsysio.h \
 	$(eol)
 
 lib_LTLIBRARIES = libmmlib.la
@@ -33,6 +34,8 @@ libmmlib_la_SOURCES = \
 	alloc.c \
 	utils.c \
 	mmtime.h time.c \
+	mmsysio.h \
+	file.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS = \
@@ -54,6 +57,7 @@ if OS_TYPE_POSIX
 
 libmmlib_la_SOURCES += \
 	time-posix.c \
+	file-posix.c \
 	$(eol)
 
 libmmlib_la_LIBADD += \
@@ -81,6 +85,7 @@ libmmlib_la_SOURCES += \
 	time-win32.c \
 	clock-win32.h clock-win32.c \
 	utils-win32.h utils-win32.c \
+	file-win32.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \

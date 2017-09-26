@@ -23,6 +23,7 @@ check_PROGRAMS = \
 	testlog \
 	testerrno \
 	testprofile \
+	testfile \
 	$(eol)
 
 if BUILD_CHECK_TESTS
@@ -42,6 +43,9 @@ testerrno_LDADD = $(MMLIB)
 
 testprofile_SOURCES = testprofile.c
 testprofile_LDADD = $(MMLIB)
+
+testfile_SOURCES = testfile.c
+testfile_LDADD = $(MMLIB)
 
 testinternals_SOURCES = testinternals.c
 testinternals_LDADD = $(CHECK_LIBS)
