@@ -1,21 +1,21 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Mindmaze SA
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# French translation for mmlib                                                                                       
+# Copyright (C) 2017 Mindmaze SA
+# This file is distributed under the same license as the mmlib package.
+# Sébastien Lasserre <sebastien.lasserre@mindmaze.ch>, 2017.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: mmlib 3.1\n"
 "Report-Msgid-Bugs-To: nicolas.bourdaud@mindmaze.ch\n"
-"POT-Creation-Date: 2015-08-21 16:24+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"POT-Creation-Date: 2017-09-29 15:24+0200\n"
+"PO-Revision-Date: 2017-10-03 08:41+0200\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: Sébastien Lasserre <sebastien.lasserre@mindmaze.ch>\n"
+"Language-Team: project managment  <NA>\n"
+"X-Generator: Poedit 1.8.11\n"
 
 #: src/error.c:27
 msgid "The acquisition module has been disconnected."
@@ -54,6 +54,11 @@ msgid ""
 "Hand trackers not detected.\n"
 "Please ensure the USB dongle is connected \n"
 "and the sensors are switched on"
-msgstr "HandTracker nicht erkannt.\n"
+msgstr ""
+"HandTracker nicht erkannt.\n"
 "Bitte prüfen, ob der USB-Dongle eingesteckt \n"
 "und die Sensoren eingeschaltet sind"
+
+#: src/error.c:38
+msgid "Communication error with camera hardware."
+msgstr "Kommunikationsfehler mit Kamera-Hardware."

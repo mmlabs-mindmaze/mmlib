@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR Mindmaze SA
-# This file is distributed under the same license as the PACKAGE package.
+# This file is distributed under the same license as the mmlib package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: mmlib 1.0\n"
+"Project-Id-Version: mmlib 3.1\n"
 "Report-Msgid-Bugs-To: nicolas.bourdaud@mindmaze.ch\n"
-"POT-Creation-Date: 2014-06-03 18:02+0200\n"
+"POT-Creation-Date: 2017-09-29 15:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -47,4 +47,15 @@ msgstr ""
 
 #: src/error.c:35
 msgid "Calibration needed"
+msgstr ""
+
+#: src/error.c:36
+msgid ""
+"Hand trackers not detected.\n"
+"Please ensure the USB dongle is connected \n"
+"and the sensors are switched on"
+msgstr ""
+
+#: src/error.c:38
+msgid "Communication error with camera hardware."
 msgstr ""
