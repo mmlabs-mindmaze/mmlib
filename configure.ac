@@ -71,6 +71,9 @@ MM_CHECK_LIB([sqrtf], [m], MATH)
 MM_CHECK_LIB([clock_gettime], [rt], CLOCK)
 MM_CHECK_LIB([localtime64_s], [], LOCALTIME_S, [AC_DEFINE([HAS_LOCALTIME_S], [1], [Define if localtime_s is present])])
 MM_CHECK_LIB([shm_open], [rt], SHM)
+MM_CHECK_LIB([dlopen], [dl], DL, [AC_DEFINE([HAVE_DLOPEN], [1], [define if dlopen() is available])])
+
+AC_CHECK_HEADERS([alloca.h])
 
 AC_DEF_API_EXPORT_ATTRS
 AC_SET_HOSTSYSTEM

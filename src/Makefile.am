@@ -19,6 +19,7 @@ include_HEADERS = \
 	mmtime.h \
 	mmsysio.h \
 	mmthread.h \
+	mmdlfcn.h \
 	$(eol)
 
 lib_LTLIBRARIES = libmmlib.la
@@ -40,6 +41,7 @@ libmmlib_la_SOURCES = \
 	file.c \
 	socket.c \
 	mmthread.h \
+	mmdlfcn.h dlfcn.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS = \
@@ -49,6 +51,7 @@ libmmlib_la_CPPFLAGS = \
 
 libmmlib_la_LIBADD = \
 	$(MATH_LIB) \
+	$(DL_LIB) \
 	$(eol)
 
 libmmlib_la_LDFLAGS = \

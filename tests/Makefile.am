@@ -28,6 +28,7 @@ TESTS = \
 	testprofile \
 	testfile \
 	testprocess \
+	testdlfcn \
 	$(eol)
 
 if BUILD_CHECK_TESTS
@@ -36,6 +37,8 @@ TESTS += \
 	testapi.tap \
 	$(eol)
 endif
+
+check_LTLIBRARIES = dynlib-test.la
 
 check_PROGRAMS = \
 	$(TESTS) \
@@ -64,6 +67,23 @@ child_proc_LDADD = $(MMLIB)
 
 perflock_SOURCES = perflock.c
 perflock_LDADD = $(MMLIB)
+
+testdlfcn_SOURCES = \
+	dynlib-api.h \
+	testdlfcn.c \
+	$(eol)
+testdlfcn_LDADD = $(MMLIB)
+
+dynlib_test_la_SOURCES = \
+	dynlib-api.h \
+	dynlib-test.c \
+	$(eol)
+dynlib_test_la_LDFLAGS= \
+	-module \
+	-avoid-version \
+	-no-undefined \
+	-rpath /nowhere \
+	$(eol)
 
 testinternals_SOURCES = testinternals.c
 testinternals_LDADD = $(CHECK_LIBS)
