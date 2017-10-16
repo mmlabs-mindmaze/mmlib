@@ -7,8 +7,21 @@
 #include "mmerrno.h"
 #include "mmpredefs.h"
 
+#include <windows.h>
+#include <winternl.h>
 #include <stddef.h>
 #include <io.h>
+
+
+
+struct w32_create_file_options {
+	DWORD access_mode;
+	DWORD creation_mode;
+	DWORD share_flags;
+	DWORD file_attribute;
+};
+
+int set_w32_create_file_options(struct w32_create_file_options* opts, int oflags);
 
 
 static inline

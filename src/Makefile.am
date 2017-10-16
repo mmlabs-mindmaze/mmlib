@@ -80,10 +80,11 @@ endif
 libmmlib_la_SOURCES += \
 	time-win32.c \
 	clock-win32.h clock-win32.c \
-	utils-win32.h \
+	utils-win32.h utils-win32.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \
+	-DWIN32_LEAN_AND_MEAN \
 	-DMMLIB_API=API_EXPORTED \
 	$(eol)
 
