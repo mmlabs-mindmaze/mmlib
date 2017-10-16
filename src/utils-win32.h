@@ -22,7 +22,11 @@ struct w32_create_file_options {
 };
 
 int set_w32_create_file_options(struct w32_create_file_options* opts, int oflags);
-
+int mm_raise_from_w32err_full(const char* module, const char* func,
+                              const char* srcfile, int srcline,
+                              const char* desc, ...);
+#define mm_raise_from_w32err(desc, ...) \
+	mm_raise_from_w32err_full(MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, desc,  ## __VA_ARGS__ )
 
 static inline
 int wrap_handle_into_fd_with_logctx(HANDLE hnd, int* p_fd, const char* func,

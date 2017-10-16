@@ -12,6 +12,8 @@
 #include "utils-win32.h"
 
 #include <fcntl.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 #include "mmerrno.h"
 #include "mmlog.h"
@@ -89,3 +91,87 @@ int set_w32_create_file_options(struct w32_create_file_options* opts, int oflags
 }
 
 
+static
+int get_errcode_from_w32err(DWORD w32err)
+{
+	switch(w32err) {
+
+	case ERROR_TOO_MANY_OPEN_FILES:
+	case WSAEMFILE:                 return EMFILE;
+	case ERROR_FILE_EXISTS:
+	case ERROR_ALREADY_EXISTS:      return EEXIST;
+	case ERROR_PATH_NOT_FOUND:
+	case ERROR_FILE_NOT_FOUND:      return ENOENT;
+	case ERROR_INVALID_HANDLE:      return EBADF;
+	case ERROR_OUTOFMEMORY:         return ENOMEM;
+	case ERROR_ACCESS_DENIED:
+	case WSAEACCES:                 return EACCES;
+	case ERROR_INVALID_PARAMETER:
+	case ERROR_INVALID_ACCESS:
+	case ERROR_INVALID_DATA:
+	case WSAEINVAL:                 return EINVAL;
+	case WSAESHUTDOWN:
+	case ERROR_BROKEN_PIPE:         return EPIPE;
+	case WSASYSNOTREADY:
+	case WSAENETDOWN:               return ENETDOWN;
+	case WSAENETUNREACH:            return ENETUNREACH;
+	case WSAVERNOTSUPPORTED:        return ENOSYS;
+	case WSAEINPROGRESS:            return EINPROGRESS;
+	case WSAECONNRESET:             return ECONNRESET;
+	case WSAEFAULT:                 return EFAULT;
+	case WSAEMSGSIZE:               return EMSGSIZE;
+	case WSAENOBUFS:                return ENOBUFS;
+	case WSAEISCONN:                return EISCONN;
+	case WSAENOTCONN:               return ENOTCONN;
+	case WSAENOTSOCK:               return ENOTSOCK;
+	case WSAECONNREFUSED:           return ECONNREFUSED;
+	case WSAEDESTADDRREQ:           return EDESTADDRREQ;
+	case WSAEADDRINUSE:             return EADDRINUSE;
+	case WSAEADDRNOTAVAIL:          return EADDRNOTAVAIL;
+	case WSAEOPNOTSUPP:             return EOPNOTSUPP;
+	case WSAEINTR:                  return EINTR;
+	case WSAENOPROTOOPT:            return ENOPROTOOPT;
+	case WSAEPFNOSUPPORT:
+	case WSAEAFNOSUPPORT:           return EAFNOSUPPORT;
+	case WSAEPROTOTYPE:             return EPROTOTYPE;
+	case WAIT_TIMEOUT:
+	case WSAETIMEDOUT:              return ETIMEDOUT;
+
+	default:
+		return EIO;
+	}
+}
+
+
+LOCAL_SYMBOL
+int mm_raise_from_w32err_full(const char* module, const char* func,
+                              const char* srcfile, int srcline,
+                              const char* desc, ...)
+{
+	DWORD w32err = GetLastError();
+	int errcode, ret;
+	size_t len;
+	va_list args;
+	char errmsg[512];
+
+	len = snprintf(errmsg, sizeof(errmsg), "%s : ", desc);
+
+	// Append Win32 error message if space is remaining on string
+	if (len < sizeof(errmsg)-1) {
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
+		              | FORMAT_MESSAGE_IGNORE_INSERTS
+		              | FORMAT_MESSAGE_MAX_WIDTH_MASK,
+		              NULL, w32err, 0,
+		              errmsg+len, sizeof(errmsg)-len, NULL);
+	}
+
+	// Translate win32 error into mmlib error code
+	errcode = get_errcode_from_w32err(w32err);
+
+	va_start(args, desc);
+	ret = mm_raise_error_vfull(errcode, module, func,
+	                           srcfile, srcline, NULL, errmsg, args);
+	va_end(args);
+
+	return ret;
+}
