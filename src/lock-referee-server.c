@@ -1594,15 +1594,41 @@ failure:
 }
 
 
-int main(void)
+static
+int run_lockserver(void)
 {
 	setbuf(stderr, NULL);
 
 	if (lockref_server_init(&server))
-		return EXIT_FAILURE;
+		return -1;
 
 	lockref_server_mainloop(&server);
 
 	lockref_server_deinit(&server);
+	return 0;
+}
+
+#ifndef LOCKSERVER_IN_MMLIB_DLL
+
+int main(void)
+{
+	if (run_lockserver())
+		return EXIT_FAILURE;
+
 	return EXIT_SUCCESS;
 }
+
+#else
+
+LOCAL_SYMBOL
+void* lockserver_thread_routine(void* arg)
+{
+	(void)arg;
+
+	run_lockserver();
+
+	return NULL;
+}
+
+#endif
+

@@ -115,7 +115,20 @@ libmmlib_la_LIBADD += \
 	-lpowrprof \
 	$(eol)
 
+if LOCKSERVER_IN_MMLIB_DLL
+
+libmmlib_la_SOURCES +=  \
+	lock-referee-server.c \
+	$(eol)
+
+else #!LOCKSERVER_IN_MMLIB_DLL
+
 pkglibexec_PROGRAMS += lock-referee
+lock_referee_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-DWIN32_LEAN_AND_MEAN \
+	-DMMLOG_MODULE_NAME=\"lock-referee\" \
+	$(eol)
 
 lock_referee_SOURCES = \
 	lock-referee-proto.h \
@@ -123,15 +136,12 @@ lock_referee_SOURCES = \
 	clock-win32.h clock-win32.c \
 	$(eol)
 
-lock_referee_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
-	-DWIN32_LEAN_AND_MEAN \
-	-DMMLOG_MODULE_NAME=\"lock-referee\" \
-	$(eol)
-
 lock_referee_LDADD = \
 	-lpowrprof \
 	-ladvapi32 \
 	$(eol)
 
-endif
+endif #!LOCKSERVER_IN_MMLIB_DLL
+
+
+endif #OS_TYPE_WIN32

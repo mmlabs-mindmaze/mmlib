@@ -56,6 +56,13 @@ AS_CASE([$with_check],
 AM_CONDITIONAL(BUILD_CHECK_TESTS, [test "$build_check_tests" = yes])
 AM_CONDITIONAL(TAP_SUPPORT_IN_CHECK, [test "x$tap_in_check" = xyes])
 
+# Option to build win32 lockserver in mmlib dll (not as separated process)
+AC_ARG_ENABLE([lockserverprocess], AC_HELP_STRING([--disable-lockserverprocess], [Do not run win32 lockserver in separated process. @<:@default=enabled@:>@]),
+	    [], [enable_lockserverprocess=yes])
+AM_CONDITIONAL([LOCKSERVER_IN_MMLIB_DLL], [test "x$enable_lockserverprocess" = xno])
+AS_IF([test "x$enable_lockserverprocess" = xno],
+      AC_DEFINE([LOCKSERVER_IN_MMLIB_DLL], [1], [Define to 1 if lockserver must be built in mmlib dll]))
+
 # Check for libraries
 AC_CHECK_FUNCS([posix_memalign aligned_alloc _aligned_malloc], [break])
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)

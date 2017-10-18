@@ -25,6 +25,47 @@
 #define PIPE_WAIT_MS    50
 
 
+#ifdef LOCKSERVER_IN_MMLIB_DLL
+
+static
+void spawn_lockserver_thread(void)
+{
+	mmthread_t thid;
+
+	mmthr_create(&thid, lockserver_thread_routine, NULL);
+	mmthr_detach(thid);
+}
+
+static
+void try_spawn_lockserver(void)
+{
+	static mmthr_once_t lockserver_once = MMTHR_ONCE_INIT;
+
+	mmthr_once(&lockserver_once, spawn_lockserver_thread);
+}
+
+#else //!LOCKSERVER_IN_MMLIB_DLL
+
+static
+void try_spawn_lockserver(void)
+{
+	const char* binpath;
+	struct mm_remap_fd fd_map[] = {
+		{.child_fd = 0, .parent_fd = -1},
+		{.child_fd = 1, .parent_fd = -1},
+		{.child_fd = 2, .parent_fd = -1},
+	};
+
+	// Determine the path of the referee server
+	binpath = mm_getenv("MMLIB_LOCKREF_BIN", LOCK_REFEREE_SERVER_BIN);
+
+	mm_spawn(NULL, binpath, MM_NELEM(fd_map), fd_map,
+	         MM_SPAWN_DAEMONIZE, NULL, NULL);
+}
+
+#endif //!LOCKSERVER_IN_MMLIB_DLL
+
+
 /**
  * connect_to_lockref_server() - establish connection to lock referee server
  *
@@ -43,23 +84,13 @@ HANDLE connect_to_lockref_server(void)
 	BOOL ret;
 	DWORD open_mode = GENERIC_READ|GENERIC_WRITE;
 	DWORD pipe_mode = PIPE_READMODE_MESSAGE;
-	const char* binpath;
-	struct mm_remap_fd fd_map[] = {
-		{.child_fd = 0, .parent_fd = -1},
-		{.child_fd = 1, .parent_fd = -1},
-		{.child_fd = 2, .parent_fd = -1},
-	};
-
-	// Determine the path of the referee server
-	binpath = mm_getenv("MMLIB_LOCKREF_BIN", LOCK_REFEREE_SERVER_BIN);
 
 	while (pipe == INVALID_HANDLE_VALUE) {
 		// Wait until a server instance of named pipe is available.
 		// If failed, try to spawn a server instance and retry
 		ret = WaitNamedPipe(referee_pipename, PIPE_WAIT_MS);
 		if (!ret) {
-			mm_spawn(NULL, binpath, MM_NELEM(fd_map), fd_map,
-	        	         MM_SPAWN_DAEMONIZE, NULL, NULL);
+			try_spawn_lockserver();
 			continue;
 		}
 

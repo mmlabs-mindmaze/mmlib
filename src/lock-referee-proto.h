@@ -81,4 +81,9 @@ struct mutex_cleanup_job {
 	struct dead_thread deadlist[];
 };
 
+
+#ifdef LOCKSERVER_IN_MMLIB_DLL
+void* lockserver_thread_routine(void* arg);
+#endif
+
 #endif
