@@ -142,11 +142,11 @@ struct error_info {
 static thread_local struct error_info last_error;
 
 API_EXPORTED
-int mm_raise_error_full(int errnum, const char* module, const char* func,
-                      const char* srcfile, int srcline,
-                      const char* extid, const char* desc_fmt, ...)
+int mm_raise_error_vfull(int errnum, const char* module, const char* func,
+                        const char* srcfile, int srcline,
+                        const char* extid,
+                        const char* desc_fmt, va_list args)
 {
-	va_list args;
 	struct error_info* state;
 
 	if (!errnum)
@@ -175,9 +175,7 @@ int mm_raise_error_full(int errnum, const char* module, const char* func,
 	snprintf(state->location, sizeof(state->location), "%s() in %s:%i", func, srcfile, srcline);
 
 	// format description
-	va_start(args, desc_fmt);
 	vsnprintf(state->desc, sizeof(state->desc), desc_fmt, args);
-	va_end(args);
 
 	// Set errno for backward compatibility, ie case of module that has
 	// been updated to use mm_error* but whose client code (user of this
@@ -186,6 +184,23 @@ int mm_raise_error_full(int errnum, const char* module, const char* func,
 
 	mmlog_log(MMLOG_ERROR, module, "%s (%s)", state->desc, state->location);
 	return -1;
+}
+
+
+API_EXPORTED
+int mm_raise_error_full(int errnum, const char* module, const char* func,
+                      const char* srcfile, int srcline,
+                      const char* extid, const char* desc_fmt, ...)
+{
+	int ret;
+	va_list args;
+
+	va_start(args, desc_fmt);
+	ret = mm_raise_error_vfull(errnum, module, func, srcfile, srcline,
+	                           extid, desc_fmt, args);
+	va_end(args);
+
+	return ret;
 }
 
 API_EXPORTED

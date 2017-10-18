@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <errno.h>
 #include <string.h>
+#include <stdarg.h>
 #include "mmtype.h"
 #include "mmpredefs.h"
 
@@ -188,6 +189,26 @@ MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
 MMLIB_API int mm_raise_error_full(int errnum, const char* module, const char* func,
                                   const char* srcfile, int srcline,
                                   const char* extid, const char* desc, ...);
+
+/**
+ * mm_raise_error_vfull() - set and log an error using a va_list
+ * @errnum:     error class number
+ * @module:     module name
+ * @func:       function name at the origin of the error
+ * @srcfile:    filename of source code at the origin of the error
+ * @srcline:    line number of file at the origin of the error
+ * @extid:      extended error id (identifier of a specific error case)
+ * @desc:       description intended for developper (vprintf-like extensible)
+ * @args:       va_list of arguments for @desc
+ *
+ * Exactly the same as mm_raise_error_full() but using a va_list to pass
+ * argument to the format passed in @desc.
+ *
+ * Return: 0 is @errnum is 0, -1 otherwise.
+ */
+MMLIB_API int mm_raise_error_vfull(int errnum, const char* module, const char* func,
+                                   const char* srcfile, int srcline,
+                                   const char* extid, const char* desc, va_list args);
 
 /**
  * mm_save_errorstate() - Save the error state on an opaque data holder
