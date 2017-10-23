@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
-#include <pthread.h>
+#include <mmthread.h>
 #include <string.h>
 
 #define print_errno_info(errnum)	\
@@ -64,15 +64,15 @@ int main(void)
 	print_errno_info(MM_EWRONGPWD);
 	print_errno_info(MM_ECAMERROR);
 
-	pthread_t t1, t2, t3, t4;
-	pthread_create(&t1, NULL, thread_func, "thread1");
-	pthread_create(&t2, NULL, thread_func, "thread2");
-	pthread_create(&t3, NULL, thread_func, "thread3");
-	pthread_create(&t4, NULL, thread_func, "thread4");
-	pthread_join(t1, NULL);
-	pthread_join(t2, NULL);
-	pthread_join(t3, NULL);
-	pthread_join(t4, NULL);
+	mmthread_t t1, t2, t3, t4;
+	mmthr_create(&t1, thread_func, "thread1");
+	mmthr_create(&t2, thread_func, "thread2");
+	mmthr_create(&t3, thread_func, "thread3");
+	mmthr_create(&t4, thread_func, "thread4");
+	mmthr_join(t1, NULL);
+	mmthr_join(t2, NULL);
+	mmthr_join(t3, NULL);
+	mmthr_join(t4, NULL);
 
 	mm_set_errorstate(&state_in_thread3);
 	printf("\nretrieve thread3  error state in main:\n * errnum=%i\n * in %s at %s\n * %s\n",
