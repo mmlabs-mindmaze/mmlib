@@ -547,6 +547,43 @@ int mmprofile_print(int mask, int fd)
 
 
 /**
+ * mmprofile_get_data - Retrieve profile result programmatically
+ * @measure_point:      measure point whose statistic must be get
+ * @type:               type of statistic (PROF_[CURR|MIN|MEAN|MAX])
+ *
+ * Return: statistic value in nanosecond
+ */
+API_EXPORTED
+int64_t mmprofile_get_data(int measure_point, int type)
+{
+	int64_t data[NUM_TS_MAX];
+	int num_points, mask;
+
+	if (measure_point >= num_ts-1)
+		return -1;
+
+	// Validate input type (can be only one measure type, not
+	// combination of multiple flags)
+	switch(type) {
+	case PROF_CURR:
+	case PROF_MIN:
+	case PROF_MEAN:
+	case PROF_MAX:
+		break;
+
+	default:
+		return -1;
+	}
+
+	num_points = num_ts-1;
+	mask = type|PROF_FORCE_NSEC;
+	compute_requested_timings(mask, num_points, data);
+
+	return data[measure_point];
+}
+
+
+/**
  * mmprofile_reset() - Reset the statistics and change the timer
  * @flags:	bit-OR comination of flags influencing the reset behavior.
  *

@@ -19,6 +19,8 @@
 #define PROF_RESET_CPUCLOCK     0x01
 #define PROF_RESET_KEEPLABEL    0x02
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,6 +30,7 @@ MMLIB_API void mmtoc(void);
 MMLIB_API void mmtoc_label(const char* label);
 MMLIB_API int mmprofile_print(int mask, int fd);
 MMLIB_API void mmprofile_reset(int reset_flags);
+MMLIB_API int64_t mmprofile_get_data(int measure_point, int type);
 
 #ifdef __cplusplus
 }
