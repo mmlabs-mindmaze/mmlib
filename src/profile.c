@@ -215,7 +215,7 @@ void local_toc(void)
  */
 MM_CONSTRUCTOR(init_profile)
 {
-	mmprofile_reset(1);
+	mmprofile_reset(0);
 }
 
 
