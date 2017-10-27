@@ -61,11 +61,14 @@ MM_CHECK_LIB([localtime64_s], [], LOCALTIME_S, [AC_DEFINE([HAS_LOCALTIME_S], [1]
 AC_DEF_API_EXPORT_ATTRS
 AC_SET_HOSTSYSTEM
 MM_CC_WARNFLAGS
+MM_OUTPUT_DEF
 
 AC_SUBST([optional_examples])
 AC_SUBST([CURRENT],[lib_current])
 AC_SUBST([REVISION],[lib_revision])
 AC_SUBST([AGE],[lib_age])
+AS_VAR_ARITH([lib_abi], [lib_current - lib_age])
+AC_SUBST([ABI_VER], [$lib_abi])
 
 # Add ifndef in config.h to fix pthread-win32 header mess
 AH_TOP([#ifndef CONFIG_H

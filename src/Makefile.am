@@ -53,6 +53,19 @@ endif
 
 if OS_TYPE_WIN32
 
+defexecdir = $(bindir)
+defexec_DATA =
+CLEANFILES = $(defexec_DATA)
+
+# Generate def file if possible
+if CAN_OUTPUT_DEF
+defexec_DATA += libmmlib-@ABI_VER@.def
+libmmlib_la_LDFLAGS += -Wl,--output-def,libmmlib-@ABI_VER@.def
+
+$(defexec_DATA): libmmlib.la
+
+endif
+
 libmmlib_la_SOURCES += \
 	$(eol)
 
