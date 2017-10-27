@@ -29,6 +29,10 @@ libmmlib_la_SOURCES = \
 	mmprofile.h profile.c \
 	$(eol)
 
+libmmlib_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	$(eol)
+
 libmmlib_la_LIBADD = \
 	$(MATH_LIB) \
 	$(CLOCK_LIB) \
@@ -67,6 +71,10 @@ $(defexec_DATA): libmmlib.la
 endif
 
 libmmlib_la_SOURCES += \
+	$(eol)
+
+libmmlib_la_CPPFLAGS += \
+	-DMMLIB_API=API_EXPORTED \
 	$(eol)
 
 libmmlib_la_LIBADD += \

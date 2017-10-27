@@ -40,3 +40,10 @@ testtype_LDADD = $(CHECK_LIBS) $(MMLIB)
 
 testinternals_SOURCES = testinternals.c
 testinternals_LDADD = $(CHECK_LIBS)
+
+if OS_TYPE_WIN32
+testinternals_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-DMMLIB_API=API_EXPORTED \
+	$(eol)
+endif

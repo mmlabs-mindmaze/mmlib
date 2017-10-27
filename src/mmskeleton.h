@@ -4,6 +4,8 @@
 #ifndef MMSKELETON_H
 #define MMSKELETON_H
 
+#include "mmpredefs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,14 +37,14 @@ struct mmskel {
 	int* name_idx;		// string indices of joint names
 };
 
-int skl_init(struct mmskel* sk);
-void skl_deinit(struct mmskel* sk);
-int skl_parentlist(const struct mmskel* sk, int* parent);
-int skl_find(const struct mmskel* restrict sk, const char* name);
-int skl_add(struct mmskel* sk, int par, const char* name);
-int skl_add_to(struct mmskel* sk, const char* parent, const char* name);
-int skl_load_data(struct mmskel* skel, int fd);
-int skl_save_data(struct mmskel* skel, int fd);
+MMLIB_API int skl_init(struct mmskel* sk);
+MMLIB_API void skl_deinit(struct mmskel* sk);
+MMLIB_API int skl_parentlist(const struct mmskel* sk, int* parent);
+MMLIB_API int skl_find(const struct mmskel* restrict sk, const char* name);
+MMLIB_API int skl_add(struct mmskel* sk, int par, const char* name);
+MMLIB_API int skl_add_to(struct mmskel* sk, const char* parent, const char* name);
+MMLIB_API int skl_load_data(struct mmskel* skel, int fd);
+MMLIB_API int skl_save_data(struct mmskel* skel, int fd);
 
 // Joint ids used
 #define MSK_VL5 "vl5"

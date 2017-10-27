@@ -112,8 +112,8 @@
 extern "C" {
 #endif
 
-const char* mmstrerror(int errnum);
-int mmstrerror_r(int errnum, char *buf, size_t buflen);
+MMLIB_API const char* mmstrerror(int errnum);
+MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
 
 /**
  * mm_raise_error() - set and log an error
@@ -181,9 +181,9 @@ int mmstrerror_r(int errnum, char *buf, size_t buflen);
  *
  * Return: 0 is @errnum is 0, -1 otherwise.
  */
-int mm_raise_error_full(int errnum, const char* module, const char* func,
-                        const char* srcfile, int srcline,
-                        const char* extid, const char* desc, ...);
+MMLIB_API int mm_raise_error_full(int errnum, const char* module, const char* func,
+                                  const char* srcfile, int srcline,
+                                  const char* extid, const char* desc, ...);
 
 /**
  * mm_save_errorstate() - Save the error state on an opaque data holder
@@ -195,7 +195,7 @@ int mm_raise_error_full(int errnum, const char* module, const char* func,
  *
  * The reciprocal of this function is mm_set_errorstate().
  */
-int mm_save_errorstate(struct mm_error_state* state);
+MMLIB_API int mm_save_errorstate(struct mm_error_state* state);
 
 /**
  * mm_set_errorstate() - Save the error state of the calling thread
@@ -209,7 +209,7 @@ int mm_save_errorstate(struct mm_error_state* state);
  *
  * The reciprocal of this function is mm_save_errorstate().
  */
-int mm_set_errorstate(const struct mm_error_state* state);
+MMLIB_API int mm_set_errorstate(const struct mm_error_state* state);
 
 
 /**
@@ -219,21 +219,21 @@ int mm_set_errorstate(const struct mm_error_state* state);
  *              printf-like style. It may be NULL, in such a case, only the
  *              error state is described.
  */
-void mm_print_lasterror(const char* info, ...);
+MMLIB_API void mm_print_lasterror(const char* info, ...);
 
 /**
  * mm_get_lasterror_number() - get error number of last error in the thread
  *
  * Return: the error number (0 if no error has been set in the thread)
  */
-int mm_get_lasterror_number();
+MMLIB_API int mm_get_lasterror_number();
 
 /**
  * mm_get_lasterror_desc() - get error description of last error in thread
  *
  * Return: the error description ("" if no error)
  */
-const char* mm_get_lasterror_desc();
+MMLIB_API const char* mm_get_lasterror_desc();
 
 /**
  * mm_get_lasterror_location() - get file location of last error in the thread
@@ -241,7 +241,7 @@ const char* mm_get_lasterror_desc();
  * Return: the file location that is at the origin of the error in the format
  * "filename:linenum" ("" if no error)
  */
-const char* mm_get_lasterror_location();
+MMLIB_API const char* mm_get_lasterror_location();
 
 /**
  * mm_get_lasterror_extid() - get error extended id of last error in the thread
@@ -258,14 +258,14 @@ const char* mm_get_lasterror_location();
  * Return: the error extended id if one has been set by the last error, NULL
  * otherwise.
  */
-const char* mm_get_lasterror_extid();
+MMLIB_API const char* mm_get_lasterror_extid();
 
 /**
  * mm_get_lasterror_module() - module at the source the last error in the thread
  *
  * Return: the module name that is at the origin of the error ("" if no error)
  */
-const char* mm_get_lasterror_module();
+MMLIB_API const char* mm_get_lasterror_module();
 
 #ifdef __cplusplus
 }

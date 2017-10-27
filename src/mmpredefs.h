@@ -4,6 +4,16 @@
 #ifndef MM_PREDEFS_H
 #define MM_PREDEFS_H
 
+/*
+ Attributes of imported symbols from mmlib
+*/
+#ifndef MMLIB_API
+#  ifdef _WIN32
+#    define MMLIB_API __declspec(dllimport)
+#  else
+#    define MMLIB_API
+#  endif
+#endif
 
 /*
  Double expansion is the usual trick to expand a preprocessor macro argument

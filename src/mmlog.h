@@ -83,7 +83,7 @@
 extern "C" {
 #endif
 
-void mmlog_log(int lvl, const char* location, const char* msg, ...);
+MMLIB_API void mmlog_log(int lvl, const char* location, const char* msg, ...);
 
 #ifdef __cplusplus
 }

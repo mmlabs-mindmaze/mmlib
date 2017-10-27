@@ -5,6 +5,7 @@
 #define MMTYPE_H
 
 #include <stddef.h>
+#include "mmpredefs.h"
 
 struct mm_error_state {
 	char data[1024];
@@ -159,11 +160,11 @@ struct mm_imgdesc {
 extern "C" {
 #endif
 
-size_t mmimg_pixel_size(unsigned int pixel_format);
-int mmimg_set_stride(struct mm_imgdesc* img, size_t alignment);
-void* mmimg_alloc_buffer(const struct mm_imgdesc* img);
+MMLIB_API size_t mmimg_pixel_size(unsigned int pixel_format);
+MMLIB_API int mmimg_set_stride(struct mm_imgdesc* img, size_t alignment);
+MMLIB_API void* mmimg_alloc_buffer(const struct mm_imgdesc* img);
 
-size_t mmimage_buffer_size(const mmimage* img);
+MMLIB_API size_t mmimage_buffer_size(const mmimage* img);
 
 #ifdef __cplusplus
 }

@@ -7,6 +7,7 @@
 #include <mmtype.h>
 #include <string.h>
 #include <math.h>
+#include "mmpredefs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,15 +31,15 @@ extern "C" {
 #endif
 
 // Conversion between quaternion and rotation matrix
-float* mm_quat_from_mat3(float *restrict q, const float *restrict m);
-float* mm_mat3_from_quat(float *restrict m, const float *restrict q);
+MMLIB_API float* mm_quat_from_mat3(float *restrict q, const float *restrict m);
+MMLIB_API float* mm_mat3_from_quat(float *restrict m, const float *restrict q);
 
 // Use the above function instead of these one
-float* mm_quat_from_mat(float *restrict q, const float *restrict m) DEPRECATED;
-float* mm_mat_from_quat(float *restrict m, const float *restrict q) DEPRECATED;
+MMLIB_API float* mm_quat_from_mat(float *restrict q, const float *restrict m) DEPRECATED;
+MMLIB_API float* mm_mat_from_quat(float *restrict m, const float *restrict q) DEPRECATED;
 
 // Conversion between quaternion, rotation matrix and angle axis
-float mm_aaxis_from_mat3(float *restrict axis, const float *restrict m);
+MMLIB_API float mm_aaxis_from_mat3(float *restrict axis, const float *restrict m);
 
 // 3D Vector specific operations
 static inline
@@ -80,8 +81,8 @@ float mm_norm(const float *v)
 	return sqrtf(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 }
 
-float* mm_cross(float *restrict v1, const float *restrict v2);
-float* mm_rotate(float *restrict v, const float *restrict q);
+MMLIB_API float* mm_cross(float *restrict v1, const float *restrict v2);
+MMLIB_API float* mm_rotate(float *restrict v, const float *restrict q);
 
 // Quaternion specific opereations
 static inline
@@ -110,15 +111,15 @@ float *quat_inverse(float *q)
 	return q;
 }
 
-float* quat_mul(float *restrict q1, const float *restrict q2);
+MMLIB_API float* quat_mul(float *restrict q1, const float *restrict q2);
 
 // Plane operations (plane defined as ax + bx + cy + d = 0)
-float* plane_from_point(float *restrict plane, const float *restrict p);
-float plane_distance(const float *restrict p,
-                     const float *restrict plane);
-float* plane_intersect(float *restrict p, const float *v,
-                                            const float *plane);
-float* plane_projection(float *restrict p, const float *restrict plane);
+MMLIB_API float* plane_from_point(float *restrict plane, const float *restrict p);
+MMLIB_API float plane_distance(const float *restrict p,
+                               const float *restrict plane);
+MMLIB_API float* plane_intersect(float *restrict p, const float *v,
+                                 const float *plane);
+MMLIB_API float* plane_projection(float *restrict p, const float *restrict plane);
 
 #ifdef __cplusplus
 }

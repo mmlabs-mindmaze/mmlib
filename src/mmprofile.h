@@ -4,6 +4,8 @@
 #ifndef MMPROFILE_H
 #define MMPROFILE_H
 
+#include "mmpredefs.h"
+
 #define PROF_CURR	0x01
 #define PROF_MIN	0x02
 #define PROF_MAX	0x04
@@ -21,11 +23,11 @@
 extern "C" {
 #endif
 
-void mmtic(void);
-void mmtoc(void);
-void mmtoc_label(const char* label);
-int mmprofile_print(int mask, int fd);
-void mmprofile_reset(int reset_flags);
+MMLIB_API void mmtic(void);
+MMLIB_API void mmtoc(void);
+MMLIB_API void mmtoc_label(const char* label);
+MMLIB_API int mmprofile_print(int mask, int fd);
+MMLIB_API void mmprofile_reset(int reset_flags);
 
 #ifdef __cplusplus
 }
