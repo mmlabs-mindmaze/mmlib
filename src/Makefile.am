@@ -80,6 +80,7 @@ endif
 libmmlib_la_SOURCES += \
 	time-win32.c \
 	clock-win32.h clock-win32.c \
+	utils-win32.h \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \
