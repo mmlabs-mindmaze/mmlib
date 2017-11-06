@@ -210,7 +210,7 @@ float *plane_from_point(float *restrict plane, const float *restrict p)
 API_EXPORTED
 float plane_distance(const float *restrict p, const float *restrict plane)
 {
-	return fabs(mm_dot(plane, p) + plane[3]) / mm_norm(plane);
+	return fabsf(mm_dot(plane, p) + plane[3]) / mm_norm(plane);
 }
 
 API_EXPORTED
