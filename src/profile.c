@@ -12,6 +12,7 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include "mmprofile.h"
+#include "mmpredefs.h"
 
 #define SEC_IN_NSEC	1000000000
 #define NUM_TS_MAX	16
@@ -212,8 +213,7 @@ void local_toc(void)
  * INIT: This function is called AUTOMATICALLY at the beginning of a program using
  * mmlib and before the main().
  */
-static __attribute__ ((constructor))
-void init_profile(void)
+MM_CONSTRUCTOR(init_profile)
 {
 	mmprofile_reset(1);
 }
