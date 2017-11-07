@@ -9,10 +9,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
-#include <unistd.h>
 #include "mmprofile.h"
 #include "mmpredefs.h"
 #include "mmtime.h"
+#include "mmsysio.h"
 
 #define SEC_IN_NSEC	1000000000
 #define NUM_TS_MAX	16
@@ -535,7 +535,7 @@ int mmprofile_print(int mask, int fd)
 		// Write line to file
 		buf = str;
 		do {
-			if ((r = write(fd, buf, len)) < 0)
+			if ((r = mm_write(fd, buf, len)) < 0)
 				return -1;
 			len -= r;
 			buf += r;
