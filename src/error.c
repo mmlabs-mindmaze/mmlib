@@ -16,6 +16,16 @@
 
 #include "nls-internals.h"
 
+#ifndef thread_local
+#  if defined(__GNUC__)
+#    define thread_local __thread
+#  elif defined(_MSC_VER)
+#    define thread_local __declspec(thread)
+#  else
+#    error Do not know how to specify thread local attribute
+#  endif
+#endif
+
 struct errmsg_entry {
 	int errnum;
 	const char* msg;
@@ -130,7 +140,7 @@ struct error_info {
 
 
 // info of the last error IN THE THREAD
-static __thread struct error_info last_error;
+static thread_local struct error_info last_error;
 
 API_EXPORTED
 int mm_raise_error_full(int errnum, const char* module, const char* func,
