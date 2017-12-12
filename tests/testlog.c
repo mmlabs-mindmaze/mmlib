@@ -44,45 +44,45 @@ int try_and_catch_abort (void (*func)(void))
 }		
 
 static
-void provoke_a_crash()
+void provoke_a_crash(void)
 {
 	mm_crash("We should crash");
 }
 
 static
-void do_not_provoke_a_crash()
+void do_not_provoke_a_crash(void)
 {
 	mmlog_info("This should not crash");
 }
 
 static
-int test_crash()
+int test_crash(void)
 {
 	return !try_and_catch_abort(&provoke_a_crash) 
 		&& try_and_catch_abort(&do_not_provoke_a_crash);
 }
 
 static
-void provoke_a_check_failure()
+void provoke_a_check_failure(void)
 {
 	mm_check(119 == 7*16, "Actually, it should be 7*%d", 119/7);
 }
 
 static
-void do_not_provoke_a_check_failure()
+void do_not_provoke_a_check_failure(void)
 {
 	mm_check(119 == 7*17);
 }
 
 static
-int test_check()
+int test_check(void)
 {
 	return !try_and_catch_abort(&provoke_a_check_failure)
 		&& try_and_catch_abort(&do_not_provoke_a_check_failure);
 }
 
 static
-int test_basic_logging()
+int test_basic_logging(void)
 {
 	int i;
 
