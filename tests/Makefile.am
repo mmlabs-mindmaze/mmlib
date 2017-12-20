@@ -18,6 +18,7 @@ check_PROGRAMS += \
 	testgeometry \
 	testtype \
 	testinternals \
+	testapi \
 	$(eol)
 endif
 
@@ -40,6 +41,16 @@ testtype_LDADD = $(CHECK_LIBS) $(MMLIB)
 
 testinternals_SOURCES = testinternals.c
 testinternals_LDADD = $(CHECK_LIBS)
+
+testapi_SOURCES = \
+	testapi.c \
+	api-testcases.h \
+	$(eol)
+
+testapi_LDADD = \
+	$(CHECK_LIBS) \
+	$(MMLIB) \
+	$(eol)
 
 if OS_TYPE_WIN32
 testinternals_CPPFLAGS = \
