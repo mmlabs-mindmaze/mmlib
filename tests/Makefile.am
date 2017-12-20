@@ -5,6 +5,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	-DBUILDDIR=\"$(abs_builddir)\" \
 	-DEXEEXT=\"$(EXEEXT)\" \
+	-DTOP_BUILDDIR=\"$(abs_top_builddir)\" \
 	$(CHECK_CPPFLAGS) \
 	$(eol)
 AM_CFLAGS = $(CHECK_CFLAGS) $(MM_WARNFLAGS)
@@ -39,6 +40,7 @@ endif
 check_PROGRAMS = \
 	$(TESTS) \
 	child-proc \
+	tests-child-proc \
 	$(eol)
 
 testlog_SOURCES = testlog.c
@@ -65,15 +67,30 @@ testinternals_LDADD = $(CHECK_LIBS)
 testapi_tap_SOURCES = \
 	testapi.c \
 	api-testcases.h \
+	tests-child-proc.h \
 	type-api-tests.c \
 	geometry-api-tests.c \
 	alloc-api-tests.c \
 	time-api-tests.c \
+	thread-api-tests.c \
+	threaddata-manipulation.h \
+	threaddata-manipulation.c \
 	$(eol)
 
 testapi_tap_LDADD = \
 	$(CHECK_LIBS) \
 	$(MMLIB) \
+	$(eol)
+
+tests_child_proc_SOURCES = \
+	tests-child-proc.c \
+	threaddata-manipulation.h \
+	threaddata-manipulation.c \
+	$(eol)
+tests_child_proc_LDADD = $(MMLIB)
+tests_child_proc_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-DMMLOG_MODULE_NAME=\"tests_child_proc\" \
 	$(eol)
 
 if OS_TYPE_WIN32
