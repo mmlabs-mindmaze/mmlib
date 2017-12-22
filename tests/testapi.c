@@ -22,13 +22,26 @@ Suite* api_suite(void)
 
 int main(void)
 {
-	int number_failed;
-	Suite *s = api_suite();
-	SRunner *sr = srunner_create(s);
-	srunner_run_all(sr, CK_ENV);
-	number_failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	Suite* suite;
+	SRunner* runner;
+	int exitcode = EXIT_SUCCESS;
+
+	suite = api_suite();
+	runner = srunner_create(suite);
+
+#ifdef CHECK_SUPPORT_TAP
+	srunner_set_tap(runner, "-");
+#endif
+
+	srunner_run_all(runner, CK_ENV);
+
+#ifndef CHECK_SUPPORT_TAP
+	if (srunner_ntests_failed(runner) != 0)
+		exitcode = EXIT_FAILURE;
+#endif
+
+	srunner_free(runner);
+	return exitcode;
 }
 
 
