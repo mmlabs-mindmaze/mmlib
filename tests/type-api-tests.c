@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <check.h>
+#include "api-testcases.h"
 
 #define NUMEL(array) (sizeof(array)/sizeof(array[0]))
 
@@ -131,31 +132,15 @@ END_TEST
  *                             test suite setup                           *
  *                                                                        *
  **************************************************************************/
-static
-Suite* type_suite(void)
+LOCAL_SYMBOL
+TCase* create_type_tcase(void)
 {
-	Suite *s = suite_create("Type");
-
 	/* Core test case */
-	TCase *tc_core = tcase_create("Core");
-	tcase_add_loop_test(tc_core, buffer_size_test, 0, NUMEL(exp_imgsz));
-	tcase_add_loop_test(tc_core, pixel_size_test, 0, NUMEL(exp_pixsz));
-	tcase_add_loop_test(tc_core, valid_stride_test, 1, MAX_ALIGNMENT);
-	tcase_add_loop_test(tc_core, alloc_imgbuf_test, 0, MAX_ALIGNMENT);
-	suite_add_tcase(s, tc_core);
+	TCase *tc = tcase_create("type");
+	tcase_add_loop_test(tc, buffer_size_test, 0, NUMEL(exp_imgsz));
+	tcase_add_loop_test(tc, pixel_size_test, 0, NUMEL(exp_pixsz));
+	tcase_add_loop_test(tc, valid_stride_test, 1, MAX_ALIGNMENT);
+	tcase_add_loop_test(tc, alloc_imgbuf_test, 0, MAX_ALIGNMENT);
 
-	return s;
+	return tc;
 }
-
-
-int main(void)
-{
-	int number_failed;
-	Suite *s = type_suite();
-	SRunner *sr = srunner_create(s);
-	srunner_run_all(sr, CK_ENV);
-	number_failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
-}
-

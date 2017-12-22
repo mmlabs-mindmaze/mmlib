@@ -15,6 +15,8 @@ Suite* api_suite(void)
 {
 	Suite *s = suite_create("API");
 
+	suite_add_tcase(s, create_type_tcase());
+	suite_add_tcase(s, create_geometry_tcase());
 
 	return s;
 }

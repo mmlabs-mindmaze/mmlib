@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <check.h>
+#include "api-testcases.h"
 
 #define FLOAT_TOLERANCE 0.001
 
@@ -158,35 +159,19 @@ START_TEST(plane_projection_test)
 }
 END_TEST
 
-static
-Suite* geometry_suite(void)
+LOCAL_SYMBOL
+TCase* create_geometry_tcase(void)
 {
-	Suite *s = suite_create("Geometry");
+	TCase *tc = tcase_create("Geometry");
+	tcase_add_loop_test(tc, mat_from_quat_test, 0, NUM_REF);
+	tcase_add_loop_test(tc, quat_from_mat_test, 0, NUM_REF);
+	tcase_add_loop_test(tc, aaxis_from_mat3_test, 0, NUM_REF);
+	tcase_add_test(tc, add_sub_test);
+	tcase_add_test(tc, multiply_test);
+	tcase_add_test(tc, norm_dot_test);
+	tcase_add_test(tc, cross_rotate_test);
+	tcase_add_test(tc, plane_projection_test);
 
-	/* Core test case */
-	TCase *tc_core = tcase_create("Core");
-	tcase_add_loop_test(tc_core, mat_from_quat_test, 0, NUM_REF);
-	tcase_add_loop_test(tc_core, quat_from_mat_test, 0, NUM_REF);
-	tcase_add_loop_test(tc_core, aaxis_from_mat3_test, 0, NUM_REF);
-	tcase_add_test(tc_core, add_sub_test);
-	tcase_add_test(tc_core, multiply_test);
-	tcase_add_test(tc_core, norm_dot_test);
-	tcase_add_test(tc_core, cross_rotate_test);
-	tcase_add_test(tc_core, plane_projection_test);
-	suite_add_tcase(s, tc_core);
-
-	return s;
-}
-
-
-int main(void)
-{
-	int number_failed;
-	Suite *s = geometry_suite();
-	SRunner *sr = srunner_create(s);
-	srunner_run_all(sr, CK_ENV);
-	number_failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	return tc;
 }
 

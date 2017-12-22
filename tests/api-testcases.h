@@ -6,5 +6,7 @@
 
 #include <check.h>
 
+TCase* create_type_tcase(void);
+TCase* create_geometry_tcase(void);
 
 #endif

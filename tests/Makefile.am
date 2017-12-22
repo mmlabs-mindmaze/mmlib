@@ -27,8 +27,6 @@ check_PROGRAMS = \
 
 if BUILD_CHECK_TESTS
 check_PROGRAMS += \
-	testgeometry \
-	testtype \
 	testinternals \
 	testapi.tap \
 	$(eol)
@@ -45,18 +43,14 @@ testerrno_LDADD = $(MMLIB)
 testprofile_SOURCES = testprofile.c
 testprofile_LDADD = $(MMLIB)
 
-testgeometry_SOURCES = testgeometry.c
-testgeometry_LDADD = $(CHECK_LIBS) $(MMLIB)
-
-testtype_SOURCES = testtype.c
-testtype_LDADD = $(CHECK_LIBS) $(MMLIB)
-
 testinternals_SOURCES = testinternals.c
 testinternals_LDADD = $(CHECK_LIBS)
 
 testapi_tap_SOURCES = \
 	testapi.c \
 	api-testcases.h \
+	type-api-tests.c \
+	geometry-api-tests.c \
 	$(eol)
 
 testapi_tap_LDADD = \
