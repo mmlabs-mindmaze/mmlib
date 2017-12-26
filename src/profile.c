@@ -20,9 +20,11 @@
 #define VALUESTR_LEN	8
 #define UNITSTR_LEN	2
 #define UNIT_MASK	0x70
+#define NUM_COL_MAX	5
 
 #define MIN(a, b) ((a) <= (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define ABS(a) ((a) > 0 ? (a) : (-a))
 
 /**
  * struct unit - time unit definition
@@ -47,6 +49,71 @@ const struct unit unit_list[] = {
 
 /**************************************************************************
  *                                                                        *
+ *                       Approximate median estimate                      *
+ *                                                                        *
+ **************************************************************************/
+/**
+ * DOC:
+ * The approximate median algorithm use the FAME algorithm. This is a streaming
+ * estimation of the median which converge to the actual median. Details can be found at:
+ * http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.108.7376&rep=rep1&type=pdf
+ */
+
+#define STEP_NEED_INIT  INT64_MAX
+
+struct median_estimator {
+	int64_t median;
+	int64_t step;
+};
+
+static
+void median_estimator_init(struct median_estimator* me)
+{
+	// Defer initialization to when the first data will be seen
+	me->step = STEP_NEED_INIT;
+}
+
+static
+void median_estimator_update(struct median_estimator* me, int64_t data)
+{
+	int64_t diff;
+	int64_t step = me->step;
+	int64_t median = me->median;
+
+	// Perform actual initialization
+	if (UNLIKELY(step == STEP_NEED_INIT)) {
+		me->median = data;
+		me->step = MAX(ABS(data/2), SEC_IN_NSEC);
+		return;
+	}
+
+	diff  = data - median;
+	if (diff > 0) {
+		median += step;
+	} else if (diff < 0) {
+		median -= step;
+	}
+
+	if (ABS(diff) < me->step) {
+		step /= 2;
+	} else {
+		// Increase step by a epsilon (epsilon = step / 16)
+		step += MAX((step >> 4), 1);
+	}
+
+	me->step = step;
+	me->median = median;
+}
+
+
+static
+int64_t median_estimator_getvalue(struct median_estimator* me)
+{
+	return me->median;
+}
+
+/**************************************************************************
+ *                                                                        *
  *                             Profile data                               *
  *                                                                        *
  **************************************************************************/
@@ -61,6 +128,7 @@ static struct timespec timestamps[NUM_TS_MAX];  // current iteration measure
 static int64_t max_diff_ts[NUM_TS_MAX];         // max time difference
 static int64_t min_diff_ts[NUM_TS_MAX];         // min time difference
 static int64_t sum_diff_ts[NUM_TS_MAX];  // sum of time difference overall
+static struct median_estimator median_diff_ts[NUM_TS_MAX];  // approximate median of time diff
 static char* labels[NUM_TS_MAX];
 static char label_storage[MAX_LABEL_LEN*NUM_TS_MAX];
 
@@ -118,6 +186,7 @@ void update_diffs(void)
 		min_diff_ts[i] = MIN(diff, min_diff_ts[i]);
 		max_diff_ts[i] = MAX(diff, max_diff_ts[i]);
 		sum_diff_ts[i] += diff;
+		median_estimator_update(&median_diff_ts[i], diff);
 	}
 }
 
@@ -141,6 +210,7 @@ void reset_diffs(void)
 		min_diff_ts[i] = INT64_MAX;
 		max_diff_ts[i] = 0L;
 		sum_diff_ts[i] = 0L;
+		median_estimator_init(&median_diff_ts[i]);
 	}
 }
 
@@ -261,6 +331,7 @@ int compute_requested_timings(int mask, int num_points, int64_t data[])
 {
 	int i, icol = 0;
 	double mean;
+	int64_t median;
 
 	if (mask & PROF_CURR) {
 		for (i = 0; i < num_points; i++) {
@@ -287,6 +358,14 @@ int compute_requested_timings(int mask, int num_points, int64_t data[])
 	if (mask & PROF_MAX) {
 		for (i = 0; i < num_points; i++) {
 			data[i + icol*num_points] = max_diff_ts[i+1];
+		}
+		icol++;
+	}
+
+	if (mask & PROF_MEDIAN) {
+		for (i = 0; i < num_points; i++) {
+			median = median_estimator_getvalue(&median_diff_ts[i+1]);
+			data[i + icol*num_points] = median;
 		}
 		icol++;
 	}
@@ -372,6 +451,12 @@ int format_header_line(int mask, int label_width, char str[])
 	if (mask & PROF_MAX) {
 		len += sprintf(str+len, "%*s %*s |",
 		               VALUESTR_LEN, "max",
+		               UNITSTR_LEN, "");
+	}
+
+	if (mask & PROF_MEDIAN) {
+		len += sprintf(str+len, "%*s %*s |",
+		               VALUESTR_LEN, "median",
 		               UNITSTR_LEN, "");
 	}
 
@@ -528,6 +613,7 @@ void mmtoc_label(const char* label)
  *   - PROF_CURR: display the value of the current iteration
  *   - PROF_MIN:  display the min value since the last reset
  *   - PROF_MAX:  display the max value since the last reset
+ *   - PROF_MEDIAN: display the median value since the last reset
  *   - PROF_FORCE_NSEC: force result display in nanoseconds
  *   - PROF_FORCE_USEC: force result display in microseconds
  *   - PROF_FORCE_MSEC: force result display in milliseconds
@@ -541,7 +627,7 @@ int mmprofile_print(int mask, int fd)
 	int i, ncol, num_points, label_width, unit_index;
 	char str[512];
 	size_t len;
-	int64_t data[4*NUM_TS_MAX];
+	int64_t data[NUM_COL_MAX*NUM_TS_MAX];
 
 	update_diffs();
 
@@ -572,7 +658,7 @@ int mmprofile_print(int mask, int fd)
 /**
  * mmprofile_get_data - Retrieve profile result programmatically
  * @measure_point:      measure point whose statistic must be get
- * @type:               type of statistic (PROF_[CURR|MIN|MEAN|MAX])
+ * @type:               type of statistic (PROF_[CURR|MIN|MEAN|MAX|MEDIAN])
  *
  * Return: statistic value in nanosecond
  */
@@ -592,6 +678,7 @@ int64_t mmprofile_get_data(int measure_point, int type)
 	case PROF_MIN:
 	case PROF_MEAN:
 	case PROF_MAX:
+	case PROF_MEDIAN:
 		break;
 
 	default:
