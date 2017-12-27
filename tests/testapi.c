@@ -18,6 +18,7 @@ Suite* api_suite(void)
 	suite_add_tcase(s, create_type_tcase());
 	suite_add_tcase(s, create_geometry_tcase());
 	suite_add_tcase(s, create_allocation_tcase());
+	suite_add_tcase(s, create_time_tcase());
 
 	return s;
 }
