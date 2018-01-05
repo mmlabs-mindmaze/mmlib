@@ -103,6 +103,20 @@
 
 
 /*
+ Define NOINLINE attribute
+ */
+#ifndef NOINLINE
+#  if defined(__GNUC__)
+#    define NOINLINE    __attribute__ ((noinline))
+#  elif defined (_MSC_VER)
+#    define NOINLINE    __declspec(noinline)
+#  else
+#    define NOINLINE
+#  endif
+#endif
+
+
+/*
  Macros to get the number of element in a C array.
  */
 #define MM_NELEM(arr)	((int)(sizeof(arr)/sizeof(arr[0])))
