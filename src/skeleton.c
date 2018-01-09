@@ -140,7 +140,7 @@ int save_bone_data(const struct mmskel* skel, int c, int par, void* data)
 	wsize = fprintf(fp, "\n|%s|%s|%f|%f|%f|",
 	                    parent, bone, pos[0], pos[1], pos[2]);
 	if (wsize < 0) {
-		mm_raise_error(errno, "cannot write bone line: %s", strerror(errno));
+		mm_raise_from_errno("cannot write bone line");
 		return -1;
 	}
 	return 0;
@@ -344,7 +344,7 @@ int skl_load_data(struct mmskel* skel, int fd)
 
 exit:
 	if (ret)
-		mm_raise_error(errno, "skl_load_data() failed: %s", mmstrerror(errno));
+		mm_raise_from_errno("skl_load_data() failed");
 
 	if (fp)
 		fclose(fp);
@@ -391,14 +391,14 @@ int skl_save_data(struct mmskel* skel, int fd)
 #endif
 	  || push_default_locale(&locstore)
 	  || !(fp = fdopen(newfd, "w")) ) {
-		mm_raise_error(errno, "Cannot change locale or use fd - %s", mmstrerror(errno));
+		mm_raise_from_errno("Cannot change locale or use fd");
 		goto exit;
 	}
 
 	// Write file format magic number
 	nf = fwrite(skel_magic_number, sizeof(skel_magic_number), 1, fp);
 	if (nf != 1) {
-		mm_raise_error(errno, "Cannot write magic number - %s", mmstrerror(errno));
+		mm_raise_from_errno("Cannot write magic number");
 		goto exit;
 	}
 
