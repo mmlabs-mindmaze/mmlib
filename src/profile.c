@@ -732,7 +732,7 @@ void mmprofile_reset(int flags)
 	if (flags & PROF_RESET_CPUCLOCK)
 		clock_id = MM_CLK_CPU_PROCESS;
 	else
-		clock_id = MM_CLK_MONOTONIC_RAW;
+		clock_id = MM_CLK_MONOTONIC;
 
 	estimate_toc_overhead();
 	reset_diffs();
