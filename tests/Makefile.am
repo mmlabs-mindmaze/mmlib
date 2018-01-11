@@ -79,6 +79,9 @@ testapi_tap_SOURCES = \
 	thread-api-tests.c \
 	threaddata-manipulation.h \
 	threaddata-manipulation.c \
+	socket-api-tests.c \
+	socket-testlib.h \
+	socket-testlib.c \
 	$(eol)
 
 testapi_tap_LDADD = \
@@ -90,6 +93,8 @@ tests_child_proc_SOURCES = \
 	tests-child-proc.c \
 	threaddata-manipulation.h \
 	threaddata-manipulation.c \
+	socket-testlib.h \
+	socket-testlib.c \
 	$(eol)
 tests_child_proc_LDADD = $(MMLIB)
 tests_child_proc_CPPFLAGS = \

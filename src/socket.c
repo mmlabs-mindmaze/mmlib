@@ -7,23 +7,10 @@
 
 #include "mmsysio.h"
 #include "mmerrno.h"
+#include "mmlib.h"
 #include <string.h>
 #include <stdio.h>
 
-#ifndef alloca
-#  if HAVE_ALLOCA_H
-#    include <alloca.h>
-#  elif defined __GNUC__
-#    define alloca __builtin_alloca
-#  elif defined _AIX
-#    define alloca __alloca
-#  elif defined _MSC_VER
-#    include <malloc.h>
-#    define alloca _alloca
-#  else
-#    error Do not know how to call alloca
-#  endif
-#endif
 
 static
 int create_connected_socket(const char* service, const char *host, int port)
@@ -77,17 +64,19 @@ int mm_create_sockclient(const char* uri)
 {
 	size_t len;
 	char service[16];
-	const char* host;
+	char* host;
 	int port = -1;
-	int num_field;
+	int num_field, retval;
 
 	if (!uri)
 		return mm_raise_error(EINVAL, "uri cannot be NULL");
 
 	len = strlen(uri);
-	host = alloca(len+1);
+	host = mm_malloca(len+1);
+	if (!host)
+		return -1;
 
-	num_field = sscanf("%[a-z]://%[^/:]:%hi", service, host, &port);
+	num_field = sscanf(uri, "%[a-z]://%[^/:]:%i", service, host, &port);
 	if (num_field < 2) {
 		mm_raise_error(EINVAL, "uri \"%s\" does follow"
 		               " service://host or service://host:port"
@@ -95,5 +84,8 @@ int mm_create_sockclient(const char* uri)
 		return -1;
 	}
 
-	return create_connected_socket(service, host, port);
+	retval = create_connected_socket(service, host, port);
+
+	mm_freea(host);
+	return retval;
 }

@@ -6,6 +6,7 @@
 #endif
 
 #include "threaddata-manipulation.h"
+#include "socket-testlib.h"
 #include "tests-child-proc.h"
 #include "mmsysio.h"
 #include "mmerrno.h"
@@ -43,6 +44,8 @@ int main(int argc, char* argv[])
 		run_notif_data(map);
 	} else if (!strcmp(argv[1], "run_robust_mutex_write_data")) {
 		run_robust_mutex_write_data(map);
+	} else if (!strcmp(argv[1], "run_socket_client")) {
+		run_socket_client(WR_PIPE_FD, RD_PIPE_FD, argc-2, argv+2);
 	} else {
 		fprintf(stderr, "Unknown arg: %s\n", argv[1]);
 		exitcode = EXIT_FAILURE;
