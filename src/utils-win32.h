@@ -11,7 +11,7 @@
 #include <winternl.h>
 #include <stddef.h>
 #include <io.h>
-
+#include <fcntl.h>
 
 
 struct w32_create_file_options {
@@ -28,20 +28,46 @@ int mm_raise_from_w32err_full(const char* module, const char* func,
 #define mm_raise_from_w32err(desc, ...) \
 	mm_raise_from_w32err_full(MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, desc,  ## __VA_ARGS__ )
 
+
+/**************************************************************************
+ *                                                                        *
+ *                 Win32 handle / file descriptor wrapping                *
+ *                                                                        *
+ **************************************************************************/
+
+enum {
+	FD_TYPE_MSVCRT = 0,
+	FD_TYPE_MASK = 0x07
+};
+
+#define FD_FIRST_FLAG	(FD_TYPE_MASK+1)
+#define FD_FLAG_APPEND	(FD_FIRST_FLAG << 0)
+
+int get_fd_info_checked(int fd);
+int get_fd_info(int fd);
+void set_fd_info(int fd, int info);
+
+
 static inline
-int wrap_handle_into_fd_with_logctx(HANDLE hnd, int* p_fd, const char* func,
+int wrap_handle_into_fd_with_logctx(HANDLE hnd, int* p_fd, int info,
+                                    const char* func,
                                     const char* srcfile, int srcline)
 {
-	int fd;
-	int errnum;
+	int fd, osf_flags, errnum;
 
-	fd = _open_osfhandle((intptr_t)hnd, 0);
+	osf_flags = _O_NOINHERIT | _O_BINARY;
+	if (info & FD_FLAG_APPEND)
+		osf_flags |= _O_APPEND;
 
-	if (LIKELY(fd != -1)) {
-		*p_fd = fd;
-		return 0;
-	}
+	fd = _open_osfhandle((intptr_t)hnd, osf_flags);
+	if (UNLIKELY(fd == -1))
+		goto error;
 
+	set_fd_info(fd, info);
+	*p_fd = fd;
+	return 0;
+
+error:
 	errnum = errno;
 	mm_raise_error_full(errnum, MMLOG_MODULE_NAME,
 	                    func, srcfile, srcline, NULL,
@@ -59,12 +85,13 @@ int unwrap_handle_from_fd_with_logctx(HANDLE* p_hnd, int fd, const char* func,
 	int errnum;
 
 	hnd = (HANDLE)_get_osfhandle(fd);
+	if (UNLIKELY(hnd == INVALID_HANDLE_VALUE))
+		goto error;
 
-	if (LIKELY(hnd != INVALID_HANDLE_VALUE)) {
-		*p_hnd = hnd;
-		return 0;
-	}
+	*p_hnd = hnd;
+	return 0;
 
+error:
 	errnum = errno;
 	mm_raise_error_full(errnum, MMLOG_MODULE_NAME,
 	                    func, srcfile, srcline, NULL,
@@ -73,8 +100,8 @@ int unwrap_handle_from_fd_with_logctx(HANDLE* p_hnd, int fd, const char* func,
 	return -1;
 }
 
-#define wrap_handle_into_fd(hnd, p_fd) \
-	wrap_handle_into_fd_with_logctx(hnd, p_fd, __func__, __FILE__, __LINE__)
+#define wrap_handle_into_fd(hnd, p_fd, type) \
+	wrap_handle_into_fd_with_logctx(hnd, p_fd, type, __func__, __FILE__, __LINE__)
 
 #define unwrap_handle_from_fd(p_hnd, fd) \
 	unwrap_handle_from_fd_with_logctx(p_hnd, fd, __func__, __FILE__, __LINE__)

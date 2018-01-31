@@ -175,3 +175,58 @@ int mm_raise_from_w32err_full(const char* module, const char* func,
 
 	return ret;
 }
+
+
+/**************************************************************************
+ *                                                                        *
+ *                  File descriptor mmlib metadata                        *
+ *                                                                        *
+ **************************************************************************/
+
+// https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/setmaxstdio
+#define MAX_FD	2048
+
+
+static unsigned char fd_infos[MAX_FD] = {0};
+
+
+/**
+ * get_fd_info_checked() - validate file descriptor and retrieve its info
+ * @fd:         file descriptor whose info has to be retrieved
+ *
+ * Return: If successful, a non-negative file descriptor info. If @fd cannot be
+ * a valid file descriptor -1 is returned (please note that error state is NOT
+ * set in such a case).
+ */
+LOCAL_SYMBOL
+int get_fd_info_checked(int fd)
+{
+	if ((fd < 0) && (fd >= MAX_FD))
+		return -1;
+
+	return fd_infos[fd];
+}
+
+
+/**
+ * get_fd_info() - get file descriptor info (no validation check)
+ * @fd:         file descriptor whose info has to be retrieved
+ *
+ * Return: file descriptor info
+ */
+LOCAL_SYMBOL
+int get_fd_info(int fd)
+{
+	return fd_infos[fd];
+}
+
+
+/**
+ * set_fd_info() - set file descriptor info (no validation check)
+ * @fd:         file descriptor whose info has to be set
+ */
+LOCAL_SYMBOL
+void set_fd_info(int fd, int info)
+{
+	fd_infos[fd] = info;
+}
