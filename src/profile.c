@@ -313,6 +313,12 @@ int max_label_len(void)
 		max = MAX(max, len);
 	}
 
+	// Ensure that return length will not overflow (even by mistake). BTW,
+	// this helps the compiler to know that sprintf("%*s"...) will not
+	// overflow
+	if (max > MAX_LABEL_LEN-1)
+		max = MAX_LABEL_LEN-1;
+
 	return max;
 }
 
