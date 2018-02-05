@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdarg.h>
 #include <assert.h>
 
@@ -130,6 +131,7 @@ int mmstrerror_r(int errnum, char *buf, size_t buflen)
  ******************************************************************/
 
 struct error_info {
+	bool ignore_error;      //< if true, new errors do not set thread error state
 	int errnum;             //< error class (standard and mindmaze errno value)
 	char extended_id[64];   //< message to display to end user if has not been caught before
 	char module[32];        //< module that has generated the error
@@ -166,6 +168,10 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
 
 	state = &last_error;
 
+	// Check that error should not be ignored
+	if (state->ignore_error)
+		return -1;
+
 	// Copy the fields that don't need formatting
 	state->errnum = errnum;
 	strncpy(state->module, module, sizeof(state->module)-1);
@@ -182,7 +188,14 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
 	// module) is not using yet mm_error*
 	errno = errnum;
 
+	// Log error but ignore any error that could occur while logging:
+	// either ways there would be nothing that can be done about it, but
+	// more importantly we do not want to overwrite the error being set
+	// by the user.
+	state->ignore_error = true;
 	mmlog_log(MMLOG_ERROR, module, "%s (%s)", state->desc, state->location);
+	state->ignore_error = false;
+
 	return -1;
 }
 
