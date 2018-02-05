@@ -12,6 +12,7 @@
 #include "mmsysio.h"
 #include "mmerrno.h"
 #include "mmlog.h"
+#include "mmlib.h"
 #include "utils-win32.h"
 
 #include <windows.h>
@@ -20,6 +21,7 @@
 #include <synchapi.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <uchar.h>
 
 /* __osfile flag values for DOS file handles */
 
@@ -78,7 +80,7 @@ struct startup_config {
 	BYTE* crt_buff;
 	unsigned char* crt_fd_flags;
 	HANDLE* crt_fd_hnds;
-	STARTUPINFOEX info;
+	STARTUPINFOEXW info;
 	LPPROC_THREAD_ATTRIBUTE_LIST attr_list;
 	bool is_attr_init;
 	HANDLE fd_infos_hmap;
@@ -447,9 +449,9 @@ int round_up(int value, int divider)
  * startup config.
  */
 static
-STARTUPINFO* startup_config_get_startup_info(struct startup_config* cfg)
+STARTUPINFOW* startup_config_get_startup_info(struct startup_config* cfg)
 {
-	cfg->info = (STARTUPINFOEX) {
+	cfg->info = (STARTUPINFOEXW) {
 		.StartupInfo = {
 			.cb = sizeof(cfg->info),
 			.cbReserved2 = CRT_BUFFER_SIZE(cfg->num_crt_fd),
@@ -745,17 +747,18 @@ int startup_config_init(struct startup_config* cfg,
  * @strv:       NULL-terminated array of null-terminated strings (may be NULL)
  * @sep:        separator to include between the strings
  *
- * This function concatenate the strings found in the @strv array. The
- * character @sep will be put between each concatenated strings.
+ * This function transform into UTF-16 and concatenate the strings found in
+ * the @strv arrayThe character @sep will be put between each concatenated
+ * strings.
  *
- * Return: NULL if @strv is NULL, otherwise the concatenated string
+ * Return: NULL if @strv is NULL, otherwise the concatenated string encoded
+ * in UTF-16
  */
 static
-char* concat_strv(char* const* strv, char sep)
+char16_t* concat_strv(char* const* strv, char16_t sep)
 {
-	int i;
-	size_t tot_sz, len;
-	char *concatstr, *ptr;
+	int i, len, tot_len, rem_len;
+	char16_t *concatstr, *ptr;
 
 	// This is a legit possibility (for example envp can be NULL and this
 	// is the value that must then be returned)
@@ -764,11 +767,16 @@ char* concat_strv(char* const* strv, char sep)
 
 	// Compute the total length for allocating the concatanated string
 	// (including null termination)
-	tot_sz = 1;
-	for (i=0; strv[i]; i++)
-		tot_sz += strlen(strv[i])+1;
+	tot_len = 1;
+	for (i=0; strv[i]; i++) {
+		len = get_utf16_buffer_len_from_utf8(strv[i]);
+		if (len < 0)
+			return NULL;
 
-	concatstr = malloc(tot_sz);
+		tot_len += len;
+	}
+
+	concatstr = malloc(tot_len*sizeof(*concatstr));
 	if (!concatstr)
 		return NULL;
 
@@ -779,13 +787,13 @@ char* concat_strv(char* const* strv, char sep)
 		if (i != 0)
 			*(ptr++) = sep;
 
-		len = strlen(strv[i]);
-		memcpy(ptr, strv[i], len);
-		ptr += len;
+		rem_len = tot_len - (ptr - concatstr);
+		len = conv_utf8_to_utf16(ptr, rem_len, strv[i]);
+		ptr += len-1;
 	}
 
 	// Null terminate the concatanated string
-	*ptr = '\0';
+	*ptr = L'\0';
 
 	return concatstr;
 }
@@ -1059,28 +1067,43 @@ HANDLE spawn_process(DWORD* pid, const char* path,
 	PROCESS_INFORMATION proc_info;
 	struct startup_config cfg;
 	BOOL res;
-	char* cmdline = NULL;
-	char* concat_envp = NULL;
+	int path_u16_len;
+	char16_t* path_u16;
+	char16_t* cmdline = NULL;
+	char16_t* concat_envp = NULL;
 	HANDLE proc_hnd = INVALID_HANDLE_VALUE;
+
+	path_u16_len = get_utf16_buffer_len_from_utf8(path);
+	if (path_u16_len < 0) {
+		mm_raise_from_w32err("Invalid UTF-8 path");
+		goto exit;
+	}
 
 	// Transform the provided argument and environment arrays into their
 	// concatanated form: argument must be separated by spaces and
 	// environment variables by '\0' (See doc of CreateProcess()).
 	// envp is allowed to be null (meaning keep same env for child), and
 	// NULL must then be passed to CreateProcees()
-	cmdline = concat_strv(argv, ' ');
-	concat_envp = concat_strv(envp, '\0');
-	if (!cmdline || (envp && !concat_envp))
+	cmdline = concat_strv(argv, L' ');
+	concat_envp = concat_strv(envp, L'\0');
+	if (!cmdline || (envp && !concat_envp)) {
+		mm_raise_from_w32err("Failed to format commandline or environment");
 		goto exit;
+	}
 
 	// Fill the STARTUPINFO struct. The list of inherited handle will be
 	// written there.
 	if (startup_config_init(&cfg, num_map, fd_map))
 		goto exit;
 
-	res = CreateProcess(path, cmdline, NULL, NULL, TRUE,
-	                    EXTENDED_STARTUPINFO_PRESENT, concat_envp, NULL,
+	// Create process with a temporary UTF-16 version of path
+	path_u16 = mm_malloca(path_u16_len * sizeof(*path_u16));
+	conv_utf8_to_utf16(path_u16, path_u16_len, path);
+	res = CreateProcessW(path_u16, cmdline, NULL, NULL, TRUE,
+	                    EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT,
+	                    concat_envp, NULL,
 	                    startup_config_get_startup_info(&cfg), &proc_info);
+	mm_freea(path_u16);
 
 	// We no longer need the configured STARTUPINFO
 	startup_config_deinit(&cfg);
