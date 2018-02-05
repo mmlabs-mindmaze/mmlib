@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <io.h>
 #include <fcntl.h>
+#include <uchar.h>
 
 
 struct w32_create_file_options {
@@ -109,6 +110,18 @@ error:
 
 #define unwrap_handle_from_fd(p_hnd, fd) \
 	unwrap_handle_from_fd_with_logctx(p_hnd, fd, __func__, __FILE__, __LINE__)
+
+
+/**************************************************************************
+ *                                                                        *
+ *                         UTF-8/UTF-16 conversion                        *
+ *                                                                        *
+ **************************************************************************/
+
+int get_utf16_buffer_len_from_utf8(const char* utf8_str);
+int conv_utf8_to_utf16(char16_t* utf16_str, int utf16_len, const char* utf8_str);
+int get_utf8_buffer_len_from_utf16(const char16_t* utf16_str);
+int conv_utf16_to_utf8(char* utf8_str, int utf8_len, const char16_t* utf16_str);
 
 
 /**************************************************************************

@@ -136,6 +136,7 @@ int get_errcode_from_w32err(DWORD w32err)
 	case WSAEPROTOTYPE:             return EPROTOTYPE;
 	case WAIT_TIMEOUT:
 	case WSAETIMEDOUT:              return ETIMEDOUT;
+	case ERROR_NO_UNICODE_TRANSLATION: return EILSEQ;
 
 	default:
 		return EIO;
@@ -230,3 +231,103 @@ void set_fd_info(int fd, int info)
 {
 	fd_infos[fd] = info;
 }
+
+
+/**************************************************************************
+ *                                                                        *
+ *                         UTF-8/UTF-16 conversion                        *
+ *                                                                        *
+ **************************************************************************/
+
+/**
+ * get_utf16_buffer_len_from_utf8() - get size needed for the UTF-16 string
+ * @utf8_str:   null terminated UTF-8 encoded string
+ *
+ * Return: number of UTF-16 code unit (ie char16_t) needed to hold the UTF-16
+ * encoded string that would be equivalent to @utf8_str (this includes the
+ * NUL termination).
+ */
+LOCAL_SYMBOL
+int get_utf16_buffer_len_from_utf8(const char* utf8_str)
+{
+	int len;
+
+	len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
+	                          utf8_str, -1,
+	                          NULL, 0);
+
+	return (len == 0) ? -1 : len;
+}
+
+
+/**
+ * conv_utf8_to_utf16() - convert UTF-8 string into a UTF-16 string
+ * @utf16_str:  buffer receiving the converted UTF-16 string
+ * @utf16_len:  length of @utf16_len in code unit (char16_t)
+ * @utf8_str:   null terminated UTF-8 encoded string
+ *
+ * This function convert the string @utf8_str encoded in UTF-8 into UTF-16
+ * and store the result in @utf16_str. The length @utf16_len of this buffer
+ * must be large enough to hold the whole transformed string including NUL
+ * termination. Use get_utf16_buffer_size_from_utf8() to allocate the
+ * necessary size.
+ *
+ * Return: O in case of success, -1 otherwise with error state set
+ */
+LOCAL_SYMBOL
+int conv_utf8_to_utf16(char16_t* utf16_str, int utf16_len, const char* utf8_str)
+{
+	int len;
+
+	len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
+	                          utf8_str, -1, utf16_str, utf16_len);
+
+	return (len == 0) ? -1 : len;
+}
+
+
+/**
+ * get_utf8_buffer_size_from_utf16() - get size needed for the UTF-8 string
+ * @utf16_str:   null terminated UTF-16 encoded string
+ *
+ * Return: number of UTF-8 code unit (ie char) needed to hold the UTF-8
+ * encoded string that would be equivalent to @utf16_str (this includes the
+ * NUL termination).
+ */
+LOCAL_SYMBOL
+int get_utf8_buffer_len_from_utf16(const char16_t* utf16_str)
+{
+	int len;
+	len = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
+	                          utf16_str, -1, NULL, 0, NULL, NULL);
+
+	return (len == 0) ? -1 : len;
+}
+
+
+/**
+ * conv_utf16_to_utf8() - convert UTF-16 string into a UTF-8 string
+ * @utf8_str:  buffer receiving the converted UTF-8 string
+ * @utf8_len:  length of @utf8_len in code unit (char16_t)
+ * @utf16_str:   null terminated UTF-16 encoded string
+ *
+ * This function convert the string @utf16_str encoded in UTF-16 into UTF-8
+ * and store the result in @utf8_str. The length @utf8_len of this buffer
+ * must be large enough to hold the whole transformed string including NUL
+ * termination. Use get_utf8_buffer_size_from_utf16() to allocate the
+ * necessary size.
+ *
+ * Return: O in case of success, -1 otherwise with error state set
+ */
+LOCAL_SYMBOL
+int conv_utf16_to_utf8(char* utf8_str, int utf8_len, const char16_t* utf16_str)
+{
+	int len;
+	len = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
+	                          utf16_str, -1, utf8_str, utf8_len,
+	                          NULL, NULL);
+
+	return (len == 0) ? -1 : len;
+}
+
+
