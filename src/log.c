@@ -11,14 +11,13 @@
 #include <stdio.h>
 #include <time.h>
 
-#ifdef _WIN32
-#  include <io.h>
-#  define STDERR_FILENO 2
-#else
-#  include <unistd.h>
-#endif
-
+#include "mmsysio.h"
 #include "mmlog.h"
+
+// Define STDERR_FILENO if not (may happen with some compiler for Windows)
+#ifndef STDERR_FILENO
+#  define STDERR_FILENO 2
+#endif
 
 #ifdef _MSC_VER
 #  define restrict __restrict
@@ -145,7 +144,7 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 	// Write message on log file descriptor
 	cbuf = buff;
 	do {
-		if ((r = write(STDERR_FILENO, cbuf, len)) < 0)
+		if ((r = mm_write(STDERR_FILENO, cbuf, len)) < 0)
 			return;
 		len -= r;
 		cbuf += r;

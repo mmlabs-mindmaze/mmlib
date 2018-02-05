@@ -10,6 +10,20 @@
 #include <check.h>
 #include <stdarg.h>
 
+
+// Not used in the test... Define to a dummy function just for the sake of a
+// successful compilation
+API_EXPORTED
+ssize_t mm_write(int fd, const void* buf, size_t nbyte)
+{
+	(void)fd;
+	(void)buf;
+	(void)nbyte;
+
+	return -1;
+}
+
+
 static
 size_t format_string(char* buff, size_t buflen, const char* msg, ...)
 {
