@@ -11,10 +11,11 @@
 
 #include "mmsysio.h"
 #include "mmerrno.h"
+#include "mmlib.h"
 #include "utils-win32.h"
 #include <windows.h>
-#include <malloc.h>
 #include <stdio.h>
+#include <uchar.h>
 
 #define NUM_ATTEMPT	256
 
@@ -142,14 +143,26 @@ int mm_open(const char* path, int oflag, int mode)
 	HANDLE hnd;
 	int fd, fdinfo;
 	struct w32_create_file_options opts;
+	int path_u16_len;
+	char16_t* path_u16;
 
 	if (set_w32_create_file_options(&opts, oflag))
 		return -1;
 
-	hnd = CreateFile(path, opts.access_mode, opts.share_flags, NULL,
-	                 opts.creation_mode, opts.file_attribute, NULL);
+	// Get size for converted path into UTF-16
+	path_u16_len = get_utf16_buffer_len_from_utf8(path);
+	if (path_u16_len < 0)
+		return mm_raise_from_w32err("Invalid UTF-8 path");
+
+	// Create temporary UTF-16 path and use to create the file handle
+	path_u16 = mm_malloca(path_u16_len*sizeof(*path_u16));
+	conv_utf8_to_utf16(path_u16, path_u16_len, path);
+	hnd = CreateFileW(path_u16, opts.access_mode, opts.share_flags, NULL,
+	                  opts.creation_mode, opts.file_attribute, NULL);
+	mm_freea(path_u16);
+
 	if (hnd == INVALID_HANDLE_VALUE)
-		return mm_raise_from_w32err("CreateFile(%s) failed", path);
+		return mm_raise_from_w32err("CreateFileW(%s) failed", path);
 
 	fdinfo = FD_TYPE_NORMAL;
 	if (mode & O_APPEND)
@@ -316,43 +329,55 @@ int mm_pipe(int pipefd[2])
 API_EXPORTED
 int mm_unlink(const char* path)
 {
-	int i;
+	int i, path_u16_len, delpath_maxlen, len;
+	size_t rename_info_size;
 	HANDLE hnd;
-	char rename_info_buffer[sizeof(FILE_RENAME_INFO)+sizeof(WCHAR)*MAX_PATH];
-	char name_info_buffer[sizeof(FILE_NAME_INFO)+sizeof(WCHAR)*MAX_PATH];
-	FILE_RENAME_INFO* rename_info = (FILE_RENAME_INFO*)rename_info_buffer;
-	FILE_NAME_INFO* name_info = (FILE_NAME_INFO*)name_info_buffer;
+	FILE_RENAME_INFO* rename_info;
+	char16_t* path_u16, *delpath;
 
-	rename_info->ReplaceIfExists = FALSE;
-	rename_info->RootDirectory = NULL;
+	// Get size for converted path into utf-16
+	path_u16_len = get_utf16_buffer_len_from_utf8(path);
+	if (path_u16_len < 0)
+		return mm_raise_from_w32err("Invalid UTF-8 path");
 
-	// Open file with DELETE_ON_CLOSE flag
-	hnd = CreateFile(path, DELETE, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+	// Create temporary UTF-16 string from UTF-8 path and open the file
+	// with the DELETE_ON_CLOSE flag
+	path_u16 = mm_malloca(path_u16_len*sizeof(*path_u16));
+	conv_utf8_to_utf16(path_u16, path_u16_len, path);
+	hnd = CreateFileW(path_u16, DELETE, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
 			 NULL, OPEN_EXISTING, FILE_FLAG_DELETE_ON_CLOSE, NULL);
+	mm_freea(path_u16);
+
 	if (hnd == INVALID_HANDLE_VALUE) {
 		return mm_raise_from_w32err("Cannot access %s for deletion", path);
 	}
 
-	// Get filename in Unicode
-	if (!GetFileInformationByHandleEx(hnd, FileNameInfo,
-	                                  name_info, sizeof(name_info_buffer))) {
-		goto exit;
-	}
+	// Allocate (and init) temporary rename info structure in order to rename path
+	// into <path>.deleted-####
+	delpath_maxlen = path_u16_len+64;
+	rename_info_size = sizeof(*rename_info);
+	rename_info_size += delpath_maxlen*sizeof(*rename_info->FileName);
+	rename_info = mm_malloca(rename_info_size);
+	rename_info->RootDirectory = NULL;
+	rename_info->ReplaceIfExists = FALSE;
+	delpath  = rename_info->FileName;
 
 	// Rename before closing (hence marking file for deleting) to make the
 	// filename reusable immediately even if the file object is not deleted
-	// immediately
+	// immediately (make different rename attempt in order to find a
+	// name that is available)
 	for (i = 0; i < NUM_ATTEMPT; i++) {
-		rename_info->FileNameLength = swprintf(rename_info->FileName, MAX_PATH,
-		                                       L"%s.deleted-%i", name_info->FileName, i);
+		len = swprintf(delpath, delpath_maxlen, L"%s.deleted-%i", path_u16, i);
+		rename_info->FileNameLength = len*sizeof(*delpath);
 
 		if (SetFileInformationByHandle(hnd, FileRenameInfo,
-		                               rename_info, sizeof(rename_info_buffer))) {
+		                               rename_info, rename_info_size)) {
 			break;
 		}
 	}
 
-exit:
+	mm_freea(rename_info);
+
 	CloseHandle(hnd);
 	return 0;
 }
@@ -363,10 +388,24 @@ int mm_check_access(const char* path, int amode)
 {
 	WIN32_FILE_ATTRIBUTE_DATA attrs;
 	DWORD bin_type, w32err;
+	int path_u16_len;
+	char16_t* path_u16;
+	BOOL success;
+
+	// Get size for converted path into utf-16
+	path_u16_len = get_utf16_buffer_len_from_utf8(path);
+	if (path_u16_len < 0)
+		return mm_raise_from_w32err("Invalid UTF-8 path");
 
 	// TODO: Implement using GetFileSecurity()
 
-	if (!GetFileAttributesEx(path, GetFileExInfoStandard, &attrs)) {
+	// Create temporary UTF-16 string from path get attribute from it
+	path_u16 = mm_malloca(path_u16_len*sizeof(*path_u16));
+	conv_utf8_to_utf16(path_u16, path_u16_len, path);
+	success = GetFileAttributesExW(path_u16, GetFileExInfoStandard, &attrs);
+	mm_freea(path_u16);
+
+	if (!success) {
 		// If file cannot be found, this not an actual error (hence
 		// do not set error state)
 		w32err = GetLastError();
@@ -396,24 +435,64 @@ int mm_check_access(const char* path, int amode)
 API_EXPORTED
 int mm_link(const char* oldpath, const char* newpath)
 {
-	if (!CreateHardLink(newpath, oldpath, NULL)) {
-		mm_raise_from_w32err("CreateHardLink(%s, %s) failed", newpath, oldpath);
-		return -1;
+	int oldpath_u16_len, newpath_u16_len;
+	char16_t *oldpath_u16, *newpath_u16;
+	int retval = 0;
+
+	// Get the length (in byte) of the string when converted in UTF-8
+	oldpath_u16_len = get_utf16_buffer_len_from_utf8(oldpath);
+	newpath_u16_len = get_utf16_buffer_len_from_utf8(newpath);
+	if (oldpath_u16_len < 0 || newpath_u16_len < 0)
+		return mm_raise_from_w32err("invalid UTF-8 sequence");
+
+	// temporary alloc of the UTF-16 string
+	oldpath_u16 = mm_malloca(oldpath_u16_len*sizeof(*oldpath_u16));
+	newpath_u16 = mm_malloca(newpath_u16_len*sizeof(*newpath_u16));
+
+	// Do actual UTF-8 -> UTF-16 conversion
+	conv_utf8_to_utf16(oldpath_u16, oldpath_u16_len, oldpath);
+	conv_utf8_to_utf16(newpath_u16, newpath_u16_len, newpath);
+
+	if (!CreateHardLinkW(newpath_u16, oldpath_u16, NULL)) {
+		mm_raise_from_w32err("CreateHardLinkW(%s, %s) failed", newpath, oldpath);
+		retval = -1;
 	}
 
-	return 0;
+	mm_freea(newpath_u16);
+	mm_freea(oldpath_u16);
+	return retval;
 }
 
 
 API_EXPORTED
 int mm_symlink(const char* oldpath, const char* newpath)
 {
-	if (!CreateSymbolicLink(newpath, oldpath, 0)) {
-		mm_raise_from_w32err("CreateSymbolicLink(%s, %s) failed", newpath, oldpath);
-		return -1;
+	int oldpath_u16_len, newpath_u16_len;
+	char16_t *oldpath_u16, *newpath_u16;
+	int retval = 0;
+
+	// Get the length (in byte) of the string when converted in UTF-8
+	oldpath_u16_len = get_utf16_buffer_len_from_utf8(oldpath);
+	newpath_u16_len = get_utf16_buffer_len_from_utf8(newpath);
+	if (oldpath_u16_len < 0 || newpath_u16_len < 0)
+		return mm_raise_from_w32err("invalid UTF-8 sequence");
+
+	// Stack alloc the UTF-16 string
+	oldpath_u16 = mm_malloca(oldpath_u16_len*sizeof(*oldpath_u16));
+	newpath_u16 = mm_malloca(newpath_u16_len*sizeof(*newpath_u16));
+
+	// Do actual UTF-8 -> UTF-16 conversion
+	conv_utf8_to_utf16(oldpath_u16, oldpath_u16_len, oldpath);
+	conv_utf8_to_utf16(newpath_u16, newpath_u16_len, newpath);
+
+	if (!CreateSymbolicLinkW(newpath_u16, oldpath_u16, 0)) {
+		mm_raise_from_w32err("CreateSymbolicLinkW(%s, %s) failed", newpath, oldpath);
+		retval = -1;
 	}
 
-	return 0;
+	mm_freea(newpath_u16);
+	mm_freea(oldpath_u16);
+	return retval;
 }
 
 
