@@ -111,6 +111,7 @@ libmmlib_la_SOURCES += \
 	pshared-lock.h pshared-lock.c \
 	socket-win32.c \
 	env-win32.c \
+	startup-win32.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \
