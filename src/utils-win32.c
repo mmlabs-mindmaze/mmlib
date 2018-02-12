@@ -200,12 +200,15 @@ int guess_fd_info(int fd)
 {
 	int info;
 	HANDLE hnd;
+	DWORD mode;
 
 	hnd = (HANDLE)_get_osfhandle(fd);
 	if (hnd == INVALID_HANDLE_VALUE)
 		return -1;
 
 	info = FD_TYPE_MSVCRT;
+	if (_isatty(fd) && GetConsoleMode(hnd, &mode))
+		info = FD_TYPE_CONSOLE;
 
 	set_fd_info(fd, info);
 	return info;
