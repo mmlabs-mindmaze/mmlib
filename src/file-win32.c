@@ -186,7 +186,7 @@ int mm_close(int fd)
 	if (_close(fd) < 0)
 		return mm_raise_from_errno("_close(%i) failed", fd);
 
-	set_fd_info(fd, FD_TYPE_MSVCRT);
+	set_fd_info(fd, FD_TYPE_UNKNOWN);
 	return 0;
 }
 

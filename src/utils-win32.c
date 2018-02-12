@@ -184,6 +184,33 @@ int mm_raise_from_w32err_full(const char* module, const char* func,
  *                                                                        *
  **************************************************************************/
 
+/**
+ * guess_fd_info() - inspect fd and associated handle and guess type info
+ * @fd:         file descriptor to inspect
+ *
+ * Once the type is guessed, it is stored in mmlib fd metadata so that it will
+ * not be guessed the next time @fd is encountered... Of course, until
+ * mm_close() is called on @fd.
+ *
+ * Return: a FD_TYPE_* constant different from FD_TYPE_UNKNOWN in case of
+ * success, -1 in case of failure.
+ */
+static
+int guess_fd_info(int fd)
+{
+	int info;
+	HANDLE hnd;
+
+	hnd = (HANDLE)_get_osfhandle(fd);
+	if (hnd == INVALID_HANDLE_VALUE)
+		return -1;
+
+	info = FD_TYPE_MSVCRT;
+
+	set_fd_info(fd, info);
+	return info;
+}
+
 // https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/setmaxstdio
 #define MAX_FD	2048
 
@@ -202,10 +229,16 @@ static unsigned char fd_infos[MAX_FD] = {0};
 LOCAL_SYMBOL
 int get_fd_info_checked(int fd)
 {
+	int info;
+
 	if ((fd < 0) && (fd >= MAX_FD))
 		return -1;
 
-	return fd_infos[fd];
+	info = fd_infos[fd];
+	if (UNLIKELY(info == FD_TYPE_UNKNOWN))
+		info = guess_fd_info(fd);
+
+	return info;
 }
 
 

@@ -37,7 +37,8 @@ int mm_raise_from_w32err_full(const char* module, const char* func,
  **************************************************************************/
 
 enum {
-	FD_TYPE_MSVCRT = 0,
+	FD_TYPE_UNKNOWN = 0,
+	FD_TYPE_MSVCRT,
 	FD_TYPE_NORMAL,
 	FD_TYPE_PIPE,
 	FD_TYPE_IPCDGRAM,
