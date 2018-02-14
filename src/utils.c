@@ -13,42 +13,11 @@
 
 #ifdef _WIN32
 
-static
-int setenv(const char* name, char* value, int overwrite)
-{
-	int errcode;
+#  include "utils-win32.h"
 
-	if (!name) {
-		errno = EINVAL;
-		return -1;
-	}
-
-	if (!overwrite && getenv(name))
-		return 0;
-
-	errcode = _putenv_s(name, value);
-	if (errcode) {
-		errno = errcode;
-		return -1;
-	}
-
-	return 0;
-}
-
-
-static
-int unsetenv(const char* name)
-{
-	int errcode;
-
-	errcode = _putenv_s(name, "");
-	if (errcode) {
-		errno = errcode;
-		return -1;
-	}
-
-	return 0;
-}
+#  define getenv getenv_utf8
+#  define setenv setenv_utf8
+#  define unsetenv unsetenv_utf8
 
 #endif
 

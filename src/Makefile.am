@@ -110,6 +110,7 @@ libmmlib_la_SOURCES += \
 	lock-referee-proto.h \
 	pshared-lock.h pshared-lock.c \
 	socket-win32.c \
+	env-win32.c \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \

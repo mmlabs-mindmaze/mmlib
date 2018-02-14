@@ -123,6 +123,10 @@ int conv_utf8_to_utf16(char16_t* utf16_str, int utf16_len, const char* utf8_str)
 int get_utf8_buffer_len_from_utf16(const char16_t* utf16_str);
 int conv_utf16_to_utf8(char* utf8_str, int utf8_len, const char16_t* utf16_str);
 
+char* getenv_utf8(const char* name);
+int setenv_utf8(const char* name, char* value, int overwrite);
+int unsetenv_utf8(const char* name);
+
 
 /**************************************************************************
  *                                                                        *
