@@ -1,45 +1,56 @@
-# http://www.gnu.org/software/automake
-
+# autotools generated files
+aclocal.m4
 Makefile.in
-/ar-lib
-/mdate-sh
-/py-compile
-/test-driver
-/ylwrap
-
-# http://www.gnu.org/software/autoconf
-
-/autom4te.cache
-/autoscan.log
-/autoscan-*.log
-/aclocal.m4
-/compile
-/config.guess
+configure
 config.h.in
-/config.sub
-/configure
-/configure.scan
-/depcomp
-/install-sh
-/missing
-/stamp-h1
-/build-aux
+config.h.in~
+config.log
+config.status
+config.h
+config.guess
+config.sub
+configure.scan
+install-sh
+missing
+stamp-h1
+libtool
+compile
+Makefile
+Makefile.in
+.deps
+INSTALL
+.dirstamp
 
-# https://www.gnu.org/software/libtool/
+autom4te.cache/*
+build-aux/*
 
-/ltmain.sh
+.libs/
 
-# m4
-m4/*
+# ignore build-directory if any
+/build*
 
-# gettext
-po/*.gmo
-po/*.sed
-po/*.header
-po/*.sin
-po/Rules-quot
-po/*.template
+# C generated objects
+*.o
+*.la
+*.lo
 
-# temporary files
-*~
+# check generated objects
+*.log
+*.trs
+ipc-test-tmp-file-*
+
+# external tool files
+/cscope.*
+/tags
+*.unc-backup~
+*.unc-backup.md5~
+*.uncrustify
+
+# usual tmp files
 *.swp
+
+# No core files
+**/core
+
+# nfs tmp files
+*.nfs*

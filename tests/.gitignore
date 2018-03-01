@@ -1,0 +1,12 @@
+# ignore test binaries if compiled in-place
+child-proc
+perflock
+testapi.tap
+testdlfcn
+testerrno
+testfile
+testinternals
+testlog
+testprocess
+testprofile
+tests-child-proc

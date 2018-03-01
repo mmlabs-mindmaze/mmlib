@@ -1,0 +1,4 @@
+# ignore example binaries if compiled in-place
+multithread
+pshared-child
+pshared-parent
