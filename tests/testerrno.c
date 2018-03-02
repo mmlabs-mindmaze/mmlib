@@ -57,6 +57,9 @@ void* thread_func(void* data)
 
 int main(void)
 {
+	int rv;
+	char buffer[512];
+
 	setlocale(LC_ALL, "");
 
 	print_errno_info(MM_EDISCONNECTED);
@@ -75,10 +78,17 @@ int main(void)
 	mmthr_join(t4, NULL);
 
 	mm_set_errorstate(&state_in_thread3);
-	printf("\nretrieve thread3  error state in main:\n * errnum=%i\n * in %s at %s\n * %s\n",
-	       mm_get_lasterror_number(),
-	       mm_get_lasterror_module(), mm_get_lasterror_location(),
-	       mm_get_lasterror_desc());
+	printf("\nretrieve thread3  error state in main:\n * errnum=%i\n extid=%s * in %s at %s\n * %s\n",
+			mm_get_lasterror_number(),
+			mm_get_lasterror_module(),
+			mm_get_lasterror_extid(),
+			mm_get_lasterror_location(),
+			mm_get_lasterror_desc());
+
+	rv = mmstrerror_r(mm_get_lasterror_number(), buffer, sizeof(buffer));
+	printf("\n%s to get lase error msg from number: %s\n",
+			rv == 0 ? "Succeeded" : "Failed",
+			buffer);
 
 	return EXIT_SUCCESS;
 }
