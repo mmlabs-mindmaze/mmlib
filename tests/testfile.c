@@ -13,7 +13,7 @@
 
 int main(void)
 {
-	int fd;
+	int fd, dup_fd;
 	ssize_t rsz;
 	char str[] = "Hello world!";
 
@@ -21,15 +21,26 @@ int main(void)
 	if (fd == -1)
 		goto failure;
 
-	rsz = mm_write(fd, str, sizeof(str));
+	dup_fd = mm_dup(fd);
+	if (dup_fd == -1)
+		goto failure;
+
+	dup_fd = mm_dup2(fd, dup_fd);
+	if (dup_fd == -1)
+		goto failure;
+
+	/* Note: dup2() call should close fd */
+
+	rsz = mm_write(dup_fd, str, sizeof(str));
 	if (rsz < (ssize_t)sizeof(str))
 		goto failure;
 
 	if (mm_unlink(TEST_FILE))
 		goto failure;
 
-	if (mm_close(fd))
+	if (mm_close(dup_fd))
 		goto failure;
+
 
 	return EXIT_SUCCESS;
 
