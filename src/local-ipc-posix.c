@@ -91,7 +91,8 @@ int mmipc_connect(const char* addr)
 	int fd;
 	struct sockaddr_un address = {.sun_family = AF_UNIX};
 
-	strncpy(address.sun_path, addr, sizeof(address.sun_path));
+	address.sun_path[0] = '\0';
+	strncpy(address.sun_path+1, addr, sizeof(address.sun_path) - 1);
 
 	if ( (fd = socket(AF_UNIX, SOCK_SEQPACKET, 0)) < 0
 	 || connect(fd, (struct sockaddr*)&address, sizeof(address)) < 0 ) {
