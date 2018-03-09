@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# check the necesessary tools exist
+command -v uncrustify >/dev/null
+if [ $? != 0 ]; then
+	echo "uncrustify missing. Please run: apt-get instal uncrustify" 2>&1
+	exit 1
+fi
+
+hook_script=${GIT_DIR:-.git}/hooks/pre-commit
+
+# go to git top level directory
+GIT_ROOT_DIR=$(git rev-parse --show-toplevel)
+cd $GIT_ROOT_DIR
+
+# Check for newer (actually, different) versions of the pre-commit script
+if [ -z "$1" ] && [ -f "$hook_script" ]; then
+    if ! cmp -s "$hook_script" tools/pre-commit; then
+        echo "Pre-commit hook script is outdated, please update!" 2>&1
+		echo "cmd: cp -uv tools/pre-commit ${hook_script}" 2>&1
+		exit 1
+    fi
+fi
+
+CONFIG=tools/mindmaze-uncrustify.cfg
+if [ ! -e $CONFIG ] ; then
+	echo "uncrustify config file not found." 2>&1
+	exit 1
+fi
+
+# consider staged C files only
+FILE_LIST=$(git diff --staged --name-status HEAD | grep -v "^D" | cut -f2 | grep "\.[ch]$")
+
+if [ -z "$FILE_LIST" ] ; then
+	exit 0
+fi
+
+uncrustify  --version
+uncrustify --check -c ${CONFIG} $FILE_LIST
+if [ ! $? -eq 0 ] ; then
+	echo "Error: your files do not comply with MindMaze coding style. Please run from $GIT_ROOT_DIR:" 2>&1
+	echo "uncrustify --replace -c tools/mindmaze-uncrustify.cfg $(echo $FILE_LIST)" 2>&1
+	exit 1
+fi
