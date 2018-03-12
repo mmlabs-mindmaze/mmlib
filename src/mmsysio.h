@@ -385,6 +385,9 @@ MMLIB_API int mm_check_access(const char* path, int amode);
  * This function creates a new file descriptor referencing the same file
  * description as the one referenced by @fd.
  *
+ * Note that the two file decriptors point to the same file. They will share
+ * the same file pointer.
+ *
  * Return: a non-negative integer representing the new file descriptor in case
  * of success. The return file descriptor value is then guaranteed to be the
  * lowest available at the time of the call. In case of error, -1 is returned
