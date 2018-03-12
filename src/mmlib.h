@@ -25,11 +25,11 @@ extern "C" {
 
 /**
  * mm_getenv() - Return environment variable or default value
- * @name:       name of the environment variable
- * @defvalue:   default value
+ * @name:          name of the environment variable
+ * @default_value: default value
  *
  * Return: the value set in the environment if the variable @name is
- * set. Otherwise @defvalue is returned.
+ * set. Otherwise @default_value is returned.
  */
 MMLIB_API char* mm_getenv(const char* name, char* default_value);
 
