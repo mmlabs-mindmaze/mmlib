@@ -36,7 +36,11 @@ mmdynlib_t* arch_dlopen(const char *path, int flags)
 	HMODULE handle;
 	(void)flags;
 
-	handle = LoadLibrary(path);
+	if (path == NULL)
+		handle = GetModuleHandle(NULL);
+	else
+		handle = LoadLibrary(path);
+
 	if (!handle) {
 		mm_raise_error(EIO, "Can't open dynamic library %s", path);
 		return NULL;
@@ -59,7 +63,7 @@ void* arch_dlsym(mmdynlib_t* handle, const char* symbol)
 	void* ptr = (void*)GetProcAddress((HMODULE)handle, symbol);
 	if (!ptr) {
 		mm_raise_error(MM_ENOTFOUND, "symbol (%s) could not be found"
-		               "in dynamic library (h=%p): %s", symbol, handle);
+		               " in dynamic library (h=%p): %s", symbol, handle);
 		return NULL;
 	}
 
@@ -111,7 +115,7 @@ void* arch_dlsym(mmdynlib_t* handle, const char* symbol)
 	void* ptr = dlsym(handle, symbol);
 	if (!ptr) {
 		mm_raise_error(MM_ENOTFOUND, "symbol (%s) could not be found"
-		               "in dynamic library (h=%p): %s", symbol,
+		               " in dynamic library (h=%p): %s", symbol,
 			       handle, dlerror());
 		return NULL;
 	}
@@ -151,16 +155,13 @@ mmdynlib_t* mm_dlopen(const char* path, int flags)
 	char* path_ext;
 	mmdynlib_t* hnd;
 
-	if (!path) {
-		mm_raise_error(EINVAL, "path cannot be NULL");
-		return NULL;
-	}
-
 	if ((flags & MMLD_NOW) && (flags & MMLD_LAZY)) {
 		mm_raise_error(EINVAL, "MMLD_NOW and MMLD_LAZY flags cannot"
 		                       " be set at the same time.");
 		return NULL;
 	}
+	if (path == NULL)
+		return arch_dlopen(NULL, flags);
 
 	len = strlen(path);
 	path_ext = mm_malloca(len+sizeof(LT_MODULE_EXT));

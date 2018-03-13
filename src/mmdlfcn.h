@@ -29,6 +29,8 @@ typedef struct mmdynlib mmdynlib_t;
  * The behavior of the function can be controlled by @flags which must be a
  * OR-combination of the following flags:
  *
+ * If path is NULL, this will return a handle to the main program.
+ *
  * MMLD_LAZY
  *   Relocations shall be performed at an implementation-defined time,
  *   ranging from the time of the imm_dlopen() call until the first reference to
