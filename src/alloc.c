@@ -59,3 +59,67 @@ void mm_aligned_free(void* ptr)
 #endif
 }
 
+
+/**
+ * _mm_malloca_on_heap() - heap memory allocation version of mm_malloca()
+ * @size:       size of memory to be allocated
+ *
+ * Function called when mm_malloca() cannot allocate on stack because @size is
+ * too big. The allocation will be attempted on heap.
+ *
+ * NOTE: although this is function is exported, this should not be used
+ * anywhere excepting by the mm_malloca() macro.
+ *
+ * Return: the pointer on allocated memory in case of success. The return value
+ * is then ensured to be of value MM_STK_ALIGN modulo (2*MM_STK_ALIGN). This
+ * particularity will be used to recognize when a memory block has been
+ * allocated on stack or on heap. In case of failure (likely due to @size too
+ * large), NULL is returned.
+ */
+API_EXPORTED
+void* _mm_malloca_on_heap(size_t size)
+{
+	char* base;
+	char* ptr;
+	size_t alloc_size;
+
+	// Allocate memory block
+	alloc_size = size + 2*MM_STK_ALIGN-1;
+	base = malloc(alloc_size);
+	if (!base) {
+		mm_raise_from_errno("malloc(%zi) failed", alloc_size);
+		return NULL;
+	}
+
+	// Get pointer aligned on MM_STK_ALIGN modulo (2*MM_STK_ALIGN)
+	ptr = (char*) ( (uintptr_t)(base + 2*MM_STK_ALIGN-1)
+	              & ~(uintptr_t)(2*MM_STK_ALIGN-1) );
+	ptr += MM_STK_ALIGN;
+
+	// Store offset to get beginning of malloc'ed memory block
+	ptr[-1] = ptr - base;
+
+	return ptr;
+}
+
+
+/**
+ * _mm_freea_on_heap() - deallocate memory when mm_malloca() has used heap
+ * @ptr:        memory block to deallocate
+ *
+ * Function called when mm_freea() has detected that @ptr has been allocated on
+ * heap.
+ *
+ * NOTE: although this is function is exported, this should not be used
+ * anywhere excepting by the mm_freea() macro.
+ */
+API_EXPORTED
+void _mm_freea_on_heap(void* ptr)
+{
+	char* base = ptr;
+
+	// offset base to get the beginning of the malloc'ed block
+	base -= base[-1];
+
+	free(base);
+}
