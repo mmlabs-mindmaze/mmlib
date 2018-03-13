@@ -51,6 +51,7 @@ testapi_tap_SOURCES = \
 	api-testcases.h \
 	type-api-tests.c \
 	geometry-api-tests.c \
+	alloc-api-tests.c \
 	$(eol)
 
 testapi_tap_LDADD = \
