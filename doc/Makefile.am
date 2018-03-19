@@ -20,6 +20,7 @@ check_PROGRAMS = \
 	multithread \
 	pshared-parent \
 	pshared-child \
+	parse_args \
 	$(eol)
 
 multithread_SOURCES = \
@@ -35,8 +36,13 @@ pshared_child_SOURCES = \
 	examples/pshared-child.c \
 	$(eol)
 
+parse_args_SOURCES = \
+	examples/parse_args.c \
+	$(eol)
+
 nobase_dist_doc_DATA = \
 	$(multithread_SOURCES) \
 	$(pshared_parent_SOURCES) \
 	$(pshared_child_SOURCES) \
+	$(parse_args_SOURCES) \
 	$(eol)

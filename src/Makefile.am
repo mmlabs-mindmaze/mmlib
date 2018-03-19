@@ -20,6 +20,7 @@ include_HEADERS = \
 	mmsysio.h \
 	mmthread.h \
 	mmdlfcn.h \
+	mmargparse.h \
 	$(eol)
 
 lib_LTLIBRARIES = libmmlib.la
@@ -36,6 +37,7 @@ libmmlib_la_SOURCES = \
 	mmlib.h \
 	alloc.c \
 	utils.c \
+	mmargparse.h argparse.c \
 	mmtime.h time.c \
 	mmsysio.h \
 	file.c \
