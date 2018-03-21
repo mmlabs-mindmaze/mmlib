@@ -136,7 +136,7 @@ int mmipc_srv_accept(struct mmipc_srv* srv)
 API_EXPORTED
 int mmipc_connect(const char* addr)
 {
-	HANDLE hpipe;
+	HANDLE hpipe = INVALID_HANDLE_VALUE;
 	char pipe_name[MAX_PIPENAME];
 	int fd;
 
@@ -144,12 +144,26 @@ int mmipc_connect(const char* addr)
 	snprintf(pipe_name, sizeof(pipe_name), PIPE_PREFIX "%s", addr);
 
 	// Connect named pipe to server
-	hpipe = CreateFile(pipe_name, GENERIC_READ|GENERIC_WRITE,
-	                   0, NULL, OPEN_EXISTING, 0, NULL);
-	if (hpipe == INVALID_HANDLE_VALUE) {
-		mm_raise_from_w32err("Cannot connect client named pipe");
-		return -1;
-	}
+	do {
+		if (  WaitNamedPipe(pipe_name, NMPWAIT_WAIT_FOREVER) == 0
+				&& GetLastError() == ERROR_FILE_NOT_FOUND) {
+			// server does not exist
+			mm_raise_from_w32err("Server %s not found\n", addr);
+			return -1;
+		}
+
+		hpipe = CreateFile(pipe_name, GENERIC_READ|GENERIC_WRITE,
+				0, NULL, OPEN_EXISTING, 0,
+				NULL);
+		if (hpipe == INVALID_HANDLE_VALUE) {
+			if (GetLastError() == ERROR_PIPE_BUSY)
+				continue;
+
+			mm_raise_from_w32err("Connection to %s failed", addr);
+			return -1;
+		}
+	} while (hpipe == INVALID_HANDLE_VALUE);
+
 
 	// Wrap into a file descriptor
 	if (wrap_handle_into_fd(hpipe, &fd, FD_TYPE_IPCDGRAM)) {
