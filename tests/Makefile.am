@@ -92,6 +92,7 @@ testapi_tap_SOURCES = \
 	testapi.c \
 	api-testcases.h \
 	tests-child-proc.h \
+	tests-run-func.c \
 	type-api-tests.c \
 	geometry-api-tests.c \
 	alloc-api-tests.c \
@@ -102,6 +103,9 @@ testapi_tap_SOURCES = \
 	socket-api-tests.c \
 	socket-testlib.h \
 	socket-testlib.c \
+	ipc-api-tests.c \
+	ipc-api-tests-exported.c \
+	ipc-api-tests-exported.h \
 	$(eol)
 
 testapi_tap_LDADD = \
@@ -111,12 +115,19 @@ testapi_tap_LDADD = \
 
 tests_child_proc_SOURCES = \
 	tests-child-proc.c \
+	tests-child-proc.h \
 	threaddata-manipulation.h \
 	threaddata-manipulation.c \
 	socket-testlib.h \
 	socket-testlib.c \
+	ipc-api-tests-exported.c \
+	ipc-api-tests-exported.h \
 	$(eol)
 tests_child_proc_LDADD = $(MMLIB)
+tests_child_proc_LDFLAGS = \
+	-export-dynamic \
+	$(eol)
+
 tests_child_proc_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-DMMLOG_MODULE_NAME=\"tests_child_proc\" \
