@@ -12,6 +12,7 @@
 #include "mmsysio.h"
 #include "mmerrno.h"
 #include "utils-win32.h"
+#include "clock-win32.h"
 
 #include <windows.h>
 #include <io.h>
@@ -22,6 +23,7 @@
 #define MAX_PIPENAME	256
 #define MAX_DATA_SIZE	4096
 #define BUFSIZE		MAX_DATA_SIZE
+#define MAX_ATTEMPTS	16
 
 /**
  * struct fd_data - data to serialize file descriptor information
@@ -423,4 +425,63 @@ ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
 		return mm_raise_from_w32err("ReadFile failed");
 
 	return deserialize_msg(recv_sz, msg_data, msg);
+}
+
+
+API_EXPORTED
+int mmipc_connected_pair(int fds[2])
+{
+	DWORD open_mode = PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE;
+	DWORD pipe_mode = PIPE_TYPE_MESSAGE | PIPE_REJECT_REMOTE_CLIENTS;
+	char name[MAX_PIPENAME];
+	int srv_fd, client_fd;
+	HANDLE hsrv, hclient;
+	struct timespec ts;
+	int attempt;
+
+	// Try and retry to create a named pipe server handle using a
+	// new pipe name until one can be used (fail on other errors)
+	attempt = 0;
+	do {
+		// generate a name based on thread ID and current time
+		gettimespec_monotonic_w32(&ts);
+		snprintf(name, sizeof(name), PIPE_PREFIX "anon-%lu%lx%lx",
+		         get_tid(), (long)ts.tv_sec, (long)ts.tv_nsec);
+
+		hsrv = CreateNamedPipe(name, open_mode, pipe_mode,
+		                       1, BUFSIZE, BUFSIZE, 0, NULL);
+		if (hsrv == INVALID_HANDLE_VALUE) {
+			// retry if we couldn't create a first instance
+			if (  GetLastError() == ERROR_ACCESS_DENIED
+			   && ++attempt < MAX_ATTEMPTS  )
+				continue;
+
+			mm_raise_from_w32err("Can't create named pipe");
+			return -1;
+		}
+	} while (hsrv == INVALID_HANDLE_VALUE);
+
+	if (wrap_handle_into_fd(hsrv, &srv_fd, FD_TYPE_IPCDGRAM)) {
+		CloseHandle(hsrv);
+		return -1;
+	}
+
+	// Create connected client pipe endpoint
+	hclient = CreateFile(name, GENERIC_READ|GENERIC_WRITE,
+	                     0, NULL, OPEN_EXISTING, 0, NULL);
+	if (hclient == INVALID_HANDLE_VALUE) {
+		mm_raise_from_w32err("Can't connect named pipe");
+		mm_close(srv_fd); // This closes hsrv implicitely
+		return -1;
+	}
+
+	if (wrap_handle_into_fd(hclient, &client_fd, FD_TYPE_IPCDGRAM)) {
+		CloseHandle(hclient);
+		mm_close(srv_fd); // This closes hsrv implicitely
+		return -1;
+	}
+
+	fds[0] = srv_fd;
+	fds[1] = client_fd;
+	return 0;
 }

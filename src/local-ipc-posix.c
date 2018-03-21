@@ -186,4 +186,16 @@ ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
 	return rsz;
 }
 
+API_EXPORTED
+int mmipc_connected_pair(int fds[2])
+{
+	int rv;
 
+	rv = socketpair(AF_UNIX, SOCK_SEQPACKET, 0, fds);
+	if (rv != 0) {
+		mm_raise_from_errno("Failed to connect to local IPC server");
+		return -1;
+	}
+
+	return 0;
+}
