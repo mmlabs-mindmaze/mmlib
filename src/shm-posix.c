@@ -132,7 +132,7 @@ ssize_t mapping_list_remove_entry(struct mapping_list* list, void* ptr)
 {
 	int i;
 	bool found;
-	size_t mapping_size;
+	size_t mapping_size = -1;
 	struct map_entry* entries;
 
 	pthread_mutex_lock(&list->mtx);
