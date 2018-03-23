@@ -229,7 +229,7 @@ void reset_diffs(void)
  * to the mmtic() and mmtoc() functions.
  */
 static
-void estimate_toc_overhead()
+void estimate_toc_overhead(void)
 {
 	int i;
 
