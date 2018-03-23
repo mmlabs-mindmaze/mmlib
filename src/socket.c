@@ -21,6 +21,8 @@ int create_connected_socket(const char* service, const char *host, int port)
 	struct sockaddr_in* addrin;
 	struct mm_error_state errstate;
 
+	fd = -1;
+
 	// Name resolution
 	if (mm_getaddrinfo(host, service, &hints, &res))
 		return -1;
