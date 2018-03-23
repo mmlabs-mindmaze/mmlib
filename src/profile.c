@@ -524,7 +524,7 @@ int format_result_line(int ncol, int num_points, int v, int unit_index,
 static
 int full_mm_write(int fd, const void* buf, size_t len)
 {
-	const void* cbuf = buf;
+	const char* cbuf = buf;
 	ssize_t rsz;
 
 	while (len) {
