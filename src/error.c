@@ -131,7 +131,7 @@ int mmstrerror_r(int errnum, char *buf, size_t buflen)
  ******************************************************************/
 
 struct error_info {
-	bool ignore_error;      //< if true, new errors do not set thread error state
+	int ignore_error;      //< if true, new errors do not set thread error state
 	int errnum;             //< error class (standard and mindmaze errno value)
 	char extended_id[64];   //< message to display to end user if has not been caught before
 	char module[32];        //< module that has generated the error
