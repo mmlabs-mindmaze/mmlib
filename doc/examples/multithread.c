@@ -144,7 +144,7 @@ int main(void)
 	for (i = 0; i < NUM_THREAD; i++)
 		mmthr_join(thid[i], NULL);
 
-	printf("result string:\%s\n", shared.text);
+	printf("result string:%s\n", shared.text);
 	return EXIT_SUCCESS;
 }
 

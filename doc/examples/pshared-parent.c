@@ -202,7 +202,7 @@ exit:
 	if (exitcode == EXIT_FAILURE)
 		mm_print_lasterror("pshared-parent failed");
 	else
-		printf("result string:\%s\n", psh_data->text);
+		printf("result string:%s\n", psh_data->text);
 
 	mm_close(shm_fd);
 	mm_unmap(psh_data);
