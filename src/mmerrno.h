@@ -259,14 +259,14 @@ MMLIB_API void mm_print_lasterror(const char* info, ...);
  *
  * Return: the error number (0 if no error has been set in the thread)
  */
-MMLIB_API int mm_get_lasterror_number();
+MMLIB_API int mm_get_lasterror_number(void);
 
 /**
  * mm_get_lasterror_desc() - get error description of last error in thread
  *
  * Return: the error description ("" if no error)
  */
-MMLIB_API const char* mm_get_lasterror_desc();
+MMLIB_API const char* mm_get_lasterror_desc(void);
 
 /**
  * mm_get_lasterror_location() - get file location of last error in the thread
@@ -274,7 +274,7 @@ MMLIB_API const char* mm_get_lasterror_desc();
  * Return: the file location that is at the origin of the error in the format
  * "filename:linenum" ("" if no error)
  */
-MMLIB_API const char* mm_get_lasterror_location();
+MMLIB_API const char* mm_get_lasterror_location(void);
 
 /**
  * mm_get_lasterror_extid() - get error extended id of last error in the thread
@@ -291,14 +291,14 @@ MMLIB_API const char* mm_get_lasterror_location();
  * Return: the error extended id if one has been set by the last error, NULL
  * otherwise.
  */
-MMLIB_API const char* mm_get_lasterror_extid();
+MMLIB_API const char* mm_get_lasterror_extid(void);
 
 /**
  * mm_get_lasterror_module() - module at the source the last error in the thread
  *
  * Return: the module name that is at the origin of the error ("" if no error)
  */
-MMLIB_API const char* mm_get_lasterror_module();
+MMLIB_API const char* mm_get_lasterror_module(void);
 
 #ifdef __cplusplus
 }
