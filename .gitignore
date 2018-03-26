@@ -19,6 +19,7 @@ Makefile
 Makefile.in
 .deps
 INSTALL
+ABOUT-NLS
 .dirstamp
 
 autom4te.cache/*

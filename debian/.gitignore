@@ -2,6 +2,11 @@
 autoreconf.after
 autoreconf.before
 debhelper-build-stamp
+*.substvars
+files
+libmmlib-dev/
+libmmlib0-dbg/
+libmmlib0/
 
 .debhelper/
 tmp/
