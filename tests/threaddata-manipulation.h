@@ -39,8 +39,8 @@ struct notif_data {
 	mmthr_cond_t cv2;
 };
 
-void run_write_shared_data(struct shared_write_data* shdata);
-void run_notif_data(struct notif_data* ndata);
-void run_robust_mutex_write_data(struct robust_mutex_write_data* rdata);
+intptr_t run_write_shared_data(struct shared_write_data* shdata);
+intptr_t run_notif_data(struct notif_data* ndata);
+intptr_t run_robust_mutex_write_data(struct robust_mutex_write_data* rdata);
 
 #endif

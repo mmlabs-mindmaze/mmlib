@@ -63,8 +63,8 @@ bool touch_data(int64_t* data, int64_t tid, bool do_sleep)
  * shared value is detect while touch the data, it means the mutex failed to
  * protect and the test fails (reported in @shdata->failed).
  */
-LOCAL_SYMBOL
-void run_write_shared_data(struct shared_write_data* shdata)
+API_EXPORTED
+intptr_t run_write_shared_data(struct shared_write_data* shdata)
 {
 	int i;
 	int num_iter = shdata->num_iteration;
@@ -86,11 +86,13 @@ void run_write_shared_data(struct shared_write_data* shdata)
 	}
 
 	atomic_fetch_sub_i64(&shdata->num_runner_remaining, 1);
+
+	return 0;
 }
 
 
-LOCAL_SYMBOL
-void run_notif_data(struct notif_data* ndata)
+API_EXPORTED
+intptr_t run_notif_data(struct notif_data* ndata)
 {
 	mmthr_mtx_lock(&ndata->mutex);
 
@@ -107,11 +109,13 @@ void run_notif_data(struct notif_data* ndata)
 
 	ndata->numquit += 1;
 	mmthr_mtx_unlock(&ndata->mutex);
+
+	return 0;
 }
 
 
-LOCAL_SYMBOL
-void run_robust_mutex_write_data(struct robust_mutex_write_data* rdata)
+API_EXPORTED
+intptr_t run_robust_mutex_write_data(struct robust_mutex_write_data* rdata)
 {
 	int r, iter;
 	mmthr_mtx_t* mtx = &rdata->mutex;
@@ -121,7 +125,7 @@ void run_robust_mutex_write_data(struct robust_mutex_write_data* rdata)
 		rdata->detected_iter_after_crash = rdata->iter_finished;
 		mmthr_mtx_consistent(mtx);
 	} else if (r != 0) {
-		return;
+		return -1;
 	}
 
 	iter = rdata->iter++;
@@ -136,4 +140,6 @@ void run_robust_mutex_write_data(struct robust_mutex_write_data* rdata)
 	rdata->iter_finished++;
 
 	mmthr_mtx_unlock(mtx);
+
+	return 0;
 }
