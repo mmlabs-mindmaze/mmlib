@@ -4,8 +4,9 @@ Priority: extra
 Maintainer: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
 Build-Depends: debhelper (>= 9), dh-autoreconf,
  pkg-config, gnulib, libltdl-dev, gettext, check
-Standards-Version: 3.9.3
-Vcs-Git: gitolite:mmlib.git
+Standards-Version: 3.9.8
+Vcs-Git: https://intranet.mindmaze.ch/bitbucket/scm/mmlab/mmlib.git
+Vcs-browser:  https://intranet.mindmaze.ch/bitbucket/scm/mmlab/mmlib.git
 Homepage: http://intranet.mindmaze.ch
 
 Package: libmmlib0

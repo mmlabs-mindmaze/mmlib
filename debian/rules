@@ -30,4 +30,4 @@ override_dh_installdocs:
 	dh_installdocs --link-doc=libmmlib0
 
 override_dh_install:
-	dh_install -X.la -Xmmlicense.1 --fail-missing
+	dh_install -X.la --fail-missing
