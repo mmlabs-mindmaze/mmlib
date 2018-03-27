@@ -40,7 +40,7 @@ libmmlib_la_SOURCES = \
 	mmargparse.h argparse.c \
 	mmtime.h time.c \
 	mmsysio.h \
-	file.c \
+	file.c file-internal.h \
 	socket.c \
 	mmthread.h \
 	mmdlfcn.h dlfcn.c \

@@ -12,8 +12,12 @@
 #include "mmsysio.h"
 #include "mmerrno.h"
 #include "mmlib.h"
+#include "error-internal.h"
+#include "file-internal.h"
 #include "utils-win32.h"
+
 #include <windows.h>
+#include <direct.h>
 #include <stdio.h>
 #include <uchar.h>
 
@@ -22,6 +26,13 @@
 #ifndef SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
 #define SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE 0x02
 #endif
+
+struct mm_dirstream {
+	HANDLE hdir;
+	int find_first_done;       /* flag specifying the folder has been though FindFirstFile() */
+	struct mm_dirent * dirent;
+	char dirname[];
+};
 
 static int win32_temp_path_len;
 static char16_t win32_temp_path[(MAX_PATH + 1)];
@@ -281,7 +292,6 @@ ssize_t msvcrt_write(int fd, const void* buf, size_t nbyte)
 API_EXPORTED
 int mm_open(const char* path, int oflag, int mode)
 {
-	(void)mode;
 	HANDLE hnd;
 	int fd, fdinfo;
 	struct w32_create_file_options opts;
@@ -475,7 +485,7 @@ int mm_pipe(int pipefd[2])
 	return 0;
 }
 
-static inline
+static
 const char16_t * win32_basename(const char16_t * path)
 {
 	const char16_t * c = path + wcslen(path) - 1;
@@ -696,4 +706,386 @@ int mm_symlink(const char* oldpath, const char* newpath)
 	return retval;
 }
 
+API_EXPORTED
+int mm_chdir(const char* path)
+{
+	int rv, path_u16_len;
+	char16_t* path_u16;
 
+	path_u16_len = get_utf16_buffer_len_from_utf8(path);
+	if (path_u16_len < 0)
+		return mm_raise_from_w32err("Invalid UTF-8 path");
+
+	path_u16 = mm_malloca(path_u16_len * sizeof(*path_u16));
+	if (path_u16 == NULL)
+		return mm_raise_from_w32err("Failed to alloc required memory!");
+	conv_utf8_to_utf16(path_u16, path_u16_len, path);
+
+	rv = _wchdir(path_u16);
+
+	mm_freea(path_u16);
+
+	if (rv != 0)
+		return mm_raise_from_errno("chdir(%s) failed", path);
+
+	return rv;
+}
+
+API_EXPORTED
+int mm_rmdir(const char* path)
+{
+	int rv, path_u16_len;
+	char16_t* path_u16;
+
+	path_u16_len = get_utf16_buffer_len_from_utf8(path);
+	if (path_u16_len < 0)
+		return mm_raise_from_w32err("Invalid UTF-8 path");
+
+	path_u16 = mm_malloca(path_u16_len * sizeof(*path_u16));
+	if (path_u16 == NULL)
+		return mm_raise_from_w32err("Failed to alloc required memory!");
+	conv_utf8_to_utf16(path_u16, path_u16_len, path);
+
+	rv = _wrmdir(path_u16);
+
+	mm_freea(path_u16);
+
+	if (rv != 0)
+		return mm_raise_from_errno("rmdir(%s) failed", path);
+
+	return rv;
+}
+
+/*
+ * Take care: FILE_ATTRIBUTE_ARCHIVE can be added to almost any type of file
+ * here we only consider it if left alone, and then consider it a regular file
+ */
+static
+int translate_filetype(DWORD type)
+{
+	if (type & FILE_ATTRIBUTE_DIRECTORY) {
+		return MM_DT_DIR;
+	} else if (type & FILE_ATTRIBUTE_REPARSE_POINT) {
+		return MM_DT_LNK;
+	} else if ((type & FILE_ATTRIBUTE_NORMAL)
+			|| (type & FILE_ATTRIBUTE_ARCHIVE)) {
+		return MM_DT_REG;
+	} else {
+		return MM_DT_UNKNOWN;
+	}
+}
+
+static
+int win32_unlinkat(const char * prefix, const char * name, int type)
+{
+	int rv;
+	int len;
+	char * path;
+
+	/* path + "/" + name + "\0" */
+	len = strlen(prefix) + 1 + strlen(name) + 1;
+	path = mm_malloca(len);
+	*path = '\0';
+	strcat(path, prefix);
+	strcat(path, "/");
+	strcat(path, name);
+
+	if (type == MM_DT_DIR)
+		rv = mm_rmdir(path);
+	else
+		rv = mm_unlink(path);
+
+	mm_freea(path);
+	return rv;
+}
+
+#define RECURSION_MAX 100
+
+/**
+ * mm_remove_rec() - internal helper to recursively clean given folder
+ * @prefix:        tracks the relative prefix path from the original callpoint
+ * @d:             pointer to the current MMDIR structure to clean
+ * @flags:         option flag to return on error
+ * @rec_lvl:       maximum recursion level
+ *
+ * Many error return values are *explicitely* skipped.
+ * Since this is a recursive removal, we should not stop when we encounter
+ * a forbidden file or folder. This except if the @flag contains MM_FAILONERROR.
+ *
+ * Return: 0 on success, -1 on error
+ */
+static
+int mm_remove_rec(const char * prefix, MMDIR * d, int flags, int rec_lvl)
+{
+	int rv, status;
+	unsigned int type;
+	MMDIR * newdir;
+	const struct mm_dirent * dp;
+
+	if (UNLIKELY(rec_lvl < 0))
+		return mm_raise_error(EOVERFLOW, "Too many levels of recurion");
+
+	while ((dp = mm_readdir(d, &status)) != NULL)
+	{
+		if (status != 0)
+			return -1;
+
+		type = d->dirent->type;
+		if (type > 0 && (flags & type) == 0)
+			continue;  // only consider filtered files
+
+		/* skip "." and ".." directories */
+		if (is_wildcard_directory(d->dirent->name))
+			continue;
+
+		/* try removing the file or folder */
+		if (type == MM_DT_DIR) {
+			/* remove the inside of the folder */
+			int len;
+			char * newdir_path;
+
+			/* newdir_path + "/" + name + "\0" */
+			len = strlen(prefix) + 1 + strlen(d->dirent->name) + 1;
+			newdir_path = mm_malloca(len);
+			if (newdir_path == NULL)
+				return -1;
+			*newdir_path = '\0';
+			strcat(newdir_path, prefix);
+			strcat(newdir_path, "/");
+			strcat(newdir_path, d->dirent->name);
+			newdir = mm_opendir(newdir_path);
+
+			if (newdir == NULL) {
+				if (flags & MM_FAILONERROR) {
+					mm_freea(newdir_path);
+					return -1;
+				} else {
+					continue;
+				}
+			}
+			rv = mm_remove_rec(newdir_path, newdir, flags, rec_lvl - 1);
+			mm_freea(newdir_path);
+			mm_closedir(newdir);
+			if (rv != 0 && (flags & MM_FAILONERROR))
+				return -1;
+
+			 /* try to remove the folder again
+			  * it MAY have been cleansed by the recursive remove call */
+			(void) win32_unlinkat(prefix, d->dirent->name, type);
+		}
+
+		rv = win32_unlinkat(prefix, d->dirent->name, type);
+		if (rv != 0 && (flags & MM_FAILONERROR))
+			return -1;
+	}
+
+	if (GetLastError() ==  ERROR_NO_MORE_FILES)
+		return 0;
+
+	return -1;
+}
+
+API_EXPORTED
+int mm_remove(const char* path, int flags)
+{
+	int rv, error_flags;
+	MMDIR * dir;
+	int type = -1;
+	DWORD attrs;
+
+	attrs = GetFileAttributes(path);
+	if (attrs != INVALID_FILE_ATTRIBUTES)
+		type = translate_filetype(attrs);
+
+	if (type < 0)
+		return mm_raise_from_w32err("unable to get %s filetype", path);
+
+	if (flags & MM_RECURSIVE) {
+		flags |= MM_DT_DIR;
+		if (type == MM_DT_DIR) {
+			dir = mm_opendir(path);
+
+			error_flags = mm_error_set_flags(MM_ERROR_NOLOG, MM_ERROR_NOLOG);
+			rv = mm_remove_rec(path, dir, flags, RECURSION_MAX);
+			mm_error_set_flags(error_flags, MM_ERROR_ALL);
+			if (rv != 0 && !(flags & MM_FAILONERROR)) {
+				return mm_raise_from_errno("recursive mm_remove(%s) failed", path);
+			}
+			return rv;
+		}
+	}
+
+	if ((flags & type) == 0)
+		return mm_raise_error(EPERM, "failed to remove %s: "
+				"invalid type", path);
+
+	if (type == MM_DT_DIR)
+		return mm_rmdir(path);
+	else
+		return mm_unlink(path);
+}
+
+/**
+ * win32_find_file() - helper to handle the conversion between utf8 and 16
+ * @dir:    pointer to a MMDIR structure
+ *
+ * NOTE: windows Prototype are:
+ *   HANDLE FindFirstFileW(path, ...)
+ *   bool FindFirstFileW(HANDLE, ...)
+ *
+ * This function hides the difference by always returning a HANDLE like FindFirstFile()
+ * and storing the HANDLE and path within the MMDIR structure.
+ *
+ * Return: 0 on success, -1 on error
+ * The caller should call GetLastError() and investigate the issue itself
+ *
+ */
+static
+int win32_find_file(MMDIR * dir)
+{
+	size_t reclen, namelen;
+	int path_u16_len;
+	char16_t* path_u16;
+	WIN32_FIND_DATAW find_dataw;
+	HANDLE hdir;
+
+	if (dir == NULL) {
+		mm_raise_error(EINVAL, "Does not accept NULL arguments");
+		return -1;
+	}
+
+	path_u16_len = get_utf16_buffer_len_from_utf8(dir->dirname);
+	if (path_u16_len < 0) {
+		 mm_raise_from_w32err("Invalid UTF-8 path");
+		return -1;
+	}
+
+	path_u16 = mm_malloca(path_u16_len * sizeof(*path_u16));
+	if (path_u16 == NULL) {
+		mm_raise_from_w32err("Failed to alloc required memory!");
+		return -1;
+	}
+	conv_utf8_to_utf16(path_u16, path_u16_len, dir->dirname);
+
+	if (!dir->find_first_done) {
+		hdir = dir->hdir = FindFirstFileW(path_u16, &find_dataw);
+		dir->find_first_done = 1;
+	} else {
+		if(!FindNextFileW(dir->hdir, &find_dataw))
+			hdir = INVALID_HANDLE_VALUE;
+		else
+			hdir = dir->hdir;
+	}
+
+	mm_freea(path_u16);
+
+	/* do not copy the result to the dirent structure
+	 * let the caller check the errors */
+	if (hdir == INVALID_HANDLE_VALUE)
+		return -1;
+
+	namelen = get_utf8_buffer_len_from_utf16(find_dataw.cFileName);
+	reclen = sizeof(*dir->dirent) + namelen;
+	if (dir->dirent == NULL || dir->dirent->reclen != reclen) {
+		void * tmp = realloc(dir->dirent, reclen);
+		if (tmp == NULL) {
+			mm_raise_from_errno("win32_find_file() failed to alloc the required memory");
+			return -1;
+		}
+		dir->dirent = tmp;
+		dir->dirent->reclen = reclen;
+	}
+	dir->dirent->type = translate_filetype(find_dataw.dwFileAttributes);
+	conv_utf16_to_utf8(dir->dirent->name, namelen, find_dataw.cFileName);
+
+	return 0;
+}
+
+API_EXPORTED
+MMDIR * mm_opendir(const char* path)
+{
+	int len;
+	MMDIR * d;
+
+	len = strlen(path) + 3;  // concat with "/*\0"
+	d = malloc(sizeof(*d) + len);
+	if (d == NULL)
+		goto error;
+	
+	*d = (MMDIR) { .hdir = INVALID_HANDLE_VALUE };
+	strncpy(d->dirname, path, len);
+	strcat(d->dirname, "/*");
+
+	/* call FindFirstFile() to ensure that the given path
+	 * is meaningfull, and to keep ithe folder opened */
+	if(win32_find_file(d))
+		goto error;
+
+	return d;
+
+error:
+	mm_raise_from_errno("opendir(%s) failed", path);
+	if (d != NULL) {
+		free(d->dirname);
+		free(d->dirent);
+	}
+	free(d);
+	return NULL;
+}
+
+API_EXPORTED
+void mm_closedir(MMDIR* dir)
+{
+	int rv;
+
+	if (dir == NULL)
+		return;
+
+	rv = FindClose(dir->hdir);
+	free(dir->dirent);
+	free(dir);
+
+	/* ignore ERROR_NO_MORE_FILES error:
+	 * we don't want to raise an error when closing a folder after
+	 * having gone through it with readdir() */
+	if (rv != 0 && GetLastError() != ERROR_NO_MORE_FILES)
+		mm_raise_from_errno("closedir() failed");
+}
+
+API_EXPORTED
+void mm_rewinddir(MMDIR* dir)
+{
+	if (dir == NULL) {
+		mm_raise_error(EINVAL, "Does not accept NULL arguments");
+		return;
+	}
+
+	FindClose(dir->hdir);
+	win32_find_file (dir);
+}
+
+API_EXPORTED
+const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
+{
+	if (d == NULL) {
+		if (status != NULL)
+			*status = -1;
+		mm_raise_error(EINVAL, "Does not accept NULL arguments");
+		return NULL;
+	}
+
+	if (status != NULL)
+		*status = 0;
+
+	if (win32_find_file(d)) {
+		if (GetLastError() ==  ERROR_NO_MORE_FILES)
+			return NULL;
+
+		if (status != NULL)
+			*status = -1;
+		mm_raise_from_errno("readdir() failed to find next file");
+		return NULL;
+	}
+
+	return d->dirent;
+}

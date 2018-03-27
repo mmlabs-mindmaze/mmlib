@@ -9,7 +9,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -121,10 +120,24 @@ extern "C" {
 #define R_OK 0x04
 #endif
 
-#endif
+#endif /* _WIN32 */
+
+/* file types returned when scanning a directory */
+#define MM_DT_UNKNOWN 0
+#define MM_DT_FIFO (1 << 1)
+#define MM_DT_CHR  (1 << 2)
+#define MM_DT_BLK  (1 << 3)
+#define MM_DT_DIR  (1 << 4)
+#define MM_DT_REG  (1 << 5)
+#define MM_DT_LNK  (1 << 6)
+#define MM_DT_SOCK (1 << 7)
+#define MM_DT_ANY  (0XFF)
+
+#define MM_RECURSIVE    (1 << 31)
+#define MM_FAILONERROR  (1 << 30)
 
 struct mm_stat {
-	int mode;
+int mode;
 	int nlink;
 	mm_off_t filesize;
 	time_t ctime;
@@ -506,7 +519,7 @@ MMLIB_API int mm_symlink(const char* oldpath, const char* newpath);
  * creation mask.
  *
  * The function will fail if the parent directory does not exist unless @flags
- * contains MM_CREATE_RECURSIVE which is this case, the function will try to
+ * contains MM_RECURSIVE which is this case, the function will try to
  * recursively create the missing parent directories (using the file
  * permission).
  *
@@ -530,29 +543,52 @@ MMLIB_API int mm_mkdir(const char* path, int mode, int flags);
 MMLIB_API int mm_chdir(const char* path);
 
 
+/**
+ * mm_rmdir() - remove a directory
+ * @path:       path to the directory to remove
+ *
+ * The mm_rmdir() function removes the directory named by the pathname pointed
+ * to by the @path argument. It only works on empty directories.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
+MMLIB_API int mm_rmdir(const char* path);
+
+
+/**
+ * mm_remove() - remove a file if of type authorized in flag list
+ * @path:       path to the directory to remove
+ * @types:      bitflag of authorized filetypes that can be removed
+ *              and removal option
+ *
+ * The mm_remove() function removes a file if its type is authorized in given
+ * type flag argument. It also can remove files recursively.
+ *
+ * The @flag express whether the call is recursive and the recursivity behavior.
+ * If the MM_RECURSIVE flag is set, then the call will be recursive.
+ * Additionally, if MM_FAILONERROR is set, the removal operation will stop on
+ * the first failure it will encounter. Otherwise, it will ignore all the errors
+ * on any file or folder, and only return whether the call could be completed
+ * with full success, or any number of possible error.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
+MMLIB_API int mm_remove(const char* path, int flags);
+
+
 /**************************************************************************
  *                      Directory navigation                              *
  **************************************************************************/
 typedef struct mm_dirstream MMDIR;
 
-#define MM_DT_UNKNOWN   0x00
-#define MM_DT_FIFO      0x01
-#define MM_DT_CHR       0x02
-#define MM_DT_BLK       0x03
-#define MM_DT_DIR       0x04
-#define MM_DT_REG       0x05
-#define MM_DT_LNK       0x05
-#define MM_DT_SOCK      0x06
-
-
 struct mm_dirent {
-	size_t reclen;
-	unsigned char type;
-	char name[];
+	size_t reclen;  /* this record length */
+	int type;       /* file type (see above) */
+	int id;         /* reserved for later use */
+	char name[];    /* Null-terminated filename */
 };
-
-#define MM_CREATE_RECURSIVE	0x000000001
-
 
 /**
  * mm_opendir() - open a directory stream
@@ -595,11 +631,12 @@ MMLIB_API void mm_rewinddir(MMDIR* dir);
 /**
  * mm_readdir() - read current entry from directory stream and advance it
  * @dir:        directory stream to read
+ * @status:     if not NULL, will contain whether readdir returned on error or end of dir
  *
  * The type MMDIR represents a directory stream, which is an ordered sequence
  * of all the directory entries in a particular directory. Directory entries
- * represent files; files may be removed from a directory or added to a
- * directory asynchronously to the operation of mm_readdir().
+ * present the files they contain, which may be added or removed from it
+ * asynchronously to the operation of mm_readdir().
  *
  * The mm_readdir() function returns a pointer to a structure representing the
  * directory entry at the current position in the directory stream specified by
@@ -608,10 +645,16 @@ MMLIB_API void mm_rewinddir(MMDIR* dir);
  * argument. It returns a NULL pointer upon reaching the end of the directory
  * stream.
  *
+ * The @status argument is optional. It can be provided to gather information on
+ * why the call to mm_dirent() returned NULL. Most of the time, this will happen
+ * on end-of-dir, in which case status will be 0. However this is not always 
+ * the case - eg. if a required internal allocation fails - and then status
+ * is filled with a negative value. 
+ *
  * Return: pointer to the file entry if directory stream has not reached the
  * end. NULL otherwise
  */
-MMLIB_API const struct mm_dirent* mm_readdir(MMDIR* dir);
+MMLIB_API const struct mm_dirent* mm_readdir(MMDIR* dir, int * status);
 
 
 /**************************************************************************

@@ -108,6 +108,7 @@ testapi_tap_SOURCES = \
 	ipc-api-tests.c \
 	ipc-api-tests-exported.c \
 	ipc-api-tests-exported.h \
+	dirtests.c \
 	$(eol)
 
 testapi_tap_LDADD = \
