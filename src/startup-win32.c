@@ -216,34 +216,34 @@ int setup_argv_utf8(char*** p_argv)
  * DOC: Supporting UTF-8 argument in main() in Windows
  *
  * Rationale:
- * Windows support natively unicode, however only through UTF-16 which is the
+ * Windows support unicode natively, however only through UTF-16 which is the
  * native format of string in NT kernel. When a *A() variant of an WINAPI
- * function is called, the Win32 subsystem transform the char* string into
+ * function is called, the Win32 subsystem transforms the char* string into
  * UTF-16 (with the WHAR type) using the active codepage (accessible through
- * GetACP()) and make a kernel syscall. Now while it exists a UTF-8 codepage
+ * GetACP()) and makes a kernel syscall. Now while it exists a UTF-8 codepage
  * (CP_UTF8, 65001), it cannot be set as active codepage. If attempted, this
- * provokes various crash making the system unusable (I've heard someone had to
- * revert back to a previous restore point). This codepage can only be used as
- * argument of MultiBytetoWideChar() and WideCharToMultiByte() function. Since
- * this issue is known for more than 10-15 years and Microsoft has never shown
- * any will to fix it, we must assume this will remain for the lifetime of
- * Windows.
+ * provokes various crashes making the system unusable (I've heard someone had
+ * to revert back to a previous restore point). This codepage can only be used
+ * as argument of MultiBytetoWideChar() and WideCharToMultiByte() functions.
+ * Since this issue has been known for more than 10-15 years and Microsoft has
+ * never shown any will to fix it, we must assume this will remain for the
+ * lifetime of Windows.
  *
- * For this reason, if we want to reasonably support UTF-8 in argument array
+ * For this reason, if we want to reasonably support UTF-8 as argument array
  * when spawning a new process or in a new executable (ie, in main, not the
- * unportable wmain()), we have to do the conversion by our selves. For the
+ * unportable wmain()), we have to do the conversion ourself. For the
  * record, most (if not all) other OS support UTF-8 in their syscall (and it is
- * no wonder why given the advantages it brings over UTF-16).
+ * no wonder, given the advantages it brings over UTF-16).
  *
  * How it works:
  * As you may already know, main() is not real the entry function of an
  * executable. Usually the OS loader setup the dynamic libraries in the
- * userland address space and call the real entry point which will initial the
- * C runtime (CRT) and do the actual call to main after that. The CRT
- * initialization bit usually appear as static library or directly has object
+ * userland address space and call the real entry point which will initialize
+ * the C runtime (CRT) and do the actual call to main after that. The CRT
+ * initialization bit usually appears as static library or directly as object
  * files (or both) linked with the actual executable. Those init bits are of
  * course CRT and compiler dependent, however the CRT init bits calls function
- * of the CRT which is a dynamic library with known exported symbol and which
+ * of the CRT which are a dynamic library with known exported symbol and which
  * are stable over versions. We can use this fact to override certain behavior
  * of the CRT initialization.
  *
@@ -274,6 +274,10 @@ int setup_argv_utf8(char*** p_argv)
  * so that the CRT init bits remain the same, so the previous case is still
  * applicable for them.
  *
+ * NOTE: Do not use it directly in user code. This function is exported for the
+ * sole purpose of overriding the function used in mingw64 CRT init code
+ * (exported by msvcrt.dll or by their wrapper for ucrtbase.dll).
+ *
  * In conclusion, by ensuring that mmlib export __getmainargs() and
  * _get_startup_argv_mode(), which will both initialize the actual UTF-8
  * argument array, we can ensure that any executable linked *directly* with
@@ -293,10 +297,6 @@ int setup_argv_utf8(char*** p_argv)
  * suitable to be passed to main(). Contrary to what is done in msvcrt.dll,
  * the argument are converted from GetCommandLineW() (ie in UTF-16) so that
  * the returned argument strings holds unicode string in UTF-8.
- *
- * NOTE: Do not use it directly in user code. This function is exported for the
- * sole purpose of overriding the function used in mingw64 CRT init code
- * (exported by msvcrt.dll or by their wrapper for ucrtbase.dll).
  *
  * Return: 0 in case of success, -1 otherwise
  */
