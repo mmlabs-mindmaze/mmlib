@@ -664,12 +664,12 @@ struct mm_remap_fd {
  * mm_spawn() two reference of the same file will exist and the underlying
  * file will be actually closed when all file descriptor  referencing it
  * will be closed. The @fd_map array is processed sequentially so a mapping
- * in the first element can be overrided in the next elements. If an element
+ * in the first element can be overridden in the next elements. If an element
  * in @fd_map has a &mm_remap_fd.parent_fd field set to -1, it means that
  * the corresponding @fd_map has a &mm_remap_fd.child_fd must not opened in
  * the child process.
  *
- * For conveniency, the standard input, output and error are inherited by
+ * For convenience, the standard input, output and error are inherited by
  * default in the child process. If any of those file are meant to be closed
  * or redirected in the child, this can simply be done by adding element in
  * @fd_map that redirect a standard file descriptor in the parent, or close
@@ -796,7 +796,7 @@ MMLIB_API void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags);
  * @addr:       starting address of memory block to unmap
  *
  * Remove a memory mapping previously established. @addr must be NULL or must
- * have been returned by a successfull call to mm_mapfile(). If @addr is NULL,
+ * have been returned by a successful call to mm_mapfile(). If @addr is NULL,
  * mm_unmap() do nothing.
  *
  * Return: 0 in case of success, -1 otherwise with error state set.
@@ -943,7 +943,7 @@ MMLIB_API int mmipc_srv_accept(struct mmipc_srv* srv);
  * mmipc_connect() - connect a client to an IPC server
  * @addr:       path to which the client must connect
  *
- * Client-side conterpart of mmipc_srv_accept(), this functions attempts to
+ * Client-side counterpart of mmipc_srv_accept(), this functions attempts to
  * connect to a server listening to @addr if there are any. If one is found,
  * it allocates a new file descriptor for that connection (the lowest number
  * available). If there are no server listening to @addr, the function will
@@ -993,14 +993,14 @@ MMLIB_API ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg);
  * This function receives a message. The message received is a datagram: if
  * the data received is smaller that requested, the function will return a
  * smaller message and its size will be reported by the return value.
- * Controversely if a message is too long to fit in the supplied buffers in
+ * Controversy if a message is too long to fit in the supplied buffers in
  * @msg->iov, the excess bytes will be discarded and the flag %MSG_TRUNC
  * will be set in @msg->flags.
  *
  * You can receive file descriptors along with the message in @msg->fds and
  * @msg->num_fds fields. Similarly to the data message, if the buffer
  * holding the file descriptor is too small, the files descriptor in excess
- * will be discarded (implicitely closing them, ensuring no descriptor leak to
+ * will be discarded (implicitly closing them, ensuring no descriptor leak to
  * occur) and the flag %MSG_CTRUNC will be set in @msg->flags.
  *
  * Return: the number of bytes received in case of success, -1 otherwise with
@@ -1277,8 +1277,8 @@ MMLIB_API int mm_shutdown(int sockfd, int how);
  * the case of datagram protocol, like UDP). If space is not
  * available at the sending socket to hold the message to be transmitted,
  * mm_send() will block until space is available. In the case of a stream
- * protcol (like TCP), there are possibility that the sent data is actually
- * smaller than requested (for example bue to early interruption because of
+ * protocol (like TCP), there are possibility that the sent data is actually
+ * smaller than requested (for example due to early interruption because of
  * signal delivery).
  *
  * Return: the number of bytes actually sent in case of success, -1
