@@ -49,11 +49,7 @@ static const struct errmsg_entry error_tab[] = {
  *                           Implementation                               *
  *                                                                        *
  **************************************************************************/
-static
-void init_translation(void)  __attribute__ ((constructor));
-
-static
-void init_translation(void)
+MM_CONSTRUCTOR(translation)
 {
 	_domaindir(LOCALEDIR);
 }
