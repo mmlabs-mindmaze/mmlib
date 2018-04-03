@@ -52,6 +52,7 @@ libmmlib_la_CPPFLAGS = \
 	$(eol)
 
 libmmlib_la_LIBADD = \
+	@LTLIBINTL@ \
 	$(MATH_LIB) \
 	$(DL_LIB) \
 	$(eol)
