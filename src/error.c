@@ -15,6 +15,7 @@
 #include <assert.h>
 
 #include "nls-internals.h"
+#include "error-internal.h"
 
 #ifndef thread_local
 #  if defined(__GNUC__)
@@ -131,7 +132,7 @@ int mmstrerror_r(int errnum, char *buf, size_t buflen)
  ******************************************************************/
 
 struct error_info {
-	int ignore_error;      //< if true, new errors do not set thread error state
+	int flags;              //< flags to finetune error handling
 	int errnum;             //< error class (standard and mindmaze errno value)
 	char extended_id[64];   //< message to display to end user if has not been caught before
 	char module[32];        //< module that has generated the error
@@ -143,6 +144,33 @@ struct error_info {
 // info of the last error IN THE THREAD
 static thread_local struct error_info last_error;
 
+/**
+ * mm_error_set_flags() - set the error flags
+ * @flags:                the flags to add
+ * @mask:                 mask applied on the flags
+ *
+ * Possible flags values are MM_ERROR_IGNORE and MM_ERROR_NOLOG.
+ * Additionally, mask can be set to MM_ERROR_ALL.
+ *
+ * For example use previous = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_NOLOG)
+ * to stop logging errors. The previous variable will contain the original
+ * flag variable state, which can then be restored using
+ * mm_error_set_flags(previous, MM_ERROR_NOLOG).
+ *
+ * Return: the previous error_info flags
+ */
+LOCAL_SYMBOL
+int mm_error_set_flags(int flags, int mask)
+{
+	struct error_info* state = &last_error;
+	int previous;
+
+	previous = state->flags;
+	state->flags = (mask & flags) | (~mask & previous);
+
+	return previous;
+}
+
 API_EXPORTED
 int mm_raise_error_vfull(int errnum, const char* module, const char* func,
                         const char* srcfile, int srcline,
@@ -150,6 +178,7 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
                         const char* desc_fmt, va_list args)
 {
 	struct error_info* state;
+	int flags;
 
 	if (!errnum)
 		return 0;
@@ -169,7 +198,7 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
 	state = &last_error;
 
 	// Check that error should not be ignored
-	if (state->ignore_error)
+	if (state->flags & MM_ERROR_IGNORE)
 		return -1;
 
 	// Copy the fields that don't need formatting
@@ -188,13 +217,16 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
 	// module) is not using yet mm_error*
 	errno = errnum;
 
+	if (state->flags & MM_ERROR_NOLOG)
+		return -1;
+
 	// Log error but ignore any error that could occur while logging:
 	// either ways there would be nothing that can be done about it, but
 	// more importantly we do not want to overwrite the error being set
 	// by the user.
-	state->ignore_error = true;
+	flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
 	mmlog_log(MMLOG_ERROR, module, "%s (%s)", state->desc, state->location);
-	state->ignore_error = false;
+	mm_error_set_flags(flags, MM_ERROR_IGNORE);
 
 	return -1;
 }
