@@ -19,6 +19,20 @@
 
 #define NUM_ATTEMPT	256
 
+static int win32_temp_path_len;
+static char16_t win32_temp_path[(MAX_PATH + 1)];
+
+MM_CONSTRUCTOR(win32_temp_path)
+{
+	int rv;
+	rv = GetTempPathW(MAX_PATH, win32_temp_path);
+	if (rv != 0 && rv < MAX_PATH) {
+		win32_temp_path_len = wcslen(win32_temp_path);
+	} else {
+		win32_temp_path[0] = 0;
+		win32_temp_path_len = 0;
+	}
+}
 
 /**
  * mmlib_read() - perform a read operation using local implementation
@@ -457,11 +471,28 @@ int mm_pipe(int pipefd[2])
 	return 0;
 }
 
+static inline
+const char16_t * win32_basename(const char16_t * path)
+{
+	const char16_t * c = path + wcslen(path) - 1;
+
+	/* skip the last chars if they're not a path */
+	while (c > path && (*c == L'/' || *c == L'\\'))
+		c--;
+
+	while (c > path) {
+		if (*c == L'/' || *c == L'\\')
+			return c + 1;
+		c--;
+	}
+	return path;
+}
+
 
 API_EXPORTED
 int mm_unlink(const char* path)
 {
-	int i, path_u16_len, delpath_maxlen, len;
+	int i, path_u16_len, delpath_maxlen, len, exit_value;
 	size_t rename_info_size;
 	HANDLE hnd;
 	FILE_RENAME_INFO* rename_info;
@@ -474,13 +505,16 @@ int mm_unlink(const char* path)
 
 	// Create temporary UTF-16 string from UTF-8 path and open the file
 	// with the DELETE_ON_CLOSE flag
+	path_u16_len += win32_temp_path_len;
 	path_u16 = mm_malloca(path_u16_len*sizeof(*path_u16));
 	conv_utf8_to_utf16(path_u16, path_u16_len, path);
-	hnd = CreateFileW(path_u16, DELETE, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
-			 NULL, OPEN_EXISTING, FILE_FLAG_DELETE_ON_CLOSE, NULL);
-	mm_freea(path_u16);
+	hnd = CreateFileW(path_u16, DELETE,
+	                  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+	                  NULL, OPEN_EXISTING,
+	                  FILE_FLAG_DELETE_ON_CLOSE|FILE_FLAG_OPEN_REPARSE_POINT, NULL);
 
 	if (hnd == INVALID_HANDLE_VALUE) {
+		mm_freea(path_u16);
 		return mm_raise_from_w32err("Cannot access %s for deletion", path);
 	}
 
@@ -498,20 +532,42 @@ int mm_unlink(const char* path)
 	// filename reusable immediately even if the file object is not deleted
 	// immediately (make different rename attempt in order to find a
 	// name that is available)
+
+	exit_value = 0;
+	// try to move to TempPath if possible
+	if (win32_temp_path_len != 0) {
+		for (i = 0; i < NUM_ATTEMPT; i++) {
+			len = swprintf(delpath, delpath_maxlen, L"%s/%s.deleted-%i",
+			               win32_temp_path, win32_basename(path_u16), i);
+			rename_info->FileNameLength = len*sizeof(*delpath);
+
+			if (SetFileInformationByHandle(hnd, FileRenameInfo,
+						rename_info, rename_info_size)) {
+				goto exit;
+			}
+			if (GetLastError() == ERROR_NOT_SAME_DEVICE)
+				break;
+		}
+	}
+
+	// try to rename the file and postfix is as deleted
 	for (i = 0; i < NUM_ATTEMPT; i++) {
 		len = swprintf(delpath, delpath_maxlen, L"%s.deleted-%i", path_u16, i);
 		rename_info->FileNameLength = len*sizeof(*delpath);
 
 		if (SetFileInformationByHandle(hnd, FileRenameInfo,
 		                               rename_info, rename_info_size)) {
-			break;
+			goto exit;
 		}
 	}
 
+	exit_value = -1;
+exit:
+	mm_freea(path_u16);
 	mm_freea(rename_info);
 
 	CloseHandle(hnd);
-	return 0;
+	return exit_value;
 }
 
 
