@@ -2,6 +2,7 @@ Makevars.template
 POTFILES
 Rules-quot
 stamp-po
+Makefile.in.in
 
 *.sed
 *.gmo
