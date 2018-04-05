@@ -19,6 +19,10 @@
 
 #define NUM_ATTEMPT	256
 
+#ifndef SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
+#define SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE 0x02
+#endif
+
 static int win32_temp_path_len;
 static char16_t win32_temp_path[(MAX_PATH + 1)];
 
@@ -658,6 +662,7 @@ int mm_symlink(const char* oldpath, const char* newpath)
 	int oldpath_u16_len, newpath_u16_len;
 	char16_t *oldpath_u16, *newpath_u16;
 	int retval = 0;
+	int err;
 
 	// Get the length (in byte) of the string when converted in UTF-8
 	oldpath_u16_len = get_utf16_buffer_len_from_utf8(oldpath);
@@ -673,7 +678,15 @@ int mm_symlink(const char* oldpath, const char* newpath)
 	conv_utf8_to_utf16(oldpath_u16, oldpath_u16_len, oldpath);
 	conv_utf8_to_utf16(newpath_u16, newpath_u16_len, newpath);
 
-	if (!CreateSymbolicLinkW(newpath_u16, oldpath_u16, 0)) {
+
+	err = CreateSymbolicLinkW(newpath_u16, oldpath_u16,
+			SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE);
+	if (!err && GetLastError() == ERROR_INVALID_PARAMETER) {
+		/* SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE was introduced in 2017-03
+		 * if it is not recognized, try again without it */
+		err = CreateSymbolicLinkW(newpath_u16, oldpath_u16, 0);
+	}
+	if (!err) {
 		mm_raise_from_w32err("CreateSymbolicLinkW(%s, %s) failed", newpath, oldpath);
 		retval = -1;
 	}
