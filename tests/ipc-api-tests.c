@@ -288,100 +288,41 @@ START_TEST(test_file_connected_thr)
 	run_test_core_connected_file(&ctx);
 }
 END_TEST
-START_TEST(test_file_pending_thr)
-{
-	ck_assert(nclients > 0);
 
-	struct ipc_test_ctx ctx = {
-		.nclients = nclients,
-		.run_mode = RUN_AS_THREAD,
-		.shared_object = SHARED_FILE,
-	};
-	run_test_core_pending(&ctx);
-}
-END_TEST
-START_TEST(test_file_pending_proc)
-{
-	ck_assert(nclients > 0);
 
-	struct ipc_test_ctx ctx = {
-		.nclients = nclients,
-		.run_mode = RUN_AS_PROCESS,
-		.shared_object = SHARED_FILE,
-	};
-	run_test_core_pending(&ctx);
-}
-END_TEST
+static
+const struct ipc_test_ctx test_pending_cases[] = {
+	{.run_mode = RUN_AS_THREAD,  .shared_object = SHARED_PIPE},
+	{.run_mode = RUN_AS_PROCESS, .shared_object = SHARED_PIPE},
+	{.run_mode = RUN_AS_THREAD,  .shared_object = SHARED_FILE},
+	{.run_mode = RUN_AS_PROCESS, .shared_object = SHARED_FILE},
+	{.run_mode = RUN_AS_THREAD,  .shared_object = SHARED_MEM},
+	{.run_mode = RUN_AS_PROCESS, .shared_object = SHARED_MEM},
+};
+#define NUM_PENDING_CASE (MM_NELEM(test_pending_cases))
+
 
 /*
- * Test to pass msg and shm file descriptors
- *
  * Create a server
  * Create nclients children, each child connect to ipc server
  * Check the server read the expected pattern (datagram boundaries and order)
- * Parent create a anon shm and pass it to child
+ * Parent create a shared object and pass it to child
  * Children write a pattern, parent assert the pattern
  */
-START_TEST(test_shm_thr)
+START_TEST(test_core_pending)
 {
 	ck_assert(nclients > 0);
 
 	struct ipc_test_ctx ctx = {
 		.nclients = nclients,
-		.run_mode = RUN_AS_THREAD,
-		.shared_object = SHARED_MEM,
+		.run_mode = test_pending_cases[_i].run_mode,
+		.shared_object = test_pending_cases[_i].shared_object,
 	};
 	run_test_core_pending(&ctx);
 }
 END_TEST
 
-START_TEST(test_shm_proc)
-{
-	ck_assert(nclients > 0);
 
-	struct ipc_test_ctx ctx = {
-		.nclients = nclients,
-		.run_mode = RUN_AS_PROCESS,
-		.shared_object = SHARED_MEM,
-	};
-	run_test_core_pending(&ctx);
-}
-END_TEST
-
-/*
- * Test to pass msg and pipe file descriptors
- *
- * Create a server
- * Create nclients children, each child connect to ipc server
- * Check the server read the expected pattern (datagram boundaries and order)
- * Parent create a pipe and pass write end to child
- * Children write a pattern, parent assert the pattern
- */
-START_TEST(test_pipe_thr)
-{
-	ck_assert(nclients > 0);
-
-	struct ipc_test_ctx ctx = {
-		.nclients = nclients,
-		.run_mode = RUN_AS_THREAD,
-		.shared_object = SHARED_PIPE,
-	};
-	run_test_core_pending(&ctx);
-}
-END_TEST
-
-START_TEST(test_pipe_proc)
-{
-	ck_assert(nclients > 0);
-
-	struct ipc_test_ctx ctx = {
-		.nclients = nclients,
-		.run_mode = RUN_AS_PROCESS,
-		.shared_object = SHARED_PIPE,
-	};
-	run_test_core_pending(&ctx);
-}
-END_TEST
 
 LOCAL_SYMBOL
 TCase* create_ipc_tcase(void)
@@ -399,15 +340,7 @@ TCase* create_ipc_tcase(void)
 	tcase_add_test(tc, test_file_connected_thr);
 
 	/* server is up and running before starting the clients */
-	tcase_add_test(tc, test_file_pending_thr);
-	tcase_add_test(tc, test_file_pending_proc);
-
-	/* only test the ipc server in pending scenario for the other
-	 * fd share scenarii */
-	tcase_add_test(tc, test_shm_thr);
-	tcase_add_test(tc, test_shm_proc);
-	tcase_add_test(tc, test_pipe_thr);
-	tcase_add_test(tc, test_pipe_proc);
+	tcase_add_loop_test(tc, test_core_pending, 0, NUM_PENDING_CASE);
 
 	return tc;
 }
