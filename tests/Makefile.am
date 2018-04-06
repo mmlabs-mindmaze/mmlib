@@ -1,5 +1,7 @@
 eol=
 
+clean-local:
+	$(RM) *.gcno *.gcda
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \

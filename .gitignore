@@ -46,6 +46,8 @@ ipc-test-tmp-file-*
 *.unc-backup~
 *.unc-backup.md5~
 *.uncrustify
+*.gcno
+coverage-results/
 
 # usual tmp files
 *.swp
