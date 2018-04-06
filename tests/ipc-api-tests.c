@@ -298,6 +298,8 @@ const struct ipc_test_ctx test_pending_cases[] = {
 	{.run_mode = RUN_AS_PROCESS, .shared_object = SHARED_FILE},
 	{.run_mode = RUN_AS_THREAD,  .shared_object = SHARED_MEM},
 	{.run_mode = RUN_AS_PROCESS, .shared_object = SHARED_MEM},
+	{.run_mode = RUN_AS_THREAD,  .shared_object = SHARED_IPC},
+	{.run_mode = RUN_AS_PROCESS, .shared_object = SHARED_IPC},
 };
 #define NUM_PENDING_CASE (MM_NELEM(test_pending_cases))
 

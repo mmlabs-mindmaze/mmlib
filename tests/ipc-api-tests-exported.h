@@ -12,6 +12,7 @@ enum {
 	SHARED_FILE,
 	SHARED_MEM,
 	SHARED_PIPE,
+	SHARED_IPC,
 };
 
 struct ipc_test_ctx {
@@ -91,6 +92,10 @@ int open_shared_object_of_type(const struct ipc_test_ctx * ctx,
 
 	case SHARED_PIPE:
 		mm_pipe(rvfd);
+		return rvfd[1];
+
+	case SHARED_IPC:
+		mmipc_connected_pair(rvfd);
 		return rvfd[1];
 
 	default:
