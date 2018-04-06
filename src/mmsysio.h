@@ -1525,22 +1525,6 @@ MMLIB_API void mm_freeaddrinfo(struct addrinfo *res);
  */
 MMLIB_API int mm_create_sockclient(const char* uri);
 
-
-/**
- * mm_create_sockserver() - Create a listeing socket bound the address
- * @uri:        URI indicating the listening server
- *
- * This functions resolves URI resource, create a socket, bind to the
- * address and make it listening.  The service, protocol, port, hostname
- * will be parsed from @uri and the resulting socket will be bound the
- * resulting address.
- *
- * Return: a non-negative integer representing the file descriptor in case
- * of success. Otherwise -1 is returned with error state set accordingly.
- */
-MMLIB_API int mm_create_sockserver(const char* uri);
-
-
 #ifdef __cplusplus
 }
 #endif
