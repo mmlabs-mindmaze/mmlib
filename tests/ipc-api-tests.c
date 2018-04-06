@@ -235,6 +235,7 @@ run_test_core_connected_file(struct ipc_test_ctx * ctx)
 	test_teardown();
 }
 
+
 static void
 run_test_core_pending(struct ipc_test_ctx * ctx)
 {
@@ -266,6 +267,39 @@ run_test_core_pending(struct ipc_test_ctx * ctx)
 	/* wait for the server to return, then clean */
 	clean_function(srv_id, RUN_AS_THREAD);
 }
+
+
+/*
+ * Create IPC connected pair and ensure that data communication is really
+ * full duplex
+ */
+#define TEST_STR1 "test string for pair"
+#define TEST_STR2 "second test string for pair"
+START_TEST(full_duplex)
+{
+	int fds[2];
+	ssize_t rsz;
+	char buffer[42];
+
+	ck_assert(mmipc_connected_pair(fds) == 0);
+
+	rsz = mm_write(fds[0], TEST_STR1, sizeof(TEST_STR1));
+	ck_assert_int_eq(rsz, sizeof(TEST_STR1));
+	rsz = mm_write(fds[1], TEST_STR2, sizeof(TEST_STR2));
+	ck_assert_int_eq(rsz, sizeof(TEST_STR2));
+
+	rsz = mm_read(fds[1], buffer, sizeof(buffer));
+	ck_assert_int_eq(rsz, sizeof(TEST_STR1));
+	ck_assert(memcmp(buffer, TEST_STR1, sizeof(TEST_STR1)) == 0);
+
+	rsz = mm_read(fds[0], buffer, sizeof(buffer));
+	ck_assert_int_eq(rsz, sizeof(TEST_STR2));
+	ck_assert(memcmp(buffer, TEST_STR2, sizeof(TEST_STR2)) == 0);
+
+	mm_close(fds[0]);
+	mm_close(fds[1]);
+}
+END_TEST
 
 /*
  * test to pass msg and file descriptors
@@ -325,7 +359,6 @@ START_TEST(test_core_pending)
 END_TEST
 
 
-
 LOCAL_SYMBOL
 TCase* create_ipc_tcase(void)
 {
@@ -335,6 +368,8 @@ TCase* create_ipc_tcase(void)
 
 	tc = tcase_create("ipc");
 	tcase_add_checked_fixture(tc, NULL, test_teardown);
+
+	tcase_add_test(tc, full_duplex);
 
 	/* test the ipc server with both
 	 * connections pending before accept
