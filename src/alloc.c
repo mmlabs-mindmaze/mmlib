@@ -40,7 +40,7 @@ void* mm_aligned_alloc(size_t alignment, size_t size)
 #endif
 
 	if (!ptr) {
-		mm_raise_from_errno("Cannot allocate buffer (alignment=%zi, size=%zi)",
+		mm_raise_from_errno("Cannot allocate buffer (alignment=%zu, size=%zu)",
 		                     alignment, size);
 		return NULL;
 	}
@@ -83,11 +83,17 @@ void* _mm_malloca_on_heap(size_t size)
 	char* ptr;
 	size_t alloc_size;
 
-	// Allocate memory block
+	// Increase allocated size to guarantee alignment requirement
 	alloc_size = size + 2*MM_STK_ALIGN-1;
+	if (alloc_size < size) {
+		mm_raise_error(ENOMEM, "size=%zu is too big", size);
+		return NULL;
+	}
+
+	// Allocate memory block
 	base = malloc(alloc_size);
 	if (!base) {
-		mm_raise_from_errno("malloc(%zi) failed", alloc_size);
+		mm_raise_from_errno("malloc(%zu) failed", alloc_size);
 		return NULL;
 	}
 
