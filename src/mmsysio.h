@@ -20,6 +20,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <poll.h>
 #endif
 
 #include "mmpredefs.h"
@@ -1567,6 +1568,50 @@ MMLIB_API void mm_freeaddrinfo(struct addrinfo *res);
  * of success. Otherwise -1 is returned with error state set accordingly.
  */
 MMLIB_API int mm_create_sockclient(const char* uri);
+
+
+#if defined(_WIN32)
+#  define MM_POLLIN  0x0100
+#  define MM_POLLOUT 0x0010
+#else /*  defined(_WIN32) */
+#  define MM_POLLIN  POLLIN
+#  define MM_POLLOUT POLLOUT
+#endif /* defined(_WIN32) */
+
+#if defined(_WIN32)
+struct mm_pollfd {
+	int   fd;       /* file descriptor  */
+	short events;   /* requested events */
+	short revents;  /* returned events  */
+};
+#else
+#define mm_pollfd pollfd
+#endif
+
+/**
+ * mm_poll() - waits for one of a set of file descriptors to become ready to perform I/O.
+ * @fds           array of struct pollfd. See below.
+ * @nfds          number of @fds passed in argument
+ * @timeout_ms    number of milliseconds that poll() should block waiting
+ *
+ * fd should be a *socket* file descriptor.
+ * if timout_ms is set to 0, the call will return immediatly
+ *                           even if no file descriptors are ready
+ * if timout_ms is negative, the call will block indefinitely
+ *
+ * events contains a mask on trevents with the following values:
+ *   MM_POLLIN   // there is data to read
+ *   MM_POLLOUT  // writing is now possible
+ *
+ * revents will contain the output events flags, a combination of
+ * MM_POLLIN and MM_POLLOUT, or 0 if unset.
+ *
+ * Return:
+ *  * (>0) On success, the number of fds on which an event was raised
+ *  * (=0) zero if poll() returned because the timeout was reached
+ *  * (<0) a negative value on error
+ */
+MMLIB_API int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms);
 
 #ifdef __cplusplus
 }

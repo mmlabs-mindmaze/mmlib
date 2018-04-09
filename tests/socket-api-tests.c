@@ -863,7 +863,30 @@ START_TEST(send_multimsg_on_localhost)
 }
 END_TEST
 
+START_TEST(test_poll_invalid)
+{
+	struct mm_pollfd pollfds = {
+		.fd = -1,
+		.events = MM_POLLIN | MM_POLLOUT,
+	};
 
+	ck_assert(mm_poll(&pollfds, 1, 100) < 0);
+}
+END_TEST
+
+START_TEST(test_poll_simple)
+{
+	struct mm_pollfd pollfds = {
+		.fd = create_server_socket(AF_INET, SOCK_DGRAM, PORT),
+		.events = MM_POLLIN | MM_POLLOUT,
+	};
+
+	ck_assert(pollfds.fd > 0);
+	ck_assert(mm_poll(&pollfds, 1, 100) == 1);
+	ck_assert((pollfds.revents & MM_POLLOUT) != 0);  // can write
+	mm_close(pollfds.fd);
+}
+END_TEST
 
 /**************************************************************************
  *                                                                        *
@@ -893,6 +916,9 @@ TCase* create_socket_tcase(void)
 	tcase_add_loop_test(tc, sendmsg_on_localhost, 0, num_cases);
 	tcase_add_loop_test(tc, recv_multimsg_on_localhost, 0, num_cases);
 	tcase_add_loop_test(tc, send_multimsg_on_localhost, 0, num_cases);
+
+	tcase_add_test(tc, test_poll_invalid);
+	tcase_add_test(tc, test_poll_simple);
 
 	return tc;
 }

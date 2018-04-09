@@ -9,6 +9,9 @@
 #define _GNU_SOURCE
 #endif
 
+#include <unistd.h>
+#include <fcntl.h>
+
 #include "mmsysio.h"
 #include "mmerrno.h"
 
@@ -315,4 +318,36 @@ API_EXPORTED
 void mm_freeaddrinfo(struct addrinfo *res)
 {
 	freeaddrinfo(res);
+}
+
+static
+int is_valid_fd(int fd)
+{
+    return (fcntl(fd, F_GETFL) != -1) || (errno != EBADF);
+}
+
+API_EXPORTED
+int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)
+{
+	int i, rv;
+
+	for (i = 0 ; i < nfds ; i++)
+		if (!is_valid_fd(fds[i].fd))
+			return -1;
+
+	rv = poll(fds, nfds, timeout_ms);
+	if (rv < 0)
+		return mm_raise_from_errno("poll() failed");
+
+	for (i = 0 ; i < nfds ; i++) {
+		/* if an error occurrent within poll() processing the socket
+		 * return it instead of flagging it */
+		if (fds[i].events & (POLLNVAL | POLLERR))
+			return -1;
+
+		/* only return POLLIN and POLLOUT flags */
+		fds[i].events &= (POLLIN | POLLOUT);
+	}
+
+	return rv;
 }

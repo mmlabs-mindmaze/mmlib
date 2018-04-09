@@ -9,6 +9,7 @@
 #define _WIN32_WINNT 0x0600
 #endif
 
+#include "mmlib.h"
 #include "mmsysio.h"
 #include "mmerrno.h"
 #include "mmpredefs.h"
@@ -521,4 +522,44 @@ API_EXPORTED
 void mm_freeaddrinfo(struct addrinfo *res)
 {
 	freeaddrinfo(res);
+}
+
+
+API_EXPORTED
+int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)
+{
+	int i, rv;
+	SOCKET s;
+	struct pollfd * wfds;
+
+	if (check_wsa_init())
+		return -1;
+
+	wfds = mm_malloca(nfds * sizeof(*wfds));
+	if (wfds == NULL)
+		return -1;
+
+	for (i = 0 ; i < nfds ; i++) {
+		if (unwrap_socket_from_fd(&s, fds[i].fd) != 0)
+			return -1;
+		wfds[i] = (struct pollfd) { .fd = s, .events = fds[i].events, };
+	}
+
+	rv = WSAPoll(wfds, nfds, timeout_ms);
+	if (rv < 0)
+		return mm_raise_from_w32err("poll() failed");
+
+	for (i = 0 ; i < nfds ; i++) {
+		/* if an error occurrent within poll() processing the socket
+		 * return it instead of flagging it */
+		if (fds[i].events & (POLLNVAL | POLLERR))
+			return mm_raise_error(ENOMSG, "poll() failed");
+
+		/* only return POLLIN and POLLOUT flags */
+		fds[i].events &= (POLLRDNORM | POLLWRNORM);
+
+		fds[i].revents = wfds[i].revents;
+	}
+
+	return rv;
 }
