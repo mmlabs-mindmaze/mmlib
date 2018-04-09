@@ -6,9 +6,11 @@
 #endif
 
 #include <check.h>
+#include <stdatomic.h>
 
 #include "mmthread.h"
 #include "mmsysio.h"
+#include "mmtime.h"
 #include "mmpredefs.h"
 #include "threaddata-manipulation.h"
 #include "tests-child-proc.h"
@@ -302,6 +304,15 @@ void init_notif_data(struct notif_data* ndata, int mutex_flags)
 
 
 static
+void deinit_notif_data(struct notif_data* ndata)
+{
+	mmthr_mtx_deinit(&ndata->mutex);
+	mmthr_cond_deinit(&ndata->cv1);
+	mmthr_cond_deinit(&ndata->cv2);
+}
+
+
+static
 void do_notif_and_inspect(struct notif_data* ndata, bool do_broadcast,
                           int num_runner)
 {
@@ -364,6 +375,8 @@ void runtest_signal_or_broadcast_thread(int mutex_flags, bool do_broadcast)
 		ck_assert(ndata.done >= 1);
 
 	ck_assert(num_thread == NUM_CONCURRENCY);
+
+	deinit_notif_data(&ndata);
 }
 
 
@@ -411,6 +424,7 @@ void runtest_signal_or_broadcast_process(int mutex_flags, bool do_broadcast)
 
 	value_numquit = ndata->numquit;
 	value_done = ndata->done;
+	deinit_notif_data(ndata);
 
 exit:
 	mm_unmap(map);
@@ -454,6 +468,53 @@ START_TEST(broadcast_pshared_data)
 }
 END_TEST
 
+/**************************************************************************
+ *                                                                        *
+ *                           one-time init tests                          *
+ *                                                                        *
+ **************************************************************************/
+static atomic_int once_val1 = 0;
+static atomic_int once_val2 = 0;
+static mmthr_once_t once = MMTHR_ONCE_INIT;
+
+static
+void one_time_proc(void)
+{
+	int readval;
+
+	readval = atomic_fetch_add(&once_val1, 1);
+	mm_relative_sleep_ms(1);
+	atomic_fetch_add(&once_val2, readval+1);
+}
+
+
+static
+void* once_test_proc(void* data)
+{
+	(void)data;
+
+	mmthr_once(&once, one_time_proc);
+
+	return NULL;
+}
+
+
+START_TEST(concurrent_once)
+{
+	mmthread_t thid[NUM_CONCURRENCY];
+	int i;
+
+	for (i = 0; i < MM_NELEM(thid); i++)
+		ck_assert(mmthr_create(&thid[i], once_test_proc, NULL) == 0);
+
+	for (i = 0; i < MM_NELEM(thid); i++)
+		mmthr_join(thid[i], NULL);
+
+	ck_assert_int_eq(once_val1, 1);
+	ck_assert_int_eq(once_val2, 1);
+}
+END_TEST
+
 
 /**************************************************************************
  *                                                                        *
@@ -474,6 +535,7 @@ TCase* create_thread_tcase(void)
 	tcase_add_loop_test(tc, broadcast_thread_data, 0, NUM_MUTEX_TYPE);
 	tcase_add_loop_test(tc, signal_pshared_data, FIRST_PSHARED_MUTEX_TYPE, NUM_MUTEX_TYPE);
 	tcase_add_loop_test(tc, broadcast_pshared_data, FIRST_PSHARED_MUTEX_TYPE, NUM_MUTEX_TYPE);
+	tcase_add_test(tc, concurrent_once);
 
 	return tc;
 }
