@@ -113,6 +113,28 @@ START_TEST(safe_stack_allocation)
 }
 END_TEST
 
+
+START_TEST(safe_stack_allocation_error)
+{
+#if !defined(__SANITIZE_ADDRESS__)
+	void* ptr;
+	size_t rem_sz;
+	struct mm_error_state errstate;
+
+	mm_save_errorstate(&errstate);
+
+	for (rem_sz = 0; rem_sz < 100*MM_STK_ALIGN; rem_sz++) {
+		ptr = mm_malloca(SIZE_MAX - rem_sz);
+		ck_assert(ptr == NULL);
+		ck_assert(mm_get_lasterror_number() == ENOMEM);
+	}
+
+	mm_set_errorstate(&errstate);
+#endif /* !__SANITIZE_ADDRESS__ */
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -129,6 +151,7 @@ TCase* create_allocation_tcase(void)
 	                    0, MM_NELEM(stack_alloc_sizes));
 	tcase_add_loop_test(tc, safe_stack_allocation,
 	                    0, MM_NELEM(malloca_sizes));
+	tcase_add_test(tc, safe_stack_allocation_error);
 
 	return tc;
 }
