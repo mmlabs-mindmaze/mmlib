@@ -7,9 +7,11 @@
 
 #include <check.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "api-testcases.h"
 #include "mmlib.h"
+#include "mmerrno.h"
 
 #define NUM_ALLOC	30
 
@@ -29,6 +31,38 @@ START_TEST(aligned_heap_allocation)
 			mm_aligned_free(ptr);
 		}
 	}
+}
+END_TEST
+
+
+START_TEST(aligned_heap_allocation_error)
+{
+#if !defined(__SANITIZE_ADDRESS__)
+	void* ptr;
+	size_t align;
+	bool is_pow2;
+	struct mm_error_state errstate;
+
+	mm_save_errorstate(&errstate);
+
+	// Test error if alignment is not power of 2 of pointer size
+	for (align = 0; align < MM_PAGESZ; align++) {
+		is_pow2 = !(align & (align-1));
+		if (align >= sizeof(void*) && is_pow2)
+			continue;
+
+		ptr = mm_aligned_alloc(align, 4*MM_PAGESZ);
+		ck_assert(ptr == NULL);
+		ck_assert(mm_get_lasterror_number() == EINVAL);
+	}
+
+	// Test error is size is too big
+	ptr = mm_aligned_alloc(sizeof(void*), SIZE_MAX);
+	ck_assert(ptr == NULL);
+	ck_assert(mm_get_lasterror_number() == ENOMEM);
+
+	mm_set_errorstate(&errstate);
+#endif /* !__SANITIZE_ADDRESS__ */
 }
 END_TEST
 
@@ -90,6 +124,7 @@ TCase* create_allocation_tcase(void)
 	TCase *tc = tcase_create("allocation");
 
 	tcase_add_test(tc, aligned_heap_allocation);
+	tcase_add_test(tc, aligned_heap_allocation_error);
 	tcase_add_loop_test(tc, aligned_stack_allocation,
 	                    0, MM_NELEM(stack_alloc_sizes));
 	tcase_add_loop_test(tc, safe_stack_allocation,
