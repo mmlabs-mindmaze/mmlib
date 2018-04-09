@@ -380,7 +380,7 @@ int lock_create_cleanup_job(struct lock* lock)
 	struct mutex_cleanup_job* job;
 
 	hnd = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
-	                        PAGE_READWRITE, 0, 4096, NULL);
+	                        PAGE_READWRITE, 0, MM_PAGESZ, NULL);
 	if (hnd == INVALID_HANDLE_VALUE)
 		return -1;
 
@@ -1372,7 +1372,7 @@ HANDLE create_srv_pipe(bool first_instance, SECURITY_ATTRIBUTES* sec_attr)
 	          | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS;
 
 	hnd = CreateNamedPipe(referee_pipename, open_mode, pipe_mode,
-	                      PIPE_UNLIMITED_INSTANCES, 4096, 4096,
+	                      PIPE_UNLIMITED_INSTANCES, MM_PAGESZ, MM_PAGESZ,
 			      SRV_TIMEOUT_MS, sec_attr);
 
 	return hnd;

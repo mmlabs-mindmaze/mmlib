@@ -52,9 +52,9 @@ int _run_function(thread_proc_id * id, intptr_t (*fn)(void*),
 	case RUN_AS_PROCESS:
 		shm_fd = mm_anon_shm();
 		ck_assert(shm_fd != -1);
-		mm_ftruncate(shm_fd, 4096);
+		mm_ftruncate(shm_fd, MM_PAGESZ);
 
-		map = mm_mapfile(shm_fd, 0, 4096, MM_MAP_RDWR|MM_MAP_SHARED);
+		map = mm_mapfile(shm_fd, 0, MM_PAGESZ, MM_MAP_RDWR|MM_MAP_SHARED);
 		ck_assert(map != NULL);
 		memcpy(map, args, argslen);
 

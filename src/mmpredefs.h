@@ -122,4 +122,12 @@
 #define MM_NELEM(arr)	((int)(sizeof(arr)/sizeof(arr[0])))
 
 
+/*
+ * Macros to get the page size
+ * Overload by compiling with -DMM_PAGESZ or by defining it before.
+ */
+#ifndef MM_PAGESZ
+#  define MM_PAGESZ 0x1000
+#endif
+
 #endif

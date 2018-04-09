@@ -21,7 +21,7 @@
 
 #define PIPE_PREFIX	"\\\\.\\pipe\\"
 #define MAX_PIPENAME	256
-#define MAX_DATA_SIZE	4096
+#define MAX_DATA_SIZE	MM_PAGESZ
 #define BUFSIZE		MAX_DATA_SIZE
 #define MAX_ATTEMPTS	16
 

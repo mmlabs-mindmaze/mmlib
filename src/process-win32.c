@@ -539,7 +539,7 @@ int startup_config_allocate_internals(struct startup_config* cfg)
 
 	// Create paging file backed file mapping for passing mmlib related fd info
 	cfg->fd_infos_hmap = CreateFileMapping(INVALID_HANDLE_VALUE, &sa,
-	                                          PAGE_READWRITE, 0, 4096, NULL);
+	                                          PAGE_READWRITE, 0, MM_PAGESZ, NULL);
 	if (cfg->fd_infos_hmap == INVALID_HANDLE_VALUE)
 		return mm_raise_from_w32err("Failed to create file mapping");
 

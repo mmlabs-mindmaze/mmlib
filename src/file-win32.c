@@ -457,7 +457,7 @@ int mm_pipe(int pipefd[2])
 {
 	HANDLE wr_hnd, rd_hnd;
 
-	if (!CreatePipe(&rd_hnd, &wr_hnd, NULL, 64*4096))
+	if (!CreatePipe(&rd_hnd, &wr_hnd, NULL, 16*MM_PAGESZ))
 		return mm_raise_from_w32err("Cannot create pipe");
 
 	if (wrap_handle_into_fd(rd_hnd, &pipefd[0], FD_TYPE_PIPE)) {

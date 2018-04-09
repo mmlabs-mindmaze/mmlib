@@ -20,7 +20,7 @@ START_TEST(aligned_heap_allocation)
 	int i;
 
 	for (i = 1; i < NUM_ALLOC; i++) {
-		for (align = sizeof(void*); align <= 4096; align *= 2) {
+		for (align = sizeof(void*); align <= MM_PAGESZ; align *= 2) {
 			size = i * align;
 			ptr = mm_aligned_alloc(align, size);
 			ck_assert(ptr != NULL);
