@@ -355,17 +355,12 @@ MMDIR * mm_opendir(const char* path)
 API_EXPORTED
 void mm_closedir(MMDIR* dir)
 {
-	int rv;
-
 	if (dir == NULL)
 		return;
 
-	rv = closedir(dir->dir);
+	closedir(dir->dir);
 	free(dir->dirent);
 	free(dir);
-
-	if (rv != 0)
-		mm_raise_from_errno("closedir() failed");
 }
 
 API_EXPORTED

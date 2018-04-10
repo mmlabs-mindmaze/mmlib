@@ -1036,20 +1036,12 @@ error:
 API_EXPORTED
 void mm_closedir(MMDIR* dir)
 {
-	int rv;
-
 	if (dir == NULL)
 		return;
 
-	rv = FindClose(dir->hdir);
+	FindClose(dir->hdir);
 	free(dir->dirent);
 	free(dir);
-
-	/* ignore ERROR_NO_MORE_FILES error:
-	 * we don't want to raise an error when closing a folder after
-	 * having gone through it with readdir() */
-	if (rv != 0 && GetLastError() != ERROR_NO_MORE_FILES)
-		mm_raise_from_errno("closedir() failed");
 }
 
 API_EXPORTED
