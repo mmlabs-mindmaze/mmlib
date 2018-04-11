@@ -28,11 +28,16 @@ struct mmipc_srv* mmipc_srv_create(const char* addr)
 	struct sockaddr_un address = {.sun_family = AF_UNIX};
 	struct mmipc_srv* srv;
 
+	if (strlen(addr) > (sizeof(address.sun_path) - 1)) {
+		mm_raise_error(ENAMETOOLONG, "server name too long");
+		return NULL;
+	}
+
 	// Copy the socket address. It must start with a null byte ('\0') to
 	// obtain an abstract socket address. Without it would be bound to the
 	// filesystem (which we do not want)
 	address.sun_path[0] = '\0';
-	strncpy(address.sun_path+1, addr, sizeof(address.sun_path)-1);
+	strncpy(address.sun_path+1, addr, sizeof(address.sun_path) - 1);
 
 	if ( !(srv = malloc(sizeof(*srv)))
 	 || (fd = socket(AF_UNIX, SOCK_SEQPACKET, 0)) < 0

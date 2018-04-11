@@ -60,6 +60,11 @@ struct mmipc_srv* mmipc_srv_create(const char* addr)
 	char pipe_name[MAX_PIPENAME];
 	struct mmipc_srv* srv;
 
+	if (strlen(addr) > (MAX_PIPENAME - strlen(PIPE_PREFIX))) {
+		mm_raise_error(ENAMETOOLONG, "server name too long");
+		return NULL;
+	}
+
 	// Format actual named pipe name (must start with prefix)
 	snprintf(pipe_name, sizeof(pipe_name), PIPE_PREFIX "%s", addr);
 
