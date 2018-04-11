@@ -301,6 +301,30 @@ START_TEST(full_duplex)
 }
 END_TEST
 
+START_TEST(broken_pipe)
+{
+	int fds[2];
+	ssize_t rsz;
+	char buffer[42];
+
+	ck_assert(mmipc_connected_pair(fds) == 0);
+
+	rsz = mm_write(fds[0], TEST_STR1, sizeof(TEST_STR1));
+	ck_assert_int_eq(rsz, sizeof(TEST_STR1));
+
+	rsz = mm_read(fds[1], buffer, sizeof(buffer));
+	ck_assert_int_eq(rsz, sizeof(TEST_STR1));
+	ck_assert(memcmp(buffer, TEST_STR1, sizeof(TEST_STR1)) == 0);
+
+	mm_close(fds[1]);
+	rsz = mm_write(fds[0], TEST_STR1, sizeof(TEST_STR1));
+	ck_assert(rsz == -1);
+	ck_assert(mm_get_lasterror_number() == EPIPE);
+	mm_close(fds[0]);
+}
+END_TEST
+
+
 /*
  * test to pass msg and file descriptors
  *
@@ -370,6 +394,7 @@ TCase* create_ipc_tcase(void)
 	tcase_add_checked_fixture(tc, NULL, test_teardown);
 
 	tcase_add_test(tc, full_duplex);
+	tcase_add_test(tc, broken_pipe);
 
 	/* test the ipc server with both
 	 * connections pending before accept
