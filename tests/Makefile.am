@@ -30,7 +30,6 @@ TESTS = \
 	testprofile \
 	testfile \
 	testprocess \
-	testdlfcn \
 	$(eol)
 
 if BUILD_CHECK_TESTS
@@ -70,12 +69,6 @@ child_proc_LDADD = $(MMLIB)
 perflock_SOURCES = perflock.c
 perflock_LDADD = $(MMLIB)
 
-testdlfcn_SOURCES = \
-	dynlib-api.h \
-	testdlfcn.c \
-	$(eol)
-testdlfcn_LDADD = $(MMLIB)
-
 dynlib_test_la_SOURCES = \
 	dynlib-api.h \
 	dynlib-test.c \
@@ -110,6 +103,7 @@ testapi_tap_SOURCES = \
 	ipc-api-tests-exported.h \
 	shm-api-tests.c \
 	dirtests.c \
+	dlfcn-api-tests.c \
 	$(eol)
 
 testapi_tap_LDADD = \

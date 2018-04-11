@@ -27,6 +27,7 @@ Suite* api_suite(void)
 	suite_add_tcase(s, create_ipc_tcase());
 	suite_add_tcase(s, create_dir_tcase());
 	suite_add_tcase(s, create_shm_tcase());
+	suite_add_tcase(s, create_dlfcn_tcase());
 
 	return s;
 }

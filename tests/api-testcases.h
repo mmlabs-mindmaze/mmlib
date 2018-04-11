@@ -15,5 +15,6 @@ TCase* create_socket_tcase(void);
 TCase* create_ipc_tcase(void);
 TCase* create_dir_tcase(void);
 TCase* create_shm_tcase(void);
+TCase* create_dlfcn_tcase(void);
 
 #endif
