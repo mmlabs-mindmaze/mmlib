@@ -17,15 +17,6 @@
 
 #define BACKLOG_LENGTH	5
 
-static
-void safe_close(int fd)
-{
-	if (fd == -1)
-		return;
-
-	close(fd);
-}
-
 struct mmipc_srv {
 	int listenfd;
 };
@@ -48,7 +39,7 @@ struct mmipc_srv* mmipc_srv_create(const char* addr)
 	 || bind(fd, (struct sockaddr*)&address, sizeof(address)) < 0
 	 || listen(fd, BACKLOG_LENGTH) < 0) {
 		mm_raise_from_errno("Fail create listening socket on %s", addr);
-		safe_close(fd);
+		mm_close(fd);
 		free(srv);
 		return NULL;
 	}
@@ -64,7 +55,7 @@ void mmipc_srv_destroy(struct mmipc_srv* srv)
 	if (!srv)
 		return;
 
-	close(srv->listenfd);
+	mm_close(srv->listenfd);
 	free(srv);
 }
 
@@ -97,7 +88,7 @@ int mmipc_connect(const char* addr)
 	if ( (fd = socket(AF_UNIX, SOCK_SEQPACKET, 0)) < 0
 	 || connect(fd, (struct sockaddr*)&address, sizeof(address)) < 0 ) {
 		mm_raise_from_errno("Failed to connect to local IPC server");
-		safe_close(fd);
+		mm_close(fd);
 		return -1;
 	}
 
