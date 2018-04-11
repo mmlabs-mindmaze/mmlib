@@ -8,6 +8,7 @@
 #include "mmlib.h"
 #include "mmerrno.h"
 #include <stdlib.h>
+#include "mmpredefs.h"
 
 #ifdef HAVE__ALIGNED_MALLOC
 #include <malloc.h>
@@ -32,7 +33,12 @@ void* internal_aligned_alloc(size_t alignment, size_t size)
 
 #elif defined(HAVE__ALIGNED_MALLOC)
 
-	ptr = _aligned_malloc(size, alignment);
+	if (!MM_IS_POW2(alignment) || (alignment < sizeof(void*)))  {
+		ptr = NULL;
+		errno = EINVAL;
+	} else {
+		ptr = _aligned_malloc(size, alignment);
+	}
 
 #else
 #  error Cannot find aligned allocation primitive
