@@ -51,7 +51,7 @@ START_TEST(ipc_create_invalid)
 
 	struct mmipc_srv * srv = mmipc_srv_create(name);
 	ck_assert(srv == NULL);
-	ck_assert(mm_get_lasterror_number() == EINVAL);
+	ck_assert(mm_get_lasterror_number() == ENAMETOOLONG);
 
 	mmipc_srv_destroy(srv);
 }
