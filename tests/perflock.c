@@ -5,15 +5,15 @@
 # include <config.h>
 #endif
 
-#include "mmprofile.h"
-#include "mmpredefs.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <limits.h>
-#include "mmthread.h"
-#include "mmprofile.h"
+
 #include "mmlib.h"
+#include "mmpredefs.h"
+#include "mmprofile.h"
+#include "mmthread.h"
 
 #define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"lock-referee.exe"
 

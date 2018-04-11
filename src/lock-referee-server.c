@@ -18,7 +18,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <windows.h>
 #include <aclapi.h>
 #include <accctrl.h>
 #include <stdbool.h>
