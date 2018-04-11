@@ -34,6 +34,46 @@ void test_teardown(void)
 	srv = NULL;
 }
 
+START_TEST(ipc_create_simple)
+{
+	struct mmipc_srv * srv = mmipc_srv_create(IPC_ADDR);
+	ck_assert(srv != NULL);
+	mmipc_srv_destroy(srv);
+}
+END_TEST
+
+/* check what happens if you give a null-terminated string longer that the maximum */
+START_TEST(ipc_create_invalid)
+{
+	char name[257];
+	memset(name, 'a', sizeof(name) - 1);
+	name[sizeof(name) - 1] = '\0';
+
+	struct mmipc_srv * srv = mmipc_srv_create(name);
+	ck_assert(srv == NULL);
+	ck_assert(mm_get_lasterror_number() == EINVAL);
+
+	mmipc_srv_destroy(srv);
+}
+END_TEST
+
+
+START_TEST(ipc_create_double)
+{
+	struct mmipc_srv * srv1, * srv2;
+
+	srv1 = mmipc_srv_create(IPC_ADDR);
+	ck_assert(srv1 != NULL);
+
+	srv2 = mmipc_srv_create(IPC_ADDR);
+	ck_assert(srv2 == NULL);
+	ck_assert(mm_get_lasterror_number() == EADDRINUSE);
+
+	mmipc_srv_destroy(srv1);
+	mmipc_srv_destroy(srv2);
+}
+END_TEST
+
 static
 void* test_handle_client(void * arg)
 {
@@ -392,6 +432,10 @@ TCase* create_ipc_tcase(void)
 
 	tc = tcase_create("ipc");
 	tcase_add_checked_fixture(tc, NULL, test_teardown);
+
+	tcase_add_test(tc, ipc_create_simple);
+	tcase_add_test(tc, ipc_create_invalid);
+	tcase_add_test(tc, ipc_create_double);
 
 	tcase_add_test(tc, full_duplex);
 	tcase_add_test(tc, broken_pipe);
