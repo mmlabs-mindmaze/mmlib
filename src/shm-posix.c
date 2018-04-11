@@ -316,6 +316,8 @@ int mm_anon_shm(void)
 		shm_unlink(name);
 	pthread_mutex_unlock(&mtx);
 
+	if (fd == -1)
+		return mm_raise_from_errno("anon_shm() failed");
 	return fd;
 }
 
