@@ -116,6 +116,9 @@
 #  ifndef ENOTRECOVERABLE
 #    define ENOTRECOVERABLE 127
 #  endif
+#  ifndef ENOMSG
+#    define ENOMSG 42
+#  endif
 #endif
 
 #ifdef __cplusplus
