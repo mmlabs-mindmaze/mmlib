@@ -26,7 +26,7 @@
 
 static void test_teardown(void)
 {
-	mm_chdir(TOP_BUILDDIR);
+	mm_chdir(BUILDDIR);
 	mm_remove(TMP_DIR_ROOT, MM_DT_ANY|MM_RECURSIVE);
 }
 
