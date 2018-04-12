@@ -264,6 +264,23 @@ int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 
 
 API_EXPORTED
+int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+	SOCKET s;
+
+	if ( check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd) )
+		return -1;
+
+	if (getsockname(s, addr, addrlen) < 0)
+		return mm_raise_from_w32err("getsockname() failed");
+
+	return 0;
+
+}
+
+
+API_EXPORTED
 int mm_listen(int sockfd, int backlog)
 {
 	SOCKET s;

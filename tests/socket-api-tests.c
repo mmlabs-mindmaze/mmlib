@@ -888,6 +888,35 @@ START_TEST(test_poll_simple)
 }
 END_TEST
 
+START_TEST(test_getsockname)
+{
+	int rv, fd;
+	char service[16];
+	struct sockaddr_in addr;
+	socklen_t addrlen = sizeof(addr);
+	struct addrinfo *res = NULL;
+	struct addrinfo hints = {.ai_family = AF_INET, .ai_socktype = SOCK_DGRAM,};
+
+	snprintf(service, sizeof(service), "%i", PORT);
+	rv = mm_getaddrinfo(NULL, service, &hints, &res);
+	ck_assert(rv == 0 && res != NULL);
+
+	fd = create_server_socket(AF_INET, SOCK_DGRAM, PORT);
+	ck_assert(fd > 0);
+
+	rv = mm_getsockname(fd,(struct sockaddr *) &addr, &addrlen);
+	ck_assert(rv == 0);
+
+	ck_assert(addr.sin_family == AF_INET);
+	ck_assert(ntohs(addr.sin_port) == PORT);
+	ck_assert(addr.sin_addr.s_addr == ((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr);
+	mm_freeaddrinfo(res);
+
+	mm_close(fd);
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -919,6 +948,7 @@ TCase* create_socket_tcase(void)
 
 	tcase_add_test(tc, test_poll_invalid);
 	tcase_add_test(tc, test_poll_simple);
+	tcase_add_test(tc, test_getsockname);
 
 	return tc;
 }

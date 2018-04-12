@@ -1163,6 +1163,24 @@ MMLIB_API int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen
 
 
 /**
+ * mm_gesockname() - returns  the  current address to which the socket sockfd is bound
+ * @sockfd:     file descriptor to which the socket is bound
+ * @addr:       points to a &struct sockaddr containing the bound address
+ * @addrlen:    length of the &struct sockaddr pointed to by @addr
+ *
+ * getsockname() returns the current address to which the socket sockfd is bound,
+ * in the buffer pointed to by @addr.
+ * The @addrlen argument should be initialized to indicate the amount of space
+ * (in bytes) pointed to by addr. On return it contains the actual size of the
+ * socket address.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
+MMLIB_API int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+
+/**
  * mm_listen() - listen for socket connections
  * @sockfd:     file descriptor of the socket that must listen
  * @backlog:    hint for the queue limit

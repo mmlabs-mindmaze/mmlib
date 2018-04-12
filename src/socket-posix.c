@@ -82,6 +82,16 @@ int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 
 
 API_EXPORTED
+int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+	if (getsockname(sockfd, addr, addrlen) < 0)
+		return mm_raise_from_errno("getsockname() failed");
+
+	return 0;
+}
+
+
+API_EXPORTED
 int mm_listen(int sockfd, int backlog)
 {
 	if (listen(sockfd, backlog) < 0)
