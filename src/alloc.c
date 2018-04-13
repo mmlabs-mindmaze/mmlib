@@ -13,11 +13,10 @@
 #include <malloc.h>
 #endif
 
-
-API_EXPORTED
-void* mm_aligned_alloc(size_t alignment, size_t size)
+static
+void* internal_aligned_alloc(size_t alignment, size_t size)
 {
-	void* ptr;
+	void * ptr = NULL;
 
 #if   defined(HAVE_POSIX_MEMALIGN)
 
@@ -38,6 +37,14 @@ void* mm_aligned_alloc(size_t alignment, size_t size)
 #else
 #  error Cannot find aligned allocation primitive
 #endif
+
+	return ptr;
+}
+
+API_EXPORTED
+void* mm_aligned_alloc(size_t alignment, size_t size)
+{
+	void * ptr = internal_aligned_alloc(alignment, size);
 
 	if (!ptr) {
 		mm_raise_from_errno("Cannot allocate buffer (alignment=%zu, size=%zu)",
@@ -79,31 +86,25 @@ void mm_aligned_free(void* ptr)
 API_EXPORTED
 void* _mm_malloca_on_heap(size_t size)
 {
-	char* base;
-	char* ptr;
+	char * ptr;
 	size_t alloc_size;
 
 	// Increase allocated size to guarantee alignment requirement
-	alloc_size = size + 2*MM_STK_ALIGN-1;
+	alloc_size = size + 2*MM_STK_ALIGN;
 	if (alloc_size < size) {
 		mm_raise_error(ENOMEM, "size=%zu is too big", size);
 		return NULL;
 	}
 
 	// Allocate memory block
-	base = malloc(alloc_size);
-	if (!base) {
-		mm_raise_from_errno("malloc(%zu) failed", alloc_size);
+	ptr = internal_aligned_alloc(2*MM_STK_ALIGN, alloc_size);
+	if (ptr == NULL) {
+		mm_raise_from_errno("malloca_on_heap(%zu) failed", alloc_size);
 		return NULL;
 	}
 
 	// Get pointer aligned on MM_STK_ALIGN modulo (2*MM_STK_ALIGN)
-	ptr = (char*) ( (uintptr_t)(base + 2*MM_STK_ALIGN-1)
-	              & ~(uintptr_t)(2*MM_STK_ALIGN-1) );
 	ptr += MM_STK_ALIGN;
-
-	// Store offset to get beginning of malloc'ed memory block
-	ptr[-1] = ptr - base;
 
 	return ptr;
 }
@@ -124,8 +125,5 @@ void _mm_freea_on_heap(void* ptr)
 {
 	char* base = ptr;
 
-	// offset base to get the beginning of the malloc'ed block
-	base -= base[-1];
-
-	free(base);
+	mm_aligned_free(base - MM_STK_ALIGN);
 }
