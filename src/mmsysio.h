@@ -39,6 +39,11 @@ struct iovec {
 	void* iov_base;
 };
 
+// Not defined on windows platform, so we can keep the standard name
+// without mm_ prefix
+typedef unsigned long long uid_t;
+typedef unsigned long long gid_t;
+
 #ifdef _MSC_VER
 #  ifndef _SSIZE_T_DEFINED
 #    define _SSIZE_T_DEFINED
@@ -51,9 +56,37 @@ struct iovec {
 #  endif /* _SSIZE_T_DEFINED */
 #endif
 
-#endif
-
 typedef long long mm_off_t;
+typedef unsigned long long mm_dev_t;
+typedef struct {
+	unsigned long long id_low;
+	unsigned long long id_high;
+} mm_ino_t;
+
+#else /* _WIN32 */
+
+typedef off_t mm_off_t;
+typedef dev_t mm_dev_t;
+typedef ino_t mm_ino_t;
+
+#endif /* _WIN32 */
+
+/**
+ * mm_ino_equal() - test equality between two mm_ino_t
+ * @a:  first mm_ino_t operand
+ * @b:  second mm_ino_t operand
+ *
+ * Return: 1 if equal, 0 otherwise
+ */
+static inline
+int mm_ino_equal(mm_ino_t a, mm_ino_t b)
+{
+#ifdef _WIN32
+	return ((a.id_low == b.id_low) && (a.id_high == b.id_high));
+#else
+	return (a == b);
+#endif
+}
 
 
 #ifdef __cplusplus
@@ -160,7 +193,6 @@ int mode;
 	time_t ctime;
 	time_t mtime;
 };
-
 
 /**
  * mm_open() - Open file
