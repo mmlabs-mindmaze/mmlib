@@ -197,16 +197,22 @@ void conv_native_to_mm_stat(struct mm_stat* buf,
                             const struct stat* native_stat)
 {
 	*buf = (struct mm_stat) {
+		.dev = native_stat->st_dev,
+		.ino = native_stat->st_ino,
+		.uid = native_stat->st_uid,
+		.gid = native_stat->st_gid,
 		.mode = native_stat->st_mode,
 		.nlink = native_stat->st_nlink,
-		.filesize = native_stat->st_size,
+		.size = native_stat->st_size,
+		.blksize = native_stat->st_blksize,
+		.nblocks = native_stat->st_blocks,
 		.ctime = native_stat->st_ctime,
 		.mtime = native_stat->st_mtime,
 	};
 
 	// Accomodate for end of string to be consistent with mm_readlink()
 	if (S_ISLNK(buf->mode))
-		buf->filesize += 1;
+		buf->size += 1;
 }
 
 

@@ -186,12 +186,35 @@ extern "C" {
 #define MM_FAILONERROR  (1 << 30)
 #define MM_NOFOLLOW     (1 << 29)
 
+/**
+ * struct mm_stat - file status data
+ * @dev:        Device ID of device containing file
+ * @ino:        File serial number
+ * @mode:       Mode of file (Indicate file type and permission)
+ * @nlink:      Number of hard links to the file
+ * @uid:        Currently unused
+ * @gid:        Currently unused
+ * @size:       For regular files, the file size in bytes.
+ *              For symbolic links, the length in bytes of the UTF-8
+ *              pathname contained in the symbolic link (including null
+ *              termination).
+ * @blksize:    Currently unused
+ * @blkcnt:     Currently unused
+ * mtime:       time of last modification
+ * ctime:       time of last status change
+ */
 struct mm_stat {
-int mode;
+	mm_dev_t dev;
+	mm_ino_t ino;
+	mode_t mode;
 	int nlink;
-	mm_off_t filesize;
-	time_t ctime;
+	uid_t uid;
+	gid_t gid;
+	mm_off_t size;
+	size_t blksize;
+	size_t nblocks;
 	time_t mtime;
+	time_t ctime;
 };
 
 /**

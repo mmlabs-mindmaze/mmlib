@@ -6,7 +6,7 @@
 #endif
 
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
+#define _WIN32_WINNT _WIN32_WINNT_WIN8
 #endif
 
 #include "mmsysio.h"
@@ -1241,12 +1241,15 @@ static
 int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 {
 	FILE_ATTRIBUTE_TAG_INFO attr_tag;
+	FILE_ID_INFO id_info;
 	BY_HANDLE_FILE_INFORMATION info;
 	struct local_secdesc lsd;
 	int type;
 
 	if (  !GetFileInformationByHandleEx(hnd, FileAttributeTagInfo,
 	                                    &attr_tag, sizeof(attr_tag))
+	   || !GetFileInformationByHandleEx(hnd, FileIdInfo,
+	                                    &id_info, sizeof(id_info))
 	   || !GetFileInformationByHandle(hnd, &info)
 	   || local_secdesc_init_from_handle(&lsd, hnd)  ) {
 		return -1;
@@ -1274,14 +1277,16 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 	buf->nlink = info.nNumberOfLinks;
 
 	if (type == S_IFLNK) {
-		buf->filesize = get_symlink_target_strlen(hnd);
+		buf->size = get_symlink_target_strlen(hnd);
 	} else {
-		buf->filesize = ((mm_off_t)info.nFileSizeHigh) * MAXDWORD;
-		buf->filesize += info.nFileSizeLow;
+		buf->size = ((mm_off_t)info.nFileSizeHigh) * MAXDWORD;
+		buf->size += info.nFileSizeLow;
 	}
 
 	buf->ctime = filetime_to_time(info.ftCreationTime);
 	buf->mtime = filetime_to_time(info.ftLastWriteTime);
+	buf->dev = id_info.VolumeSerialNumber;
+	memcpy(&buf->ino, &id_info.FileId, sizeof(buf->ino));
 
 	local_secdesc_deinit(&lsd);
 	return 0;
