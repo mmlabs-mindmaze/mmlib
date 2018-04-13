@@ -277,7 +277,7 @@ void local_toc(void)
 }
 
 
-/**
+/*
  * init_profile() - init profiling to use CPU based timer
  *
  * INIT: This function is called AUTOMATICALLY at the beginning of a program using
@@ -422,7 +422,7 @@ int get_display_unit(int num_points, int num_cols, int64_t data[], int mask)
 
 
 /**
- * formar_header_line() - print the result table header in string
+ * format_header_line() - print the result table header in string
  * @mask:               the requested timing computations
  * @label_width:        maximum length of a registered label
  * @str:                output string
@@ -476,7 +476,7 @@ int format_header_line(int mask, int label_width, char str[])
 
 
 /**
- * formar_result_line() - print a line of the result table
+ * format_result_line() - print a line of the result table
  * @ncol:       number of columns in @data
  * @num_points: number of rows in @data (number of call to mmtoc())
  * @v:          index of the desired line in the table (first is 0)

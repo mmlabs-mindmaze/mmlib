@@ -126,6 +126,15 @@ extern "C" {
 #endif
 
 MMLIB_API const char* mmstrerror(int errnum);
+
+/**
+ * mmstrerror_r() - Get description for error code (reentrant)
+ * @errnum:     error to describe
+ * @buf:        buffer to which the description should be written
+ * @buflen:     buffer size of @buf
+ *
+ * Return: 0 is in case of success, -1 otherwise.
+ */
 MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
 
 /**
@@ -229,6 +238,8 @@ MMLIB_API int mm_raise_error_vfull(int errnum, const char* module, const char* f
  * @state. The content of @state may be copied around even between threads and
  * different processes.
  *
+ * Return: 0 (cannot fail)
+ *
  * The reciprocal of this function is mm_set_errorstate().
  */
 MMLIB_API int mm_save_errorstate(struct mm_error_state* state);
@@ -237,11 +248,14 @@ MMLIB_API int mm_save_errorstate(struct mm_error_state* state);
  * mm_set_errorstate() - Save the error state of the calling thread
  * @state:      pointer to the data holding of the error state
  *
- * Use this function to restore the error state of the calling thread from the information pointed by @state. Combined with mm_error_state(), you:
+ * Use this function to restore the error state of the calling thread from the information pointed by @state.
+ * Combined with mm_error_state(), you:
  * - handle an error from a called function and recover the error state before
  * the failed function
  * - Copy the error state of a failed function whose call may have been
  * offloaded to a different thread or even different process
+ *
+ * Return: 0 (cannot fail)
  *
  * The reciprocal of this function is mm_save_errorstate().
  */
