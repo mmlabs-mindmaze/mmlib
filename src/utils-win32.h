@@ -113,6 +113,19 @@ error:
 	unwrap_handle_from_fd_with_logctx(p_hnd, fd, __func__, __FILE__, __LINE__)
 
 
+HANDLE open_handle(const char* path, DWORD access, DWORD creat,
+                   SECURITY_DESCRIPTOR* sec, DWORD flags);
+
+
+static inline
+void safe_closehandle(HANDLE hnd)
+{
+	if (hnd == INVALID_HANDLE_VALUE)
+		return;
+
+	CloseHandle(hnd);
+}
+
 /**************************************************************************
  *                                                                        *
  *                         UTF-8/UTF-16 conversion                        *

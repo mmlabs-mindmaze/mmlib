@@ -295,27 +295,14 @@ int mm_open(const char* path, int oflag, int mode)
 	HANDLE hnd;
 	int fd, fdinfo;
 	struct w32_create_file_options opts;
-	int path_u16_len;
-	char16_t* path_u16;
-	DWORD share = FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE;
 
 	if (set_w32_create_file_options(&opts, oflag))
 		return -1;
 
-	// Get size for converted path into UTF-16
-	path_u16_len = get_utf16_buffer_len_from_utf8(path);
-	if (path_u16_len < 0)
-		return mm_raise_from_w32err("Invalid UTF-8 path");
-
-	// Create temporary UTF-16 path and use to create the file handle
-	path_u16 = mm_malloca(path_u16_len*sizeof(*path_u16));
-	conv_utf8_to_utf16(path_u16, path_u16_len, path);
-	hnd = CreateFileW(path_u16, opts.access_mode, share, NULL,
-	                  opts.creation_mode, opts.file_attribute, NULL);
-	mm_freea(path_u16);
-
+	hnd = open_handle(path, opts.access_mode, opts.creation_mode, NULL,
+	                  opts.file_attribute);
 	if (hnd == INVALID_HANDLE_VALUE)
-		return mm_raise_from_w32err("CreateFileW(%s) failed", path);
+		return mm_raise_from_w32err("Can't get handle for %s", path);
 
 	fdinfo = FD_TYPE_NORMAL;
 	if (mode & O_APPEND)

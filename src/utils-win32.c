@@ -17,6 +17,7 @@
 
 #include "mmerrno.h"
 #include "mmlog.h"
+#include "mmlib.h"
 
 static
 int set_access_mode(struct w32_create_file_options* opts, int oflags)
@@ -87,6 +88,58 @@ int set_w32_create_file_options(struct w32_create_file_options* opts, int oflags
 
 	opts->file_attribute = FILE_ATTRIBUTE_NORMAL;
 	return 0;
+}
+
+
+/**
+ * open_handle() - Helper to open file from UTF-8 path
+ * @path:       UTF-8 path fo the file to open
+ * @access:     desired access to file (dwDesiredAccess in CreateFile())
+ * @creat:      action to take on a file or device that exists or does not
+ *              exist. (dwCreationDisposition argument in CreateFile())
+ * @sec:        Security descriptor to use if the file is created. If NULL,
+ *              the file associated with the returned handle is assigned a
+ *              default security descriptor.
+ * @flags:      Flags and attributes. (dwFlagsAndAttributes in CreateFile())
+ *
+ * Return: in case of success, the handle of the file opened or created.
+ * Otherwise INVALID_HANDLE_VALUE. Please note that this function is meant to
+ * be helper for implement public operation and as such does not set error
+ * state for the sake of more informative error reporting (The caller has
+ * indeed the context of the call. It may retrieve error with GetLastError())
+ */
+LOCAL_SYMBOL
+HANDLE open_handle(const char* path, DWORD access, DWORD creat,
+                   SECURITY_DESCRIPTOR* sec, DWORD flags)
+{
+	HANDLE hnd = INVALID_HANDLE_VALUE;
+	char16_t* path_u16 = NULL;
+	int path_u16_len;
+	DWORD share = FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE;
+	SECURITY_ATTRIBUTES sec_attrs = {
+		.nLength = sizeof(SECURITY_ATTRIBUTES),
+		.lpSecurityDescriptor = sec,
+		.bInheritHandle = FALSE,
+	};
+
+	// Get size for converted path into UTF-16
+	path_u16_len = get_utf16_buffer_len_from_utf8(path);
+	if (path_u16_len < 0)
+		return INVALID_HANDLE_VALUE;
+
+	// Allocate temporary UTF-16 path
+	path_u16 = mm_malloca(path_u16_len*sizeof(*path_u16));
+	if (!path_u16)
+		return INVALID_HANDLE_VALUE;
+
+	// Convert to UTF-16 and open/create file
+	conv_utf8_to_utf16(path_u16, path_u16_len, path);
+	hnd = CreateFileW(path_u16, access, share, &sec_attrs,
+	                  creat, flags, NULL);
+
+	mm_freea(path_u16);
+
+	return hnd;
 }
 
 
