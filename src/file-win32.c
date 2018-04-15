@@ -35,14 +35,14 @@ struct mm_dirstream {
 };
 
 static int win32_temp_path_len;
-static char16_t win32_temp_path[(MAX_PATH + 1)];
+static char win32_temp_path[(MAX_PATH + 1)];
 
 MM_CONSTRUCTOR(win32_temp_path)
 {
 	int rv;
-	rv = GetTempPathW(MAX_PATH, win32_temp_path);
+	rv = GetTempPath(MAX_PATH, win32_temp_path);
 	if (rv != 0 && rv < MAX_PATH) {
-		win32_temp_path_len = wcslen(win32_temp_path);
+		win32_temp_path_len = strlen(win32_temp_path);
 	} else {
 		win32_temp_path[0] = 0;
 		win32_temp_path_len = 0;
@@ -474,16 +474,16 @@ int mm_pipe(int pipefd[2])
 }
 
 static
-const char16_t * win32_basename(const char16_t * path)
+const char * win32_basename(const char * path)
 {
-	const char16_t * c = path + wcslen(path) - 1;
+	const char * c = path + strlen(path) - 1;
 
 	/* skip the last chars if they're not a path */
-	while (c > path && (*c == L'/' || *c == L'\\'))
+	while (c > path && (*c == '/' || *c == '\\'))
 		c--;
 
 	while (c > path) {
-		if (*c == L'/' || *c == L'\\')
+		if (*c == '/' || *c == '\\')
 			return c + 1;
 		c--;
 	}
@@ -491,62 +491,81 @@ const char16_t * win32_basename(const char16_t * path)
 }
 
 
-API_EXPORTED
-int mm_unlink(const char* path)
+/**
+ * rename_file_handle() - rename a file though handle
+ * @hnd:        file handle opened with DELETE access
+ * @path:       UTF-8 path to which the file must be renamed
+ *
+ * Return: 0 in case of success, -1 otherwise. Please note that this
+ * function is meant to be helper for implement public operation and as such
+ * does not set error state (retrieve error in caller with GetLastError())
+ */
+static
+int rename_file_handle(HANDLE hnd, const char* path)
 {
-	int i, path_u16_len, delpath_maxlen, len, exit_value;
-	size_t rename_info_size;
-	HANDLE hnd;
-	FILE_RENAME_INFO* rename_info;
-	char16_t* path_u16, *delpath;
+	FILE_RENAME_INFO* info;
+	size_t info_sz;
+	int path_u16_len, rv = -1;
 
 	// Get size for converted path into utf-16
 	path_u16_len = get_utf16_buffer_len_from_utf8(path);
 	if (path_u16_len < 0)
-		return mm_raise_from_w32err("Invalid UTF-8 path");
+		return -1;
 
-	// Create temporary UTF-16 string from UTF-8 path and open the file
-	// with the DELETE_ON_CLOSE flag
-	path_u16_len += win32_temp_path_len;
-	path_u16 = mm_malloca(path_u16_len*sizeof(*path_u16));
-	conv_utf8_to_utf16(path_u16, path_u16_len, path);
-	hnd = CreateFileW(path_u16, DELETE,
-	                  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
-	                  NULL, OPEN_EXISTING,
-	                  FILE_FLAG_DELETE_ON_CLOSE|FILE_FLAG_OPEN_REPARSE_POINT, NULL);
+	// Allocate (and init) temporary rename info structure in order to
+	// rename path (UTF-16 in allocated within this structure)
+	info_sz = sizeof(*info);
+	info_sz += path_u16_len * sizeof(info->FileName[0]);
+	info = mm_malloca(info_sz);
+	if (!info)
+		return -1;
 
-	if (hnd == INVALID_HANDLE_VALUE) {
-		mm_freea(path_u16);
-		return mm_raise_from_w32err("Cannot access %s for deletion", path);
-	}
+	// Init rename structure (convert path to UTF-16) and try to do it
+	info->RootDirectory = NULL;
+	info->ReplaceIfExists = FALSE;
+	info->FileNameLength = path_u16_len * sizeof(info->FileName[0]);
+	conv_utf8_to_utf16(info->FileName, path_u16_len, path);
+	if (SetFileInformationByHandle(hnd, FileRenameInfo, info, info_sz))
+		rv = 0;
+
+	mm_freea(info);
+	return rv;
+}
+
+
+API_EXPORTED
+int mm_unlink(const char* path)
+{
+	size_t delpath_maxlen;
+	char* delpath;
+	HANDLE hnd;
+	int i;
+
+	// Open file with DELETE_ON_CLOSE flag. If this operation has
+	// succeed, the file will be deleted when CloseHandle() is called.
+	hnd = open_handle(path, DELETE, OPEN_EXISTING, NULL,
+	                  FILE_FLAG_DELETE_ON_CLOSE | FILE_FLAG_OPEN_REPARSE_POINT);
+	if (hnd == INVALID_HANDLE_VALUE)
+		return mm_raise_from_w32err("Can't get handle for %s", path);
 
 	// Allocate (and init) temporary rename info structure in order to rename path
-	// into <path>.deleted-####
-	delpath_maxlen = path_u16_len+64;
-	rename_info_size = sizeof(*rename_info);
-	rename_info_size += delpath_maxlen*sizeof(*rename_info->FileName);
-	rename_info = mm_malloca(rename_info_size);
-	rename_info->RootDirectory = NULL;
-	rename_info->ReplaceIfExists = FALSE;
-	delpath  = rename_info->FileName;
+	// into TEMP_FILE/<basename>.deleted-#### or <path>.deleted-####
+	delpath_maxlen = strlen(path)+win32_temp_path_len+64;
+	delpath = mm_malloca(delpath_maxlen);
 
 	// Rename before closing (hence marking file for deleting) to make the
 	// filename reusable immediately even if the file object is not deleted
 	// immediately (make different rename attempt in order to find a
 	// name that is available)
 
-	exit_value = 0;
 	// try to move to TempPath if possible
 	if (win32_temp_path_len != 0) {
 		for (i = 0; i < NUM_ATTEMPT; i++) {
-			len = swprintf(delpath, delpath_maxlen, L"%s/%s.deleted-%i",
-			               win32_temp_path, win32_basename(path_u16), i);
-			rename_info->FileNameLength = len*sizeof(*delpath);
-
-			if (SetFileInformationByHandle(hnd, FileRenameInfo,
-						rename_info, rename_info_size)) {
+			snprintf(delpath, delpath_maxlen, "%s/%s.deleted-%i",
+			        win32_temp_path, win32_basename(path), i);
+			if (rename_file_handle(hnd, delpath) == 0)
 				goto exit;
-			}
+
 			if (GetLastError() == ERROR_NOT_SAME_DEVICE)
 				break;
 		}
@@ -554,22 +573,15 @@ int mm_unlink(const char* path)
 
 	// try to rename the file and postfix is as deleted
 	for (i = 0; i < NUM_ATTEMPT; i++) {
-		len = swprintf(delpath, delpath_maxlen, L"%s.deleted-%i", path_u16, i);
-		rename_info->FileNameLength = len*sizeof(*delpath);
-
-		if (SetFileInformationByHandle(hnd, FileRenameInfo,
-		                               rename_info, rename_info_size)) {
-			goto exit;
-		}
+		snprintf(delpath, delpath_maxlen, "%s.deleted-%i", path, i);
+		if (rename_file_handle(hnd, delpath) == 0)
+			break;
 	}
 
-	exit_value = -1;
 exit:
-	mm_freea(path_u16);
-	mm_freea(rename_info);
-
+	mm_freea(delpath);
 	CloseHandle(hnd);
-	return exit_value;
+	return 0;
 }
 
 

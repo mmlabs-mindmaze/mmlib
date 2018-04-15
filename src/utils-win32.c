@@ -165,6 +165,7 @@ int get_errcode_from_w32err(DWORD w32err)
 	case WSAESHUTDOWN:
 	case ERROR_NO_DATA:
 	case ERROR_BROKEN_PIPE:         return EPIPE;
+	case ERROR_NOT_SAME_DEVICE:     return EXDEV;
 	case WSASYSNOTREADY:
 	case WSAENETDOWN:               return ENETDOWN;
 	case WSAENETUNREACH:            return ENETUNREACH;
