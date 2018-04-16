@@ -305,6 +305,7 @@ exit:
 static
 int spawn_child(mm_pid_t* child_pid, const struct startproc_opts* opts)
 {
+	int rv;
 	pid_t pid;
 	int pipefd[2], watch_fd, report_fd;
 
@@ -332,11 +333,17 @@ int spawn_child(mm_pid_t* child_pid, const struct startproc_opts* opts)
 	// we are in the parent part of the fork
 	close(report_fd);
 
-	if (child_pid)
-		*child_pid = pid;
-
 	// watch_fd is going to be closed here
-	return wait_for_load_process_result(watch_fd);
+	rv = wait_for_load_process_result(watch_fd);
+
+	if (rv == 0) {
+		if (child_pid)
+			*child_pid = pid;
+	} else {
+		waitpid(pid, NULL, 0);
+	}
+
+	return rv;
 }
 
 
