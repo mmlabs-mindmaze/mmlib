@@ -7,11 +7,11 @@
 
 #include <check.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 #include "api-testcases.h"
 #include "mmlib.h"
 #include "mmerrno.h"
+#include "mmpredefs.h"
 
 #define NUM_ALLOC	30
 
@@ -40,15 +40,13 @@ START_TEST(aligned_heap_allocation_error)
 #if !defined(__SANITIZE_ADDRESS__)
 	void* ptr;
 	size_t align;
-	bool is_pow2;
 	struct mm_error_state errstate;
 
 	mm_save_errorstate(&errstate);
 
 	// Test error if alignment is not power of 2 of pointer size
 	for (align = 0; align < MM_PAGESZ; align++) {
-		is_pow2 = !(align & (align-1));
-		if (align >= sizeof(void*) && is_pow2)
+		if (align >= sizeof(void*) && MM_IS_POW2(align))
 			continue;
 
 		ptr = mm_aligned_alloc(align, 4*MM_PAGESZ);
