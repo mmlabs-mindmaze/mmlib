@@ -121,6 +121,10 @@
  */
 #define MM_NELEM(arr)	((int)(sizeof(arr)/sizeof(arr[0])))
 
+/*
+ * Return true if ival is a power of 2 OR null
+ */
+#define MM_IS_POW2(ival) (!((ival) & ((ival)-1)))
 
 /*
  * Macros to get the page size
