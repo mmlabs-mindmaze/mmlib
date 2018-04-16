@@ -123,7 +123,7 @@ START_TEST(safe_stack_allocation_error)
 
 	mm_save_errorstate(&errstate);
 
-	for (rem_sz = 0; rem_sz < 100*MM_STK_ALIGN; rem_sz++) {
+	for (rem_sz = 0; rem_sz < 4*MM_STK_ALIGN; rem_sz++) {
 		ptr = mm_malloca(SIZE_MAX - rem_sz);
 		ck_assert(ptr == NULL);
 		ck_assert(mm_get_lasterror_number() == ENOMEM);
