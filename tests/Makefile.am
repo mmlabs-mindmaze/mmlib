@@ -29,7 +29,6 @@ TESTS = \
 	testerrno \
 	testprofile \
 	testfile \
-	testprocess \
 	$(eol)
 
 if BUILD_CHECK_TESTS
@@ -59,9 +58,6 @@ testprofile_LDADD = $(MMLIB)
 
 testfile_SOURCES = testfile.c
 testfile_LDADD = $(MMLIB)
-
-testprocess_SOURCES = testprocess.c
-testprocess_LDADD = $(MMLIB)
 
 child_proc_SOURCES = child-proc.c
 child_proc_LDADD = $(MMLIB)
@@ -104,6 +100,7 @@ testapi_tap_SOURCES = \
 	shm-api-tests.c \
 	dirtests.c \
 	dlfcn-api-tests.c \
+	process-api-tests.c \
 	$(eol)
 
 testapi_tap_LDADD = \
