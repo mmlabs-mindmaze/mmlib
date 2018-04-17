@@ -23,6 +23,7 @@ Suite* api_suite(void)
 	suite_add_tcase(s, create_allocation_tcase());
 	suite_add_tcase(s, create_time_tcase());
 	suite_add_tcase(s, create_thread_tcase());
+	suite_add_tcase(s, create_file_tcase());
 	suite_add_tcase(s, create_socket_tcase());
 	suite_add_tcase(s, create_ipc_tcase());
 	suite_add_tcase(s, create_dir_tcase());

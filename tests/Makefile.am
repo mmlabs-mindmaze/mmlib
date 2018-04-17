@@ -8,6 +8,7 @@ AM_CPPFLAGS = \
 	-DBUILDDIR=\"$(abs_builddir)\" \
 	-DEXEEXT=\"$(EXEEXT)\" \
 	-DTOP_BUILDDIR=\"$(abs_top_builddir)\" \
+	-DSRCDIR=\"$(abs_srcdir)\" \
 	$(CHECK_CPPFLAGS) \
 	$(eol)
 AM_CFLAGS = $(CHECK_CFLAGS) $(MM_WARNFLAGS)
@@ -28,7 +29,6 @@ TESTS = \
 	testlog \
 	testerrno \
 	testprofile \
-	testfile \
 	$(eol)
 
 if BUILD_CHECK_TESTS
@@ -55,9 +55,6 @@ testerrno_LDADD = $(MMLIB)
 
 testprofile_SOURCES = testprofile.c
 testprofile_LDADD = $(MMLIB)
-
-testfile_SOURCES = testfile.c
-testfile_LDADD = $(MMLIB)
 
 child_proc_SOURCES = child-proc.c
 child_proc_LDADD = $(MMLIB)
@@ -91,6 +88,7 @@ testapi_tap_SOURCES = \
 	thread-api-tests.c \
 	threaddata-manipulation.h \
 	threaddata-manipulation.c \
+	file-api-tests.c \
 	socket-api-tests.c \
 	socket-testlib.h \
 	socket-testlib.c \
