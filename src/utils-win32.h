@@ -6,6 +6,7 @@
 
 #include "mmerrno.h"
 #include "mmpredefs.h"
+#include "mmtime.h"
 
 #include <windows.h>
 #include <winternl.h>
@@ -140,6 +141,42 @@ int conv_utf16_to_utf8(char* utf8_str, int utf8_len, const char16_t* utf16_str);
 char* getenv_utf8(const char* name);
 int setenv_utf8(const char* name, char* value, int overwrite);
 int unsetenv_utf8(const char* name);
+
+
+/**************************************************************************
+ *                                                                        *
+ *                           Time conversion                              *
+ *                                                                        *
+ **************************************************************************/
+
+/* timespec time are expressed since Epoch i.e. since January, 1, 1970
+ whereas windows FILETIME since  January 1, 1601 (UTC)*/
+#define FT_EPOCH (((LONGLONG)27111902 << 32) + (LONGLONG)3577643008)
+
+
+static inline
+void filetime_to_timespec(FILETIME ft, struct timespec* ts)
+{
+	ULARGE_INTEGER time_int;
+
+	time_int.LowPart  = ft.dwLowDateTime;
+	time_int.HighPart = ft.dwHighDateTime;
+	time_int.QuadPart -= FT_EPOCH;
+
+	ts->tv_sec = time_int.QuadPart / 10000000;
+	ts->tv_nsec = (time_int.QuadPart % 10000000)*100;
+}
+
+
+static inline
+time_t filetime_to_time(FILETIME ft)
+{
+	struct timespec ts;
+
+	filetime_to_timespec(ft, &ts);
+
+	return ts.tv_sec;
+}
 
 
 /**************************************************************************

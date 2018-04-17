@@ -12,6 +12,7 @@
 #include "mmtime.h"
 #include "clock-win32.h"
 #include "mmpredefs.h"
+#include "utils-win32.h"
 
 #include <windows.h>
 #include <time.h>
@@ -217,25 +218,13 @@ void getres_monotonic_w32(struct timespec* res)
  *                             other clocks                               *
  **************************************************************************/
 
-/* timespec time are expressed since Epoch i.e. since January, 1, 1970
- whereas windows FILETIME since  January 1, 1601 (UTC)*/
-#define FT_EPOCH (((LONGLONG)27111902 << 32) + (LONGLONG)3577643008)
-
-
 LOCAL_SYMBOL
 void gettimespec_wallclock_w32(struct timespec* ts)
 {
-	ULARGE_INTEGER time_int;
 	FILETIME curr;
 
 	GetSystemTimePreciseAsFileTime(&curr);
-
-	time_int.LowPart  = curr.dwLowDateTime;
-	time_int.HighPart = curr.dwHighDateTime;
-	time_int.QuadPart -= FT_EPOCH;
-
-	ts->tv_sec = time_int.QuadPart / 10000000;
-	ts->tv_nsec = (time_int.QuadPart % 10000000)*100;
+	filetime_to_timespec(curr, ts);
 }
 
 
