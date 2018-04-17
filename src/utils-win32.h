@@ -117,6 +117,22 @@ error:
 HANDLE open_handle(const char* path, DWORD access, DWORD creat,
                    SECURITY_DESCRIPTOR* sec, DWORD flags);
 
+/**
+ * open_handle_for_metadata() - open file only for reading attributes
+ * @path:       UTF-8 path of file
+ * @nofollow:   non zero if symlink must not be followed (ie the actual
+ *              symlink file, not the target, must be opened)
+ *
+ * Return: in case of success, the handle of the file opened or created.
+ * Otherwise INVALID_HANDLE_VALUE. Please note that this function is meant to
+ * be helper for implement public operation and as such does not set error
+ * state for the sake of more informative error reporting (The caller has
+ * indeed the context of the call. It may retrieve error with GetLastError())
+ */
+#define open_handle_for_metadata(path, nofollow)                        \
+        open_handle((path), READ_CONTROL, OPEN_EXISTING, NULL,            \
+	            FILE_FLAG_BACKUP_SEMANTICS                          \
+	             | ((nofollow) ? FILE_FLAG_OPEN_REPARSE_POINT : 0))
 
 static inline
 void safe_closehandle(HANDLE hnd)
