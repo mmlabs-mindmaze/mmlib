@@ -211,8 +211,6 @@ int get_file_type(int dirfd, const char* path)
 	case S_IFSOCK: return MM_DT_SOCK;
 	default: return MM_DT_UNKNOWN;
 	}
-
-	return -1;
 }
 
 #define RECURSION_MAX 100
