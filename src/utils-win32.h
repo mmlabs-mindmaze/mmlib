@@ -7,6 +7,7 @@
 #include "mmerrno.h"
 #include "mmpredefs.h"
 #include "mmtime.h"
+#include "mmsysio.h"
 
 #include <windows.h>
 #include <winternl.h>
@@ -29,6 +30,43 @@ int mm_raise_from_w32err_full(const char* module, const char* func,
 #define mm_raise_from_w32err(desc, ...) \
 	mm_raise_from_w32err_full(MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, desc,  ## __VA_ARGS__ )
 
+
+/**************************************************************************
+ *                                                                        *
+ *                           Access control setup                         *
+ *                                                                        *
+ **************************************************************************/
+
+#define SELF_RELATIVE_SD_MINSIZE        512
+
+
+/**
+ * struct local_secdesc - type to use SECURITY_DESCRIPTOR on stacl
+ * @sd:         pointer to SECURITY_DESCRIPTOR to use
+ * @desc:       SECURITY_DESCRIPTOR field to force proper alignment
+ * @buffer:     reserved data for stack allocation
+ *
+ * This structure is meant to provide a way to create and manipulate
+ * SECURITY_DESCRIPTOR on stack while ensuring it can coop with arbitrarily
+ * large SECURITY_DESCRIPTOR.
+ *
+ * Once initialized, @sd points either to @buffer (static allocation)
+ * either to a malloc'ed buffer (if the size needed is larger than
+ * sizeof(buffer).
+ */
+struct local_secdesc {
+	SECURITY_DESCRIPTOR* sd;
+	union {
+		SECURITY_DESCRIPTOR desc;
+		char buffer[SELF_RELATIVE_SD_MINSIZE];
+	};
+};
+
+
+int local_secdesc_init_from_handle(struct local_secdesc* lsd, HANDLE hnd);
+int local_secdesc_init_from_mode(struct local_secdesc* lsd, mode_t mode);
+void local_secdesc_deinit(struct local_secdesc* lsd);
+mode_t local_secdesc_get_mode(struct local_secdesc* lsd);
 
 /**************************************************************************
  *                                                                        *

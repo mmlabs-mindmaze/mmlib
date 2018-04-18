@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <aclapi.h>
 
 #include "mmerrno.h"
 #include "mmlog.h"
@@ -143,6 +144,333 @@ HANDLE open_handle(const char* path, DWORD access, DWORD creat,
 }
 
 
+/**************************************************************************
+ *                                                                        *
+ *                       Access control setup                             *
+ *                                                                        *
+ **************************************************************************/
+
+#define MIN_ACCESS_FLAGS \
+	(READ_CONTROL | SYNCHRONIZE | FILE_READ_ATTRIBUTES | FILE_READ_EA)
+#define MIN_OWNER_ACCESS_FLAGS \
+	(DELETE | WRITE_DAC | WRITE_OWNER | FILE_WRITE_EA | FILE_WRITE_ATTRIBUTES)
+
+#define IS_DACL_EMPTY(acl, dacl_present) \
+	(((acl) == NULL) && ((dacl_present) == TRUE))
+
+#define IS_DACL_NULL(acl, dacl_present) \
+	(((acl) == NULL) && ((dacl_present) == FALSE))
+
+/**
+ * union local_sid - type to preallocate buffer for SID on stack
+ * @sid:         SID structure (not complete to hold a SID)
+ * @buffer:      buffer large enough to hold any SID
+ */
+union local_sid {
+	SID sid;
+	char buffer[SECURITY_MAX_SID_SIZE];
+};
+
+static union local_sid everyone;
+
+MM_CONSTRUCTOR(wellknown_sid)
+{
+	DWORD len = sizeof(everyone);
+
+	CreateWellKnownSid(WinWorldSid, NULL, &everyone.sid, &len);
+}
+
+
+static
+mode_t access_to_mode(DWORD access)
+{
+	mode_t mode = 0;
+
+	mode |= (access & FILE_READ_DATA) ? S_IREAD : 0;
+	mode |= (access & FILE_WRITE_DATA) ? S_IWRITE : 0;
+	mode |= (access & FILE_EXECUTE) ? S_IEXEC : 0;
+
+	return mode;
+}
+
+
+static
+DWORD get_access_from_perm_bits(mode_t mode)
+{
+	DWORD access = MIN_ACCESS_FLAGS;
+
+	access |= (mode & S_IREAD) ? FILE_GENERIC_READ : 0;
+	access |= (mode & S_IWRITE) ? FILE_GENERIC_WRITE : 0;
+	access |= (mode & S_IEXEC) ? FILE_GENERIC_EXECUTE : 0;
+
+	return access;
+}
+
+
+/**
+ * get_caller_sids() - retrieve owner and primary group SIDs of caller
+ * @owner:       pointer to buffer that will receive the owner SID
+ * @primary_group: pointer to buffer that will receive the primary group SID
+ *
+ * Return: 0 in case of success, -1 otherwise. Please note that this
+ * function does not set error state. Use GetLastError() to retrieve the
+ * origin of error.
+ */
+static
+int get_caller_sids(SID* owner, SID* primary_group)
+{
+	HANDLE htoken = INVALID_HANDLE_VALUE;
+	char tmp[128];
+	TOKEN_OWNER* owner_info;
+	TOKEN_PRIMARY_GROUP* group_info;
+	DWORD len;
+	int rv = -1;
+
+	// Open access token of the caller
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &htoken))
+		goto exit;
+
+	// Get Owner SID
+	len = sizeof(tmp);
+	owner_info = (TOKEN_OWNER*)tmp;
+	if (!GetTokenInformation(htoken, TokenOwner, owner_info, len, &len))
+		goto exit;
+
+	CopySid(SECURITY_MAX_SID_SIZE, owner,
+	        owner_info->Owner);
+
+	// Get Primary group SID
+	len = sizeof(tmp);
+	group_info = (TOKEN_PRIMARY_GROUP*)tmp;
+	if (!GetTokenInformation(htoken, TokenPrimaryGroup,
+	                        group_info, len, &len))
+		goto exit;
+
+	CopySid(SECURITY_MAX_SID_SIZE, primary_group,
+	        group_info->PrimaryGroup);
+
+	rv = 0;
+
+exit:
+	safe_closehandle(htoken);
+	return rv;
+}
+
+
+/**
+ * local_secdesc_resize() - accomodate local secdesc for a new size
+ * @lsd:        pointer to local_secdesc structure to initialize
+ * @size:       needed size for SECURITY_DESCRIPTOR
+ *
+ * Return: 0 in case of success, -1 otherwise. Please note that this
+ * function does not set error state. Use GetLastError() to retrieve the
+ * origin of error.
+ */
+static
+int local_secdesc_resize(struct local_secdesc* lsd, size_t size)
+{
+	local_secdesc_deinit(lsd);
+
+	if (size <= sizeof(lsd->buffer)) {
+		lsd->sd = (SECURITY_DESCRIPTOR*)lsd->buffer;
+		return 0;
+	}
+
+	lsd->sd = malloc(size);
+	return lsd->sd ? 0 : -1;
+}
+
+
+/**
+ * local_secdesc_init_from_mode() - init from permission bits
+ * @lsd:        pointer to local_secdesc structure to initialize
+ * @mode:       permission bits
+ *
+ * This function initialize a security descriptor in self-relative format in
+ * @lsd->sd from the @mode argument and the access token of the caller. This
+ * function is mostly called directly or indirectly when creating a new
+ * object on filesystem (file, directory, named pipe, ...).
+ *
+ * Return: 0 in case of success, -1 otherwise. Please note that this
+ * function does not set error state. Use GetLastError() to retrieve the
+ * origin of error.
+ */
+LOCAL_SYMBOL
+int local_secdesc_init_from_mode(struct local_secdesc* lsd, mode_t mode)
+{
+	PACL acl = NULL;
+	SECURITY_DESCRIPTOR abs_sd;
+	DWORD acl_size, access;
+	union local_sid owner, group;
+	DWORD len;
+	int rv = -1;
+
+	// Get SID values
+	if (get_caller_sids(&owner.sid, &group.sid))
+		goto exit;
+
+	// Initialize tmp_sd in absolute format
+	InitializeSecurityDescriptor(&abs_sd, SECURITY_DESCRIPTOR_REVISION);
+
+	acl_size = sizeof(ACL) + 3*sizeof(ACCESS_ALLOWED_ACE);
+	acl_size += GetLengthSid(&owner.sid) - sizeof(DWORD);
+	acl_size += GetLengthSid(&group.sid) - sizeof(DWORD);
+	acl_size += GetLengthSid(&everyone.sid) - sizeof(DWORD);
+	acl = mm_malloca(acl_size);
+	InitializeAcl(acl, acl_size, ACL_REVISION);
+
+	// Set owner permissions
+	access = get_access_from_perm_bits(mode)|MIN_OWNER_ACCESS_FLAGS;
+	if (!AddAccessAllowedAce(acl, ACL_REVISION, access, &owner.sid))
+		goto exit;
+
+	// Set group member permission
+	access = get_access_from_perm_bits(mode << 3);
+	if (!AddAccessAllowedAce(acl, ACL_REVISION, access, &group.sid))
+		goto exit;
+
+	// Set everyone permission
+	access = get_access_from_perm_bits(mode << 6);
+	if (!AddAccessAllowedAce(acl, ACL_REVISION, access, &everyone.sid))
+		goto exit;
+
+	// Add ACL into security descriptor and return a self-relative version
+	if (!SetSecurityDescriptorDacl(&abs_sd, TRUE, acl, FALSE))
+		goto exit;
+
+	// Transform the security descriptor in absolute format into a
+	// self-relative format and put it in lsd buffer
+	len = sizeof(lsd->buffer);
+	lsd->sd = (SECURITY_DESCRIPTOR*)lsd->buffer;
+	while (!MakeSelfRelativeSD(&abs_sd, lsd->sd, &len)) {
+		if (  GetLastError() != ERROR_INSUFFICIENT_BUFFER
+		   || local_secdesc_resize(lsd, len)  )
+			goto exit;
+	}
+
+	rv = 0;
+
+exit:
+	if (rv)
+		local_secdesc_deinit(lsd);
+
+	mm_freea(acl);
+	return rv;
+}
+
+
+/**
+ * local_secdesc_init_from_handle() - init from securable object handle
+ * @lsd:        pointer to local_secdesc structure to initialize
+ * @hnd:        handle to the securable object (most of time file handle)
+ *
+ * This function initializes a copy of security descriptor of @hnd in
+ * self-relative format in @lsd->sd.
+ *
+ * Return: 0 in case of success, -1 otherwise. Please note that this
+ * function does not set error state. Use GetLastError() to retrieve the
+ * origin of error.
+ */
+LOCAL_SYMBOL
+int local_secdesc_init_from_handle(struct local_secdesc* lsd, HANDLE hnd)
+{
+	int rv;
+	DWORD len;
+	SECURITY_INFORMATION requested_info = OWNER_SECURITY_INFORMATION
+	                                      | GROUP_SECURITY_INFORMATION
+	                                      | DACL_SECURITY_INFORMATION;
+
+	// Start with using lsd->buffer as backing buffer of secuity descriptor
+	lsd->sd = (SECURITY_DESCRIPTOR*)lsd->buffer;
+	len = sizeof(lsd->buffer);
+
+	rv = 0;
+	while (!GetKernelObjectSecurity(hnd, requested_info,
+	                                lsd->sd, len, &len)) {
+
+		if (  GetLastError() != ERROR_INSUFFICIENT_BUFFER
+		   || local_secdesc_resize(lsd, len)  ) {
+			rv = -1;
+			local_secdesc_deinit(lsd);
+			break;
+		}
+	}
+
+	return rv;
+}
+
+
+/**
+ * local_secdesc_deinit() - Cleanup a initialized local secdesc.
+ * @lsd:        pointer to an initialized local secdesc
+ */
+LOCAL_SYMBOL
+void local_secdesc_deinit(struct local_secdesc* lsd)
+{
+	if ((char*)lsd->sd != lsd->buffer)
+		free(lsd->sd);
+
+	lsd->sd = NULL;
+}
+
+
+/**
+ * local_secdesc_get_mode() - Get permission bits from secdesc
+ * @lsd:        pointer to an initialized local secdesc
+ *
+ * Return: permission bits inferred from the security descriptor.
+ */
+LOCAL_SYMBOL
+mode_t local_secdesc_get_mode(struct local_secdesc* lsd)
+{
+	PSID owner_sid = NULL, group_sid = NULL, sid = NULL;
+	PACL acl = NULL;
+	ACCESS_ALLOWED_ACE* ace = NULL;
+	BOOL defaulted, dacl_present;
+	mode_t mode;
+	int i;
+
+	GetSecurityDescriptorOwner(lsd->sd, &owner_sid, &defaulted);
+	GetSecurityDescriptorGroup(lsd->sd, &group_sid, &defaulted);
+	GetSecurityDescriptorDacl(lsd->sd, &dacl_present, &acl, &defaulted);
+
+	// null DACL means all access while empty dacl means no access. See
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/aa446648(v=vs.85).aspx
+
+	if (IS_DACL_NULL(acl, dacl_present))
+		return 0777;
+
+	if (IS_DACL_EMPTY(acl, dacl_present))
+		return 0;
+
+	// Scan all "Access Allowed" entries and interpret them as owner,
+	// group or other permission depending on SID in the ACE
+	mode = 0;
+	for (i = 0; i < acl->AceCount; i++) {
+		GetAce(acl, i, (LPVOID*)&ace);
+
+		if (ace->Header.AceType != ACCESS_ALLOWED_ACE_TYPE)
+			continue;
+
+		sid = (PSID)(&ace->SidStart);
+
+		if (owner_sid && EqualSid(sid, owner_sid)) {
+			mode |= access_to_mode(ace->Mask);
+		} else if (group_sid && EqualSid(sid, group_sid)) {
+			mode |= (access_to_mode(ace->Mask) >> 3);
+		} else if (EqualSid(sid, &everyone.sid)) {
+			mode |= (access_to_mode(ace->Mask) >> 6);
+		}
+	}
+
+	return mode;
+}
+
+/**************************************************************************
+ *                                                                        *
+ *                       Win32 Error reporting                            *
+ *                                                                        *
+ **************************************************************************/
 static
 int get_errcode_from_w32err(DWORD w32err)
 {
