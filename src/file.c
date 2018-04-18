@@ -80,43 +80,6 @@ int mm_ftruncate(int fd, mm_off_t length)
 }
 
 
-static
-void conv_native_to_mm_stat(struct mm_stat* buf,
-                            const struct stat* native_stat)
-{
-	buf->mode = native_stat->st_mode;
-	buf->nlink = native_stat->st_nlink;
-	buf->filesize = native_stat->st_size;
-	buf->ctime = native_stat->st_ctime;
-	buf->mtime = native_stat->st_mtime;
-}
-
-
-API_EXPORTED
-int mm_fstat(int fd, struct mm_stat* buf)
-{
-	struct stat native_stat;
-
-	if (fstat(fd, &native_stat) < 0)
-		return mm_raise_from_errno("fstat(%i) failed", fd);
-
-	conv_native_to_mm_stat(buf, &native_stat);
-	return 0;
-}
-
-
-API_EXPORTED
-int mm_stat(const char* path, struct mm_stat* buf)
-{
-	struct stat native_stat;
-
-	if (stat(path, &native_stat) < 0)
-		return mm_raise_from_errno("stat(%s) failed", path);
-
-	conv_native_to_mm_stat(buf, &native_stat);
-	return 0;
-}
-
 #if defined(_WIN32)
 #define IS_PATH_SEPARATOR(c) \
 	((*c) == '\\' || (*c) == '/')

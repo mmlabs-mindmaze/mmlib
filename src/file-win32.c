@@ -19,6 +19,7 @@
 #include <windows.h>
 #include <direct.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <uchar.h>
 
 #define NUM_ATTEMPT	256
@@ -1081,3 +1082,83 @@ const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
 
 	return d->dirent;
 }
+
+
+/*************************************************************************
+ *                                                                       *
+ *                   stat like function implementation                   *
+ *                                                                       *
+ *************************************************************************/
+
+/**
+ * get_stat_from_handle() - fill stat info from opened file handle
+ * @hnd:        file handle
+ * @buf:        stat info to fill
+ *
+ * Return: 0 in case of success, -1 otherwise. BE CAREFUL, this function
+ * does not set error state. Only win32 last error is set. It is expected
+ * to raise the corresponding in the caller (which will have more context)
+ */
+static
+int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
+{
+	BY_HANDLE_FILE_INFORMATION info;
+	int type;
+
+	if (!GetFileInformationByHandle(hnd, &info))
+		return -1;
+
+	switch(translate_filetype(info.dwFileAttributes)) {
+	case MM_DT_DIR:  type = S_IFDIR; break;
+	case MM_DT_LNK:  type = S_IFLNK; break;
+	case MM_DT_FIFO: type = S_IFIFO; break;
+	case MM_DT_CHR:  type = S_IFCHR; break;
+	default:         type = S_IFREG; break;
+	}
+
+	buf->mode = type;
+	buf->nlink = info.nNumberOfLinks;
+
+	buf->filesize = ((mm_off_t)info.nFileSizeHigh) * MAXDWORD;
+	buf->filesize += info.nFileSizeLow;
+
+	buf->ctime = filetime_to_time(info.ftCreationTime);
+	buf->mtime = filetime_to_time(info.ftLastWriteTime);
+
+	return 0;
+}
+
+
+API_EXPORTED
+int mm_stat(const char* path, struct mm_stat* buf)
+{
+	HANDLE hnd;
+	int rv = 0;
+
+	hnd = open_handle_for_metadata(path, 0);
+	if (hnd == INVALID_HANDLE_VALUE)
+		return mm_raise_from_w32err("Can't open %s", path);
+
+	// Get stat info from open file handle
+	if (get_stat_from_handle(hnd, buf))
+		rv = mm_raise_from_w32err("Can't get stat of %s", path);
+
+	CloseHandle(hnd);
+	return rv;
+}
+
+
+API_EXPORTED
+int mm_fstat(int fd, struct mm_stat* buf)
+{
+	HANDLE hnd;
+
+	if (unwrap_handle_from_fd(&hnd, fd))
+		return -1;
+
+	if (get_stat_from_handle(hnd, buf))
+		return mm_raise_from_w32err("Can't get stat of fd=%i", fd);
+
+	return 0;
+}
+
