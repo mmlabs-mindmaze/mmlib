@@ -364,8 +364,10 @@ void mm_closedir(MMDIR* dir)
 API_EXPORTED
 void mm_rewinddir(MMDIR* dir)
 {
-	if (dir == NULL)
+	if (dir == NULL) {
 		mm_raise_error(EINVAL, "mm_rewinddir() does not accept NULL pointers");
+		return;
+	}
 
 	rewinddir(dir->dir);
 }
