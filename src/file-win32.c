@@ -297,16 +297,24 @@ API_EXPORTED
 int mm_open(const char* path, int oflag, int mode)
 {
 	HANDLE hnd;
-	int fd, fdinfo;
+	int fdinfo, fd = -1;
+	struct local_secdesc lsd;
 	struct w32_create_file_options opts;
 
 	if (set_w32_create_file_options(&opts, oflag))
 		return -1;
 
-	hnd = open_handle(path, opts.access_mode, opts.creation_mode, NULL,
-	                  opts.file_attribute);
-	if (hnd == INVALID_HANDLE_VALUE)
-		return mm_raise_from_w32err("Can't get handle for %s", path);
+	if (local_secdesc_init_from_mode(&lsd, mode)) {
+		mm_raise_from_w32err("can't create security descriptor");
+		goto exit;
+	}
+
+	hnd = open_handle(path, opts.access_mode, opts.creation_mode,
+	                  &lsd.desc, opts.file_attribute);
+	if (hnd == INVALID_HANDLE_VALUE) {
+		mm_raise_from_w32err("Can't get handle for %s", path);
+		goto exit;
+	}
 
 	fdinfo = FD_TYPE_NORMAL;
 	if (mode & O_APPEND)
@@ -314,9 +322,11 @@ int mm_open(const char* path, int oflag, int mode)
 
 	if (wrap_handle_into_fd(hnd, &fd, fdinfo)) {
 		CloseHandle(hnd);
-		return -1;
+		goto exit;
 	}
 
+exit:
+	local_secdesc_deinit(&lsd);
 	return fd;
 }
 
