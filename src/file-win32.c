@@ -1203,11 +1203,13 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 {
 	FILE_ATTRIBUTE_TAG_INFO attr_tag;
 	BY_HANDLE_FILE_INFORMATION info;
+	struct local_secdesc lsd;
 	int type;
 
 	if (  !GetFileInformationByHandleEx(hnd, FileAttributeTagInfo,
 	                                    &attr_tag, sizeof(attr_tag))
-	   || !GetFileInformationByHandle(hnd, &info)  ) {
+	   || !GetFileInformationByHandle(hnd, &info)
+	   || local_secdesc_init_from_handle(&lsd, hnd)  ) {
 		return -1;
 	}
 
@@ -1229,7 +1231,7 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 		}
 	}
 
-	buf->mode = type;
+	buf->mode = type | local_secdesc_get_mode(&lsd);
 	buf->nlink = info.nNumberOfLinks;
 
 	if (type == S_IFLNK) {
@@ -1242,6 +1244,7 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 	buf->ctime = filetime_to_time(info.ftCreationTime);
 	buf->mtime = filetime_to_time(info.ftLastWriteTime);
 
+	local_secdesc_deinit(&lsd);
 	return 0;
 }
 
