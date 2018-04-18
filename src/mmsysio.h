@@ -151,6 +151,7 @@ extern "C" {
 
 #define MM_RECURSIVE    (1 << 31)
 #define MM_FAILONERROR  (1 << 30)
+#define MM_NOFOLLOW     (1 << 29)
 
 struct mm_stat {
 int mode;
@@ -378,14 +379,19 @@ MMLIB_API int mm_fstat(int fd, struct mm_stat* buf);
  * mm_stat() - get file status from file path
  * @path:       path of file
  * @buf:        pointer to mm_stat structure to fill
+ * @flags:      0 or MM_NOFOLLOW
  *
  * This function obtains information about an file located by @path, and writes
- * it to the area pointed to by @buf.
+ * it to the area pointed to by @buf. If @path refers to a symbolic link, the
+ * information depents on the value of @flags. If @flags is 0, the information
+ * returned will be the one of the target of symbol link. Otherwise, if
+ * MM_NOFOLLOW is set in @flags, the information will be the one of the
+ * symbolic link itself.
  *
  * Return: 0 in case of success, -1 otherwise with error state set
  * accordingly.
  */
-MMLIB_API int mm_stat(const char* path, struct mm_stat* buf);
+MMLIB_API int mm_stat(const char* path, struct mm_stat* buf, int flags);
 
 /**
  * mm_check_access() - verify access to a file

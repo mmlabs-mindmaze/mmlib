@@ -203,6 +203,10 @@ void conv_native_to_mm_stat(struct mm_stat* buf,
 		.ctime = native_stat->st_ctime,
 		.mtime = native_stat->st_mtime,
 	};
+
+	// Accomodate for end of string to be consistent with mm_readlink()
+	if (S_ISLNK(buf->mode))
+		buf->filesize += 1;
 }
 
 

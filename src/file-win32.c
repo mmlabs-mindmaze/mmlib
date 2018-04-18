@@ -1153,6 +1153,33 @@ char16_t* get_target_u16_from_reparse_data(REPARSE_DATA_BUFFER* rep)
 
 
 /**
+ * get_symlink_target_strlen() - Get size of target string of symlink
+ * hnd:         handle of a open symlink
+ *
+ * Return: size of the UTF-8 string of the target including null
+ * terminator.
+ */
+static
+size_t get_symlink_target_strlen(HANDLE hnd)
+{
+	REPARSE_DATA_BUFFER* rep;
+	char16_t * trgt_u16;
+	size_t len = 0;
+
+	rep = get_reparse_data(hnd);
+	if (!rep)
+		return 0;
+
+	trgt_u16 = get_target_u16_from_reparse_data(rep);
+	if (trgt_u16)
+		len = get_utf8_buffer_len_from_utf16(trgt_u16);
+
+	free(rep);
+	return len;
+}
+
+
+/**
  * get_stat_from_handle() - fill stat info from opened file handle
  * @hnd:        file handle
  * @buf:        stat info to fill
@@ -1164,25 +1191,43 @@ char16_t* get_target_u16_from_reparse_data(REPARSE_DATA_BUFFER* rep)
 static
 int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 {
+	FILE_ATTRIBUTE_TAG_INFO attr_tag;
 	BY_HANDLE_FILE_INFORMATION info;
 	int type;
 
-	if (!GetFileInformationByHandle(hnd, &info))
+	if (  !GetFileInformationByHandleEx(hnd, FileAttributeTagInfo,
+	                                    &attr_tag, sizeof(attr_tag))
+	   || !GetFileInformationByHandle(hnd, &info)  ) {
 		return -1;
+	}
 
-	switch(translate_filetype(info.dwFileAttributes)) {
-	case MM_DT_DIR:  type = S_IFDIR; break;
-	case MM_DT_LNK:  type = S_IFLNK; break;
-	case MM_DT_FIFO: type = S_IFIFO; break;
-	case MM_DT_CHR:  type = S_IFCHR; break;
-	default:         type = S_IFREG; break;
+	// translate_filetype() consider all reparse point as symlink. Here
+	// we can use dwReserved0 field to distinguish type
+	if (attr_tag.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+		switch(attr_tag.ReparseTag) {
+		case IO_REPARSE_TAG_SYMLINK:     type = S_IFLNK; break;
+		case IO_REPARSE_TAG_MOUNT_POINT: type = S_IFDIR; break;
+		default:                         type = S_IFREG; break;
+		}
+	} else {
+		switch(translate_filetype(attr_tag.FileAttributes)) {
+		case MM_DT_DIR:  type = S_IFDIR; break;
+		case MM_DT_LNK:  type = S_IFLNK; break;
+		case MM_DT_FIFO: type = S_IFIFO; break;
+		case MM_DT_CHR:  type = S_IFCHR; break;
+		default:         type = S_IFREG; break;
+		}
 	}
 
 	buf->mode = type;
 	buf->nlink = info.nNumberOfLinks;
 
-	buf->filesize = ((mm_off_t)info.nFileSizeHigh) * MAXDWORD;
-	buf->filesize += info.nFileSizeLow;
+	if (type == S_IFLNK) {
+		buf->filesize = get_symlink_target_strlen(hnd);
+	} else {
+		buf->filesize = ((mm_off_t)info.nFileSizeHigh) * MAXDWORD;
+		buf->filesize += info.nFileSizeLow;
+	}
 
 	buf->ctime = filetime_to_time(info.ftCreationTime);
 	buf->mtime = filetime_to_time(info.ftLastWriteTime);
@@ -1192,12 +1237,12 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 
 
 API_EXPORTED
-int mm_stat(const char* path, struct mm_stat* buf)
+int mm_stat(const char* path, struct mm_stat* buf, int flags)
 {
 	HANDLE hnd;
 	int rv = 0;
 
-	hnd = open_handle_for_metadata(path, 0);
+	hnd = open_handle_for_metadata(path, flags & MM_NOFOLLOW);
 	if (hnd == INVALID_HANDLE_VALUE)
 		return mm_raise_from_w32err("Can't open %s", path);
 
