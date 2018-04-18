@@ -220,14 +220,36 @@ int mm_fstat(int fd, struct mm_stat* buf)
 
 
 API_EXPORTED
-int mm_stat(const char* path, struct mm_stat* buf)
+int mm_stat(const char* path, struct mm_stat* buf, int flags)
 {
 	struct stat native_stat;
 
-	if (stat(path, &native_stat) < 0)
-		return mm_raise_from_errno("stat(%s) failed", path);
+	if (flags & MM_NOFOLLOW) {
+		if (lstat(path, &native_stat) < 0)
+			return mm_raise_from_errno("lstat(%s) failed", path);
+	} else {
+		if (stat(path, &native_stat) < 0)
+			return mm_raise_from_errno("stat(%s) failed", path);
+	}
 
 	conv_native_to_mm_stat(buf, &native_stat);
+	return 0;
+}
+
+
+API_EXPORTED
+int mm_readlink(const char* path, char* buf, size_t bufsize)
+{
+	ssize_t rsz;
+
+	rsz = readlink(path, buf, bufsize);
+	if (rsz < 0)
+		return mm_raise_from_errno("readlink(%s) failed", path);
+
+	if (rsz == (ssize_t)bufsize)
+		return mm_raise_error(EOVERFLOW, "target too large");
+
+	buf[rsz] = '\0';
 	return 0;
 }
 

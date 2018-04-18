@@ -21,6 +21,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <uchar.h>
+#include <winnt.h>
+#include <ntdef.h>
+#include <winioctl.h>
 
 #define NUM_ATTEMPT	256
 
@@ -1091,6 +1094,65 @@ const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
  *************************************************************************/
 
 /**
+ * reparse_data_create() - allocate and get reparse data from handle
+ * HANDLE:      handle of a open reparse point
+ *
+ * Return: initialized REPARSE_DATA_BUFFER in case of success, NULL
+ * othewise. Must be cleanup with free() when you don't need it any longer
+ */
+static
+REPARSE_DATA_BUFFER* get_reparse_data(HANDLE hnd)
+{
+	REPARSE_DATA_BUFFER* rep;
+	DWORD io_retsz;
+
+	rep = malloc(MAXIMUM_REPARSE_DATA_BUFFER_SIZE);
+	if (!rep)
+		return NULL;
+
+	// Get reparse point data
+	if (!DeviceIoControl(hnd, FSCTL_GET_REPARSE_POINT, NULL, 0,
+	                     rep, MAXIMUM_REPARSE_DATA_BUFFER_SIZE,
+			     &io_retsz, NULL)) {
+		free(rep);
+		return NULL;
+	}
+
+	return rep;
+}
+
+
+/**
+ * get_target_u16_from_reparse_data() - extract symlink target from data
+ * rep:         reparse point data read from a symlink
+ *
+ * Return: UTF-16 string (null terminated) of the target if @rep is the
+ * reparse point data of a symlink, NULL otherwise. The return pointer is
+ * valid for the lifetime of @rep.
+ */
+static
+char16_t* get_target_u16_from_reparse_data(REPARSE_DATA_BUFFER* rep)
+{
+	char* buf8;
+	char16_t * trgt_u16;
+	int trgt_u16_len, buf8_len, buf8_offset;
+
+	if (rep->ReparseTag != IO_REPARSE_TAG_SYMLINK)
+		return NULL;
+
+	// Get UTF-16 path of target
+	buf8 = (char*)rep->SymbolicLinkReparseBuffer.PathBuffer;
+	buf8_offset = rep->SymbolicLinkReparseBuffer.SubstituteNameOffset;
+	buf8_len = rep->SymbolicLinkReparseBuffer.SubstituteNameLength;
+	trgt_u16 = (char16_t*)(buf8 + buf8_offset);
+	trgt_u16_len = buf8_len / sizeof(*trgt_u16);
+	trgt_u16[trgt_u16_len] = L'\0';
+
+	return trgt_u16;
+}
+
+
+/**
  * get_stat_from_handle() - fill stat info from opened file handle
  * @hnd:        file handle
  * @buf:        stat info to fill
@@ -1160,5 +1222,42 @@ int mm_fstat(int fd, struct mm_stat* buf)
 		return mm_raise_from_w32err("Can't get stat of fd=%i", fd);
 
 	return 0;
+}
+
+
+API_EXPORTED
+int mm_readlink(const char* path, char* buf, size_t bufsize)
+{
+	REPARSE_DATA_BUFFER* rep;
+	HANDLE hnd = INVALID_HANDLE_VALUE;
+	char16_t* trgt_u16;
+	int rv = 0;
+
+	hnd = open_handle_for_metadata(path, true);
+	if (hnd == INVALID_HANDLE_VALUE)
+		return mm_raise_from_w32err("Can't open %s", path);
+
+	// Get reparse point data
+	rep = get_reparse_data(hnd);
+	if (!rep) {
+		rv = mm_raise_from_w32err("Can't get data of %s", path);
+		goto exit;
+	}
+
+	// Extract target string from reparse point data
+	trgt_u16 = get_target_u16_from_reparse_data(rep);
+	if (!trgt_u16) {
+		rv = mm_raise_error(EINVAL, "%s is not a symlink", path);
+		goto exit;
+	}
+
+	// Try convert symlink target UTF-16->UTF-8
+	if (conv_utf16_to_utf8(buf, bufsize, trgt_u16) < 0)
+		rv = mm_raise_error(EOVERFLOW, "target too large");
+
+exit:
+	free(rep);
+	CloseHandle(hnd);
+	return rv;
 }
 

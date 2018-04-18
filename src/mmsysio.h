@@ -524,6 +524,23 @@ MMLIB_API int mm_symlink(const char* oldpath, const char* newpath);
 
 
 /**
+ * mm_readlink() - read value of a symbolic link
+ * @path:       pathname of symbolic link
+ * @buf:        buffer receiving the value
+ * @bufsize:    length of @buf
+ *
+ * mm_readlink() places the contents of the symbolic link @path in the buffer
+ * @buf, which has size @bufsize. It does append a null byte to @buf. If @buf
+ * is too small to hold the contents, error will be returned. The required size
+ * for the buffer can be obtained from &struct stat.filesize value returned by
+ * a call to mm_stat() on the link.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set.
+ */
+MMLIB_API int mm_readlink(const char* path, char* buf, size_t bufsize);
+
+
+/**
  * mm_mkdir() - creates a directory
  * @path:       path of the directory to create
  * @mode:       permission to use for directory creation
