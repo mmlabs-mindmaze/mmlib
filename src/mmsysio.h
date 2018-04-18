@@ -88,11 +88,26 @@ extern "C" {
 #define O_EXCL _O_EXCL
 #endif
 
+#ifndef S_IFMT
+#define S_IFMT _S_IFMT
+#endif
 #ifndef S_IFDIR
 #define S_IFDIR _S_IFDIR
 #endif
 #ifndef S_IFREG
 #define S_IFREG _S_IFREG
+#endif
+#define S_IFLNK (_S_IFREG|_S_IFCHR)
+
+#define S_ISTYPE(mode, mask)  (((mode) & S_IFMT) == (mask))
+#ifndef S_ISDIR
+#define S_ISDIR(mode)   S_ISTYPE((mode), S_IFDIR)
+#endif
+#ifndef S_ISREG
+#define S_ISREG(mode)   S_ISTYPE((mode), S_IFREG)
+#endif
+#ifndef S_ISLNK
+#define S_ISLNK(mode)   S_ISTYPE((mode), S_IFLNK)
 #endif
 
 #ifndef S_IRUSR
