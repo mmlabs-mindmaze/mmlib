@@ -599,52 +599,91 @@ exit:
 }
 
 
+#define TOKEN_ACCESS 	\
+  (  TOKEN_IMPERSONATE | TOKEN_QUERY        \
+   | TOKEN_DUPLICATE | STANDARD_RIGHTS_READ)
+/*
+from http://blog.aaronballman.com/2011/08/how-to-check-access-rights/
+*/
+static
+int test_access(SECURITY_DESCRIPTOR* sd, DWORD access_rights)
+{
+	HANDLE proc_htoken = INVALID_HANDLE_VALUE;
+	HANDLE imp_htoken = INVALID_HANDLE_VALUE;
+	HANDLE hproc = GetCurrentProcess();
+	GENERIC_MAPPING mapping;
+	PRIVILEGE_SET privileges = {0};
+	DWORD granted = 0, priv_len = sizeof(privileges);
+	BOOL result = FALSE;
+	int rv = -1;
+
+	// Setup mapping to File generic rights
+	mapping.GenericRead = FILE_GENERIC_READ;
+	mapping.GenericWrite = FILE_GENERIC_WRITE;
+	mapping.GenericExecute = FILE_GENERIC_EXECUTE;
+	mapping.GenericAll = FILE_ALL_ACCESS;
+	MapGenericMask(&access_rights, &mapping);
+
+	// Get obtained a token suitable for impersonation and check access
+	if (  !OpenProcessToken(hproc, TOKEN_ACCESS, &proc_htoken)
+	   || !DuplicateToken(proc_htoken, SecurityImpersonation, &imp_htoken)
+	   || !AccessCheck(sd, imp_htoken, access_rights, &mapping,
+	                   &privileges, &priv_len, &granted, &result)  ) {
+		goto exit;
+	}
+
+	rv =  (result == TRUE) ? 0 : EACCES;
+
+exit:
+	safe_closehandle(imp_htoken);
+	safe_closehandle(proc_htoken);
+	return rv;
+}
+
+
 API_EXPORTED
 int mm_check_access(const char* path, int amode)
 {
-	WIN32_FILE_ATTRIBUTE_DATA attrs;
-	DWORD bin_type, w32err;
-	int path_u16_len;
-	char16_t* path_u16;
-	BOOL success;
+	struct local_secdesc lsd;
+	int rv = -1;
+	HANDLE hnd;
+	DWORD w32err, access_rights;
 
-	// Get size for converted path into utf-16
-	path_u16_len = get_utf16_buffer_len_from_utf8(path);
-	if (path_u16_len < 0)
-		return mm_raise_from_w32err("Invalid UTF-8 path");
-
-	// TODO: Implement using GetFileSecurity()
-
-	// Create temporary UTF-16 string from path get attribute from it
-	path_u16 = mm_malloca(path_u16_len*sizeof(*path_u16));
-	conv_utf8_to_utf16(path_u16, path_u16_len, path);
-	success = GetFileAttributesExW(path_u16, GetFileExInfoStandard, &attrs);
-	mm_freea(path_u16);
-
-	if (!success) {
-		// If file cannot be found, this not an actual error (hence
-		// do not set error state)
+	hnd = open_handle_for_metadata(path, false);
+	if (hnd == INVALID_HANDLE_VALUE) {
+		// If we receive file not found, this is not an error and
+		// must be reported as return value
 		w32err = GetLastError();
-		if (  (w32err == ERROR_FILE_NOT_FOUND)
-		   || (w32err == ERROR_PATH_NOT_FOUND)  )
+		if (  w32err == ERROR_PATH_NOT_FOUND
+		   || w32err == ERROR_FILE_NOT_FOUND  )
 			return ENOENT;
 
-		return mm_raise_from_w32err("Failed to get file attributes (%s)", path);
+		return mm_raise_from_w32err("Can't get handle for %s", path);
 	}
 
-	// Check for write access
-	if (amode & W_OK) {
-		if (attrs.dwFileAttributes == FILE_ATTRIBUTE_READONLY)
-			return EACCES;
+	// If only file presence is tested, we skip the access test
+	if (amode == F_OK) {
+		rv = 0;
+		goto exit;
 	}
 
-	// Check for Execution access
-	if (amode & X_OK) {
-		if (!GetBinaryType(path, &bin_type))
-			return EACCES;
-	}
+	if (local_secdesc_init_from_handle(&lsd, hnd))
+		goto exit;
 
-	return 0;
+	access_rights = 0;
+	access_rights |= (amode & R_OK) ? GENERIC_READ : 0;
+	access_rights |= (amode & W_OK) ? GENERIC_WRITE : 0;
+	access_rights |= (amode & X_OK) ? GENERIC_EXECUTE : 0;
+	rv = test_access(lsd.sd, access_rights);
+
+	local_secdesc_deinit(&lsd);
+
+exit:
+	if (rv < 0)
+		mm_raise_from_w32err("Failed to test access of %s", path);
+
+	CloseHandle(hnd);
+	return rv;
 }
 
 
