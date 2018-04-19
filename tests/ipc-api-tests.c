@@ -30,8 +30,16 @@ static struct mmipc_srv * srv;
 static
 void test_teardown(void)
 {
+	int i;
+	char filename[64];
+
 	mmipc_srv_destroy(srv);
 	srv = NULL;
+
+	for (i = 0 ; i < 5 ; i ++) {
+		sprintf(filename, "%s-%d", IPC_TMPFILE, i);
+		mm_unlink(filename);
+	}
 }
 
 START_TEST(ipc_create_simple)
