@@ -158,7 +158,7 @@ START_TEST(spawn_error)
 	pid = -23;
 	rv = mm_spawn(&pid, NULL, 0, NULL, MM_SPAWN_KEEP_FDS, NULL, NULL);
 	ck_assert(rv != 0);
-	ck_assert(pid == -23);  // no process should be able to launch
+	ck_assert(pid == (mm_pid_t) -23);  // no process should be able to launch
 	pid = 0;
 }
 END_TEST
@@ -184,7 +184,7 @@ void spawn_error_eagain(int max_nproc, int spawn_mode)
 	ck_assert(setrlimit(RLIMIT_NPROC, &rlim_orig) == 0);
 
 	ck_assert(rv != 0);
-	ck_assert(pid == -23);
+	ck_assert(pid == (mm_pid_t) -23);
 	ck_assert(mm_get_lasterror_number() == EAGAIN);
 
 	pid = 0;
@@ -206,7 +206,7 @@ START_TEST(spawn_daemon_error)
 	pid = -23;
 	rv = mm_spawn(&pid, NULL, 0, NULL, MM_SPAWN_DAEMONIZE, NULL, NULL);
 	ck_assert(rv == -1);
-	ck_assert(pid == -23);  // no process should be able to launch
+	ck_assert(pid == (mm_pid_t) -23);  // no process should be able to launch
 	pid = 0;
 }
 END_TEST
@@ -220,7 +220,7 @@ START_TEST(spawn_invalid_args)
 	pid = -23;
 	rv = mm_spawn(&pid, "/", 0, NULL, MM_SPAWN_KEEP_FDS, NULL, NULL);
 	ck_assert(rv == -1);
-	ck_assert(pid == -23);  // no process should be able to launch
+	ck_assert(pid == (mm_pid_t) -23);  // no process should be able to launch
 	pid = 0;
 }
 END_TEST
