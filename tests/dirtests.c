@@ -20,7 +20,8 @@
 #include "mmpredefs.h"
 #include "mmsysio.h"
 
-#define TMP_DIR_ROOT TOP_BUILDDIR "/mmlib-test-dir"
+#define TMP_DIR_ROOT BUILDDIR "/mmlib-test-dir"
+#define TEST_DIR  "testdir"
 #define TEST_FILE "testfile.dat"
 #define TEST_LINK "testfile.lnk"
 
@@ -35,20 +36,6 @@ static void test_init(void)
 	mm_mkdir(TMP_DIR_ROOT, 0777, 0); /* ignore error if already present */
 	mm_chdir(TMP_DIR_ROOT);
 }
-
-START_TEST(test_dir_create_rec)
-{
-	int rv;
-	rv = mm_mkdir(
-		"1/dir2/dir_3/dir 4/dir_with_a_longer_name_than_the_others",
-		0777, MM_RECURSIVE);
-	ck_assert(rv == 0);
-
-	ck_assert(mm_chdir("does_not_exist") != 0);
-	ck_assert(mm_chdir("1/dir2/dir_3/dir 4") == 0);
-	ck_assert(mm_chdir("dir_with_a_longer_name_than_the_others") == 0);
-}
-END_TEST
 
 START_TEST(test_dir_open_close)
 {
@@ -66,22 +53,44 @@ START_TEST(test_dir_open_close)
 }
 END_TEST
 
+START_TEST(test_dir_create_twice)
+{
+	ck_assert(mm_mkdir(TEST_DIR, 0777, 0) == 0);
+	ck_assert(mm_check_access(TEST_DIR, F_OK) == 0);
+
+	ck_assert(mm_mkdir(TEST_DIR, 0777, 0) != 0);
+	ck_assert(mm_get_lasterror_number() == EEXIST);
+	ck_assert(mm_mkdir(TEST_DIR, 0777, MM_RECURSIVE) == 0);
+	ck_assert(mm_remove(TEST_DIR, MM_DT_DIR) == 0);
+}
+END_TEST
+
+
+
+START_TEST(test_dir_create_rec)
+{
+	int rv;
+	rv = mm_mkdir(
+		"1/dir2/dir_3/dir 4/dir_with_a_longer_name_than_the_others",
+		0777, MM_RECURSIVE);
+	ck_assert(rv == 0);
+
+	ck_assert(mm_chdir("does_not_exist") != 0);
+	ck_assert(mm_chdir("1/dir2/dir_3/dir 4") == 0);
+	ck_assert(mm_chdir("dir_with_a_longer_name_than_the_others") == 0);
+}
+END_TEST
+
 static
 char const* filtype_str(char const type)
 {
 	switch (type) {
 	case MM_DT_FIFO: return "fifo";
-
 	case MM_DT_CHR:  return "chr";
-
 	case MM_DT_BLK:  return "blk";
-
 	case MM_DT_DIR:  return "dir";
-
 	case MM_DT_REG:  return "reg";
-
 	case MM_DT_LNK:  return "link";
-
 	default: return "unknown";
 	}
 }
@@ -132,6 +141,20 @@ START_TEST(test_remove)
 	ck_assert(fd == -1);
 }
 END_TEST
+
+START_TEST(test_remove_dir)
+{
+	ck_assert(mm_mkdir(TEST_DIR, 0777, 0) == 0);
+	ck_assert(mm_remove(TEST_DIR, MM_DT_ANY) == 0);
+	ck_assert(mm_check_access(TEST_DIR, F_OK) == ENOENT);
+
+	/* same with the recursive flag */
+	ck_assert(mm_mkdir(TEST_DIR, 0777, 0) == 0);
+	ck_assert(mm_remove(TEST_DIR, MM_DT_ANY|MM_RECURSIVE) == 0);
+	ck_assert(mm_check_access(TEST_DIR, F_OK) == ENOENT);
+}
+END_TEST
+
 
 START_TEST(test_remove_type)
 {
@@ -366,10 +389,12 @@ TCase* create_dir_tcase(void)
 	tc = tcase_create("dir");
 	tcase_add_checked_fixture(tc, test_init, test_teardown);
 
-	tcase_add_test(tc, test_dir_create_rec);
 	tcase_add_test(tc, test_dir_open_close);
+	tcase_add_test(tc, test_dir_create_twice);
+	tcase_add_test(tc, test_dir_create_rec);
 	tcase_add_test(tc, test_dir_read);
 	tcase_add_test(tc, test_remove);
+	tcase_add_test(tc, test_remove_dir);
 	tcase_add_test(tc, test_remove_type);
 
 	if (has_unprivileged_symlinks)

@@ -921,10 +921,6 @@ int mm_remove_rec(const char * prefix, MMDIR * d, int flags, int rec_lvl)
 			mm_closedir(newdir);
 			if (rv != 0 && (flags & MM_FAILONERROR))
 				return -1;
-
-			 /* try to remove the folder again
-			  * it MAY have been cleansed by the recursive remove call */
-			(void) win32_unlinkat(prefix, d->dirent->name, type);
 		}
 
 		rv = win32_unlinkat(prefix, d->dirent->name, type);
@@ -961,10 +957,14 @@ int mm_remove(const char* path, int flags)
 			error_flags = mm_error_set_flags(MM_ERROR_NOLOG, MM_ERROR_NOLOG);
 			rv = mm_remove_rec(path, dir, flags, RECURSION_MAX);
 			mm_error_set_flags(error_flags, MM_ERROR_ALL);
+			mm_closedir(dir);
 			if (rv != 0 && !(flags & MM_FAILONERROR)) {
 				return mm_raise_from_errno("recursive mm_remove(%s) failed", path);
 			}
-			return rv;
+
+			/* allow rmdir(".") when called with the recursive flag only */
+			if (is_wildcard_directory(path))
+				return rv;
 		}
 	}
 
