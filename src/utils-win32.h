@@ -18,7 +18,6 @@
 struct w32_create_file_options {
 	DWORD access_mode;
 	DWORD creation_mode;
-	DWORD share_flags;
 	DWORD file_attribute;
 };
 

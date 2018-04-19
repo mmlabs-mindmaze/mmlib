@@ -85,7 +85,6 @@ int set_w32_create_file_options(struct w32_create_file_options* opts, int oflags
 	  || set_creation_mode(opts, oflags) )
 		return -1;
 
-	opts->share_flags = FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE;
 	opts->file_attribute = FILE_ATTRIBUTE_NORMAL;
 	return 0;
 }

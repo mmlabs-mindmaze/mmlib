@@ -297,6 +297,7 @@ int mm_open(const char* path, int oflag, int mode)
 	struct w32_create_file_options opts;
 	int path_u16_len;
 	char16_t* path_u16;
+	DWORD share = FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE;
 
 	if (set_w32_create_file_options(&opts, oflag))
 		return -1;
@@ -309,7 +310,7 @@ int mm_open(const char* path, int oflag, int mode)
 	// Create temporary UTF-16 path and use to create the file handle
 	path_u16 = mm_malloca(path_u16_len*sizeof(*path_u16));
 	conv_utf8_to_utf16(path_u16, path_u16_len, path);
-	hnd = CreateFileW(path_u16, opts.access_mode, opts.share_flags, NULL,
+	hnd = CreateFileW(path_u16, opts.access_mode, share, NULL,
 	                  opts.creation_mode, opts.file_attribute, NULL);
 	mm_freea(path_u16);
 
