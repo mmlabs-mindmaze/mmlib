@@ -1018,6 +1018,7 @@ MMLIB_API int mm_shm_unlink(const char* name);
  * @num_fds:    number of file descriptors in @fds
  * @flags:      flags on received message
  * @num_fds_max: maximum number of file descriptors in @fds
+ * @reserved:   reserved for future use (must be NULL)
  */
 struct mmipc_msg {
 	struct iovec* iov;
@@ -1026,6 +1027,7 @@ struct mmipc_msg {
 	int num_fds;
 	int flags;
 	int num_fds_max;
+	void* reserved;
 };
 
 struct mmipc_srv;
