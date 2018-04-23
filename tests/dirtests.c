@@ -258,15 +258,19 @@ char* tree(const char * path)
 }
 
 
-/* windows display files in alphabetical order
- * linux display files in time order */
-#if defined (_WIN32)
-#define TREE_REF\
+/*
+ * Note about the order dirent() returns:
+ * * Windows display files in alphabetical order
+ * * Linux MOSTLY display files in time order
+ *
+ * Linux actually returns the entries depending on their order creation ...
+ * AND depending on the inode recycling at the moment of the folder creation.
+ * Most of the time it will seem like it's chronological, but it might not be
+ */
+#define TREE_REF_ALPHA\
 	"├─ 1 (dir)\n\t├─ 2 (dir)\n\t\t├─ 3 (dir)\n\t\t\t├─ file1.dat (reg)\n├─ 4 (dir)\n\t├─ 5 (dir)\n\t\t├─ 6 (dir)\n\t\t\t├─ file1.lnk (link)\n"
-#else /* _WIN32 */
-#define TREE_REF\
+#define TREE_REF_INODE\
 	"├─ 4 (dir)\n\t├─ 5 (dir)\n\t\t├─ 6 (dir)\n\t\t\t├─ file1.lnk (link)\n├─ 1 (dir)\n\t├─ 2 (dir)\n\t\t├─ 3 (dir)\n\t\t\t├─ file1.dat (reg)\n"
-#endif /* _WIN32 */
 #define TREE_1\
 	"├─ 4 (dir)\n\t├─ 5 (dir)\n\t\t├─ 6 (dir)\n\t\t\t├─ file1.lnk (link)\n"
 START_TEST(test_remove_rec)
@@ -314,7 +318,8 @@ START_TEST(test_remove_rec)
 	 */
 	tree_ref = tree(".");
 	printf("Initial tree:\n%s", tree_ref);
-	ck_assert(strcmp(tree_ref, TREE_REF) == 0);
+	ck_assert(strcmp(tree_ref, TREE_REF_ALPHA) == 0
+			|| strcmp(tree_ref, TREE_REF_INODE) == 0);
 
 	/* - 1
 	 *   - recursive remove all files
