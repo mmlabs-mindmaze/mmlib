@@ -3,7 +3,8 @@ Section: libs
 Priority: extra
 Maintainer: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
 Build-Depends: debhelper (>= 9), dh-autoreconf,
- pkg-config, gnulib, libltdl-dev, gettext, check
+ pkg-config, gnulib, libltdl-dev, gettext, check,
+ python3-sphinx, python3-sphinx-rtd-theme, python3-sphinx-linuxdoc
 Standards-Version: 3.9.8
 Vcs-Git: https://intranet.mindmaze.ch/bitbucket/scm/mmlab/mmlib.git
 Vcs-browser:  https://intranet.mindmaze.ch/bitbucket/scm/mmlab/mmlib.git
@@ -46,3 +47,16 @@ Description: MindMaze helper library (Debugging symbols)
  geometry.
  .
  This package provides the debugging symbols for the library.
+
+Package: libmmlib-doc
+Section: doc
+Priority: optional
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}
+Description: MindMaze helper library (Documentation)
+ mmlib is the general purpose library providing helper functions to other
+ module. It provides facilities for logging, error reporting and basic
+ geometry.
+ .
+ This package provides the documentation for the library

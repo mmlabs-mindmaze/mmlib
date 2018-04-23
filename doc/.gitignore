@@ -3,3 +3,8 @@ multithread
 pshared-child
 pshared-parent
 parse_args
+html/
+man/
+.doctrees/
+manpages-buildstamp
+html-buildstamp

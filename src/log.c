@@ -72,7 +72,7 @@ MM_CONSTRUCTOR(init_log)
 
 /**
  * format_log_str() - generate log string on supplied buffer
- * @buffer:     buffer that must receive the log string
+ * @buff:       buffer that must receive the log string
  * @blen:       maximum size of @buffer
  * @lvl:        level of the log line
  * @location:   module name at the origin of the log
@@ -123,6 +123,56 @@ size_t format_log_str(char* restrict buff, size_t blen,
 }
 
 
+/**
+ * mmlog_log() - Add a formatted message to the log file
+ * @lvl:        log level.
+ * @location:   origin of the log message.
+ * @msg:        log message.
+ *
+ * Writes an entry in the log following the suggested format by the Mindmaze
+ * standard: date, time, origin, level, message. The origin part is specified
+ * by the @location parameter. The severity part is defined by the @lvl
+ * parameter which must one of this value listed from the most critical to the
+ * least one:
+ *   MMLOG_FATAL
+ *   MMLOG_ERROR
+ *   MMLOG_WARN
+ *   MMLOG_INFO
+ *   MMLOG_DEBUG
+ *
+ * The message part of log entry is formed according the format specified by the
+ * @msg parameters which convert the formatting and convertion of the optional
+ * argument list of the function. As the format specified by @msg follows the
+ * one of the @sprintf function.
+ *
+ * If the parameter lvl is less critical than the environment variable
+ * @MMLOG_MAXLEVEL, the log entry will not be written to log and simply ignored.
+ *
+ * Usually, users do not call mmlog_log() directly but use one of the following
+ * macros: mmlog_fatal(), mmlog_error(), mmlog_warn(), mmlog_info(),
+ * mmlog_debug()
+ *
+ * Return: None
+ *
+ * ENVIRONMENT: You can control the output on the log at runtime using the
+ * environment variable @MMLOG_MAXLEVEL. It specifies the maximum level of
+ * severity that must be written on the log. It must be set to one of these
+ * values:
+ *   NONE
+ *   FATAL
+ *   ERROR
+ *   WARN
+ *   INFO
+ *   DEBUG
+ *
+ * A value different from the one listed above, the maximum level output on the
+ * log is WARN.
+ *
+ * mmlog_log() is thread-safe.
+ *
+ * See: sprintf(), mmlog_fatal(), mmlog_error(), mmlog_warn(),
+ * mmlog_info(), mmlog_debug()
+ */
 API_EXPORTED
 void mmlog_log(int lvl, const char* location, const char* msg, ...)
 {

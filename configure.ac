@@ -80,6 +80,23 @@ AC_SET_HOSTSYSTEM
 MM_CC_WARNFLAGS
 MM_OUTPUT_DEF
 
+# Test for sphinx doc with linuxdoc
+AC_ARG_ENABLE([sphinxdoc], AC_HELP_STRING([--enable-sphinxdoc], [Build sphinx documention. @<:@default=detect@:>@]),
+	    [], [enable_sphinxdoc=detect])
+AM_PATH_PYTHON([3])
+AX_PYTHON_MODULE([sphinx])
+AX_PYTHON_MODULE([sphinx_rtd_theme])
+AX_PYTHON_MODULE([linuxdoc])
+
+AC_CHECK_PROG(HAVE_SPHINXBUILD, [sphinx-build], [$HAVE_PYMOD_LINUXDOC], [no])
+AS_CASE([$enable_sphinxdoc],
+        [yes], [AS_IF([test "x$HAVE_SPHINXBUILD" != xyes],
+                      [AC_MSG_ERROR(Cannot find sphinx or its plugin linuxdoc)])],
+        [detect], [AS_IF([test "x$HAVE_SPHINXBUILD" = xyes],
+                         [enable_sphinxdoc=yes], [enable_sphinxdoc=no])])
+AM_CONDITIONAL(BUILD_SPHINXDOC, [test "x$enable_sphinxdoc" = xyes])
+
+
 AC_SUBST([optional_examples])
 AC_SUBST([CURRENT],[lib_current])
 AC_SUBST([REVISION],[lib_revision])

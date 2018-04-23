@@ -140,6 +140,12 @@ void mmimg_free_buffer(void* img_buff)
 }
 
 
+/**
+ * mmimage_buffer_size() - compute the image size
+ * @img:  pointer to mmimage structure
+ *
+ * Return: the image size
+ */
 API_EXPORTED
 size_t mmimage_buffer_size(const mmimage* img)
 {

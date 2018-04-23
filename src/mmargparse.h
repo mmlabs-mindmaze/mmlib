@@ -81,7 +81,7 @@ union mmarg_val {
  * - %MMOPT_MMOPT_LLONG: value is long long (@llptr used)
  * - %MMOPT_MMOPT_ULLONG: value is unsigned long long (@ullptr used)
  *
- * the *ptr fields specified in parenthesis indicates that if the
+ * the ptr fields specified in parenthesis indicates that if the
  * corresponding field is not NULL, it will receive the value specified
  *
  * @desc provides the documentation of the option. It will be displayed if

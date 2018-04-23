@@ -626,6 +626,8 @@ void mmtoc_label(const char* label)
  *   - PROF_FORCE_SEC: force result display in seconds
  *
  * Returns: 0 in case of success, -1 otherwise with errno set accordingly
+ *
+ * See: mmprofile_reset(), mmtic(), write()
  */
 API_EXPORTED
 int mmprofile_print(int mask, int fd)
@@ -729,6 +731,8 @@ int64_t mmprofile_get_data(int measure_point, int type)
  * the string copy overhead.
  *
  * At startup, the function are configured to use CPU based timer.
+ *
+ * See: mmprofile_print(), mmtic(), mmtoc_label()
  */
 API_EXPORTED
 void mmprofile_reset(int flags)

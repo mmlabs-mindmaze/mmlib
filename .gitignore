@@ -21,10 +21,10 @@ Makefile.in
 INSTALL
 ABOUT-NLS
 .dirstamp
+*.tar.xz
 
 autom4te.cache/*
 build-aux/*
-
 .libs/
 
 # ignore build-directory if any
@@ -42,7 +42,7 @@ ipc-test-tmp-file-*
 
 # external tool files
 /cscope.*
-/tags
+tags
 *.unc-backup~
 *.unc-backup.md5~
 *.uncrustify
