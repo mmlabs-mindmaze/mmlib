@@ -119,6 +119,9 @@ void close_unlink(void)
 static void test_teardown(void)
 {
 	int ival;
+
+	close_unlink();
+
 	if (pid != 0)
 		mm_wait_process(pid, &ival);
 	pid = 0;
