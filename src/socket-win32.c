@@ -224,6 +224,7 @@ int submit_recv_xfer(struct xfer_data* xfer, SOCKET s,
  *                                                                        *
  **************************************************************************/
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_socket(int domain, int type)
 {
@@ -247,6 +248,7 @@ int mm_socket(int domain, int type)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
@@ -263,6 +265,7 @@ int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
@@ -280,6 +283,7 @@ int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_listen(int sockfd, int backlog)
 {
@@ -296,6 +300,7 @@ int mm_listen(int sockfd, int backlog)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen)
 {
@@ -319,6 +324,7 @@ int mm_accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
@@ -335,6 +341,7 @@ int mm_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_setsockopt(int sockfd, int level, int optname,
                   const void *optval, socklen_t optlen)
@@ -352,6 +359,7 @@ int mm_setsockopt(int sockfd, int level, int optname,
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_getsockopt(int sockfd, int level, int optname,
                   void *optval, socklen_t* optlen)
@@ -369,6 +377,7 @@ int mm_getsockopt(int sockfd, int level, int optname,
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_shutdown(int sockfd, int how)
 {
@@ -385,6 +394,7 @@ int mm_shutdown(int sockfd, int how)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 ssize_t mm_send(int sockfd, const void *buffer, size_t length, int flags)
 {
@@ -403,6 +413,7 @@ ssize_t mm_send(int sockfd, const void *buffer, size_t length, int flags)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 ssize_t mm_recv(int sockfd, void *buffer, size_t length, int flags)
 {
@@ -421,6 +432,7 @@ ssize_t mm_recv(int sockfd, void *buffer, size_t length, int flags)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 ssize_t mm_sendmsg(int sockfd, const struct msghdr *msg, int flags)
 {
@@ -442,6 +454,7 @@ ssize_t mm_sendmsg(int sockfd, const struct msghdr *msg, int flags)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 ssize_t mm_recvmsg(int sockfd, struct msghdr *msg, int flags)
 {
@@ -464,6 +477,7 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr *msg, int flags)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
                      int flags)
@@ -484,6 +498,7 @@ int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
                      int flags, struct timespec *timeout)
@@ -505,6 +520,7 @@ int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_getaddrinfo(const char *node, const char *service,
                    const struct addrinfo *hints,
@@ -520,6 +536,7 @@ int mm_getaddrinfo(const char *node, const char *service,
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_getnamedinfo(const struct sockaddr *addr, socklen_t addrlen,
                     char *host, socklen_t hostlen,
@@ -535,6 +552,7 @@ int mm_getnamedinfo(const struct sockaddr *addr, socklen_t addrlen,
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 void mm_freeaddrinfo(struct addrinfo *res)
 {
@@ -542,6 +560,7 @@ void mm_freeaddrinfo(struct addrinfo *res)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)
 {
