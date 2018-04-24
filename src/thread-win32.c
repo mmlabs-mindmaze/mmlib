@@ -806,6 +806,7 @@ int pshared_cond_init(mmthr_cond_t* cond)
  */
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_mtx_lock(mmthr_mtx_t* mutex)
 {
@@ -817,6 +818,7 @@ int mmthr_mtx_lock(mmthr_mtx_t* mutex)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_mtx_trylock(mmthr_mtx_t* mutex)
 {
@@ -828,6 +830,7 @@ int mmthr_mtx_trylock(mmthr_mtx_t* mutex)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_mtx_consistent(mmthr_mtx_t* mutex)
 {
@@ -839,6 +842,7 @@ int mmthr_mtx_consistent(mmthr_mtx_t* mutex)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_mtx_unlock(mmthr_mtx_t* mutex)
 {
@@ -850,6 +854,7 @@ int mmthr_mtx_unlock(mmthr_mtx_t* mutex)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_mtx_deinit(mmthr_mtx_t* mutex)
 {
@@ -858,6 +863,7 @@ int mmthr_mtx_deinit(mmthr_mtx_t* mutex)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags)
 {
@@ -917,6 +923,7 @@ int sleep_win32cv(CONDITION_VARIABLE* cv, SRWLOCK* srwlock, DWORD timeout_ms)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_cond_wait(mmthr_cond_t* cond, mmthr_mtx_t* mutex)
 {
@@ -930,6 +937,7 @@ int mmthr_cond_wait(mmthr_cond_t* cond, mmthr_mtx_t* mutex)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_cond_timedwait(mmthr_cond_t* cond, mmthr_mtx_t* mutex,
                          const struct timespec* abstime)
@@ -966,6 +974,7 @@ int mmthr_cond_timedwait(mmthr_cond_t* cond, mmthr_mtx_t* mutex,
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_cond_signal(mmthr_cond_t* cond)
 {
@@ -977,6 +986,7 @@ int mmthr_cond_signal(mmthr_cond_t* cond)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_cond_broadcast(mmthr_cond_t* cond)
 {
@@ -988,6 +998,7 @@ int mmthr_cond_broadcast(mmthr_cond_t* cond)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_cond_deinit(mmthr_cond_t* cond)
 {
@@ -996,6 +1007,7 @@ int mmthr_cond_deinit(mmthr_cond_t* cond)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_cond_init(mmthr_cond_t* cond, int flags)
 {
@@ -1014,6 +1026,7 @@ int mmthr_cond_init(mmthr_cond_t* cond, int flags)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_once(mmthr_once_t* once, void (*once_routine)(void))
 {
@@ -1070,6 +1083,7 @@ unsigned __stdcall thread_proc_wrapper(void* param)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_create(mmthread_t* thread, void* (*proc)(void*), void* arg)
 {
@@ -1096,6 +1110,7 @@ int mmthr_create(mmthread_t* thread, void* (*proc)(void*), void* arg)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_join(mmthread_t thread, void** value_ptr)
 {
@@ -1114,6 +1129,7 @@ int mmthr_join(mmthread_t thread, void** value_ptr)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmthr_detach(mmthread_t thread)
 {
@@ -1137,6 +1153,7 @@ int mmthr_detach(mmthread_t thread)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 mmthread_t mmthr_self(void)
 {
