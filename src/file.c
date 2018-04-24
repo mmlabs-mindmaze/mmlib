@@ -134,6 +134,7 @@ int mm_ftruncate(int fd, mm_off_t length)
 #define IS_PATH_SEPARATOR(c) \
 	((*c) == '/')
 #endif
+
 /**
  * internal_dirname() -  quick implementation of dirname()
  * @path:         the path to get the dir of
@@ -147,7 +148,8 @@ int mm_ftruncate(int fd, mm_off_t length)
  * dirname("/usr/lib/") -> "/usr\0lib/"
  * dirname("usr") -> "."
  *
- * Note: windows dot not provide dirname, nor memrchr */
+ * Note: windows does not provide dirname, nor memrchr
+ */
 static
 char * internal_dirname(char * path)
 {

@@ -132,7 +132,7 @@ int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 
 
 /**
- * mm_gesockname() - returns  the  current address to which the socket sockfd is bound
+ * mm_getsockname() - returns  the  current address to which the socket sockfd is bound
  * @sockfd:     file descriptor to which the socket is bound
  * @addr:       points to a &struct sockaddr containing the bound address
  * @addrlen:    length of the &struct sockaddr pointed to by @addr
@@ -621,7 +621,7 @@ int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
  * @msgvec:     pointer to an array of &struct mmsock_multimsg structures
  * @flags:      type of message reception
  * @timeout:    timeout for receive operation. If NULL, the operation blocks
- *              indefinitively
+ *              indefinitely
  *
  * This function is an extension of mm_sendmsg that allows the
  * caller to receive multiple messages from a socket using a single
@@ -728,7 +728,7 @@ int mm_getnamedinfo(const struct sockaddr *addr, socklen_t addrlen,
  * mm_freeaddrinfo() - free linked list of address
  * @res:        linked list of addresses returned by @mm_getaddrinfo()
  *
- * Deallocate linked list of address allocated by a successfull call to
+ * Deallocate linked list of address allocated by a successful call to
  * mm_getaddrinfo(). If @res is NULL, mm_getnamedinfo() do nothing.
  */
 API_EXPORTED
@@ -746,26 +746,28 @@ int is_valid_fd(int fd)
 
 /**
  * mm_poll() - waits for one of a set of file descriptors to become ready to perform I/O.
- * @fds           array of struct pollfd. See below.
- * @nfds          number of @fds passed in argument
- * @timeout_ms    number of milliseconds that poll() should block waiting
+ * @fds:          array of struct pollfd. See below.
+ * @nfds:         number of @fds passed in argument
+ * @timeout_ms:   number of milliseconds that poll() should block waiting
  *
- * fd should be a *socket* file descriptor.
- * if timout_ms is set to 0, the call will return immediatly
- *                           even if no file descriptors are ready
- * if timout_ms is negative, the call will block indefinitely
+ * In each element of @fds array, &mm_pollfd.fd should be a *socket* file
+ * descriptor.
  *
- * events contains a mask on trevents with the following values:
+ * If @timeout_ms is set to 0, the call will return immediatly even if no file
+ * descriptors are ready. if @timeout_ms is negative, the call will block
+ * indefinitely.
+ *
+ * &mm_pollfd.events contains a mask on revents with the following values:
  *   MM_POLLIN   // there is data to read
  *   MM_POLLOUT  // writing is now possible
  *
- * revents will contain the output events flags, a combination of
+ * &mm_pollfd.revents will contain the output events flags, a combination of
  * MM_POLLIN and MM_POLLOUT, or 0 if unset.
  *
  * Return:
- *  * (>0) On success, the number of fds on which an event was raised
- *  * (=0) zero if poll() returned because the timeout was reached
- *  * (<0) a negative value on error
+ *   (>0) On success, the number of fds on which an event was raised
+ *   (=0) zero if poll() returned because the timeout was reached
+ *   (<0) a negative value on error
  */
 API_EXPORTED
 int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)

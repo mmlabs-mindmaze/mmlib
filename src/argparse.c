@@ -50,6 +50,8 @@ const struct value_type_name typenames[] = {
 /**
  * get_value_type_name() - get string describing type name
  * @type:	MMOPT_* flags specifying a type
+ *
+ * Return: The type string, ot "unknown" if not found.
  */
 static
 const char* get_value_type_name(int type)
@@ -271,9 +273,9 @@ bool match_value(const char* str, const char* valname, int namelen)
 
 /**
  * copy_opt_desc() - copy option description while guessing value name
- * @dst:        destination buffer where modified description is copied
- * @src:	description buffer as it is in &mmarg_opt.desc
- * buffer:      buffer that will hold the value name if found
+ * @dst:       destination buffer where modified description is copied
+ * @src:       description buffer as it is in &mmarg_opt.desc
+ * @buffer:    buffer that will hold the value name if found
  *
  * Copy option description from @src to @src while trying to guess the name
  * of option value as refered in the description. The value name will be
@@ -675,7 +677,7 @@ void print_opt_error(const struct mmarg_opt* opt, const char* msg, ...)
 
 
 /**
- * cast_ll_to_argvarl() - copy long long value into proper field of argval
+ * cast_ll_to_argval() - copy long long value into proper field of argval
  * @opt:        option parser specifying which cast to perform
  * @argval:     pointer to argval union that will receive the result
  * @llval:      long long value to cast
@@ -775,8 +777,8 @@ error:
 
 /**
  * mmarg_opt_set_value() - set value to supplied pointer
- * @opt:        option whose value has to be set
- * @value:      value to set. Can be NULL if case of string type option.
+ * @opt:      option whose value has to be set
+ * @val:      value to set. Can be NULL if case of string type option.
  *
  * Set value if @opt->strptr (or any aliased pointer) is not NULL. In such
  * case, the conversion is performed (if needed) according to the type

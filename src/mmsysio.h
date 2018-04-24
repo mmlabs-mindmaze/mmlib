@@ -25,15 +25,14 @@
 
 #include "mmpredefs.h"
 
+#ifdef _WIN32
 /**
  * struct iovec - structure for scatter/gather I/O.
  * @iov_base:   Base address of a memory region for input or output
  * @iov_len:    The size of the memory pointed to by @iov_base
+ *
+ * Note: on win32 this is guaranteed to alias to WSABUF
  */
-
-#ifdef _WIN32
-// structure for scatter-gather RW operation
-// on win32 this is guaranteed to alias to WSABUF
 struct iovec {
 	unsigned long iov_len;
 	void* iov_base;
@@ -199,9 +198,9 @@ extern "C" {
  *              pathname contained in the symbolic link (including null
  *              termination).
  * @blksize:    Currently unused
- * @blkcnt:     Currently unused
- * mtime:       time of last modification
- * ctime:       time of last status change
+ * @nblocks:     Currently unused
+ * @mtime:       time of last modification
+ * @ctime:       time of last status change
  */
 struct mm_stat {
 	mm_dev_t dev;
@@ -360,7 +359,7 @@ MMLIB_API ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg);
  **************************************************************************/
 
 
-
+#if _WIN32
 /**
  * struct msghdr - structure for socket message
  * @msg_name:       optional address
@@ -378,8 +377,6 @@ MMLIB_API ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg);
  * struct (avoid one hole due to alignment on 64bits platform) and always
  * manipulate as int (forcing the cast).
  */
-
-#if _WIN32
 struct msghdr {
 	void*         msg_name;
 	socklen_t     msg_namelen;

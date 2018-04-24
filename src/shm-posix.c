@@ -120,7 +120,7 @@ exit:
 
 
 /**
- * mapping_list_add_entry() - unregister a map entry from mapping list
+ * mapping_list_remove_entry() - unregister a map entry from mapping list
  * @list:       mapping list to modify
  * @ptr:        starting address of mapping to remove
  *
@@ -427,8 +427,9 @@ int mm_shm_open(const char* name, int oflag, int mode)
 
 
 /**
- * The mm_shm_unlink() removes the name of the shared memory
- * object named by the string pointed to by @name.
+ * mm_shm_unlink() - Removes the name of the shared memory object named by the
+ *                   string pointed to by @name.
+ * @name: file name to unlink
  *
  * If one or more references to the shared memory object exist when the object
  * is unlinked, the name is removed before mm_shm_unlink() returns, but the

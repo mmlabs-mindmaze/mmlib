@@ -47,11 +47,12 @@ union mmarg_val {
  * @name:       option names, see description
  * @flags:      conversion type and requirement flags, see options flags
  * @defval:     default value is option is supplied without value
- * @sptr:       pointer to pointer to string, used if option type is string
- * @iptr:       pointer to integer, used if type is MMOPT_INT
- * @llptr:      pointer to long long, used if type is MMOPT_LLONG
- * @uiptr:      pointer to unsigned integer, used if type is MMOPT_UINT
- * @ullptr:     pointer to unsigned long long, used if type is MMOPT_ULLONG
+ * @val:        union for the various types
+ * @val.sptr:   pointer to pointer to string, used if option type is string
+ * @val.iptr:   pointer to integer, used if type is MMOPT_INT
+ * @val.llptr:  pointer to long long, used if type is MMOPT_LLONG
+ * @val.uiptr:  pointer to unsigned integer, used if type is MMOPT_UINT
+ * @val.ullptr: pointer to unsigned long long, used if type is MMOPT_ULLONG
  * @desc:       description of the option printed when usage is displayed
  *
  * This structure defines what an option supports and how its value must be
@@ -65,7 +66,7 @@ union mmarg_val {
  * - "c": option can be refered only by short option "-c"
  * - "long-name": option can be refered only by long option "--long-name"
  *
- * @flags determine whether a value for a option:
+ * The parameter @flags determine whether a value for a option:
  *
  * - %MMOPT_NOVAL: value is forbidden
  * - %MMOPT_OPTVAL: value is optional and @defval will be used if not set.
@@ -79,7 +80,7 @@ union mmarg_val {
  * - %MMOPT_MMOPT_UINT: value is unsigned int (@uiptr used)
  * - %MMOPT_MMOPT_LLONG: value is long long (@llptr used)
  * - %MMOPT_MMOPT_ULLONG: value is unsigned long long (@ullptr used)
-
+ *
  * the *ptr fields specified in parenthesis indicates that if the
  * corresponding field is not NULL, it will receive the value specified
  *
@@ -109,7 +110,7 @@ struct mmarg_opt {
 
 
 /**
- * mmarg_callback() - prototype of argument parser callback
+ * typedef mmarg_callback() - prototype of argument parser callback
  * @opt:        pointer to matching option
  * @value:      value set for option. The field of the union to use is
  *              determined with mmarg_opt_get_type(@opt).

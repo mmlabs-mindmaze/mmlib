@@ -26,7 +26,7 @@
 /**
  * struct startproc_opts - holder for argument passed to mm_spawn()
  * @path:       path to the executable file
- * @num_map     number of element in the @fd_map array
+ * @num_map:    number of element in the @fd_map array
  * @fd_map:     array of file descriptor remapping to pass into the child
  * @flags:      spawn flags
  * @argv:       null-terminated array of string containing the command
@@ -297,8 +297,8 @@ exit:
 
 /**
  * spawn_child() - spawn a direct child of the calling process
- * @pid:        pointer to a variable that will receive process ID of child
- * @opts:	data holding argument passed to mm_spawn()
+ * @child_pid:  pointer to a variable that will receive process ID of child
+ * @opts:       data holding argument passed to mm_spawn()
  *
  * Return: 0 in case success, -1 otherwise with error state set accordingly
  */
@@ -412,7 +412,7 @@ int spawn_daemon(const struct startproc_opts* opts)
  * mm_spawn() - spawn a new process
  * @child_pid:  pointer receiving the child process pid
  * @path:       path to the executable file
- * @num_map     number of element in the @fd_map array
+ * @num_map:    number of element in the @fd_map array
  * @fd_map:     array of file descriptor remapping to pass into the child
  * @flags:      spawn flags
  * @argv:       null-terminated array of string containing the command

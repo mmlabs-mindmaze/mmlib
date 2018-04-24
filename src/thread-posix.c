@@ -22,7 +22,7 @@
  * Use this function to initialize @mutex. The type of mutex is controlled
  * by @flags which must contains one or several of the following:
  *
- * - MMTHR_PSHARED: init a mutex shareable by other processes. When a mutex
+ * MMTHR_PSHARED: init a mutex shareable by other processes. When a mutex
  * is process shared, it is also a robust mutex.
  *
  * If no flags is provided, the type of initialized mutex just a normal

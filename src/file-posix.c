@@ -163,7 +163,7 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 
 
 /**
- * mm_read() - Write data to a file descriptor
+ * mm_write() - Write data to a file descriptor
  * @fd:         file descriptor to write to
  * @buf:        storage location for data
  * @nbyte:      amount of data to write
@@ -186,11 +186,11 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
  * regular file with the following exceptions
  *
  * - there is no file offset associated with a pipe, hence each write request
- * shall append to the end of the pipe.
+ *   shall append to the end of the pipe.
  * - write requests of pipe buffer size bytes or less will not be interleaved
- * with data from other processes doing writes on the same pipe.
+ *   with data from other processes doing writes on the same pipe.
  * - a write request may cause the thread to block, but on normal completion it
- * shall return @nbyte.
+ *   shall return @nbyte.
  *
  * Return: Upon successful completion, a non-negative integer is returned
  * indicating the number of bytes actually written. Otherwise, -1 is returned
@@ -373,7 +373,7 @@ int mm_symlink(const char* oldpath, const char* newpath)
 /**
  * mm_check_access() - verify access to a file
  * @path:       path of file
- * @amode:      access mode to check (OR-combination of *_OK flags)
+ * @amode:      access mode to check (OR-combination of _OK flags)
  *
  * This function verify the calling process can access the file located at
  * @path according to the bits pattern specified in @amode which can be a
@@ -602,7 +602,7 @@ int get_file_type(int dirfd, const char* path)
 /**
  * mm_remove_rec() - internal helper to recursively clean given folder
  * @dirfd:           directory file descriptor to clean
- * @flag:            option flag to return on error
+ * @flags:           option flag to return on error
  * @rec_lvl:         maximum recursion level
  *
  * Many error return values are *explicitely* skipped.
@@ -678,7 +678,7 @@ exit:
 /**
  * mm_remove() - remove a file if of type authorized in flag list
  * @path:       path to the directory to remove
- * @types:      bitflag of authorized filetypes that can be removed
+ * @flags:      bitflag of authorized filetypes that can be removed
  *              and removal option
  *
  * The mm_remove() function removes a file if its type is authorized in given
@@ -810,7 +810,7 @@ void mm_rewinddir(MMDIR* dir)
 
 /**
  * mm_readdir() - read current entry from directory stream and advance it
- * @dir:        directory stream to read
+ * @d:          directory stream to read
  * @status:     if not NULL, will contain whether readdir returned on error or end of dir
  *
  * The type MMDIR represents a directory stream, which is an ordered sequence

@@ -63,7 +63,7 @@ int create_connected_socket(const char* service, const char *host, int port)
 
 /**
  * mm_create_sockclient() - Create a client socket and connect it to server
- * @uri:        URI indicating the ressource to connect
+ * @uri:        URI indicating the resource to connect to
  *
  * This functions resolves URI resource, create a socket and try to connect
  * to resource. The service, protocol, port, hostname will be parsed from

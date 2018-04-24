@@ -188,13 +188,13 @@ int mm_error_set_flags(int flags, int mask)
  * @srcfile:    filename of source code at the origin of the error
  * @srcline:    line number of file at the origin of the error
  * @extid:      extended error id (identifier of a specific error case)
- * @desc:       description intended for developper (vprintf-like extensible)
+ * @desc_fmt:   description intended for developper (vprintf-like extensible)
  * @args:       va_list of arguments for @desc
  *
  * Exactly the same as mm_raise_error_full() but using a va_list to pass
  * argument to the format passed in @desc.
  *
- * Return: 0 is @errnum is 0, -1 otherwise.
+ * Return: 0 if @errnum is 0, -1 otherwise.
  */
 API_EXPORTED
 int mm_raise_error_vfull(int errnum, const char* module, const char* func,
@@ -265,7 +265,7 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
  * @srcfile:    filename of source code at the origin of the error
  * @srcline:    line number of file at the origin of the error
  * @extid:      extended error id (identifier of a specific error case)
- * @desc:       description intended for developper (printf-like extensible)
+ * @desc_fmt:   description intended for developper (printf-like extensible)
  *
  * This function is the actual function invoked by the mm_raise_error() and
  * mm_raise_error_with_extid() macros. You are advised to use the macros instead
@@ -316,8 +316,8 @@ int mm_save_errorstate(struct mm_error_state* state)
  * mm_set_errorstate() - Save the error state of the calling thread
  * @state:      pointer to the data holding of the error state
  *
- * Use this function to restore the error state of the calling thread from the information pointed by @state.
- * Combined with mm_error_state(), you:
+ * Use this function to restore the error state of the calling thread from the
+ * information pointed by @state. Combined with mm_save_errorstate(), you:
  * - handle an error from a called function and recover the error state before
  * the failed function
  * - Copy the error state of a failed function whose call may have been
