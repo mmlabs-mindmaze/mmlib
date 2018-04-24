@@ -22,6 +22,60 @@
 #include <libgen.h>
 
 
+/**
+ * mm_open() - Open file
+ * @path:       path to file to open
+ * @oflag:      control flags how to open the file
+ * @mode:       access permission bits is file is created
+ *
+ * This function creates an open file description that refers to a file and
+ * a file descriptor that refers to that open file description. The file
+ * descriptor is used by other I/O functions to refer to that file. The
+ * @path argument points to a pathname naming the file.
+ *
+ * The file status flags and file access modes of the open file description
+ * are set according to the value of @oflag, which is constructed by a
+ * bitwise-inclusive OR of flags from the following list. It must specify
+ * exactly one of the first 3 values.
+ *
+ * %O_RDONLY
+ *   Open for reading only.
+ * %O_WRONLY
+ *   Open for writing only.
+ * %O_RDWR
+ *   Open for reading and writing. The result is undefined if this flag is
+ *   applied to a FIFO.
+ * 
+ * Any combination of the following may be used
+ *
+ * %O_APPEND
+ *   If set, the file offset shall be set to the end of the file prior to
+ *   each write.
+ * %O_CREAT
+ *   If the file exists, this flag has no effect except as noted under
+ *   %O_EXCL below. Otherwise, the file is created as a regular file; the
+ *   user ID of the file shall be set to the effective user ID of the
+ *   process; the group ID of the file shall be set to the group ID of the
+ *   file's parent directory or to the effective group ID of the process;
+ *   and the access permission bits of the file mode are set by the @mode
+ *   argument modified by a bitwise AND with the umask of the process. This
+ *   @mode argument does not affect whether the file is open for reading,
+ *   writing, or for both.
+ * %O_TRUNC
+ *   If the file exists and is a regular file, and the file is successfully
+ *   opened %O_RDWR or %O_WRONLY, its length is truncated to 0, and the
+ *   mode and owner are unchanged. The result of using O_TRUNC without
+ *   either %O_RDWR or %O_WRONLY is undefined.
+ * %O_EXCL
+ *   If %O_CREAT and %O_EXCL are set, mm_open() fails if the file exists.
+ *   The check for the existence of the file and the creation of the file if
+ *   it does not exist is atomic with respect to other threads executing
+ *   mm_open() naming the same filename in the same directory with %O_EXCL
+ *   and %O_CREAT set.
+ *
+ * Return: a non-negative integer representing the file descriptor in case
+ * of success. Otherwise -1 is returned with error state set accordingly.
+ */
 API_EXPORTED
 int mm_open(const char* path, int oflag, int mode)
 {
@@ -38,6 +92,27 @@ int mm_open(const char* path, int oflag, int mode)
 }
 
 
+/**
+ * mm_close() - Close a file descriptor
+ * @fd:         file descriptor to close
+ *
+ * This function deallocates the file descriptor indicated by @fd, ie it
+ * makes the file descriptor available for return by subsequent calls to
+ * mm_open() or other system functions that allocate file descriptors.
+ *
+ * If a memory mapped file or a shared memory object remains referenced at
+ * the last close (that is, a process has it mapped), then the entire
+ * contents of the memory object persists until the memory object becomes
+ * unreferenced. If this is the last close of a memory mapped file or a
+ * shared memory object and the close results in the memory object becoming
+ * unreferenced, and the memory object has been unlinked, then the memory
+ * object will be removed.
+ *
+ * If @fd refers to a socket, mm_close() causes the socket to be destroyed.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 int mm_close(int fd)
 {
@@ -51,6 +126,29 @@ int mm_close(int fd)
 }
 
 
+/**
+ * mm_read() - Reads data from a file descriptor
+ * @fd:         file descriptor to read from
+ * @buf:        storage location for data
+ * @nbyte:      maximum size to read
+ *
+ * mm_read() attempts to read @nbyte bytes from the file associated with the
+ * open file descriptor, @fd, into the buffer pointed to by @buf.
+ *
+ * On files that support seeking (for example, a regular file), the
+ * mm_read() starts at a position in the file given by the file offset
+ * associated with @fd. The file offset will incremented by the number of
+ * bytes actually read.  * No data transfer will occur past the current
+ * end-of-file. If the starting position is at or after the end-of-file, 0
+ * is returned.
+ *
+ * If @fd refers to a socket, mm_read() shall be equivalent to mm_recv()
+ * with no flags set.
+ *
+ * Return: Upon successful completion, a non-negative integer is returned
+ * indicating the number of bytes actually read. Otherwise, -1 is returned
+ * and error state is set accordingly
+ */
 API_EXPORTED
 ssize_t mm_read(int fd, void* buf, size_t nbyte)
 {
@@ -64,6 +162,40 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 }
 
 
+/**
+ * mm_read() - Write data to a file descriptor
+ * @fd:         file descriptor to write to
+ * @buf:        storage location for data
+ * @nbyte:      amount of data to write
+ *
+ * The mm_write() function attempts to write @nbyte bytes from the buffer
+ * pointed to by @buf to the file associated with the open file descriptor,
+ * @fd.
+ *
+ * On a regular file or other file capable of seeking, the actual writing of
+ * data shall proceed from the position in the file indicated by the file
+ * offset associated with @fd. Before successful return from mm_write(), the
+ * file offset is incremented by the number of bytes actually written.
+ *
+ * If the %O_APPEND flag of the file status flags is set, the file offset is set
+ * to the end of the file prior to each write and no intervening file
+ * modification operation will occur between changing the file offset and the
+ * write operation.
+ *
+ * Write requests to a pipe or FIFO shall be handled in the same way as a
+ * regular file with the following exceptions
+ *
+ * - there is no file offset associated with a pipe, hence each write request
+ * shall append to the end of the pipe.
+ * - write requests of pipe buffer size bytes or less will not be interleaved
+ * with data from other processes doing writes on the same pipe.
+ * - a write request may cause the thread to block, but on normal completion it
+ * shall return @nbyte.
+ *
+ * Return: Upon successful completion, a non-negative integer is returned
+ * indicating the number of bytes actually written. Otherwise, -1 is returned
+ * and error state is set accordingly
+ */
 API_EXPORTED
 ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 {
@@ -140,6 +272,23 @@ int mm_symlink(const char* oldpath, const char* newpath)
 }
 
 
+/**
+ * mm_check_access() - verify access to a file
+ * @path:       path of file
+ * @amode:      access mode to check (OR-combination of *_OK flags)
+ *
+ * This function verify the calling process can access the file located at
+ * @path according to the bits pattern specified in @amode which can be a
+ * OR-combination of the %R_OK, %W_OK, %X_OK to indicate respectively the read,
+ * write or execution access to a file. If @amode is F_OK, only the existence
+ * of the file is checked.
+ *
+ * Return:
+ * - 0 if the file can be accessed
+ * - %ENOENT if a component of @path does not name an existing file
+ * - %EACCESS if the file cannot be access with the mode specified in @amode
+ * - -1 in case of error (error state is then set accordingly)
+ */
 API_EXPORTED
 int mm_check_access(const char* path, int amode)
 {
@@ -216,6 +365,17 @@ void conv_native_to_mm_stat(struct mm_stat* buf,
 }
 
 
+/**
+ * mm_fstat() - get file status from file descriptor
+ * @fd:         file descriptor
+ * @buf:        pointer to mm_stat structure to fill
+ *
+ * This function obtains information about an open file associated with the
+ * file descriptor @fd, and writes it to the area pointed to by @buf.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 int mm_fstat(int fd, struct mm_stat* buf)
 {
@@ -229,6 +389,22 @@ int mm_fstat(int fd, struct mm_stat* buf)
 }
 
 
+/**
+ * mm_stat() - get file status from file path
+ * @path:       path of file
+ * @buf:        pointer to mm_stat structure to fill
+ * @flags:      0 or MM_NOFOLLOW
+ *
+ * This function obtains information about an file located by @path, and writes
+ * it to the area pointed to by @buf. If @path refers to a symbolic link, the
+ * information depents on the value of @flags. If @flags is 0, the information
+ * returned will be the one of the target of symbol link. Otherwise, if
+ * MM_NOFOLLOW is set in @flags, the information will be the one of the
+ * symbolic link itself.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 int mm_stat(const char* path, struct mm_stat* buf, int flags)
 {

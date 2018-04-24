@@ -47,6 +47,18 @@ int ftruncate(int fd, mm_off_t size)
 #endif //_WIN32
 
 
+/**
+ * mm_fsync() - synchronize changes to a file
+ * @fd:         file description to synchronize
+ *
+ * This requests that all data for the open file descriptor named by @fd is
+ * to be transferred to the storage device associated with the file
+ * described by @fd. The mm_fsync() function does not return until the
+ * system has completed that action or until an error is detected.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 int mm_fsync(int fd)
 {
@@ -57,6 +69,25 @@ int mm_fsync(int fd)
 }
 
 
+/**
+ * mm_seek() - change file offset
+ * @fd:          file descriptor
+ * @offset:      delta
+ * @whence:      how the @offset affect the file offset
+ *
+ * This function sets the file offset for the open file description associated
+ * with the file descriptor @fd, as follows depending on the value in @whence
+ *
+ * %SEEK_SET
+ *   the file offset shall be set to @offset bytes.
+ * %SEEK_CUR
+ *   the file offset shall be set to its current location plus @offset.
+ * %SEEK_END
+ *   the file offset shall be set to the size of the file plus @offset.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 mm_off_t mm_seek(int fd, mm_off_t offset, int whence)
 {
@@ -70,6 +101,22 @@ mm_off_t mm_seek(int fd, mm_off_t offset, int whence)
 }
 
 
+/**
+ * mm_ftruncate() -  truncate/resize a file to a specified length
+ * @fd:         file descriptor of the file to resize
+ * @length:     new length of the file
+ *
+ * If @fd refers to a regular file, mm_ftruncate() cause the size of the file
+ * to be truncated to @length. If the size of the file previously exceeded
+ * @length, the extra data shall no longer be available to reads on the file.
+ * If the file previously was smaller than this size, mm_ftruncate() increases
+ * the size of the file. If the file size is increased, the extended area will
+ * appear as if it were zero-filled. The value of the seek pointer shall not be
+ * modified by a call to mm_ftruncate().
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 int mm_ftruncate(int fd, mm_off_t length)
 {

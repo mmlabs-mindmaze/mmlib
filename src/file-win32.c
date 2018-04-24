@@ -292,7 +292,7 @@ ssize_t msvcrt_write(int fd, const void* buf, size_t nbyte)
 	return rsz;
 }
 
-
+/* doc in posix implementation */
 API_EXPORTED
 int mm_open(const char* path, int oflag, int mode)
 {
@@ -331,6 +331,7 @@ exit:
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_close(int fd)
 {
@@ -345,6 +346,7 @@ int mm_close(int fd)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 ssize_t mm_read(int fd, void* buf, size_t nbyte)
 {
@@ -392,6 +394,7 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 {
@@ -641,6 +644,7 @@ exit:
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_check_access(const char* path, int amode)
 {
@@ -1293,6 +1297,7 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_stat(const char* path, struct mm_stat* buf, int flags)
 {
@@ -1312,6 +1317,7 @@ int mm_stat(const char* path, struct mm_stat* buf, int flags)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_fstat(int fd, struct mm_stat* buf)
 {
