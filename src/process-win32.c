@@ -1125,6 +1125,7 @@ exit:
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_spawn(mm_pid_t* child_pid, const char* path,
              int num_map, const struct mm_remap_fd* fd_map,
@@ -1173,6 +1174,7 @@ exit:
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_wait_process(mm_pid_t pid, int* status)
 {
