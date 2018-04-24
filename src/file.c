@@ -226,6 +226,26 @@ int mm_mkdir_rec(char* path, int mode)
 	return internal_mkdir(path, mode);
 }
 
+
+/**
+ * mm_mkdir() - creates a directory
+ * @path:       path of the directory to create
+ * @mode:       permission to use for directory creation
+ * @flags:      creation flags
+ *
+ * The mm_mkdir() function creates a new directory with name @path. The file
+ * permission bits of the new directory shall be initialized from @mode. These
+ * file permission bits of the @mode argument are modified by the process' file
+ * creation mask.
+ *
+ * The function will fail if the parent directory does not exist unless @flags
+ * contains MM_RECURSIVE which is this case, the function will try to
+ * recursively create the missing parent directories (using the file
+ * permission).
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 int mm_mkdir(const char* path, int mode, int flags)
 {

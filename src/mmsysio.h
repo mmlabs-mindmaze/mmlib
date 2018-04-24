@@ -237,75 +237,9 @@ MMLIB_API int mm_link(const char* oldpath, const char* newpath);
 MMLIB_API int mm_symlink(const char* oldpath, const char* newpath);
 MMLIB_API int mm_readlink(const char* path, char* buf, size_t bufsize);
 
-
-/**
- * mm_mkdir() - creates a directory
- * @path:       path of the directory to create
- * @mode:       permission to use for directory creation
- * @flags:      creation flags
- *
- * The mm_mkdir() function creates a new directory with name @path. The file
- * permission bits of the new directory shall be initialized from @mode. These
- * file permission bits of the @mode argument are modified by the process' file
- * creation mask.
- *
- * The function will fail if the parent directory does not exist unless @flags
- * contains MM_RECURSIVE which is this case, the function will try to
- * recursively create the missing parent directories (using the file
- * permission).
- *
- * Return: 0 in case of success, -1 otherwise with error state set
- * accordingly.
- */
 MMLIB_API int mm_mkdir(const char* path, int mode, int flags);
-
-
-/**
- * mm_chdir() - change working directory
- * @path:       path to new working directory
- *
- * The mm_chdir() function causes the directory named by the pathname pointed
- * to by the @path argument to become the current working directory; that is,
- * the starting point for path searches for pathnames that are not absolute.
- *
- * Return: 0 in case of success, -1 otherwise with error state set
- * accordingly.
- */
 MMLIB_API int mm_chdir(const char* path);
-
-
-/**
- * mm_rmdir() - remove a directory
- * @path:       path to the directory to remove
- *
- * The mm_rmdir() function removes the directory named by the pathname pointed
- * to by the @path argument. It only works on empty directories.
- *
- * Return: 0 in case of success, -1 otherwise with error state set
- * accordingly.
- */
 MMLIB_API int mm_rmdir(const char* path);
-
-
-/**
- * mm_remove() - remove a file if of type authorized in flag list
- * @path:       path to the directory to remove
- * @types:      bitflag of authorized filetypes that can be removed
- *              and removal option
- *
- * The mm_remove() function removes a file if its type is authorized in given
- * type flag argument. It also can remove files recursively.
- *
- * The @flag express whether the call is recursive and the recursivity behavior.
- * If the MM_RECURSIVE flag is set, then the call will be recursive.
- * Additionally, if MM_FAILONERROR is set, the removal operation will stop on
- * the first failure it will encounter. Otherwise, it will ignore all the errors
- * on any file or folder, and only return whether the call could be completed
- * with full success, or any number of possible error.
- *
- * Return: 0 in case of success, -1 otherwise with error state set
- * accordingly.
- */
 MMLIB_API int mm_remove(const char* path, int flags);
 
 

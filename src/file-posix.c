@@ -420,6 +420,18 @@ struct mm_dirstream {
 	struct mm_dirent * dirent;
 };
 
+
+/**
+ * mm_chdir() - change working directory
+ * @path:       path to new working directory
+ *
+ * The mm_chdir() function causes the directory named by the pathname pointed
+ * to by the @path argument to become the current working directory; that is,
+ * the starting point for path searches for pathnames that are not absolute.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 int mm_chdir(const char* path)
 {
@@ -429,6 +441,17 @@ int mm_chdir(const char* path)
 	return 0;
 }
 
+
+/**
+ * mm_rmdir() - remove a directory
+ * @path:       path to the directory to remove
+ *
+ * The mm_rmdir() function removes the directory named by the pathname pointed
+ * to by the @path argument. It only works on empty directories.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 int mm_rmdir(const char* path)
 {
@@ -651,6 +674,26 @@ exit:
 	return exit_value;;
 }
 
+
+/**
+ * mm_remove() - remove a file if of type authorized in flag list
+ * @path:       path to the directory to remove
+ * @types:      bitflag of authorized filetypes that can be removed
+ *              and removal option
+ *
+ * The mm_remove() function removes a file if its type is authorized in given
+ * type flag argument. It also can remove files recursively.
+ *
+ * The @flag express whether the call is recursive and the recursivity behavior.
+ * If the MM_RECURSIVE flag is set, then the call will be recursive.
+ * Additionally, if MM_FAILONERROR is set, the removal operation will stop on
+ * the first failure it will encounter. Otherwise, it will ignore all the errors
+ * on any file or folder, and only return whether the call could be completed
+ * with full success, or any number of possible error.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 int mm_remove(const char* path, int flags)
 {

@@ -769,6 +769,7 @@ int mm_symlink(const char* oldpath, const char* newpath)
 	return retval;
 }
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_chdir(const char* path)
 {
@@ -794,6 +795,7 @@ int mm_chdir(const char* path)
 	return rv;
 }
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_rmdir(const char* path)
 {
@@ -944,6 +946,7 @@ int mm_remove_rec(const char * prefix, MMDIR * d, int flags, int rec_lvl)
 	return -1;
 }
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_remove(const char* path, int flags)
 {
