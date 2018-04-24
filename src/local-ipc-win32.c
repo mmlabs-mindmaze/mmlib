@@ -51,6 +51,7 @@ struct mmipc_srv {
 };
 
 
+/* doc in posix implementation */
 API_EXPORTED
 struct mmipc_srv* mmipc_srv_create(const char* addr)
 {
@@ -95,6 +96,7 @@ struct mmipc_srv* mmipc_srv_create(const char* addr)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 void mmipc_srv_destroy(struct mmipc_srv* srv)
 {
@@ -106,6 +108,7 @@ void mmipc_srv_destroy(struct mmipc_srv* srv)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmipc_srv_accept(struct mmipc_srv* srv)
 {
@@ -140,6 +143,7 @@ int mmipc_srv_accept(struct mmipc_srv* srv)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmipc_connect(const char* addr)
 {
@@ -396,6 +400,7 @@ ssize_t deserialize_msg(size_t buff_sz, const void* msg_data, struct mmipc_msg* 
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg)
 {
@@ -416,6 +421,7 @@ ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
 {
@@ -433,6 +439,7 @@ ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mmipc_connected_pair(int fds[2])
 {
