@@ -966,6 +966,33 @@ int validate_options(const struct mmarg_parser* parser)
 }
 
 
+/**
+ * mmarg_parse() - parse command-line options
+ * @parser:     argument parser configuration
+ * @argc:       argument count as passed to main()
+ * @argv:       argument array as passed to main()
+ *
+ * This functions parses the arguments in argv, of length argc, as provided
+ * by the argument of main() using the configuration set in @parser. The
+ * supported options are specified in the @parser->optv array. Even if it is
+ * not set in @parser->optv, a parser always supports the "-h" or "--help"
+ * option. If encountered, the program usage will be printed on standard
+ * output and the process will exit with EXIT_SUCCESS code (This behaviour
+ * can be overriden is "h|help" is explicitely defined as option in
+ * @parser->optv). If the parsing operation fails (because of invalid option
+ * or value), the error diagnostic will be printed on standard error and the
+ * process will exit with EXIT_FAILURE code. In other case, the parsing will
+ * continued until "--" or a non optional argument is encountered.
+ *
+ * There are 2 non-exclusive ways to get the values of the option supplied
+ * on command line:
+ * 1 - setting the struct mmarg_opt->*ptr field to the data that must be set
+ * when an option is found and parsed.
+ * 2 - using the callback function and data (@parser->cb and
+ * @parser->cb_data).
+ *
+ * Return: index of the first non-option argument
+ */
 API_EXPORTED
 int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 {
