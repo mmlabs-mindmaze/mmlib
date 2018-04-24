@@ -731,6 +731,18 @@ int mm_remove(const char* path, int flags)
 		return mm_unlink(path);
 }
 
+
+/**
+ * mm_opendir() - open a directory stream
+ * @path:       path to directory
+ *
+ * The mm_opendir() function opens a directory stream corresponding to the
+ * directory named by the @path argument. The directory stream is positioned
+ * at the first entry.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 MMDIR * mm_opendir(const char* path)
 {
@@ -754,6 +766,15 @@ MMDIR * mm_opendir(const char* path)
 	return d;
 }
 
+
+/**
+ * mm_closedir() - close a directory stream
+ * @dir:        directory stream to close
+ *
+ * The mm_closedir() function closes the directory stream referred to by the
+ * argument @dir. Upon return, the value of @dir may no longer point to an
+ * accessible object of the type MMDIR.
+ */
 API_EXPORTED
 void mm_closedir(MMDIR* dir)
 {
@@ -765,6 +786,16 @@ void mm_closedir(MMDIR* dir)
 	free(dir);
 }
 
+
+/**
+ * mm_rewinddir() - reset a directory stream to its beginning
+ * @dir:        directory stream to rewind
+ *
+ * The mm_rewinddir() function resets the position of the directory stream to
+ * which @dir refers to the beginning of the directory. It causes the directory
+ * stream to refer to the current state of the corresponding directory, as a
+ * call to mm_opendir() would have done.
+ */
 API_EXPORTED
 void mm_rewinddir(MMDIR* dir)
 {
@@ -776,6 +807,33 @@ void mm_rewinddir(MMDIR* dir)
 	rewinddir(dir->dir);
 }
 
+
+/**
+ * mm_readdir() - read current entry from directory stream and advance it
+ * @dir:        directory stream to read
+ * @status:     if not NULL, will contain whether readdir returned on error or end of dir
+ *
+ * The type MMDIR represents a directory stream, which is an ordered sequence
+ * of all the directory entries in a particular directory. Directory entries
+ * present the files they contain, which may be added or removed from it
+ * asynchronously to the operation of mm_readdir().
+ *
+ * The mm_readdir() function returns a pointer to a structure representing the
+ * directory entry at the current position in the directory stream specified by
+ * the argument @dir, and position the directory stream at the next entry which
+ * will be valid until the next call to mm_readdir() with the same @dir
+ * argument. It returns a NULL pointer upon reaching the end of the directory
+ * stream.
+ *
+ * The @status argument is optional. It can be provided to gather information on
+ * why the call to mm_dirent() returned NULL. Most of the time, this will happen
+ * on end-of-dir, in which case status will be 0. However this is not always 
+ * the case - eg. if a required internal allocation fails - and then status
+ * is filled with a negative value. 
+ *
+ * Return: pointer to the file entry if directory stream has not reached the
+ * end. NULL otherwise
+ */
 API_EXPORTED
 const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
 {

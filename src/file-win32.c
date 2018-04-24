@@ -1067,6 +1067,7 @@ int win32_find_file(MMDIR * dir)
 	return 0;
 }
 
+/* doc in posix implementation */
 API_EXPORTED
 MMDIR * mm_opendir(const char* path)
 {
@@ -1099,6 +1100,7 @@ error:
 	return NULL;
 }
 
+/* doc in posix implementation */
 API_EXPORTED
 void mm_closedir(MMDIR* dir)
 {
@@ -1110,6 +1112,7 @@ void mm_closedir(MMDIR* dir)
 	free(dir);
 }
 
+/* doc in posix implementation */
 API_EXPORTED
 void mm_rewinddir(MMDIR* dir)
 {
@@ -1122,6 +1125,7 @@ void mm_rewinddir(MMDIR* dir)
 	win32_find_file (dir);
 }
 
+/* doc in posix implementation */
 API_EXPORTED
 const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
 {
