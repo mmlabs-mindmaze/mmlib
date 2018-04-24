@@ -59,6 +59,7 @@ void get_win32_page_protect(int mflags,
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags)
 {
@@ -92,6 +93,7 @@ void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_unmap(void* addr)
 {

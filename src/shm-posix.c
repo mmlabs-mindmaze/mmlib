@@ -255,6 +255,46 @@ int get_mmap_flags(int mflags)
 }
 
 
+/**
+ * mm_mapfile() - map pages of memory
+ * @fd:         file descriptor of file to map in memory
+ * @offset:     offset within the file from which the mapping must start
+ * @len:        length of the mapping
+ * @mflags:     control how the mapping is done
+ *
+ * The mm_mapfile() function establishes a mapping between a process'
+ * address space and a portion or the entirety of a file or shared memory
+ * object represented by @fd. The portion of the object to map can be
+ * controlled by the parameters @offset and @len. @offset must be a multiple
+ * of page size.
+ *
+ * The flags in parameters @mflags determines whether read, write, execute,
+ * or some combination of accesses are permitted to the data being mapped.
+ * The requested access can of course cannot grant more permission than the
+ * one associated with @fd.
+ *
+ * MM_MAP_READ
+ *   Data can be read
+ * MM_MAP_WRITE
+ *   Data can be written
+ * MM_MAP_EXEC
+ *   Data can be executed
+ * MM_MAP_SHARED
+ *   Change to mapping are shared
+ *
+ * If MM_MAP_SHARED is specified, write change the underlying object.
+ * Otherwise, modifications to the mapped data by the calling process will
+ * be visible only to the calling process and shall not change the
+ * underlying object.
+ *
+ * The mm_mapfile() function adds an extra reference to the file associated
+ * with the file descriptor @fd which is not removed by a subsequent
+ * mm_close() on that file descriptor. This reference will be removed when
+ * there are no more mappings to the file.
+ *
+ * Return: The starting address of the mapping in case of success.
+ * Otherwise NULL is returned and error state is set accordingly.
+ */
 API_EXPORTED
 void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags)
 {
@@ -280,6 +320,16 @@ void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags)
 }
 
 
+/**
+ * mm_unmap() - unmap pages of memory
+ * @addr:       starting address of memory block to unmap
+ *
+ * Remove a memory mapping previously established. @addr must be NULL or must
+ * have been returned by a successful call to mm_mapfile(). If @addr is NULL,
+ * mm_unmap() do nothing.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set.
+ */
 API_EXPORTED
 int mm_unmap(void* addr)
 {
