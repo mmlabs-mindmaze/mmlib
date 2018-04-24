@@ -315,66 +315,8 @@ MMLIB_API int mm_wait_process(mm_pid_t pid, int* status);
 MMLIB_API void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags);
 MMLIB_API int mm_unmap(void* addr);
 
-
-/**
- * mm_shm_open() - open a shared memory object
- * @name:       name of the shared memory object
- * @oflag:      flags controlling the open operation
- * @mode:       permission if object is created
- *
- * This function establishes a connection between a shared memory object and
- * a file descriptor. The @name argument points to a string naming a shared
- * memory object. If successful, the file descriptor for the shared memory
- * object is the lowest numbered file descriptor not currently open for that
- * process.
- *
- * The file status flags and file access modes of the open file description
- * are according to the value of @oflag. It must contains the exactly one of
- * the following: %O_RDONLY, %O_RDWR. It can contains any combination of the
- * remaining flags: %O_CREAT, %O_EXCL, %O_TRUNC. The meaning of these
- * constant is exactly the same as for mm_open().
- *
- * When a shared memory object is created, the state of the shared memory
- * object, including all data associated with the shared memory object,
- * persists until the shared memory object is unlinked and all other
- * references are gone. It is unspecified whether the name and shared memory
- * object state remain valid after a system reboot.
- *
- * Once a new shared memory object has been created, it can be removed with
- * a call to mm_shm_unlink().
- *
- * Return: a non-negative integer representing the file descriptor in case
- * of success. Otherwise -1 is returned with error state set accordingly.
- */
 MMLIB_API int mm_shm_open(const char* name, int oflag, int mode);
-
-
-/**
- * mm_anon_shm() - Creates an anonymous memory object
- *
- * This function creates an anonymous shared memory object (ie nameless) and
- * establishes a connection between it and a file descriptor. If successful,
- * the file descriptor for the shared memory object is the lowest numbered
- * file descriptor not currently open for that process.
- *
- * Return: a non-negative integer representing the file descriptor in case
- * of success. Otherwise -1 is returned with error state set accordingly.
- */
 MMLIB_API int mm_anon_shm(void);
-
-
-/**
- * The mm_shm_unlink() removes the name of the shared memory
- * object named by the string pointed to by @name.
- *
- * If one or more references to the shared memory object exist when the object
- * is unlinked, the name is removed before mm_shm_unlink() returns, but the
- * removal of the memory object contents is postponed until all open and
- * map references to the shared memory object have been removed.
- *
- * Return: 0 in case of success, -1 otherwise with error state set
- * accordingly.
- */
 MMLIB_API int mm_shm_unlink(const char* name);
 
 

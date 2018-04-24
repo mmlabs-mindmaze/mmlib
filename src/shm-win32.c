@@ -147,6 +147,7 @@ const char* get_shm_path(void)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_anon_shm(void)
 {
@@ -183,6 +184,7 @@ int mm_anon_shm(void)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_shm_open(const char* name, int oflag, int mode)
 {
@@ -194,6 +196,7 @@ int mm_shm_open(const char* name, int oflag, int mode)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_shm_unlink(const char* name)
 {
