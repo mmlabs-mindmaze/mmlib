@@ -94,6 +94,14 @@ int strerror_r(int errnum, char *strerrbuf, size_t buflen)
 #endif
 
 
+/**
+ * mmstrerror_r() - Get description for error code (reentrant)
+ * @errnum:     error to describe
+ * @buf:        buffer to which the description should be written
+ * @buflen:     buffer size of @buf
+ *
+ * Return: 0 is in case of success, -1 otherwise.
+ */
 API_EXPORTED
 int mmstrerror_r(int errnum, char *buf, size_t buflen)
 {
@@ -171,6 +179,23 @@ int mm_error_set_flags(int flags, int mask)
 	return previous;
 }
 
+
+/**
+ * mm_raise_error_vfull() - set and log an error using a va_list
+ * @errnum:     error class number
+ * @module:     module name
+ * @func:       function name at the origin of the error
+ * @srcfile:    filename of source code at the origin of the error
+ * @srcline:    line number of file at the origin of the error
+ * @extid:      extended error id (identifier of a specific error case)
+ * @desc:       description intended for developper (vprintf-like extensible)
+ * @args:       va_list of arguments for @desc
+ *
+ * Exactly the same as mm_raise_error_full() but using a va_list to pass
+ * argument to the format passed in @desc.
+ *
+ * Return: 0 is @errnum is 0, -1 otherwise.
+ */
 API_EXPORTED
 int mm_raise_error_vfull(int errnum, const char* module, const char* func,
                         const char* srcfile, int srcline,
@@ -232,6 +257,22 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
 }
 
 
+/**
+ * mm_raise_error_full() - set and log an error (function backend)
+ * @errnum:     error class number
+ * @module:     module name
+ * @func:       function name at the origin of the error
+ * @srcfile:    filename of source code at the origin of the error
+ * @srcline:    line number of file at the origin of the error
+ * @extid:      extended error id (identifier of a specific error case)
+ * @desc:       description intended for developper (printf-like extensible)
+ *
+ * This function is the actual function invoked by the mm_raise_error() and
+ * mm_raise_error_with_extid() macros. You are advised to use the macros instead
+ * unless you want to build your own wrapper.
+ *
+ * Return: 0 is @errnum is 0, -1 otherwise.
+ */
 API_EXPORTED
 int mm_raise_error_full(int errnum, const char* module, const char* func,
                       const char* srcfile, int srcline,
@@ -248,6 +289,19 @@ int mm_raise_error_full(int errnum, const char* module, const char* func,
 	return ret;
 }
 
+
+/**
+ * mm_save_errorstate() - Save the error state on an opaque data holder
+ * @state:      data holder of the error state
+ *
+ * Use this function to save the current error state to data holder pointed by
+ * @state. The content of @state may be copied around even between threads and
+ * different processes.
+ *
+ * Return: 0 (cannot fail)
+ *
+ * The reciprocal of this function is mm_set_errorstate().
+ */
 API_EXPORTED
 int mm_save_errorstate(struct mm_error_state* state)
 {
@@ -257,6 +311,22 @@ int mm_save_errorstate(struct mm_error_state* state)
 	return 0;
 }
 
+
+/**
+ * mm_set_errorstate() - Save the error state of the calling thread
+ * @state:      pointer to the data holding of the error state
+ *
+ * Use this function to restore the error state of the calling thread from the information pointed by @state.
+ * Combined with mm_error_state(), you:
+ * - handle an error from a called function and recover the error state before
+ * the failed function
+ * - Copy the error state of a failed function whose call may have been
+ * offloaded to a different thread or even different process
+ *
+ * Return: 0 (cannot fail)
+ *
+ * The reciprocal of this function is mm_save_errorstate().
+ */
 API_EXPORTED
 int mm_set_errorstate(const struct mm_error_state* state)
 {
@@ -272,6 +342,14 @@ int mm_set_errorstate(const struct mm_error_state* state)
 	return 0;
 }
 
+
+/**
+ * mm_print_lasterror() - display last error info on standard output
+ * @info:       string describing the context where the error has been
+ *              encountered. It can be enriched by variable argument in the
+ *              printf-like style. It may be NULL, in such a case, only the
+ *              error state is described.
+ */
 API_EXPORTED
 void mm_print_lasterror(const char* info, ...)
 {
@@ -312,6 +390,12 @@ void mm_print_lasterror(const char* info, ...)
 	       last_error.extended_id);
 }
 
+
+/**
+ * mm_get_lasterror_number() - get error number of last error in the thread
+ *
+ * Return: the error number (0 if no error has been set in the thread)
+ */
 API_EXPORTED
 int mm_get_lasterror_number(void)
 {
@@ -319,12 +403,24 @@ int mm_get_lasterror_number(void)
 }
 
 
+/**
+ * mm_get_lasterror_desc() - get error description of last error in thread
+ *
+ * Return: the error description ("" if no error)
+ */
 API_EXPORTED
 const char* mm_get_lasterror_desc(void)
 {
 	return last_error.desc;
 }
 
+
+/**
+ * mm_get_lasterror_location() - get file location of last error in the thread
+ *
+ * Return: the file location that is at the origin of the error in the format
+ * "filename:linenum" ("" if no error)
+ */
 API_EXPORTED
 const char* mm_get_lasterror_location(void)
 {
@@ -332,6 +428,21 @@ const char* mm_get_lasterror_location(void)
 }
 
 
+/**
+ * mm_get_lasterror_extid() - get error extended id of last error in the thread
+ *
+ * This function provides the extended id of the last error set in the calling
+ * thread. The extended id is a string identifier destinated for the UI layer
+ * of the software stack to identify a error specific situation(See explanation in mm_raise_error_with_extid()).
+ *
+ * Please note that not all error report are supposed to report an error
+ * extended id (they actually should be a minority). If none has been provided
+ * when the last error has been set, the extid provided by this function will
+ * be NULL.
+ *
+ * Return: the error extended id if one has been set by the last error, NULL
+ * otherwise.
+ */
 API_EXPORTED
 const char* mm_get_lasterror_extid(void)
 {
@@ -343,6 +454,11 @@ const char* mm_get_lasterror_extid(void)
 }
 
 
+/**
+ * mm_get_lasterror_module() - module at the source the last error in the thread
+ *
+ * Return: the module name that is at the origin of the error ("" if no error)
+ */
 API_EXPORTED
 const char* mm_get_lasterror_module()
 {
