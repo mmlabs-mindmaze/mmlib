@@ -229,56 +229,8 @@ MMLIB_API int mm_stat(const char* path, struct mm_stat* buf, int flags);
 MMLIB_API int mm_check_access(const char* path, int amode);
 
 
-/**
- * mm_dup() - duplicate an open file descriptor
- * @fd:         file descriptor to duplicate
- *
- * This function creates a new file descriptor referencing the same file
- * description as the one referenced by @fd.
- *
- * Note that the two file decriptors point to the same file. They will share
- * the same file pointer.
- *
- * Return: a non-negative integer representing the new file descriptor in case
- * of success. The return file descriptor value is then guaranteed to be the
- * lowest available at the time of the call. In case of error, -1 is returned
- * with error state set accordingly.
- */
 MMLIB_API int mm_dup(int fd);
-
-
-/**
- * mm_dup2() - duplicate an open file descriptor to a determined file descriptor
- * @fd:         file descriptor to duplicate
- * @newfd:      file descriptor number that will become the duplicate
- *
- * This function duplicates an open file descriptor @fd and assign it to the
- * file descriptor @newfd. In other word, this function is similar to mm_dup()
- * but in case of success, the returned value is ensured to be @newfd.
- *
- * Return: a non-negative integer representing the new file descriptor in case
- * of success. Otherwise -1 is returned with error state set accordingly.
- */
 MMLIB_API int mm_dup2(int fd, int newfd);
-
-
-/**
- * mm_pipe() - creates an interprocess channel
- * @pipefd:     array of two in receiving the read and write endpoints
- *
- * The mm_pipe() function creates a pipe and place two file descriptors, one
- * each into the arguments @pipefd[0] and @pipefd[1], that refer to the open
- * file descriptions for the read and write ends of the pipe. Their integer
- * values will be the two lowest available at the time of the mm_pipe() call.
- *
- * Data can be written to the file descriptor @pipefd[1] and read from the file
- * descriptor @pipefd[0]. A read on the file descriptor @pipefd[0] shall access
- * data written to the file descriptor @pipefd[1] on a first-in-first-out
- * basis.
- *
- * Return: 0 in case of success, -1 otherwise with error state set
- * accordingly.
- */
 MMLIB_API int mm_pipe(int pipefd[2]);
 
 

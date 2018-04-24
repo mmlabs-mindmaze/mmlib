@@ -442,6 +442,7 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_dup(int fd)
 {
@@ -456,6 +457,7 @@ int mm_dup(int fd)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_dup2(int fd, int newfd)
 {
@@ -467,6 +469,7 @@ int mm_dup2(int fd, int newfd)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_pipe(int pipefd[2])
 {
