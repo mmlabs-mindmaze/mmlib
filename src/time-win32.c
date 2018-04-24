@@ -22,6 +22,7 @@
  *                                                                        *
  **************************************************************************/
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_gettime(clockid_t clock_id, struct timespec *ts)
 {
@@ -52,6 +53,7 @@ int mm_gettime(clockid_t clock_id, struct timespec *ts)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_getres(clockid_t clock_id, struct timespec *res)
 {
@@ -105,6 +107,7 @@ int relative_microsleep(HANDLE htimer, int64_t delta_ns)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_nanosleep(clockid_t clock_id, const struct timespec *target)
 {
