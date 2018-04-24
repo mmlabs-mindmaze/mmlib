@@ -286,6 +286,32 @@ int mm_pipe(int pipefd[2])
 }
 
 
+/**
+ * mm_unlink() -  remove a directory entry
+ * @path:       location to remove from file system
+ *
+ * The mm_unlink() function removes a link to a file. If @path names a symbolic
+ * link, it removes the symbolic link named by @path and does not affect any
+ * file or directory named by the contents of the symbolic link. Otherwise,
+ * mm_unlink() remove the link named by the pathname pointed to by @path and
+ * decrements the link count of the file referenced by the link.
+ *
+ * When the file's link count becomes 0 and no process has the file open, the
+ * space occupied by the file will be freed and the file will no longer be
+ * accessible. If one or more processes have the file open when the last link
+ * is removed, the link will be removed before mm_unlink() returns, but the
+ * removal of the file contents is postponed until all references to the
+ * file are closed (ie when all file descriptors referencing it are closed).
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ *
+ * NOTE: On Windows platform, it is usually believed that an opened file is not
+ * permitted to be deleted. This is not true. This is only due to the fact that
+ * many libraries/application open file missing the right share mode
+ * (FILE_SHARE_DELETE). If you access the file through mmlib APIs, you will be
+ * able to unlink your file before it is closed (even if memory mapped...).
+ */
 API_EXPORTED
 int mm_unlink(const char* path)
 {
@@ -296,6 +322,22 @@ int mm_unlink(const char* path)
 }
 
 
+/**
+ * mm_link() - create a hard link to a file
+ * @oldpath:    existing path for the file to link
+ * @newpath:    new path of the file
+ *
+ * The mm_link() function creates a new link (directory entry) for the existing
+ * file, @oldpath.
+ *
+ * The @oldpath argument points to a pathname naming an existing file. The
+ * @newpath argument points to a pathname naming the new directory entry to be
+ * created. The mm_link() function create atomically a new link for the
+ * existing file and the link count of the file shall be incremented by one.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 int mm_link(const char* oldpath, const char* newpath)
 {
@@ -306,6 +348,18 @@ int mm_link(const char* oldpath, const char* newpath)
 }
 
 
+/**
+ * mm_symlink() - create a symbolic link to a file
+ * @oldpath:    existing path for the file to link
+ * @newpath:    new path of the file
+ *
+ * The mm_link() function creates a new symbolinc link for the existing file,
+ * @oldpath. The @oldpath argument do not need to point to a pathname naming an
+ * existing file.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
 API_EXPORTED
 int mm_symlink(const char* oldpath, const char* newpath)
 {
@@ -467,6 +521,20 @@ int mm_stat(const char* path, struct mm_stat* buf, int flags)
 }
 
 
+/**
+ * mm_readlink() - read value of a symbolic link
+ * @path:       pathname of symbolic link
+ * @buf:        buffer receiving the value
+ * @bufsize:    length of @buf
+ *
+ * mm_readlink() places the contents of the symbolic link @path in the buffer
+ * @buf, which has size @bufsize. It does append a null byte to @buf. If @buf
+ * is too small to hold the contents, error will be returned. The required size
+ * for the buffer can be obtained from &struct stat.filesize value returned by
+ * a call to mm_stat() on the link.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set.
+ */
 API_EXPORTED
 int mm_readlink(const char* path, char* buf, size_t bufsize)
 {

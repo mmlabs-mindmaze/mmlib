@@ -553,6 +553,7 @@ int rename_file_handle(HANDLE hnd, const char* path)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_unlink(const char* path)
 {
@@ -694,6 +695,7 @@ exit:
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_link(const char* oldpath, const char* newpath)
 {
@@ -726,6 +728,7 @@ int mm_link(const char* oldpath, const char* newpath)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_symlink(const char* oldpath, const char* newpath)
 {
@@ -1336,6 +1339,7 @@ int mm_fstat(int fd, struct mm_stat* buf)
 }
 
 
+/* doc in posix implementation */
 API_EXPORTED
 int mm_readlink(const char* path, char* buf, size_t bufsize)
 {
