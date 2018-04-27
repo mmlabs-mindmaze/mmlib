@@ -12,7 +12,7 @@ endif
 export DEB_LDFLAGS_MAINT_APPEND=-Wl,-Bsymbolic-functions
 
 %:
-	dh  $@ --with autoreconf
+	dh  $@ --with autoreconf,sphinxdoc
 
 override_dh_autoreconf:
 	dh_autoreconf ./autogen.sh

@@ -53,7 +53,8 @@ Section: doc
 Priority: optional
 Architecture: all
 Multi-Arch: foreign
-Depends: ${misc:Depends}
+Depends: ${misc:Depends}, ${sphinxdoc:Depends}
+Built-Using: ${sphinxdoc:Built-Using}
 Description: MindMaze helper library (Documentation)
  mmlib is the general purpose library providing helper functions to other
  module. It provides facilities for logging, error reporting and basic
