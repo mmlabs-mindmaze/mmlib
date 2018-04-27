@@ -29,8 +29,5 @@ override_dh_strip:
 override_dh_compress:
 	dh_compress --exclude=examples
 
-override_dh_installdocs:
-	dh_installdocs
-
 override_dh_install:
 	dh_install -X.la --fail-missing
