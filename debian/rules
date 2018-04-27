@@ -27,7 +27,7 @@ override_dh_strip:
 	dh_strip --dbg-package=libmmlib0-dbg
 
 override_dh_installdocs:
-	dh_installdocs --link-doc=libmmlib0
+	dh_installdocs
 
 override_dh_install:
 	dh_install -X.la --fail-missing

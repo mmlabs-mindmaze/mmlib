@@ -2,7 +2,7 @@ Source: mmlib
 Section: libs
 Priority: extra
 Maintainer: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
-Build-Depends: debhelper (>= 9), dh-autoreconf,
+Build-Depends: debhelper (>= 10), dh-autoreconf,
  pkg-config, gnulib, libltdl-dev, gettext, check,
  python3-sphinx, python3-sphinx-rtd-theme, python3-sphinx-linuxdoc
 Standards-Version: 3.9.8
