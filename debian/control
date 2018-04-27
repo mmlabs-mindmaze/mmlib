@@ -27,7 +27,8 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Breaks: libmmlib0 (<< 0.0.1)
-Depends: libmmlib0 (= ${binary:Version}), ${misc:Depends}
+Depends: libmmlib0 (= ${binary:Version}), ${misc:Depends}, ${sphinxdoc:Depends}
+Built-Using: ${sphinxdoc:Built-Using}
 Description: MindMaze helper library (Development files)
  mmlib is the general purpose library providing helper functions to other
  module. It provides facilities for logging, error reporting and basic
@@ -47,17 +48,3 @@ Description: MindMaze helper library (Debugging symbols)
  geometry.
  .
  This package provides the debugging symbols for the library.
-
-Package: libmmlib-doc
-Section: doc
-Priority: optional
-Architecture: all
-Multi-Arch: foreign
-Depends: ${misc:Depends}, ${sphinxdoc:Depends}
-Built-Using: ${sphinxdoc:Built-Using}
-Description: MindMaze helper library (Documentation)
- mmlib is the general purpose library providing helper functions to other
- module. It provides facilities for logging, error reporting and basic
- geometry.
- .
- This package provides the documentation for the library
