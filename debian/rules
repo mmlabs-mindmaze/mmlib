@@ -24,7 +24,7 @@ override_dh_auto_clean:
 	if [ -f Makefile ] ; then make maintainer-clean ; fi
 
 override_dh_strip:
-	dh_strip --dbg-package=libmmlib0-dbg
+	dh_strip --dbgsym-migration='libmmlib0-dbg (<< 0.3.4+next)'
 
 override_dh_compress:
 	dh_compress --exclude=examples

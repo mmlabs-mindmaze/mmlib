@@ -3,6 +3,8 @@ mmlib (0.3.4+next) UNRELEASED; urgency=medium
   [ Nicolas Bourdaud ]
   * Add win32 support
   * remove licence from packaging
+  * debug package is now generated automatically. Consequently, -dbg is now
+    replaced by -dbgsym package
 
   [ Gabriel Ganne ]
   * debian compat changed from 9 to 10
