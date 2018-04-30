@@ -1,5 +1,7 @@
 eol=
 
+AUTOMAKE_OPTIONS = -Wno-portability
+
 LDADD = $(top_builddir)/src/libmmlib.la
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
@@ -51,10 +53,12 @@ OVERRIDING_MANPAGES = \
 DOC_SRCS = \
 	alloc.rst \
 	argparse.rst \
+	design.rst \
 	dlfcn.rst \
 	env.rst \
 	error.rst \
 	filesystem.rst \
+	index.rst \
 	ipc.rst \
 	log.rst \
 	process.rst \
@@ -86,9 +90,23 @@ sphinx_verbose_0 = -q
 
 ALLSPHINXOPTS = -d $(builddir)/.doctrees $(sphinx_verbose) $(srcdir)
 
-manpages-buildstamp: $(wildcard $(SRCTREE)/src/mm*.h) $(wildcard *.rst)
-	@$(RM) $@
-	$(AM_V_GEN) $(SPHINXBUILD) -W -b kernel-doc-man $(ALLSPHINXOPTS) $(builddir)/man 2>&1
+# Due to a dependency bug in sphinx-build, we use the -M option instead of
+# the usual -b one. This hidden option sums up to the same as -b with makefile
+# dependancy support ... except that it does not support -W option wich turns
+# warnings into errors !
+# => do this with a simple grep line on the output
+# Since html target depends on man target, this is only needed once
+sphinx-build.log: $(wildcard $(SRCTREE)/src/*.[ch]) $(DOC_SRCS)
+	@$(RM) -f manpages-buildstamp
+	$(AM_V_GEN) $(SPHINXBUILD) -M kernel-doc-man $(ALLSPHINXOPTS) $(builddir)/man &> sphinx-build.log
+
+# sphinx-build.log target does the doc generation
+# This target checks that it was done right
+manpages-buildstamp: sphinx-build.log
+	@if [ "$(shell grep -c WARNING: sphinx-build.log)" != "0" ] ; then \
+		grep WARNING: sphinx-build.log; \
+		false; \
+	fi
 	@echo
 	@echo "Build finished. The man pages are in $(builddir)/man."
 	@touch $@
@@ -97,9 +115,10 @@ manpages-buildstamp: $(wildcard $(SRCTREE)/src/mm*.h) $(wildcard *.rst)
 man-pages: manpages-buildstamp
 html-local: html-buildstamp
 
-html-buildstamp:
-	@$(RM) $@
-	$(AM_V_GEN) $(SPHINXBUILD) -W -b html $(ALLSPHINXOPTS) $(builddir)/html
+# always generate html after man: parallel sphinx invocation is not upported
+html-buildstamp: $(wildcard $(SRCTREE)/src/*.[ch]) $(DOC_SRCS) manpages-buildstamp
+	@$(RM) -f $@
+	$(AM_V_GEN) $(SPHINXBUILD) -M html $(ALLSPHINXOPTS) $(builddir)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(builddir)/html."
 	@touch $@
@@ -133,4 +152,4 @@ uninstall-local: uninstall-man3 uninstall-html
 endif # BUILD_SPHINXDOC
 
 clean-local:
-	$(RM) -rf html .doctrees man manpages-buildstamp html-buildstamp
+	$(RM) -rf html .doctrees man manpages-buildstamp html-buildstamp sphinx-build.log
