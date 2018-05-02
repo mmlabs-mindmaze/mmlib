@@ -171,8 +171,8 @@ const char* mm_dl_fileext(void)
  *
  * MMLD_LAZY
  *   Relocations shall be performed at an implementation-defined time,
- *   ranging from the time of the imm_dlopen() call until the first reference to
- *   a given symbol occurs. Currently, this has no effect on Windows
+ *   ranging from the time of the mm_dlopen() call until the first reference
+ *   to a given symbol occurs. Currently, this has no effect on Windows
  *   platform.
  *
  * MMLD_NOW
