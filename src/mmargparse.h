@@ -33,6 +33,20 @@ extern "C" {
 #define MMOPT_NEEDULLONG (MMOPT_NEEDVAL | MMOPT_ULLONG)
 
 
+/**
+ * union mmarg_val - generic holder of argument value
+ * @str:        pointer to string value
+ * @i:          signed integer value
+ * @ll:         signed long long value
+ * @ui:         unsigned integer value
+ * @ull:        unsigned long long value
+ *
+ * &union mmarg_val is the data holder to pass the value of an argument when a
+ * argument callback function is called. The field to use to manipulate the
+ * value depends on the type indicated &mmarg_opt.flags of the option supplied
+ * in the callback. This type can be retrieved by the helper
+ * mmarg_opt_get_type().
+ */
 union mmarg_val {
 	const char* str;
 	int i;
@@ -48,7 +62,7 @@ union mmarg_val {
  * @flags:      conversion type and requirement flags, see options flags
  * @defval:     default value is option is supplied without value
  * @val:        union for the various types
- * @val.sptr:   pointer to pointer to string, used if option type is string
+ * @val.sptr:   pointer to pointer to string, used if type is MMOPT_STR
  * @val.iptr:   pointer to integer, used if type is MMOPT_INT
  * @val.llptr:  pointer to long long, used if type is MMOPT_LLONG
  * @val.uiptr:  pointer to unsigned integer, used if type is MMOPT_UINT
@@ -60,7 +74,7 @@ union mmarg_val {
  * short key ("c") must be a single character of lower or upper case letter
  * in ascii character set. The long option name ("long-name") must contains
  * only ascii lower case letter, digit or hyphens. @name must adhere to one
- * the 3 following formats:
+ * the 3 following formats
  *
  * - "c|long-name": option can be refered by "-c" or "--long-name"
  * - "c": option can be refered only by short option "-c"
@@ -75,11 +89,11 @@ union mmarg_val {
  * it also determines what is the supported type of a value (if not
  * forbidden):
  *
- * - %MMOPT_MMOPT_STR: value is string (@sptr used)
- * - %MMOPT_MMOPT_INT: value is int (@iptr used)
- * - %MMOPT_MMOPT_UINT: value is unsigned int (@uiptr used)
- * - %MMOPT_MMOPT_LLONG: value is long long (@llptr used)
- * - %MMOPT_MMOPT_ULLONG: value is unsigned long long (@ullptr used)
+ * - %MMOPT_STR: value is string (then @val.sptr used)
+ * - %MMOPT_INT: value is int (then @val.iptr used)
+ * - %MMOPT_UINT: value is unsigned int (then @val.uiptr used)
+ * - %MMOPT_LLONG: value is long long (then @val.llptr used)
+ * - %MMOPT_ULLONG: value is unsigned long long (then @val.ullptr used)
  *
  * the ptr fields specified in parenthesis indicates that if the
  * corresponding field is not NULL, it will receive the value specified
@@ -135,7 +149,7 @@ typedef int (*mmarg_callback)(const struct mmarg_opt* opt,
  *              invocation). Can be NULL.
  * @doc:        document of the program. Can be NULL
  * @execname:   name of executable. You are invited to set it to argv[0]. If
- *              NULL, "PRGRAM" will be used instead for synopsis
+ *              NULL, "PROGRAM" will be used instead for synopsis
  * @cb_data:    user provided data callback
  * @cb:         callback called whenever a option is recognised and parsed.
  *              This callback is optional and can be set to NULL if
@@ -161,8 +175,8 @@ MMLIB_API int mmarg_parse(const struct mmarg_parser* parser,
  * mmarg_opt_get_key() - get short key of an option
  * @opt:        option whose key must be returned
  *
- * Return: short key code used to recognised @opt if used, 0 is @opt cannot
- * be match by short key.
+ * Return: short key code used to recognised @opt if used, 0 if @opt cannot
+ * be matched by short key.
  */
 static inline
 int mmarg_opt_get_key(const struct mmarg_opt* opt)

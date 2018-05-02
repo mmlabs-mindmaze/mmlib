@@ -987,11 +987,11 @@ int validate_options(const struct mmarg_parser* parser)
  * continued until "--" or a non optional argument is encountered.
  *
  * There are 2 non-exclusive ways to get the values of the option supplied
- * on command line:
- * 1 - setting the struct mmarg_opt->*ptr field to the data that must be set
- * when an option is found and parsed.
- * 2 - using the callback function and data (@parser->cb and
- * @parser->cb_data).
+ * on command line
+ *
+ * #. setting the struct mmarg_opt->*ptr field to the data that must be set
+ *    when an option is found and parsed.
+ * #. using the callback function @parser->cb and data @parser->cb_data.
  *
  * Return: index of the first non-option argument
  */
