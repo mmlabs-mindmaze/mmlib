@@ -740,8 +740,9 @@ int mm_remove(const char* path, int flags)
  * directory named by the @path argument. The directory stream is positioned
  * at the first entry.
  *
- * Return: 0 in case of success, -1 otherwise with error state set
- * accordingly.
+ * Return: A pointer usable with mm_readdir() on success, to be closed using
+ * mm_closedir(). In case of error, NULL is returned and an error state is
+ * set accordingly.
  */
 API_EXPORTED
 MMDIR * mm_opendir(const char* path)
@@ -826,13 +827,15 @@ void mm_rewinddir(MMDIR* dir)
  * stream.
  *
  * The @status argument is optional. It can be provided to gather information on
- * why the call to mm_dirent() returned NULL. Most of the time, this will happen
+ * why the call to mm_readdir() returned NULL. Most of the time, this will happen
  * on end-of-dir, in which case status will be 0. However this is not always 
  * the case - eg. if a required internal allocation fails - and then status
  * is filled with a negative value. 
  *
  * Return: pointer to the file entry if directory stream has not reached the
- * end. NULL otherwise
+ * end. NULL otherwise. In such a case and if an error has occured and error
+ * state is set accordingly and if @status is not NULL, pointed variable
+ * will be set to -1.
  */
 API_EXPORTED
 const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
