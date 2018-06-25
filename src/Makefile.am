@@ -120,6 +120,7 @@ libmmlib_la_SOURCES += \
 libmmlib_la_CPPFLAGS += \
 	-DWIN32_LEAN_AND_MEAN \
 	-DMMLIB_API=API_EXPORTED \
+	-D__USE_MINGW_ANSI_STDIO=1 \
 	$(eol)
 
 libmmlib_la_LIBADD += \
