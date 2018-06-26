@@ -102,10 +102,10 @@ int create_entry(struct file_info* info)
 	sprintf(suffix, "-%li", (long)ts.tv_nsec);
 	strcat(info->path, suffix);
 
+	time(&info->ctime);
 	if (create_file(info->path, info->mode, info->sz))
 		return -1;
 
-	time(&info->ctime);
 	return 0;
 }
 
@@ -181,7 +181,7 @@ START_TEST(path_stat)
 		ck_assert(mm_stat(info->path, &st, 0) == 0);
 
 		ck_assert_int_eq(st.size, info->sz);
-		ck_assert_int_eq(st.ctime, info->ctime);
+		ck_assert_int_le(abs(st.ctime - info->ctime), 1);
 		ck_assert_int_eq(st.nlink, 1);
 		ck_assert(S_ISREG(st.mode));
 		ck_assert_int_eq((st.mode & 0777), info->mode);
@@ -210,7 +210,7 @@ START_TEST(fd_stat)
 		mm_close(fd);
 
 		ck_assert_int_eq(st.size, info->sz);
-		ck_assert_int_eq(st.ctime, info->ctime);
+		ck_assert_int_le(abs(st.ctime - info->ctime), 1);
 		ck_assert_int_eq(st.nlink, 1);
 		ck_assert(S_ISREG(st.mode));
 	}
