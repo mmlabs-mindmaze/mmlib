@@ -39,7 +39,6 @@ extensions = [
     'linuxdoc.manKernelDoc',    # Implementation of the	'kernel-doc-man' builder
     'linuxdoc.cdomain',         # Replacement for the sphinx c-domain.
     'linuxdoc.kfigure',         # Sphinx extension which implements scalable image handling.
-    'sphinx.ext.intersphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -349,10 +348,6 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #
 # texinfo_no_detailmenu = False
-
-
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
 
 kernel_doc_exp_method = 'attribute'
 kernel_doc_exp_ids = 'API_EXPORTED API_EXPORTED_RELOCATABLE'
