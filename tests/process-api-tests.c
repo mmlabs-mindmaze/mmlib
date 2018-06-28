@@ -144,8 +144,6 @@ START_TEST(spawn_simple)
 }
 END_TEST
 
-/* FIXME: reimplement test avoiding sleep to make it runnable in windows VM */
-#ifndef _WIN32
 START_TEST(spawn_daemon)
 {
 	ck_assert(spawn_child(MM_SPAWN_DAEMONIZE) == 0);
@@ -154,7 +152,6 @@ START_TEST(spawn_daemon)
 	close_unlink();
 }
 END_TEST
-#endif
 
 START_TEST(spawn_error)
 {
@@ -262,13 +259,13 @@ TCase* create_process_tcase(void)
 	tcase_add_checked_fixture(tc, NULL, test_teardown);
 
 	tcase_add_test(tc, spawn_simple);
+	tcase_add_test(tc, spawn_daemon);
 	tcase_add_test(tc, spawn_error);
 	tcase_add_test(tc, spawn_daemon_error);
 	tcase_add_test(tc, spawn_invalid_args);
 	tcase_add_test(tc, wait_twice);
 
 #ifndef _WIN32
-	tcase_add_test(tc, spawn_daemon);
 	tcase_add_test(tc, spawn_error_limits);
 #endif
 
