@@ -192,6 +192,24 @@ START_TEST(clock_resolution)
 END_TEST
 
 
+/* Rationale of the chosen WALLCLOCK_MAXDIFF_NS for wallclock_time test:
+ *
+ * If the time() and mm_gettime(MM_CLK_REALTIME) sample their timestamp from
+ * the exact same clock, the difference in the worst case scenario would be
+ * 1 sec (subsecond data is dropped).
+ *
+ * In practice, on some platform or configuration, the underlying clocks may
+ * differ. This is the case on win32 using msvcrt.dll whose time() is based
+ * on GetSystemTimeAsFileTime(), while mm_gettime(MM_CLK_REALTIME) is based
+ * on GetSystemTimeAsPreciseFileTime(). However, even if clock basis differ,
+ * the difference should not be too large, hence 200 ms should be enough to
+ * cover any clock discrepancies.
+ *
+ * Consequently, the tolerance in the measure of UTC time from mm_gettime()
+ * compared to time() is set to 1.2s.
+ */
+#define WALLCLOCK_MAXDIFF_NS	(1200*1000*1000) // 1.2s in nsec
+
 START_TEST(wallclock_time)
 {
 	int i;
@@ -206,7 +224,7 @@ START_TEST(wallclock_time)
 
 		diff_ns = mm_timediff_ns(&ts_utc, &ts_realtime);
 		diff_ns = (diff_ns > 0) ? diff_ns : -diff_ns;
-		if (diff_ns > NS_IN_SEC)
+		if (diff_ns > WALLCLOCK_MAXDIFF_NS)
 			ck_abort_msg("mm_gettime(MM_CLK_REALTIME) differs"
 			             " from time(NULL): diff_ns = %li",
 			             (long)diff_ns);
