@@ -89,21 +89,51 @@ int mm_getres(clockid_t clock_id, struct timespec *res)
  *                       Nanosleep implementation                         *
  *                                                                        *
  **************************************************************************/
-static
-int relative_microsleep(HANDLE htimer, int64_t delta_ns)
+
+static HANDLE timer_hnd;
+
+MM_CONSTRUCTOR(timer)
 {
-	ULARGE_INTEGER bigint;
-	FILETIME ft;
+	timer_hnd = CreateWaitableTimer(NULL, TRUE, NULL);
+}
 
-	bigint.QuadPart = -(LONGLONG)(delta_ns + 50)/100;
-	ft.dwLowDateTime = bigint.LowPart;
-	ft.dwHighDateTime = bigint.HighPart;
 
-	SetWaitableTimer(htimer, (LARGE_INTEGER*)&ft, 0, NULL, NULL, FALSE);
+MM_DESTRUCTOR(timer)
+{
+	CloseHandle(timer_hnd);
+}
 
-	WaitForSingleObject(htimer, INFINITE);
 
-	return 0;
+static CALLBACK
+void timer_apc_completion(void* data, DWORD timer_low, DWORD timer_high)
+{
+	(void)timer_low;
+	(void)timer_high;
+	int* done = data;
+
+	*done = 1;
+}
+
+
+static
+void relative_microsleep(int64_t delta_ns)
+{
+	int64_t ft_i64;
+	int done;
+
+	// ft_i64 must be negative to request a relative wait in
+	// SetWaitableTimer()
+	ft_i64 = -((delta_ns + 99) / 100);
+
+	// Set deadline of waitable timer
+	done = 0;
+	SetWaitableTimer(timer_hnd, (LARGE_INTEGER*)&ft_i64, 0,
+	                 timer_apc_completion, &done, FALSE);
+
+	// Do sleep until timer APC completion is executed
+	do {
+		SleepEx(INFINITE, TRUE);
+	} while (done == 0);
 }
 
 
@@ -111,31 +141,24 @@ int relative_microsleep(HANDLE htimer, int64_t delta_ns)
 API_EXPORTED
 int mm_nanosleep(clockid_t clock_id, const struct timespec *target)
 {
-	HANDLE htimer = NULL;
 	struct timespec now;
 	int64_t delta_ns;
 
-	if (clock_id == MM_CLK_CPU_THREAD || clock_id == MM_CLK_CPU_PROCESS)
-		return mm_raise_error(EINVAL, "Sleep cannot be done with CPU clock");
-
-	if (mm_gettime(clock_id, &now))
-		return -1;
-
-	// Compute the delta in nanosecond to reach the request
-	delta_ns = mm_timediff_ns(target, &now);
-	if (delta_ns <= 0)
-		return 0;
-
-	htimer = CreateWaitableTimer(NULL, TRUE, NULL);
+	if (  clock_id != MM_CLK_REALTIME
+	   && clock_id != MM_CLK_MONOTONIC
+	   && clock_id != MM_CLK_MONOTONIC_RAW  )
+		return mm_raise_error(EINVAL, "Invalid clock (%i)", clock_id);
 
 	// Wait until the target timestamp is reached
-	do {
-		relative_microsleep(htimer, delta_ns);
+	while (1) {
+		// Compute the delta in nanosecond to reach the request
 		mm_gettime(clock_id, &now);
 		delta_ns = mm_timediff_ns(target, &now);
-	} while (delta_ns > 0);
+		if (delta_ns <= 0)
+			break;
 
-	CloseHandle(htimer);
+		relative_microsleep(delta_ns);
+	}
 
 	return 0;
 }
