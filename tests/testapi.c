@@ -30,6 +30,7 @@ Suite* api_suite(void)
 	suite_add_tcase(s, create_shm_tcase());
 	suite_add_tcase(s, create_dlfcn_tcase());
 	suite_add_tcase(s, create_process_tcase());
+	suite_add_tcase(s, create_argparse_tcase());
 
 	return s;
 }
