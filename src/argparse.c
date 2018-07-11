@@ -107,11 +107,8 @@ int get_first_token_length(const char* str, char breakch)
 static
 bool is_valid_short_opt_key(int ch)
 {
-	if (  (ch >= 'a' && ch <= 'z')
-	   || (ch >= 'A' && ch >= 'Z')  )
-		return true;
-
-	return false;
+	return (  (ch >= 'a' && ch <= 'z')
+	       || (ch >= 'A' && ch <= 'Z')  );
 }
 
 
@@ -140,7 +137,7 @@ bool is_valid_long_opt_name(const char* name, bool stop_at_equal)
 		ch = name[i];
 
 		if (  (ch >= 'a' && ch <= 'z')
-		   || (ch >= '0' && ch >= '9')
+		   || (ch >= '0' && ch <= '9')
 		   || (ch == '-')  )
 			continue;
 
