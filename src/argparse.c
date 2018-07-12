@@ -8,6 +8,7 @@
 #include "mmargparse.h"
 #include "mmlib.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -684,7 +685,6 @@ static
 int cast_ll_to_argval(const struct mmarg_opt* opt,
                       union mmarg_val *argval, long long llval)
 {
-	const char* valtype;
 	int type = mmarg_opt_get_type(opt);
 
 	switch(type) {
@@ -707,18 +707,39 @@ int cast_ll_to_argval(const struct mmarg_opt* opt,
 		break;
 
 	default:
-		print_opt_error(opt, "has unknown value type");
+		errno = EINVAL;
 		return -1;
 	}
 
 	return 0;
 
 error:
-	valtype = get_value_type_name(type);
-	print_opt_error(opt, "has received a value (%lli) out of range.\n"
-	                     "This value should have been in the range"
-	                     " of %s type.", llval, valtype);
+	errno = ERANGE;
 	return -1;
+}
+
+
+/**
+ * check_value_is_positive() - verify string is not negative integer
+ * @str:        string for value
+ *
+ * Return: 0 if @str does not represent a negative value, -1 otherwise with
+ * errno set to ERANGE.
+ */
+static
+int check_value_is_positive(const char* str)
+{
+	// Skip whitespace
+	while (isspace(*str))
+		str++;
+
+	// assert leading non whitespace character is not minus
+	if (*str == '-') {
+		errno = ERANGE;
+		return -1;
+	}
+
+	return 0;
 }
 
 
@@ -735,8 +756,10 @@ int conv_str_to_argval(const struct mmarg_opt* opt,
                        union mmarg_val *argval, const char* value)
 {
 	int type = mmarg_opt_get_type(opt);
-	char* endptr;
 	long long llval;
+	char* endptr;
+	const char* valtype;
+	int prev_err = errno;
 
 	if (type == MMOPT_STR) {
 		argval->str = value;
@@ -745,29 +768,49 @@ int conv_str_to_argval(const struct mmarg_opt* opt,
 
 	// Value type is not string, hence it requires a conversion. So now
 	// ensure that value is not empty
-	if (!value || value[0] == '\0')
+	if (!value || value[0] == '\0') {
+		errno = EINVAL;
 		goto error;
-
-	// Handle ulonglong specific case
-	if (type == MMOPT_ULLONG) {
-		argval->ull = strtoull(value, &endptr, 0);
-		if (*endptr != '\0')
-			goto error;
-		else
-			return 0;
 	}
 
-	// All the other integers conversion can be based from longlong
-	llval = strtoll(value, &endptr, 0);
-	if (*endptr != '\0')
+	// Convert all strings as long long excepting if requesting
+	// ulonglong
+	errno = 0;
+	if (type == MMOPT_ULLONG) {
+		// Prevent to convert negative value (strtoull() would
+		// accept them)
+		if (check_value_is_positive(value)) {
+			errno = ERANGE;
+			goto error;
+		}
+		argval->ull = strtoull(value, &endptr, 0);
+	} else {
+		llval= strtoll(value, &endptr, 0);
+	}
+
+	// Check the whole string has been used for conversion
+	if (*endptr != '\0') {
+		errno = EINVAL;
+		goto error;
+	}
+
+	if (errno != 0)
 		goto error;
 
-	return cast_ll_to_argval(opt, argval, llval);
+	// If not requesting ulonglong, do final conversion of longlong to
+	// requested type
+	if (  type != MMOPT_ULLONG
+	   && cast_ll_to_argval(opt, argval, llval))
+		goto error;
+
+	errno = prev_err;
+	return 0;
 
 error:
+	valtype = get_value_type_name(type);
 	print_opt_error(opt, "accepting %s value type has received an"
-	                     "invalid value \"%s\"",
-			     get_value_type_name(type), value);
+	                     "invalid value \"%s\" (%s)",
+			     valtype, value, strerror(errno));
 	return -1;
 }
 
