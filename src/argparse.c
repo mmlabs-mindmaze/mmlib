@@ -1094,7 +1094,8 @@ int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 	const char *arg, *next_arg;
 	int index, r;
 
-	validate_options(parser);
+	if (validate_options(parser))
+		return early_stop_parsing(parser, MMARGPARSE_ERROR);
 
 	for (index = 1; index < argc; index++) {
 		arg = argv[index];
