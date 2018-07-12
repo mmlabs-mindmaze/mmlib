@@ -960,6 +960,10 @@ int process_long_opt(const struct mmarg_parser* parser, const char* arg)
 	int namelen, rv;
 	const struct mmarg_opt* opt;
 
+	// Assert option name has an acceptable form
+	if (!is_valid_long_opt_name(arg, true))
+		return -1;
+
 	// Set the name and value token
 	name = arg;
 	namelen = get_first_token_length(arg, '=');
@@ -1118,9 +1122,6 @@ int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 		// argument and stop processing options
 		if (arg[2] == '\0')
 			return index+1;
-
-		if (!is_valid_long_opt_name(arg+2, true))
-			break;
 
 		// arg has the form of "--string", process as long option
 		if ((r = process_long_opt(parser, arg+2)) < 0)
