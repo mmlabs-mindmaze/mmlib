@@ -635,8 +635,7 @@ const struct mmarg_opt* find_opt(const struct mmarg_parser* parser,
 
 	// Check option is not help
 	if (match_opt_key_or_name(&help_opt, key, name, namelen)) {
-		print_help(parser, stdout);
-		exit(EXIT_SUCCESS);
+		return &help_opt;
 	}
 
 	return NULL;
@@ -813,7 +812,8 @@ int mmarg_opt_set_value(const struct mmarg_opt* opt, union mmarg_val val)
  * @value:      string of value if one has been supplied, NULL otherwise
  * @parser:     parser used
  *
- * Return: 0 in case of success, or -1 if a validation issue has occurred.
+ * Return: 0 in case of success, or MMARGPARSE_ERROR (-1) if a validation issue has occurred or
+ * MMARGPARSE_STOP (-2) if early stop has been requested
  */
 static
 int process_opt_value(const struct mmarg_opt* opt, const char* value,
@@ -823,15 +823,23 @@ int process_opt_value(const struct mmarg_opt* opt, const char* value,
 	mmarg_callback cb = parser->cb;
 	int reqflags = opt->flags & MMOPT_REQMASK;
 	union mmarg_val argval;
+	int rv;
+
+	// If the recognized option is the help option added internally, just
+	// print help and return stop
+	if (opt == &help_opt) {
+		print_help(parser, stdout);
+		return MMARGPARSE_STOP;
+	}
 
 	if ((reqflags == MMOPT_NOVAL) && value) {
 		print_opt_error(opt, "does not accept any value.");
-		return -1;
+		return MMARGPARSE_ERROR;
 	}
 
 	if ((reqflags == MMOPT_NEEDVAL) && !value) {
 		print_opt_error(opt, "needs value.");
-		return -1;
+		return MMARGPARSE_ERROR;
 	}
 
 	if (!value)
@@ -839,9 +847,9 @@ int process_opt_value(const struct mmarg_opt* opt, const char* value,
 
 	// Convert string value to argval union and run callback if one is
 	// present
-	if (  conv_str_to_argval(opt, &argval, value)
-	   || (cb && cb(opt, argval, cb_data))  )
-		return -1;
+	if (  (rv = conv_str_to_argval(opt, &argval, value)) < 0
+	   || (cb && (rv = cb(opt, argval, cb_data)) < 0)  )
+		return rv;
 
 	// set value if specified in option parser
 	return mmarg_opt_set_value(opt, argval);
@@ -864,6 +872,7 @@ int process_short_opt(const struct mmarg_parser* parser,
 	const struct mmarg_opt* opt_parser;
 	const char* value = NULL;
 	int move_arg_index = 0;
+	int rv;
 
 	while (opts[0] != '\0') {
 		opt_parser = find_opt(parser, opts[0], NULL, 0);
@@ -881,8 +890,9 @@ int process_short_opt(const struct mmarg_parser* parser,
 			move_arg_index = 1;
 		}
 
-		if (process_opt_value(opt_parser, value, parser))
-			return -1;
+		rv = process_opt_value(opt_parser, value, parser);
+		if (rv < 0)
+			return rv;
 
 		opts++;
 	}
@@ -904,7 +914,7 @@ int process_long_opt(const struct mmarg_parser* parser, const char* arg)
 {
 	const char* name;
 	const char* value;
-	int namelen;
+	int namelen, rv;
 	const struct mmarg_opt* opt;
 
 	// Set the name and value token
@@ -920,8 +930,8 @@ int process_long_opt(const struct mmarg_parser* parser, const char* arg)
 	}
 
 	// Process the found option
-	if (process_opt_value(opt, value, parser) < 0)
-		return -1;
+	if ((rv = process_opt_value(opt, value, parser)) < 0)
+		return rv;
 
 	return 0;
 }
@@ -966,6 +976,35 @@ int validate_options(const struct mmarg_parser* parser)
 
 
 /**
+ * early_stop_parsing() - Stop argument parsing
+ * @parser:     argument parser configuration
+ * @retval:     code returned indicating why parsing is interrupted
+ *
+ * This function exits program if MMARG_PARSER_NOEXIT is not set in
+ * @parser->flags. If the parsing has been interrupted because of parsing error
+ * (@retval == -1), a small reminder how to use help is reported to stderr.
+ *
+ * Return: @retval if MMARG_PARSER_NOEXIT is set in @parser->flags (otherwise,
+ * the function call exit)
+ */
+static
+int early_stop_parsing(const struct mmarg_parser* parser, int retval)
+{
+	int exitcode = EXIT_SUCCESS;
+
+	if (retval == -1) {
+		fprintf(stderr, "Use -h or --help to display usage.\n");
+		exitcode = EXIT_FAILURE;
+	}
+
+	if (parser->flags & MMARG_PARSER_NOEXIT)
+		return retval;
+
+	exit(exitcode);
+}
+
+
+/**
  * mmarg_parse() - parse command-line options
  * @parser:     argument parser configuration
  * @argc:       argument count as passed to main()
@@ -983,6 +1022,10 @@ int validate_options(const struct mmarg_parser* parser)
  * process will exit with EXIT_FAILURE code. In other case, the parsing will
  * continued until "--" or a non optional argument is encountered.
  *
+ * If MMARG_PARSER_NOEXIT is set in @parser->flags, the process will not exit
+ * in case of help printing nor in case of error but mmarg_parse() will return
+ * respectively MMARGPARSE_STOP and MMARGPARSE_ERROR.
+ *
  * There are 2 non-exclusive ways to get the values of the option supplied
  * on command line
  *
@@ -990,7 +1033,13 @@ int validate_options(const struct mmarg_parser* parser)
  *    when an option is found and parsed.
  * #. using the callback function @parser->cb and data @parser->cb_data.
  *
- * Return: index of the first non-option argument
+ * Return: a non negative value indicating the index of the first non-option
+ * argument when argument parsing has been successfully finished. Additionally
+ * if MMARG_PARSER_NOEXIT is set in @parser->flags :
+ *
+ * - MMARGPARSE_ERROR (-1): an error of argument parsing or validation occured
+ * - MMARGPARSE_STOP (-2): help display has been requested or early parsing
+ *   stop has been requested by callback.
  */
 API_EXPORTED
 int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
@@ -1013,7 +1062,7 @@ int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 			next_arg = (index+1 < argc) ? argv[index+1] : NULL;
 			r = process_short_opt(parser, arg+1, next_arg);
 			if (r < 0)
-				goto error;
+				return early_stop_parsing(parser, r);
 
 			index += r;
 			continue;
@@ -1031,13 +1080,9 @@ int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 			break;
 
 		// arg has the form of "--string", process as long option
-		if (process_long_opt(parser, arg+2))
-			goto error;
+		if ((r = process_long_opt(parser, arg+2)) < 0)
+			return early_stop_parsing(parser, r);
 	}
 
 	return index;
-
-error:
-	fprintf(stderr, "Use -h or --help to display usage.\n");
-	exit(EXIT_FAILURE);
 }

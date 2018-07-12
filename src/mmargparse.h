@@ -122,6 +122,8 @@ struct mmarg_opt {
 	const char* desc;
 };
 
+#define MMARGPARSE_ERROR        -1
+#define MMARGPARSE_STOP         -2
 
 /**
  * typedef mmarg_callback() - prototype of argument parser callback
@@ -130,14 +132,18 @@ struct mmarg_opt {
  *              determined with mmarg_opt_get_type(@opt).
  * @data:       user pointer provided for hold state while running parser
  *
- * Return: 0 in case of success, -1 if an error has been detected.
+ * Return: 0 in case of success, MMARGPARSE_ERROR (-1) if an error has been
+ * detected or MMARGPARSE_STOP (-2) if early exit is requested like with help
+ * display
  */
 typedef int (*mmarg_callback)(const struct mmarg_opt* opt,
                               union mmarg_val value, void* data);
 
+#define MMARG_PARSER_NOEXIT     (1 << 0)
+
 /**
  * struct mmarg_parser - argument parser configuration
- * @flags:      unused
+ * @flags:      flags to change behavior of parsing (MMARG_PARSER_*)
  * @num_opt:    number of element in @optv.
  * @optv:       array of option supported. Please note that @optv does not
  *              need to provide a option "h|help" since argument parser add
