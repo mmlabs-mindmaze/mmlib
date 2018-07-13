@@ -13,7 +13,7 @@ extern "C" {
 
 #define MMOPT_NOVAL     0x00
 #define MMOPT_OPTVAL    0x01
-#define MMOPT_NEEDVAL   0x03
+#define MMOPT_NEEDVAL   0x02
 #define MMOPT_REQMASK   0x03
 #define MMOPT_STR       0x00
 #define MMOPT_INT       0x10

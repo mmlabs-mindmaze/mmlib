@@ -448,6 +448,7 @@ int set_option_synopsis(char* synopsis, const struct mmarg_opt* opt,
 	char* str = synopsis;
 	int key = mmarg_opt_get_key(opt);
 	const char* name = mmarg_opt_get_name(opt);
+	int reqflags = opt->flags & MMOPT_REQMASK;
 
 	// Insert small indentation
 	*str++ = ' ';
@@ -455,9 +456,9 @@ int set_option_synopsis(char* synopsis, const struct mmarg_opt* opt,
 
 	// Add short option name synopsis
 	if (key) {
-		if (opt->flags == MMOPT_NOVAL)
+		if (reqflags == MMOPT_NOVAL)
 			str += sprintf(str, "-%c", key);
-		else if (opt->flags == MMOPT_NEEDVAL)
+		else if (reqflags == MMOPT_NEEDVAL)
 			str += sprintf(str, "-%c %s", key, valname);
 		else
 			str += sprintf(str, "-%c [%s]", key, valname);
@@ -471,9 +472,9 @@ int set_option_synopsis(char* synopsis, const struct mmarg_opt* opt,
 
 	// Add long name option synopsis
 	if (name) {
-		if (opt->flags == MMOPT_NOVAL)
+		if (reqflags == MMOPT_NOVAL)
 			str += sprintf(str, "--%s", name);
-		else if (opt->flags == MMOPT_NEEDVAL)
+		else if (reqflags == MMOPT_NEEDVAL)
 			str += sprintf(str, "--%s=%s", name, valname);
 		else
 			str += sprintf(str, "--%s[=%s]", name, valname);
