@@ -100,6 +100,7 @@ testapi_tap_SOURCES = \
 	dlfcn-api-tests.c \
 	process-api-tests.c \
 	argparse-api-tests.c \
+	utils-api-tests.c \
 	$(eol)
 
 testapi_tap_LDADD = \

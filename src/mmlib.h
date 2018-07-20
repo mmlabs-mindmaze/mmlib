@@ -22,10 +22,32 @@
 extern "C" {
 #endif
 
+/**
+ * enum mm_known_dir - identifier of base folder
+ * @MM_HOME: home folder of user
+ * @MM_DATA_HOME: user-specific data files
+ * @MM_CONFIG_HOME: user-specific configuration files
+ * @MM_CACHE_HOME: user-specific non-essential (cached) data
+ * @MM_RUNTIME_DIR: where user-specific runtime files and other
+ *                  objects should be placed.
+ * @MM_NUM_DIRTYPE: do not use (for internals of mmlib only)
+ */
+enum mm_known_dir {
+	MM_HOME,
+	MM_DATA_HOME,
+	MM_CONFIG_HOME,
+	MM_CACHE_HOME,
+	MM_RUNTIME_DIR,
+	MM_NUM_DIRTYPE,
+};
 
 MMLIB_API char* mm_getenv(const char* name, char* default_value);
 MMLIB_API int mm_setenv(const char* name, char* value, int overwrite);
 MMLIB_API int mm_unsetenv(const char* name);
+
+MMLIB_API const char* mm_get_basedir(enum mm_known_dir dirtype);
+MMLIB_API char* mm_path_from_basedir(enum mm_known_dir dirtype,
+                                     const char* suffix);
 
 MMLIB_API void* mm_aligned_alloc(size_t alignment, size_t size);
 MMLIB_API void mm_aligned_free(void* ptr);
