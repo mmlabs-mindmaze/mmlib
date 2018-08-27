@@ -252,9 +252,9 @@ failure:
  * with report_to_parent_and_exit(). Both end of the pipe are supposed to
  * have the CLOEXEC flag set. If the child end of the pipe is closed before
  * any data can be read from @watch_fd, this means that the write end has
- * been closed by the successfull call to exec().
+ * been closed by the successful call to exec().
  *
- * Return: 0 if the exec call is successfull in child process, -1 otherwise
+ * Return: 0 if the exec call is successful in child process, -1 otherwise
  * and the error state will be the one reported by child.
  */
 static

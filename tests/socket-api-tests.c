@@ -302,7 +302,7 @@ int gen_random_int(int max)
  * partition of a buffer @buf of size @buflen. The partition is random, nothing
  * prevents that the elements in @msg->msg_iov will not overlap.
  * 
- * It is however garanteed that:
+ * It is however guaranteed that:
  * - the element in @msg->msg_iov will always point inside @buf
  * - the combined size of @msg->msg_iov elements will be less or equal to @buflen
  */

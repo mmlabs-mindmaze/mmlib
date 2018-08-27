@@ -110,7 +110,7 @@
 #define MM_ENOINERTIAL		1008
 #define MM_ECAMERROR		1009
 
-// Surprisingly some compilers targetting windows fail to define
+// Surprisingly some compilers targeting windows fail to define
 // ENOTRECOVERABLE error code while they define EOWNERDEAD
 #ifdef _WIN32
 #  ifndef ENOTRECOVERABLE

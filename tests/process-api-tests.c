@@ -157,7 +157,7 @@ START_TEST(spawn_error)
 {
 	int rv;
 
-	/* will spawn an immediatly defunct process: path to process is NULL */
+	/* will spawn an immediately defunct process: path to process is NULL */
 	pid = -23;
 	rv = mm_spawn(&pid, NULL, 0, NULL, MM_SPAWN_KEEP_FDS, NULL, NULL);
 	ck_assert(rv != 0);
@@ -205,7 +205,7 @@ START_TEST(spawn_daemon_error)
 {
 	int rv;
 
-	/* will spawn an immediatly defunct process: path to process is NULL */
+	/* will spawn an immediately defunct process: path to process is NULL */
 	pid = -23;
 	rv = mm_spawn(&pid, NULL, 0, NULL, MM_SPAWN_DAEMONIZE, NULL, NULL);
 	ck_assert(rv == -1);

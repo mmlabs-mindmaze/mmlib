@@ -994,7 +994,7 @@ VOID CALLBACK read_completed(DWORD errcode, DWORD xfer_sz, LPOVERLAPPED lpo)
 	// immediately requeue a read to handle the next request. This harmless
 	// since write and read use different buffer and it allows use to
 	// detect when a client get disconnected even if we don't have written
-	// any reponse to the current request yet (this is the case of wait
+	// any response to the current request yet (this is the case of wait
 	// request)
 	thread_client_queue_read(tc);
 }

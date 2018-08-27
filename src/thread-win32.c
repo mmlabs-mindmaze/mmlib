@@ -266,7 +266,7 @@ struct lockref_connection* get_thread_lockref_data(void)
  * lower one indicates the owning thread id (32bit on windows) - the higher one
  * encodes the number of thread waiting for the lock
  *
- * By manipulating the lock value only through atomic addition/substraction,
+ * By manipulating the lock value only through atomic addition/subtraction,
  * the lock value is updated only we avoid any problem of lost wake-up
  *
  * When the lock is tried to be obtained, a thread attempts to update
@@ -279,7 +279,7 @@ struct lockref_connection* get_thread_lockref_data(void)
  * lock or not. If not it will increase atomically the number of waiting thread
  * and will go sleeping using pshared_wait_on_lock().
  *
- * When unlocking, a thread just has to substract its thread ID from the lock
+ * When unlocking, a thread just has to subtract its thread ID from the lock
  * value: a null value in the owner part of the lock value indicates the lock
  * in unused (but some other threads may still wait for it). The unlocking
  * thread just has to examine the number of thread waiting to know if it must
@@ -590,7 +590,7 @@ int pshared_mtx_unlock(mmthr_mtx_t* mutex)
 
 	start_mtx_operation(mutex->pshared_key, robust_data);
 
-	// Do actual unlock (This is performed by substracting the Thread ID
+	// Do actual unlock (This is performed by subtracting the Thread ID
 	// from the lock value. After this one, the owner part of the lock shall
 	// be null, thus indicating that no one hold the lock
 	oldval = atomic_fetch_sub(&mutex->lock, unlock_val);

@@ -129,7 +129,7 @@ void recover_shared_text_from_owner_dead(struct pshared_data* psh_data)
 	int len = psh_data->len;
 	char* text = psh_data->text;
 
-	// Find index of text immediately after the last occurence of "+|"
+	// Find index of text immediately after the last occurrence of "+|"
 	while (len > 0) {
 		if ((len > 2) && (text[len-2]=='+') && (text[len-1]=='|'))
 			break;

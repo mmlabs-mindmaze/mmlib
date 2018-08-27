@@ -267,7 +267,7 @@ run_test_core_connected_file(struct ipc_test_ctx * ctx)
 
 	/*
 	 * start and launch the server. It will:
-	 * - handle the N pending clients immediatly
+	 * - handle the N pending clients immediately
 	 * - clean and return
 	 *
 	 * test_server_process() makes uses of the global srv variable !

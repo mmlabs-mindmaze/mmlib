@@ -258,7 +258,7 @@ exit:
 
 
 /**
- * local_secdesc_resize() - accomodate local secdesc for a new size
+ * local_secdesc_resize() - accommodate local secdesc for a new size
  * @lsd:        pointer to local_secdesc structure to initialize
  * @size:       needed size for SECURITY_DESCRIPTOR
  *

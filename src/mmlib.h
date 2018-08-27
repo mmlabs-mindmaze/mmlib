@@ -122,7 +122,7 @@ MMLIB_API void _mm_freea_on_heap(void* ptr);
  * Return: pointer to the allocated space in case success, NULL otherwise.
  * The allocation might fail if the requested size is larger that the system
  * memory (or the OS do not overcommit and is running out of memory). In
- * case of successfull allocation, the returned pointer must be passed to
+ * case of successful allocation, the returned pointer must be passed to
  * mm_freea() before calling function returns to its caller.
  */
 #define mm_malloca(size)                                                 \

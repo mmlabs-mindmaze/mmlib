@@ -70,7 +70,7 @@ error:
  * compatible with the specified alignment. If this alignment is 0, the
  * function will choose an good alignment for you.
  *
- * Return: 0 in case of sucess, otherwise -1 with errno set appropriately.
+ * Return: 0 in case of success, otherwise -1 with errno set appropriately.
  */
 API_EXPORTED
 int mmimg_set_stride(struct mm_imgdesc* img, size_t alignment)

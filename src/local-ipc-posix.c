@@ -256,7 +256,7 @@ ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
 	cmsg = CMSG_FIRSTHDR(&dgram);
 	if (cmsg && cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS) {
 		// use of memcpy necessary because CMSG_DATA
-		// does not have type alignment garantees
+		// does not have type alignment guarantees
 		num_fd = (cmsg->cmsg_len - CMSG_LEN(0))/sizeof(int);
 		msg->num_fds = (num_fd <= msg->num_fds_max) ? num_fd : msg->num_fds_max;
 		cmsg_data = CMSG_DATA(cmsg);

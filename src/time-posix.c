@@ -53,7 +53,7 @@ int mm_gettime(clockid_t clock_id, struct timespec *ts)
  * observe. If two measure points are taken closer than the resolution step,
  * the difference between the 2 reported values will be either 0 or the
  * resolution step. The resolution must not be confused with the accuracy
- * which refers to how much the sytem deviates from the truth. The accuracy
+ * which refers to how much the system deviates from the truth. The accuracy
  * of a system can never exceed its resolution! However it is possible to a
  * accuracy much worse than its resolution.
  */

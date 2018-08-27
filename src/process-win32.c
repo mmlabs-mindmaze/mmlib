@@ -175,7 +175,7 @@ int add_to_children_list(mm_pid_t pid, HANDLE hnd)
 	AcquireSRWLockExclusive(&list->lock);
 
 	// Check that allocated array of entries is large enough to
-	// accomodate a new element. Resize it if necessary.
+	// accommodate a new element. Resize it if necessary.
 	retval = 0;
 	if (list->num_child >= list->num_max) {
 		nmax = (list->num_max != 0) ? (list->num_max * 2) : 16;

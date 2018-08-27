@@ -92,7 +92,7 @@ ALLSPHINXOPTS = -d $(builddir)/.doctrees $(sphinx_verbose) $(srcdir)
 
 # Due to a dependency bug in sphinx-build, we use the -M option instead of
 # the usual -b one. This hidden option sums up to the same as -b with makefile
-# dependancy support ... except that it does not support -W option wich turns
+# dependency support ... except that it does not support -W option which turns
 # warnings into errors !
 # => do this with a simple grep line on the output
 # Since html target depends on man target, this is only needed once

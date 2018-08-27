@@ -753,7 +753,7 @@ int is_valid_fd(int fd)
  * In each element of @fds array, &mm_pollfd.fd should be a *socket* file
  * descriptor.
  *
- * If @timeout_ms is set to 0, the call will return immediatly even if no file
+ * If @timeout_ms is set to 0, the call will return immediately even if no file
  * descriptors are ready. if @timeout_ms is negative, the call will block
  * indefinitely.
  *

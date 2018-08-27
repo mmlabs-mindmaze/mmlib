@@ -74,7 +74,7 @@ const char* get_value_type_name(int type)
  * @str:        null-terminated string to split
  * @breakch:    character at which @str must be split
  *
- * This function search for the first occurence of @breakch and report the
+ * This function search for the first occurrence of @breakch and report the
  * length string if it were cut at this position. In any case, @str will
  * not be modified.
  *
@@ -276,10 +276,10 @@ bool match_value(const char* str, const char* valname, int namelen)
  * @buffer:    buffer that will hold the value name if found
  *
  * Copy option description from @src to @src while trying to guess the name
- * of option value as refered in the description. The value name will be
+ * of option value as referred in the description. The value name will be
  * the first occurrence of a token of the form '@VALUENAME'. If one is
  * found, @buffer will be filled with the value name (null-terminated, but
- * without '@') and all occurence of '@VALUENAME' in @src will be replace
+ * without '@') and all occurrence of '@VALUENAME' in @src will be replace
  * in @dst by 'VALUENAME'.
  */
 static
@@ -1085,7 +1085,7 @@ int early_stop_parsing(const struct mmarg_parser* parser, int retval)
  * argument when argument parsing has been successfully finished. Additionally
  * if MMARG_PARSER_NOEXIT is set in @parser->flags :
  *
- * - MMARGPARSE_ERROR (-1): an error of argument parsing or validation occured
+ * - MMARGPARSE_ERROR (-1): an error of argument parsing or validation occurred
  * - MMARGPARSE_STOP (-2): help display has been requested or early parsing
  *   stop has been requested by callback.
  */

@@ -148,7 +148,7 @@ static char label_storage[MAX_LABEL_LEN*NUM_TS_MAX];
  * and (i). If it is not called at the initialization, the computed
  * difference takes into account the overhead of mmtic() and mmtoc(). This
  * means that if the difference correspond to 2 consecutive call to mmtoc(),
- * the estimated difference (in abscence of cold cache) should be close to 0
+ * the estimated difference (in absence of cold cache) should be close to 0
  * ns (depends on the clock used).
  *
  * There is no argument validation, so 0 must NOT be passed.
@@ -586,7 +586,7 @@ void mmtoc(void)
  * @label:      string to appear in front of measure point at result display
  *
  * This function is the same as mmtoc() excepting it provides a way to label
- * the meansure point. Beware than only the first occurence of a label
+ * the meansure point. Beware than only the first occurrence of a label
  * associated with a measure point will be retained. Any subsequent call to
  * mmtoc_label() at the same measure point index will be the same as calling
  * mmtoc().

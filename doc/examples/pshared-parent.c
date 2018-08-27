@@ -73,7 +73,7 @@ struct pshared_data* init_shared_mem_data(int* shm_fd)
 	if (fd < 0)
 		return NULL;
 
-	// Size it to accomodate the data that will be shared between
+	// Size it to accommodate the data that will be shared between
 	// parent and children.
 	if (mm_ftruncate(fd, sizeof(*psh_data)))
 		goto failure;
@@ -84,7 +84,7 @@ struct pshared_data* init_shared_mem_data(int* shm_fd)
 	if (!psh_data)
 		goto failure;
 
-	// Reset the while content of sturcture to 0/NULL fields
+	// Reset the while content of structure to 0/NULL fields
 	*psh_data = (struct pshared_data){.start = 0};
 
 	// Initialize synchronization primitives of shared data

@@ -110,10 +110,10 @@ char* envstr_get_value(struct envstr* entry)
 
 
 /**
- * envstr_resize_value() - resize buffer to accomodate a size of value
+ * envstr_resize_value() - resize buffer to accommodate a size of value
  * @entry:      environment string whose buffer must be resized if needed
  * @value_len:  size of value (excluding null termination) that must be
- *              accomodated
+ *              accommodated
  *
  * Return: 0 in case of success, -1 with errno set otherwise
  */
@@ -147,7 +147,7 @@ int envstr_resize_value(struct envstr* entry, int value_len)
  * @value:      new value string to set
  *
  * This function will reallocate the string buffer if necessary to
- * accomodate the new value string
+ * accommodate the new value string
  *
  * Return: 0 in case of success, -1 otherwise with errno set
  */
@@ -226,7 +226,7 @@ struct envstr* envcache_create_entry(struct envcache* cache, const char* name)
 	array = cache->array;
 	max_arrlen = cache->max_arrlen;
 
-	// Resize the array if not large enough to accomodate the new entry
+	// Resize the array if not large enough to accommodate the new entry
 	if (cache->arrlen+1 > max_arrlen) {
 		max_arrlen = (max_arrlen == 0) ? 32 : max_arrlen*2;
 		array = realloc(array, max_arrlen * sizeof(*array));

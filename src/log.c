@@ -141,7 +141,7 @@ size_t format_log_str(char* restrict buff, size_t blen,
  *   MMLOG_DEBUG
  *
  * The message part of log entry is formed according the format specified by the
- * @msg parameters which convert the formatting and convertion of the optional
+ * @msg parameters which convert the formatting and conversion of the optional
  * argument list of the function. As the format specified by @msg follows the
  * one of the @sprintf function.
  *

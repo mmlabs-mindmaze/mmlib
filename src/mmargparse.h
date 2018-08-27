@@ -76,9 +76,9 @@ union mmarg_val {
  * only ascii lower case letter, digit or hyphens. @name must adhere to one
  * the 3 following formats
  *
- * - "c|long-name": option can be refered by "-c" or "--long-name"
- * - "c": option can be refered only by short option "-c"
- * - "long-name": option can be refered only by long option "--long-name"
+ * - "c|long-name": option can be referred by "-c" or "--long-name"
+ * - "c": option can be referred only by short option "-c"
+ * - "long-name": option can be referred only by long option "--long-name"
  *
  * The parameter @flags determine whether a value for a option:
  *
@@ -101,11 +101,11 @@ union mmarg_val {
  * @desc provides the documentation of the option. It will be displayed if
  * usage is requested. Please note that if an option accepts a value
  * (optional or mandatory), the value name displayed in option synopsis
- * will be VALUE, unless, @desc contains one of more occurence of string
+ * will be VALUE, unless, @desc contains one of more occurrence of string
  * following "@NAMEOFVALUE" pattern where NAMEOFVALUE is a string made of
  * only upper case letter and hyphens or underscore and of length less than
  * 16 characters. If such pattern can be found NAMEOFVALUE will be used for
- * synopsis and all occurence of "@NAMEOFVALUE" will be replaced by
+ * synopsis and all occurrence of "@NAMEOFVALUE" will be replaced by
  * "NAMEOFVALUE" in description.
  */
 struct mmarg_opt {

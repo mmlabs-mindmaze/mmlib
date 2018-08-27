@@ -480,7 +480,7 @@ void conv_native_to_mm_stat(struct mm_stat* buf,
 		.mtime = native_stat->st_mtime,
 	};
 
-	// Accomodate for end of string to be consistent with mm_readlink()
+	// Accommodate for end of string to be consistent with mm_readlink()
 	if (S_ISLNK(buf->mode))
 		buf->size += 1;
 }
@@ -833,7 +833,7 @@ void mm_rewinddir(MMDIR* dir)
  * is filled with a negative value. 
  *
  * Return: pointer to the file entry if directory stream has not reached the
- * end. NULL otherwise. In such a case and if an error has occured and error
+ * end. NULL otherwise. In such a case and if an error has occurred and error
  * state is set accordingly and if @status is not NULL, pointed variable
  * will be set to -1.
  */
