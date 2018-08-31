@@ -153,6 +153,18 @@ void mm_freea(void* ptr)
 		_mm_freea_on_heap(ptr);
 }
 
+
+/*
+ * On windows, strcasecmp() is not defined, but _stricmp() is and performs the
+ * exact same function. Since strcasecmp() is standard C and _stricmp() isn't,
+ * choose to define based on strcasecmp's name.
+ */
+#ifdef _WIN32
+#define mmstrcasecmp  _stricmp
+#else
+#define mmstrcasecmp  strcasecmp
+#endif
+
 #ifdef __cplusplus
 }
 #endif

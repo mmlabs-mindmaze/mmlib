@@ -64,6 +64,25 @@ START_TEST(path_from_base)
 END_TEST
 
 
+START_TEST(mmstrcasecmp_test)
+{
+	ck_assert(mmstrcasecmp("teststring", "teststring") == 0);
+	/* mmstrcasecmp() compares as lower case:
+	 * 'S' = 0x53
+	 * '_' = 0x5F
+	 * 's' = 0x73
+	 *
+	 * so: 'S' < '_' < 's'
+	 *
+	 * therefore strcmp() returns "JOHN_HENRY" > "JOHNSTON"
+	 * but mmstrcasecmp() returns "JOHN_HENRY" < "JOHNSTON"
+	 */
+	ck_assert(strcmp("JOHN_HENRY", "JOHNSTON") > 0);
+	ck_assert(mmstrcasecmp("JOHN_HENRY", "JOHNSTON") < 0);
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -76,6 +95,7 @@ TCase* create_utils_tcase(void)
 
 	tcase_add_loop_test(tc, get_basedir, -5, MM_NUM_DIRTYPE+5);
 	tcase_add_loop_test(tc, path_from_base, -5, MM_NUM_DIRTYPE+5);
+	tcase_add_test(tc, mmstrcasecmp_test);
 
 	return tc;
 }
