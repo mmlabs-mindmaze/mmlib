@@ -152,8 +152,10 @@ void set_dir_or_home_relative(enum mm_known_dir dirtype, const char* dir,
 	size_t len;
 	char* value;
 
-	if (dir)
+	if (dir) {
 		set_basedir(dirtype, dir);
+		return;
+	}
 
 	len = strlen(parent) + strlen(suffix) + 2;
 	value = mm_malloca(len);
