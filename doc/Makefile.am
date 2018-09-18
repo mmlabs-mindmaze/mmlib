@@ -126,7 +126,7 @@ html-buildstamp: $(wildcard $(SRCTREE)/src/*.[ch]) $(DOC_SRCS) manpages-buildsta
 install-html: html-buildstamp
 	@mkdir -p $(DESTDIR)$(docdir)/html/
 	cd $(builddir)/html && \
-		find . -exec $(INSTALL) -D '{}' $(DESTDIR)$(docdir)/html/'{}' \;
+		find . -type f -exec $(install_sh_DATA) '{}' $(DESTDIR)$(docdir)/html/'{}' \;
 
 uninstall-html:
 	$(RM) -r $(DESTDIR)$(docdir)/html/
@@ -134,9 +134,9 @@ uninstall-html:
 install-man3: manpages-buildstamp
 	@mkdir -p $(DESTDIR)$(mandir)/man3
 	$(foreach manpage, $(notdir $(wildcard $(builddir)/man/*.3)), \
-		$(INSTALL) $(builddir)/man/$(manpage) $(DESTDIR)$(mandir)/man3/$(manpage);)
+		$(install_sh_DATA) $(builddir)/man/$(manpage) $(DESTDIR)$(mandir)/man3/$(manpage);)
 	$(foreach manpage, $(OVERRIDING_MANPAGES), \
-		$(INSTALL) $(srcdir)/$(manpage) $(DESTDIR)$(mandir)/man3/$(manpage);)
+		$(install_sh_DATA) $(srcdir)/$(manpage) $(DESTDIR)$(mandir)/man3/$(manpage);)
 
 uninstall-man3: manpages-buildstamp
 	$(foreach manpage, $(notdir $(wildcard $(builddir)/man/*.3)), \
