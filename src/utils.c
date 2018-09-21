@@ -36,9 +36,9 @@
  * set. Otherwise @default_value is returned.
  */
 API_EXPORTED
-char* mm_getenv(const char* name, char* default_value)
+const char* mm_getenv(const char* name, const char* default_value)
 {
-	char* value = getenv(name);
+	const char* value = getenv(name);
 	return (value) ? value : default_value;
 }
 

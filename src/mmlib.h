@@ -41,7 +41,7 @@ enum mm_known_dir {
 	MM_NUM_DIRTYPE,
 };
 
-MMLIB_API char* mm_getenv(const char* name, char* default_value);
+MMLIB_API const char* mm_getenv(const char* name, const char* default_value);
 MMLIB_API int mm_setenv(const char* name, char* value, int overwrite);
 MMLIB_API int mm_unsetenv(const char* name);
 
