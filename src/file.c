@@ -85,7 +85,8 @@ int mm_fsync(int fd)
  * %SEEK_END
  *   the file offset shall be set to the size of the file plus @offset.
  *
- * Return: 0 in case of success, -1 otherwise with error state set
+ * Return: in case of success, the resulting offset location as measured in
+ * bytes from the beginning of the file. Otherwise -1 with error state set
  * accordingly.
  */
 API_EXPORTED
