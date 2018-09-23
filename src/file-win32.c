@@ -795,6 +795,69 @@ int mm_chdir(const char* path)
 	return rv;
 }
 
+
+/* doc in posix implementation */
+API_EXPORTED
+char* mm_getcwd(char* buf, size_t size)
+{
+	char* path = NULL;
+	char16_t* path_u16;
+	int path_u8_len, ret, path_u16_len;
+
+	path_u16_len = 256;
+	while (1) {
+		path_u16 = malloc(path_u16_len*sizeof(*path_u16));
+		if (!path_u16) {
+			mm_raise_from_errno("Buffer allocation failed");
+			return NULL;
+		}
+
+		// Try to get the copy the currdir to buffer (if buffer is NULL or
+		// too short, the return value will be larger than provided
+		// and will represent the needed size)
+		ret = GetCurrentDirectoryW(path_u16_len, path_u16);
+		if (ret == 0) {
+			mm_raise_from_w32err("Failed to get current dir");
+			goto exit;
+		}
+
+		if (ret < path_u16_len)
+			break;
+
+		path_u16_len = ret;
+		free(path_u16);
+	}
+
+	path_u8_len = get_utf8_buffer_len_from_utf16(path_u16);
+
+	// If buf argument is supplied, we must check that the size is
+	// sufficient
+	if (buf && (int)size < path_u8_len) {
+		mm_raise_error(ERANGE, "Buffer too short for holding"
+		                       " current directory path");
+		goto exit;
+	}
+
+	// If buf argument is NULL, the buffer of necessary size must be
+	// allocatted and returned
+	if (!buf) {
+		size = path_u8_len;
+		buf = malloc(path_u8_len);
+		if (!buf) {
+			mm_raise_from_errno("Buffer allocation failed");
+			goto exit;
+		}
+	}
+
+	conv_utf16_to_utf8(buf, size, path_u16);
+	path = buf;
+
+exit:
+	free(path_u16);
+	return path;
+}
+
+
 /* doc in posix implementation */
 API_EXPORTED
 int mm_rmdir(const char* path)

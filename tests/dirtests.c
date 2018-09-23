@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <strings.h>
 
 #include <sys/stat.h>
@@ -24,6 +25,7 @@
 #define TEST_DIR  "testdir"
 #define TEST_FILE "testfile.dat"
 #define TEST_LINK "testfile.lnk"
+
 
 static void test_teardown(void)
 {
@@ -352,6 +354,72 @@ START_TEST(test_remove_rec)
 }
 END_TEST
 
+
+static
+char* get_realpath(const char *path)
+{
+#if defined(_WIN32)
+	return _fullpath(NULL, path, 0);
+#else
+	return realpath(path, NULL);
+#endif
+}
+
+
+static
+int are_paths_equal(const char* p1, const char* p2)
+{
+	int res;
+	char *full_p1, *full_p2;
+
+	full_p1 = get_realpath(p1);
+	full_p2 = get_realpath(p2);
+
+	res = (strcmp(full_p1, full_p2) == 0);
+
+	free(full_p1);
+	free(full_p2);
+
+	return res;
+}
+
+
+START_TEST(get_currdir_wbuffer)
+{
+	char buf[sizeof(TMP_DIR_ROOT)];
+	char* path;
+
+	path = mm_getcwd(buf, sizeof(buf));
+	ck_assert(path != NULL);
+	if (!are_paths_equal(path, TMP_DIR_ROOT))
+		ck_abort_msg("path mismatch: %s != %s", path, TMP_DIR_ROOT);
+}
+END_TEST
+
+
+START_TEST(get_currdir_tooshort)
+{
+	char buf[sizeof(TMP_DIR_ROOT)-3];
+
+	ck_assert(mm_getcwd(buf, sizeof(buf)) == NULL);
+	ck_assert_int_eq(mm_get_lasterror_number(), ERANGE);
+}
+END_TEST
+
+
+START_TEST(get_currdir_malloc)
+{
+	char* path;
+
+	path = mm_getcwd(NULL, 0);
+	ck_assert(path != NULL);
+	if (!are_paths_equal(path, TMP_DIR_ROOT))
+		ck_abort_msg("path mismatch: %s != %s", path, TMP_DIR_ROOT);
+
+	free(path);
+}
+END_TEST
+
 static
 bool test_symlinks(void)
 {
@@ -401,6 +469,9 @@ TCase* create_dir_tcase(void)
 	tcase_add_test(tc, test_remove);
 	tcase_add_test(tc, test_remove_dir);
 	tcase_add_test(tc, test_remove_type);
+	tcase_add_test(tc, get_currdir_wbuffer);
+	tcase_add_test(tc, get_currdir_tooshort);
+	tcase_add_test(tc, get_currdir_malloc);
 
 	if (has_unprivileged_symlinks)
 		tcase_add_test(tc, test_remove_rec);

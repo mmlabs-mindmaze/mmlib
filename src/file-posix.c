@@ -443,6 +443,46 @@ int mm_chdir(const char* path)
 
 
 /**
+ * mm_getcwd() - get the pathname of the current working directory
+ * @buf:        pointer to buffer where to write pathname or NULL
+ * @size:       size of buffer pointed to by @buf if not NULL
+ *
+ * The mm_getcwd() function places an absolute pathname of the current
+ * working directory in the array pointed to by @buf, and return @buf. The
+ * pathname copied to the array contains no components that are symbolic
+ * links. The @size argument is size of the buffer pointed to by @buf.
+ *
+ * If @buf is NULL, space is allocated as necessary to store the pathname.
+ * In such a case, @size argument is ignored. This space may later be freed
+ * with free().
+ *
+ * Return: a pointer to a string containing the pathname of the current
+ * working directory in case of success. Otherwise NULL is returned and
+ * error state is set accordingly.
+ */
+API_EXPORTED
+char* mm_getcwd(char* buf, size_t size)
+{
+	char* path;
+
+	// Needed for glibc's getcwd() to allocate the needed size
+	if (!buf)
+		size = 0;
+
+	path = getcwd(buf, size);
+	if (!path) {
+		if (errno == ERANGE)
+			mm_raise_error(ERANGE, "buffer too short for "
+			               "holding current directory path");
+		else
+			mm_raise_from_errno("can't get current directory");
+	}
+
+	return path;
+}
+
+
+/**
  * mm_rmdir() - remove a directory
  * @path:       path to the directory to remove
  *

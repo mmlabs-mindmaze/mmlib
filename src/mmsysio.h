@@ -238,6 +238,7 @@ MMLIB_API int mm_readlink(const char* path, char* buf, size_t bufsize);
 
 MMLIB_API int mm_mkdir(const char* path, int mode, int flags);
 MMLIB_API int mm_chdir(const char* path);
+MMLIB_API char* mm_getcwd(char* buffer, size_t size);
 MMLIB_API int mm_rmdir(const char* path);
 MMLIB_API int mm_remove(const char* path, int flags);
 
