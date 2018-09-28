@@ -316,7 +316,7 @@ API_EXPORTED
 int mm_unlink(const char* path)
 {
 	if (unlink(path) < 0)
-		return mm_raise_from_errno("unlink(%p) failed", path);
+		return mm_raise_from_errno("unlink(%s) failed", path);
 
 	return 0;
 }
@@ -342,7 +342,7 @@ API_EXPORTED
 int mm_link(const char* oldpath, const char* newpath)
 {
 	if (link(oldpath, newpath) < 0)
-		return mm_raise_from_errno("link(%p, %p) failed", oldpath, newpath);
+		return mm_raise_from_errno("link(%s, %s) failed", oldpath, newpath);
 
 	return 0;
 }
@@ -364,7 +364,7 @@ API_EXPORTED
 int mm_symlink(const char* oldpath, const char* newpath)
 {
 	if (symlink(oldpath, newpath) < 0)
-		return mm_raise_from_errno("symlink(%p, %p) failed", oldpath, newpath);
+		return mm_raise_from_errno("symlink(%s, %s) failed", oldpath, newpath);
 
 	return 0;
 }
