@@ -15,7 +15,7 @@
 #include "mmprofile.h"
 #include "mmthread.h"
 
-#define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"lock-referee.exe"
+#define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"/lock-referee.exe"
 
 /*************************************************************************
  *                                                                       *

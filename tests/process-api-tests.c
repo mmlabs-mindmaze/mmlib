@@ -25,7 +25,7 @@
 // binary (the folder of mmlib dll is added at startup of testapi). On
 // other platform we must use the normal wrapper script located in BUILDDIR
 #if defined(_WIN32)
-#  define CHILDPROC_BINPATH     BUILDDIR"/.libs/child-proc.exe"
+#  define CHILDPROC_BINPATH     BUILDDIR"/"LT_OBJDIR"/child-proc.exe"
 #else
 #  define CHILDPROC_BINPATH     BUILDDIR"/child-proc"
 #endif

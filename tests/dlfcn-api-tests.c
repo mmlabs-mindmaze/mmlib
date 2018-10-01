@@ -20,7 +20,7 @@
 
 START_TEST(dlopen_simple)
 {
-	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "dynlib-test" LT_MODULE_EXT,
+	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
 	                              MMLD_NOW);
 	ck_assert(hndl != NULL);
 	mm_dlclose(hndl);
@@ -29,7 +29,7 @@ END_TEST
 
 START_TEST(dlopen_invalid_flags)
 {
-	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "dynlib-test" LT_MODULE_EXT,
+	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
 	                              MMLD_NOW | MMLD_LAZY);
 	ck_assert(hndl == NULL);
 	ck_assert(mm_get_lasterror_number() == EINVAL);
@@ -49,7 +49,7 @@ END_TEST
 
 START_TEST(dlsym_simple)
 {
-	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "dynlib-test" LT_MODULE_EXT,
+	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
 	                              MMLD_NOW);
 	ck_assert(hndl != NULL);
 	ck_assert(mm_dlsym(hndl, "api") != NULL);
@@ -63,7 +63,7 @@ START_TEST(dlsym_invalid)
 	ck_assert(mm_get_lasterror_number() == EINVAL);
 
 
-	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "dynlib-test" LT_MODULE_EXT,
+	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
 	                              MMLD_NOW);
 	ck_assert(hndl != NULL);
 
@@ -76,7 +76,7 @@ END_TEST
 
 START_TEST(dlsym_not_found)
 {
-	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "dynlib-test" LT_MODULE_EXT,
+	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
 	                              MMLD_NOW);
 	ck_assert(hndl != NULL);
 	ck_assert(mm_dlsym(hndl, "invalid-symbol-name") == NULL);
@@ -161,14 +161,14 @@ error:
 
 START_TEST(plugin_lt_module_ext)
 {
-	ck_assert(run_plugin_tests(LT_OBJDIR "dynlib-test" LT_MODULE_EXT, 0) ==
+	ck_assert(run_plugin_tests(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT, 0) ==
 	          0);
 }
 END_TEST
 
 START_TEST(plugin_ld_append_ext)
 {
-	ck_assert(run_plugin_tests(LT_OBJDIR "dynlib-test", MMLD_APPEND_EXT) ==
+	ck_assert(run_plugin_tests(LT_OBJDIR "/dynlib-test", MMLD_APPEND_EXT) ==
 	          0);
 }
 END_TEST

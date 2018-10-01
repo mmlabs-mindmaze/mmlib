@@ -12,7 +12,7 @@
 #include "mmsysio.h"
 #include "api-testcases.h"
 
-#define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"lock-referee.exe"
+#define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"/lock-referee.exe"
 
 static
 Suite* api_suite(void)
@@ -48,7 +48,7 @@ int main(void)
 
 #if defined(_WIN32)
 	mm_setenv("MMLIB_LOCKREF_BIN", TEST_LOCK_REFEREE_SERVER_BIN, MM_ENV_OVERWRITE);
-	mm_setenv("PATH", TOP_BUILDDIR"/src/.libs", MM_ENV_PREPEND);
+	mm_setenv("PATH", TOP_BUILDDIR"/src/"LT_OBJDIR, MM_ENV_PREPEND);
 #endif
 
 	suite = api_suite();
