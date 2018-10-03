@@ -493,6 +493,23 @@ int mm_pipe(int pipefd[2])
 	return 0;
 }
 
+
+/* doc in posix implementation */
+API_EXPORTED
+int mm_isatty(int fd)
+{
+	int info;
+
+	info = get_fd_info_checked(fd);
+	if (info == -1) {
+		mm_raise_error(EBADF, "Bad file descriptor (%i)", fd);
+		return -1;
+	}
+
+	return (info == FD_TYPE_CONSOLE);
+}
+
+
 static
 const char * win32_basename(const char * path)
 {

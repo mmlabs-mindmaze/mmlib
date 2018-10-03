@@ -415,6 +415,35 @@ int mm_check_access(const char* path, int amode)
 	return 0;
 }
 
+
+/**
+ * mm_isatty() - test whether a file descriptor refers to a terminal
+ * @fd:         File descriptor to test
+ *
+ * Return: 1 if @fd refers to a terminal, 0 if not. If @fd is not a valid
+ * file descriptor, -1 is returned and error state is set accordingly.
+ */
+API_EXPORTED
+int mm_isatty(int fd)
+{
+	int rv;
+	int prev_err = errno;
+
+	rv = isatty(fd);
+
+	if (rv == 0) {
+		if (errno != EINVAL && errno != ENOTTY)
+			return mm_raise_from_errno("isatty(%i) failed", fd);
+
+		// If errno is EINVAL or ENOTTY, fd is actually not a tty,
+		// but this is not an error, thus we restore errno as it was
+		errno = prev_err;
+	}
+
+	return rv;
+}
+
+
 struct mm_dirstream {
 	DIR * dir;
 	struct mm_dirent * dirent;

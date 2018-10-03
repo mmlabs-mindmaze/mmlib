@@ -226,6 +226,7 @@ MMLIB_API int mm_ftruncate(int fd, mm_off_t length);
 MMLIB_API int mm_fstat(int fd, struct mm_stat* buf);
 MMLIB_API int mm_stat(const char* path, struct mm_stat* buf, int flags);
 MMLIB_API int mm_check_access(const char* path, int amode);
+MMLIB_API int mm_isatty(int fd);
 
 MMLIB_API int mm_dup(int fd);
 MMLIB_API int mm_dup2(int fd, int newfd);
