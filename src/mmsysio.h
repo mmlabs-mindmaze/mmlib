@@ -432,9 +432,9 @@ MMLIB_API int mm_getaddrinfo(const char *node, const char *service,
                              const struct addrinfo *hints,
                               struct addrinfo **res);
 
-MMLIB_API int mm_getnamedinfo(const struct sockaddr *addr, socklen_t addrlen,
-                              char *host, socklen_t hostlen,
-                              char *serv, socklen_t servlen, int flags);
+MMLIB_API int mm_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
+                             char *host, socklen_t hostlen,
+                             char *serv, socklen_t servlen, int flags);
 
 MMLIB_API void mm_freeaddrinfo(struct addrinfo *res);
 MMLIB_API int mm_create_sockclient(const char* uri);

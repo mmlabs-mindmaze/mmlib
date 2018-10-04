@@ -538,9 +538,9 @@ int mm_getaddrinfo(const char *node, const char *service,
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_getnamedinfo(const struct sockaddr *addr, socklen_t addrlen,
-                    char *host, socklen_t hostlen,
-                    char *serv, socklen_t servlen, int flags)
+int mm_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
+                   char *host, socklen_t hostlen,
+                   char *serv, socklen_t servlen, int flags)
 {
 	if (check_wsa_init())
 		return -1;

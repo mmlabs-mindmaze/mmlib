@@ -689,25 +689,25 @@ int mm_getaddrinfo(const char *node, const char *service,
 
 
 /**
- * mm_getnamedinfo() - get name information
+ * mm_getnameinfo() - get name information
  * @addr:       socket address
  * @addrlen:    size of @addr
  * @host:       buffer receiving the host name
  * @hostlen:    size of buffer in @host
  * @serv:       buffer receiving the service name
  * @servlen:    size of buffer in @serv
- * @flags:      control of processing of mm_getnamedinfo()
+ * @flags:      control of processing of mm_getnameinfo()
  *
- * Same as getnamedinfo() from POSIX excepting that mmlib error state will
+ * Same as getnameinfo() from POSIX excepting that mmlib error state will
  * be set in case of error.
  *
  * Return: 0 in case of success, -1 otherwise with error state set
  * accordingly.
  */
 API_EXPORTED
-int mm_getnamedinfo(const struct sockaddr *addr, socklen_t addrlen,
-                    char *host, socklen_t hostlen,
-                    char *serv, socklen_t servlen, int flags)
+int mm_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
+                   char *host, socklen_t hostlen,
+                   char *serv, socklen_t servlen, int flags)
 {
 	int retcode, errnum;
 	const char* errmsg;
@@ -716,7 +716,7 @@ int mm_getnamedinfo(const struct sockaddr *addr, socklen_t addrlen,
 	if (retcode != 0) {
 		errnum = translate_eai_to_errnum(retcode);
 		errmsg = gai_strerror(retcode);
-		mm_raise_error(errnum, "getnamedinfo() failed: %s", errmsg);
+		mm_raise_error(errnum, "getnameinfo() failed: %s", errmsg);
 		return -1;
 	}
 
@@ -729,7 +729,7 @@ int mm_getnamedinfo(const struct sockaddr *addr, socklen_t addrlen,
  * @res:        linked list of addresses returned by @mm_getaddrinfo()
  *
  * Deallocate linked list of address allocated by a successful call to
- * mm_getaddrinfo(). If @res is NULL, mm_getnamedinfo() do nothing.
+ * mm_getaddrinfo(). If @res is NULL, mm_getnameinfo() do nothing.
  */
 API_EXPORTED
 void mm_freeaddrinfo(struct addrinfo *res)
