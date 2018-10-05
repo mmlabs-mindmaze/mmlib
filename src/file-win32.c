@@ -1160,7 +1160,7 @@ MMDIR * mm_opendir(const char* path)
 		goto error;
 	
 	*d = (MMDIR) { .hdir = INVALID_HANDLE_VALUE };
-	strncpy(d->dirname, path, len);
+	strcpy(d->dirname, path);
 	strcat(d->dirname, "/*");
 
 	/* call FindFirstFile() to ensure that the given path

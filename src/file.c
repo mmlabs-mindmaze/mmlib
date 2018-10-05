@@ -267,7 +267,7 @@ int mm_mkdir(const char* path, int mode, int flags)
 
 		len = strlen(path);
 		tmp_path = mm_malloca(len + 1);
-		strncpy(tmp_path, path, len + 1);
+		strcpy(tmp_path, path);
 		rv = mm_mkdir_rec(tmp_path, 0777);
 		mm_freea(tmp_path);
 	}
