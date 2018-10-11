@@ -38,7 +38,6 @@ extensions = [
     'linuxdoc.kernel_include',  # Implementation of the 'kernel-include' reST-directive.
     'linuxdoc.manKernelDoc',    # Implementation of the	'kernel-doc-man' builder
     'linuxdoc.cdomain',         # Replacement for the sphinx c-domain.
-    'linuxdoc.kfigure',         # Sphinx extension which implements scalable image handling.
 ]
 
 # Add any paths that contain templates here, relative to this directory.
