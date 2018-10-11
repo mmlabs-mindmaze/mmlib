@@ -916,7 +916,7 @@ int process_short_opt(const struct mmarg_parser* parser,
 	const struct mmarg_opt* opt_parser;
 	const char* value = NULL;
 	int move_arg_index = 0;
-	int rv;
+	int rv, reqflags;
 
 	while (opts[0] != '\0') {
 		opt_parser = find_opt(parser, opts[0], NULL, 0);
@@ -927,7 +927,8 @@ int process_short_opt(const struct mmarg_parser* parser,
 
 		// It is allowed to interpret the next argument as value
 		// only if the option key is the last one of the list
-		if (  !(opt_parser->flags & MMOPT_NOVAL)
+		reqflags = opt_parser->flags & MMOPT_REQMASK;
+		if (  (reqflags != MMOPT_NOVAL)
 		   && (opts[1] == '\0')
 		   && !is_arg_an_option(next_arg)  ) {
 			value = next_arg;
