@@ -91,6 +91,7 @@ enum {
 int get_fd_info_checked(int fd);
 int get_fd_info(int fd);
 void set_fd_info(int fd, int info);
+void close_all_known_fds(void);
 
 
 static inline

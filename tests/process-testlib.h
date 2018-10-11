@@ -23,4 +23,6 @@ struct process_test_data {
 	char cmd[128];
 };
 
+intptr_t test_execv_process(void * arg);
+
 #endif

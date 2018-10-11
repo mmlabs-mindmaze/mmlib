@@ -99,6 +99,7 @@ testapi_tap_SOURCES = \
 	dirtests.c \
 	dlfcn-api-tests.c \
 	process-api-tests.c \
+	process-testlib.c \
 	process-testlib.h \
 	argparse-api-tests.c \
 	utils-api-tests.c \
@@ -112,6 +113,8 @@ testapi_tap_LDADD = \
 tests_child_proc_SOURCES = \
 	tests-child-proc.c \
 	tests-child-proc.h \
+	process-testlib.c \
+	process-testlib.h \
 	threaddata-manipulation.h \
 	threaddata-manipulation.c \
 	socket-testlib.h \

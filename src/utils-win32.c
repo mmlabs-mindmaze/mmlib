@@ -651,6 +651,28 @@ void set_fd_info(int fd, int info)
 }
 
 
+/**
+ * close_all_known_fds() - forcingly close all open file descriptors
+ *
+ * Use this function only in case of unsual cleanup process.
+ * Beware: this is not thread safe. Use only this function if the other
+ * threads cannot oipen new fds or if it does not matter
+ */
+LOCAL_SYMBOL
+void close_all_known_fds(void)
+{
+	int fd;
+
+	for (fd = 0; fd < MAX_FD; fd++) {
+		if (fd_infos[fd] == FD_TYPE_UNKNOWN)
+			continue;
+
+		_close(fd);
+		fd_infos[fd] = FD_TYPE_UNKNOWN;
+	}
+}
+
+
 /**************************************************************************
  *                                                                        *
  *                         UTF-8/UTF-16 conversion                        *

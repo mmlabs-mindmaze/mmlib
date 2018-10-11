@@ -292,6 +292,9 @@ struct mm_remap_fd {
 MMLIB_API int mm_spawn(mm_pid_t* child_pid, const char* path,
                        int num_map, const struct mm_remap_fd* fd_map,
                        int flags, char* const* argv, char* const* envp);
+MMLIB_API int mm_execv(const char* path,
+                       int num_map, const struct mm_remap_fd* fd_map,
+                       int flags, char* const* argv, char* const* envp);
 
 #define MM_WSTATUS_CODEMASK     0x000000FF
 #define MM_WSTATUS_EXITED       0x00000100

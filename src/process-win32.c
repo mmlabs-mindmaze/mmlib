@@ -17,10 +17,12 @@
 
 #include <windows.h>
 #include <process.h>
+#include <processthreadsapi.h>
 #include <io.h>
 #include <synchapi.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <tlhelp32.h>
 #include <uchar.h>
 
 /* __osfile flag values for DOS file handles */
@@ -1200,4 +1202,129 @@ int mm_wait_process(mm_pid_t pid, int* status)
 		*status = translate_exitcode_in_status(exitcode);
 
 	return 0;
+}
+
+
+/**************************************************************************
+ *                                                                        *
+ *                          mm_execv() implementation                     *
+ *                                                                        *
+ **************************************************************************/
+static
+void try_terminate_thread_by_id(DWORD tid)
+{
+	HANDLE hnd;
+
+	hnd = OpenThread(THREAD_TERMINATE, FALSE, tid);
+	if (hnd == INVALID_HANDLE_VALUE)
+		return;
+
+	TerminateThread(hnd, STATUS_CONTROL_C_EXIT);
+}
+
+
+/**
+ * try_terminate_all_threads() - terminate all threads but current one
+ */
+static
+void try_terminate_all_threads(void)
+{
+	HANDLE snapshot;
+	THREADENTRY32 te;
+	BOOL has_thread_entry;
+	DWORD pid = GetCurrentProcessId();
+	DWORD tid = get_tid();
+
+	snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+	if (snapshot == INVALID_HANDLE_VALUE)
+		return;
+
+	// Traverse list of thread and try to terminate thread
+	te.dwSize = sizeof(te);
+	has_thread_entry = Thread32First(snapshot, &te);
+	while (has_thread_entry) {
+		// Try terminate any thread that is not current. The check
+		// for PID is weird but msdn example use it:
+		// https://docs.microsoft.com/en-us/windows/desktop/ToolHelp/traversing-the-thread-list
+		if (  te.th32OwnerProcessID == pid
+		   && te.th32ThreadID != tid)
+			try_terminate_thread_by_id(te.th32ThreadID);
+
+		has_thread_entry = Thread32Next(snapshot, &te);
+	}
+
+	CloseHandle(snapshot);
+}
+
+
+static HANDLE child_hnd_to_exit = INVALID_HANDLE_VALUE;
+
+// Disable annoying and unjustified function case warning introduced in recent
+// gcc (maybe 7 and later)
+#if defined(__GNUC__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
+MM_DESTRUCTOR(waited_child)
+{
+	LPTHREAD_START_ROUTINE exitproc;
+	HMODULE hmod;
+
+	if (child_hnd_to_exit == INVALID_HANDLE_VALUE)
+		return;
+
+	// Get pointer of ExitProcess in this process. Given how windows load
+	// dll, we are ensured that the address will be the same in the child
+	// process
+	hmod = GetModuleHandle("kernel32.dll");
+	exitproc = (LPTHREAD_START_ROUTINE) GetProcAddress(hmod, "ExitProcess");
+
+	// Create remotely a thread in child process that will call
+	// ExitProcess(STATUS_CONTROL_C_EXIT);
+	CreateRemoteThread(child_hnd_to_exit, NULL, 0, exitproc,
+	                   (LPVOID)STATUS_CONTROL_C_EXIT, 0, NULL);
+
+	CloseHandle(child_hnd_to_exit);
+	child_hnd_to_exit = NULL;
+}
+
+#if defined(__GNUC__)
+#  pragma GCC diagnostic pop
+#endif
+
+
+/* doc in posix implementation */
+API_EXPORTED
+int mm_execv(const char* path,
+             int num_map, const struct mm_remap_fd* fd_map,
+             int flags, char* const* argv, char* const* envp)
+{
+	DWORD exitcode;
+	mm_pid_t pid;
+	HANDLE hnd;
+
+	if (flags & ~MM_SPAWN_KEEP_FDS)
+		return mm_raise_error(EINVAL, "Invalid flags value");
+
+	if (mm_spawn(&pid, path, num_map, fd_map, flags, argv, envp))
+		return -1;
+
+	// Get handle of child process (and remove it from list) and mark
+	// it as the process to exit if the current process receive an
+	// early exit
+	hnd = child_hnd_to_exit = get_handle_from_children_list(pid);
+	drop_child_from_children_list(pid);
+
+	try_terminate_all_threads();
+	close_all_known_fds();
+
+	// Wait for the process to be signaled (ie to stop)
+	WaitForSingleObject(hnd, INFINITE);
+	child_hnd_to_exit = INVALID_HANDLE_VALUE;
+
+	// Transfer child process exit code untouched
+	GetExitCodeProcess(hnd, &exitcode);
+	CloseHandle(hnd);
+	ExitProcess(exitcode);
 }

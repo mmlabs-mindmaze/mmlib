@@ -509,6 +509,96 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 
 
 /**
+ * mm_execv() - replace executable image of the current process
+ * @path:       path to the executable file
+ * @num_map:    number of element in the @fd_map array
+ * @fd_map:     array of file descriptor remapping to pass into the child
+ * @flags:      spawn flags
+ * @argv:       null-terminated array of string containing the command
+ *              arguments (starting with command). Can be NULL.
+ * @envp:       null-terminated array of strings specifying the environment
+ *              of the executed program. If it is NULL, it inherit its
+ *              environment from the calling process
+ *
+ * This function replaces the current process image with a new process image.
+ * The new image is constructed from a regular, executable file called the new
+ * process image file located at @path.  There shall be no return from a
+ * successful exec, because the calling process image is overlaid by the new
+ * process image.
+ *
+ * The new process image will inherit only the open file descriptors specified
+ * in the @fd_map array whose length is indicated by @num_map. For each element
+ * in @fd_map, a file descriptor numbered as specified in &mm_remap_fd.child_fd
+ * is available at child startup referencing the same file description as the
+ * corresponding &mm_remap_fd.parent_fd in the current process image. The
+ * @fd_map array is processed sequentially so a mapping in the first element
+ * can be overridden in the next elements. If an element in @fd_map has a
+ * &mm_remap_fd.parent_fd field set to -1, it means that the corresponding
+ * @fd_map has a &mm_remap_fd.child_fd must not opened in the new process
+ * image.
+ *
+ * For convenience, the standard input, output and error are inherited by
+ * default in the new process image. If any of those file are meant to be
+ * closed or redirected, this can simply be done by adding element in @fd_map
+ * that redirect a standard file descriptor in the parent, or close them (by
+ * setting &mm_remap_fd.parent_fd to -1.
+ *
+ * The argument @flags must 0 or set to the following flag:
+ *
+ * MM_SPAWN_KEEP_FDS
+ *   All open file descriptors that are inherintable are
+ *   kept in the  with the same index. All the other file descriptor are
+ *   closed. Unless specified otherwise, all file descriptor created in mmlib
+ *   API are not inheritable. If this flag is specified, @num_map and
+ *   @fd_map argument are ignored.
+ *
+ * The argument @argv, if not NULL, is an array of character pointers to
+ * NULL-terminated strings. The application must ensure that the last
+ * member of this array is a NULL pointer. These strings constitutes
+ * the argument list available to the new process image. The value in
+ * argv[0] should point to a filename that is associated with the process
+ * being started. If @argv is NULL, the behavior is as if mm_spawn() were
+ * called with a two array argument, @argv[0] = @path, @argv[1] = NULL.
+ *
+ * The argument @envp is an array of character pointers to null-terminated
+ * strings. These strings constitutes the environment for the new
+ * process image. The @envp array is terminated by a NULL pointer. If @envp
+ * is NULL, the new process use the same environment of the calling process
+ * at the time of the mm_spawn() call.
+ *
+ * NOTE: Beware, on some platform, you are not ensured that the PID of the
+ * process image will remains the exactly same. However on those, the old
+ * process, when it calls mm_execv(), will free as much resources it can
+ * (terminates all threads and close all fds) and spawn the new process
+ * image. It will then remain available during the lifetime of the new
+ * image process and usable with mm_wait_process() if the old process image
+ * was created with mm_spawn().
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
+API_EXPORTED
+int mm_execv(const char* path,
+             int num_map, const struct mm_remap_fd* fd_map,
+             int flags, char* const* argv, char* const* envp)
+{
+	// Perform remapping if MM_SPAWN_KEEP_FDS is not set in flags
+	if (  !(flags & MM_SPAWN_KEEP_FDS)
+	   && remap_file_descriptors(num_map, fd_map))
+		return -1;
+
+	if (envp)
+		execvpe(path, argv, envp);
+	else
+		execvp(path, argv);
+
+	// If we read here, execve has failed
+	mm_raise_from_errno("Cannot run \"%s\"", path);
+	return -1;
+}
+
+
+/**
  * mm_wait_process() - wait for a child process to terminate
  * @pid:        PID of child process
  * @status:     location where to put status of the child process

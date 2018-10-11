@@ -19,6 +19,7 @@
 #include "tests-child-proc.h"
 
 #define UNSET_PID_VALUE ((mm_pid_t) -23)
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 static struct process_test_data* curr_data_in_test;
 
@@ -251,6 +252,28 @@ START_TEST(spawn_simple)
 }
 END_TEST
 
+
+START_TEST(execv_simple)
+{
+	int i, rv, last_kept_fd;
+	struct process_test_data* data = create_process_test_data();
+
+	// Find the latest fd in the fds array of data
+	last_kept_fd = MAX(data->pipe_rd, data->pipe_wr);
+	for (i = 0; i < MM_NELEM(data->fds); i++) {
+		if (data->fds[i] > last_kept_fd)
+			last_kept_fd = data->fds[i];
+	}
+
+	rv = run_as_process(&data->pid, "test_execv_process",
+	                    data, sizeof(*data), last_kept_fd);
+	ck_assert(rv == 0);
+	ck_assert(wait_child(data) == 0);
+	ck_assert(check_expected_fd_content(data) == 0);
+}
+END_TEST
+
+
 START_TEST(spawn_daemon)
 {
 	struct process_test_data* data = create_process_test_data();
@@ -370,6 +393,7 @@ TCase* create_process_tcase(void)
 	tcase_add_checked_fixture(tc, NULL, test_teardown);
 
 	tcase_add_test(tc, spawn_simple);
+	tcase_add_test(tc, execv_simple);
 	tcase_add_test(tc, spawn_daemon);
 	tcase_add_test(tc, spawn_error);
 	tcase_add_test(tc, spawn_daemon_error);
