@@ -99,6 +99,7 @@ testapi_tap_SOURCES = \
 	dirtests.c \
 	dlfcn-api-tests.c \
 	process-api-tests.c \
+	process-testlib.h \
 	argparse-api-tests.c \
 	utils-api-tests.c \
 	$(eol)

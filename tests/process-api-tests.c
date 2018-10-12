@@ -15,15 +15,12 @@
 #include "mmpredefs.h"
 #include "mmsysio.h"
 
+#include "process-testlib.h"
 #include "tests-child-proc.h"
 
 #define UNSET_PID_VALUE ((mm_pid_t) -23)
-#define NUM_FILE 3
 
-static mm_pid_t pid;
-static int fds[2*NUM_FILE+3];
-static struct mm_remap_fd fd_map[NUM_FILE];
-static char filename[MM_NELEM(fds)][32];
+static struct process_test_data* curr_data_in_test;
 
 static
 int full_read(int fd, void* buf, size_t len)
@@ -52,16 +49,16 @@ int full_read(int fd, void* buf, size_t len)
 }
 
 static
-int check_expected_fd_content(int num_map, const struct mm_remap_fd* fd_map)
+int check_expected_fd_content(struct process_test_data* data)
 {
 	int i;
 	int parent_fd, child_fd;
 	size_t exp_sz;
 	char line[128], expected[128];
 
-	for (i = 0; i < num_map; i++) {
-		parent_fd = fd_map[i].parent_fd;
-		child_fd = fd_map[i].child_fd;
+	for (i = 0; i < MM_NELEM(data->fd_map); i++) {
+		parent_fd = data->fd_map[i].parent_fd;
+		child_fd = data->fd_map[i].child_fd;
 
 		exp_sz = sprintf(expected, "fd = %i", child_fd);
 
@@ -78,88 +75,159 @@ int check_expected_fd_content(int num_map, const struct mm_remap_fd* fd_map)
 	return 0;
 }
 
-static
-int spawn_child(int spawn_flags)
-{
-	int i;
-	char cmd[] = BUILDDIR"/child-proc"EXEEXT;
-	char* argv[] = {cmd, "opt1", "another opt2", "Whi opt3", MM_STRINGIFY(NUM_FILE), NULL};
 
-	for (i = 3; i < MM_NELEM(fds); i++) {
-		sprintf(filename[i], "file-test-%i", i);
-		fds[i] = mm_open(filename[i], O_RDWR|O_TRUNC|O_CREAT, S_IRWXU);
+static
+struct process_test_data* create_process_test_data(void)
+{
+	int i, child_last_fd;
+	char name[32];
+	const char* argv[] = {"opt1", "another opt2", "Whi opt3",
+	                      MM_STRINGIFY(NUM_FILE)};
+	struct process_test_data* data;
+
+	data = malloc(sizeof(*data));
+	*data = (struct process_test_data) {.pid = UNSET_PID_VALUE};
+
+	// Initial process command and args
+	strcpy(data->cmd, BUILDDIR"/child-proc"EXEEXT);
+	for (i = 0; i < MM_NELEM(argv); i++)
+		strcpy(data->argv_data[data->argv_data_len++], argv[i]);
+
+	// Create open file descriptor (to pass to child for some of them)
+	for (i = 0; i < MM_NELEM(data->fds); i++) {
+		sprintf(name, "file-test-%i", i);
+		data->fds[i] = mm_open(name, O_RDWR|O_TRUNC|O_CREAT, S_IRWXU);
+		mm_unlink(name);
 	}
 
+	// Initialize fd parent->child fd mapping
 	printf("map_fd = [");
-	for (i = 0; i < MM_NELEM(fd_map); i++) {
-		fd_map[i].child_fd = i+3;
-		fd_map[i].parent_fd = i+3+NUM_FILE;
-		printf(" %i:%i", fd_map[i].child_fd, fd_map[i].parent_fd);
+	child_last_fd = 3; // first fd after STDERR
+	for (i = 0; i < MM_NELEM(data->fd_map); i++) {
+		data->fd_map[i].child_fd = child_last_fd++;
+		data->fd_map[i].parent_fd = data->fds[NUM_FILE+i];
+		printf(" %i:%i", data->fd_map[i].child_fd,
+		                 data->fd_map[i].parent_fd);
 	}
 	printf(" ]\n");
 	fflush(stdout);
 
-	if (mm_spawn(&pid, cmd, MM_NELEM(fd_map), fd_map, spawn_flags, argv, NULL) != 0) {
+	// Store current process data for later in teardown
+	curr_data_in_test = data;
+
+	return data;
+}
+
+
+static
+int spawn_child(int spawn_flags, struct process_test_data* data)
+{
+	char* argv[NUM_ARGS_MAX+2] = {NULL};
+	int i;
+
+	argv[0] = data->cmd;
+	for (i = 0; i < data->argv_data_len; i++)
+		argv[i+1] = data->argv_data[i];
+
+	if (mm_spawn(&data->pid, data->cmd,
+	             MM_NELEM(data->fd_map), data->fd_map,
+	             spawn_flags, argv, NULL) != 0) {
 		mm_print_lasterror(NULL);
-		return 1;
+		return -1;
 	}
 
 	return 0;
 }
 
+
 static
-void close_unlink(void)
+int wait_child(struct process_test_data* data)
+{
+	int rv;
+
+	if (data->pid == UNSET_PID_VALUE)
+		return 0;
+
+	rv = mm_wait_process(data->pid, NULL);
+	data->pid = UNSET_PID_VALUE;
+
+	return rv;
+}
+
+
+static
+void close_fds(struct process_test_data* data)
 {
 	int i;
-	for (i = 3; i < MM_NELEM(fds); i++) {
-		mm_close(fds[i]);
-		mm_unlink(filename[i]);
+
+	for (i = 0; i < MM_NELEM(data->fds); i++) {
+		if (data->fds[i] == -1)
+			continue;
+
+		mm_close(data->fds[i]);
+		data->fds[i] = -1;
 	}
 }
 
-static void test_teardown(void)
+
+static
+void destroy_process_test_data(struct process_test_data* data)
 {
-	int ival;
+	if (data == NULL)
+		return;
 
-	close_unlink();
+	wait_child(data);
+	close_fds(data);
 
-	if (pid != UNSET_PID_VALUE)
-		mm_wait_process(pid, &ival);
-	pid = UNSET_PID_VALUE;
+	free(data);
 
-	mm_unsetenv("TC_SPAWN_MODE");
+	curr_data_in_test = NULL;
 }
+
+
+static
+void test_teardown(void)
+{
+	destroy_process_test_data(curr_data_in_test);
+}
+
+
+/**************************************************************************
+ *                                                                        *
+ *                       process tests implementation                     *
+ *                                                                        *
+ **************************************************************************/
 
 START_TEST(spawn_simple)
 {
 	int rv ;
-	pid = UNSET_PID_VALUE;
-	rv = spawn_child(0);
-	ck_assert(rv == 0);
-	ck_assert(pid != UNSET_PID_VALUE);
-	ck_assert(mm_wait_process(pid, NULL) == 0);
-	pid = UNSET_PID_VALUE;
+	struct process_test_data* data = create_process_test_data();
 
-	ck_assert(check_expected_fd_content(MM_NELEM(fd_map), fd_map) == 0);
-	close_unlink();
+	rv = spawn_child(0, data);
+	ck_assert(rv == 0);
+	ck_assert(data->pid != UNSET_PID_VALUE);
+	ck_assert(wait_child(data) == 0);
+
+	ck_assert(check_expected_fd_content(data) == 0);
 }
 END_TEST
 
 START_TEST(spawn_daemon)
 {
-	ck_assert(spawn_child(MM_SPAWN_DAEMONIZE) == 0);
+	struct process_test_data* data = create_process_test_data();
+
+	ck_assert(spawn_child(MM_SPAWN_DAEMONIZE, data) == 0);
 	mm_relative_sleep_ms(100);  // wait for the daemon process to finish
-	ck_assert(check_expected_fd_content(MM_NELEM(fd_map), fd_map) == 0);
-	close_unlink();
+	ck_assert(check_expected_fd_content(data) == 0);
 }
 END_TEST
 
 START_TEST(spawn_error)
 {
 	int rv;
+	mm_pid_t pid = UNSET_PID_VALUE;
 
 	/* will spawn an immediately defunct process: path to process is NULL */
-	pid = UNSET_PID_VALUE;
 	rv = mm_spawn(&pid, NULL, 0, NULL, MM_SPAWN_KEEP_FDS, NULL, NULL);
 	ck_assert(rv != 0);
 	ck_assert(pid == UNSET_PID_VALUE);  // no process should be able to launch
@@ -178,6 +246,7 @@ START_TEST(spawn_error_limits)
 	int rv;
 	struct rlimit rlim_orig, rlim;
 	int spawn_mode = errlimits_spawn_mode_cases[_i];
+	struct process_test_data* data = create_process_test_data();
 
 	/* set RLIMIT_NPROC to 1 process */
 	ck_assert(getrlimit(RLIMIT_NPROC, &rlim_orig) == 0);
@@ -185,17 +254,14 @@ START_TEST(spawn_error_limits)
 	rlim.rlim_cur = 1;
 	ck_assert(setrlimit(RLIMIT_NPROC, &rlim) == 0);
 
-	pid = UNSET_PID_VALUE;
-	rv = spawn_child(spawn_mode);
+	rv = spawn_child(spawn_mode, data);
 
 	/* restore RLIMIT_NPROC to original value */
 	ck_assert(setrlimit(RLIMIT_NPROC, &rlim_orig) == 0);
 
 	ck_assert(rv != 0);
-	ck_assert(pid == UNSET_PID_VALUE);
+	ck_assert(data->pid == UNSET_PID_VALUE);
 	ck_assert(mm_get_lasterror_number() == EAGAIN);
-
-	pid = 0;
 }
 END_TEST
 
@@ -204,9 +270,9 @@ END_TEST
 START_TEST(spawn_daemon_error)
 {
 	int rv;
+	mm_pid_t pid = UNSET_PID_VALUE;
 
 	/* will spawn an immediately defunct process: path to process is NULL */
-	pid = UNSET_PID_VALUE;
 	rv = mm_spawn(&pid, NULL, 0, NULL, MM_SPAWN_DAEMONIZE, NULL, NULL);
 	ck_assert(rv == -1);
 	ck_assert(pid == UNSET_PID_VALUE);  // no process should be able to launch
@@ -217,9 +283,9 @@ END_TEST
 START_TEST(spawn_invalid_args)
 {
 	int rv;
+	mm_pid_t pid = UNSET_PID_VALUE;
 
 	/* cannot run "/" */
-	pid = UNSET_PID_VALUE;
 	rv = mm_spawn(&pid, "/", 0, NULL, MM_SPAWN_KEEP_FDS, NULL, NULL);
 	ck_assert(rv == -1);
 	ck_assert(pid == UNSET_PID_VALUE);  // no process should be able to launch
@@ -232,22 +298,30 @@ END_TEST
  * waiting for it */
 START_TEST(wait_twice)
 {
-	pid = UNSET_PID_VALUE;
-	ck_assert(spawn_child(0) == 0);
-	ck_assert(pid != UNSET_PID_VALUE);
+	struct process_test_data* data = create_process_test_data();
+	mm_pid_t pid;
+
+	ck_assert(spawn_child(0, data) == 0);
+	ck_assert(data->pid != UNSET_PID_VALUE);
+
+	pid = data->pid;
+	data->pid = UNSET_PID_VALUE;
 
 	/* wait once */
 	ck_assert(mm_wait_process(pid, NULL) == 0);
-	ck_assert(check_expected_fd_content(MM_NELEM(fd_map), fd_map) == 0);
-	close_unlink();
+	ck_assert(check_expected_fd_content(data) == 0);
 
 	/* wait a sacond time with the same pid */
 	ck_assert(mm_wait_process(pid, NULL) != 0);
-
-	pid = UNSET_PID_VALUE;
 }
 END_TEST
 
+
+/**************************************************************************
+ *                                                                        *
+ *                       process test suite setup                         *
+ *                                                                        *
+ **************************************************************************/
 LOCAL_SYMBOL
 TCase* create_process_tcase(void)
 {
