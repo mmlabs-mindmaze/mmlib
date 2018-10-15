@@ -56,7 +56,7 @@ int check_expected_fd_content(struct process_test_data* data)
 	size_t exp_sz;
 	char line[128], expected[128];
 
-	for (i = 0; i < MM_NELEM(data->fd_map); i++) {
+	for (i = 0; i < NUM_FILE; i++) {
 		parent_fd = data->fd_map[i].parent_fd;
 		child_fd = data->fd_map[i].child_fd;
 
@@ -79,14 +79,18 @@ int check_expected_fd_content(struct process_test_data* data)
 static
 struct process_test_data* create_process_test_data(void)
 {
-	int i, child_last_fd;
+	int i, child_last_fd, pipe_fds[2];
 	char name[32];
 	const char* argv[] = {"opt1", "another opt2", "Whi opt3",
 	                      MM_STRINGIFY(NUM_FILE)};
 	struct process_test_data* data;
 
 	data = malloc(sizeof(*data));
-	*data = (struct process_test_data) {.pid = UNSET_PID_VALUE};
+	*data = (struct process_test_data) {
+		.pid = UNSET_PID_VALUE,
+		.pipe_wr = -1,
+		.pipe_rd = -1,
+	};
 
 	// Initial process command and args
 	strcpy(data->cmd, BUILDDIR"/child-proc"EXEEXT);
@@ -103,7 +107,7 @@ struct process_test_data* create_process_test_data(void)
 	// Initialize fd parent->child fd mapping
 	printf("map_fd = [");
 	child_last_fd = 3; // first fd after STDERR
-	for (i = 0; i < MM_NELEM(data->fd_map); i++) {
+	for (i = 0; i < NUM_FILE; i++) {
 		data->fd_map[i].child_fd = child_last_fd++;
 		data->fd_map[i].parent_fd = data->fds[NUM_FILE+i];
 		printf(" %i:%i", data->fd_map[i].child_fd,
@@ -111,6 +115,15 @@ struct process_test_data* create_process_test_data(void)
 	}
 	printf(" ]\n");
 	fflush(stdout);
+
+	// Add final remap for pipe
+	mm_pipe(pipe_fds);
+	data->pipe_rd = pipe_fds[0];
+	data->pipe_wr = pipe_fds[1];
+	data->fd_map[NUM_FILE] = (struct mm_remap_fd) {
+		.child_fd = child_last_fd++,
+		.parent_fd = data->pipe_wr,
+	};
 
 	// Store current process data for later in teardown
 	curr_data_in_test = data;
@@ -130,13 +143,29 @@ int spawn_child(int spawn_flags, struct process_test_data* data)
 		argv[i+1] = data->argv_data[i];
 
 	if (mm_spawn(&data->pid, data->cmd,
-	             MM_NELEM(data->fd_map), data->fd_map,
+	             NUM_FDMAP, data->fd_map,
 	             spawn_flags, argv, NULL) != 0) {
 		mm_print_lasterror(NULL);
 		return -1;
 	}
 
 	return 0;
+}
+
+
+static
+int wait_pipe_close(struct process_test_data* data)
+{
+	char unused_buffer[1];
+	ssize_t rsz;
+
+	if (data->pipe_wr != -1) {
+		mm_close(data->pipe_wr);
+		data->pipe_wr = -1;
+	}
+
+	rsz = mm_read(data->pipe_rd, unused_buffer, sizeof(unused_buffer));
+	return (rsz < 0) ? -1 : 0;
 }
 
 
@@ -166,6 +195,16 @@ void close_fds(struct process_test_data* data)
 
 		mm_close(data->fds[i]);
 		data->fds[i] = -1;
+	}
+
+	if (data->pipe_wr != -1) {
+		mm_close(data->pipe_wr);
+		data->pipe_wr = -1;
+	}
+
+	if (data->pipe_rd != -1) {
+		mm_close(data->pipe_rd);
+		data->pipe_rd = -1;
 	}
 }
 
@@ -217,7 +256,7 @@ START_TEST(spawn_daemon)
 	struct process_test_data* data = create_process_test_data();
 
 	ck_assert(spawn_child(MM_SPAWN_DAEMONIZE, data) == 0);
-	mm_relative_sleep_ms(100);  // wait for the daemon process to finish
+	wait_pipe_close(data);  // wait for the daemon process to finish
 	ck_assert(check_expected_fd_content(data) == 0);
 }
 END_TEST
