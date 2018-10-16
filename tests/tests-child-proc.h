@@ -26,6 +26,8 @@ enum {
 
 int _run_function(thread_proc_id * id, intptr_t (*fn)(void*),
                   char * fn_name, void * args, size_t argslen, int run_mode);
+int run_as_process(mm_pid_t* pid_ptr, char * fn_name,
+                   void* args, size_t argslen, int last_fd_kept);
 void clean_function(thread_proc_id id, int run_mode);
 
 #endif /* ifndef TESTS_CHILD_PROC_H */

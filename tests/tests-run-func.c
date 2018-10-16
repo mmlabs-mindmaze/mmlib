@@ -7,11 +7,54 @@
 
 #include "tests-child-proc.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <check.h>
 
 #include <mmsysio.h>
 #include <mmthread.h>
+
+#define FDMAP_MAXLEN    16
+
+
+LOCAL_SYMBOL
+int run_as_process(mm_pid_t* pid_ptr, char * fn_name,
+                   void* args, size_t argslen, int last_fd_kept)
+{
+	struct mm_remap_fd fdmap[FDMAP_MAXLEN];
+	int rv, i, shm_fd, fdmap_len;
+	char mapfile_arg_str[64];
+	char* argv[] = {TESTS_CHILD_BIN, fn_name, mapfile_arg_str, NULL};
+	void* map;
+
+	shm_fd = mm_anon_shm();
+	ck_assert(shm_fd != -1);
+	mm_ftruncate(shm_fd, MM_PAGESZ);
+
+	map = mm_mapfile(shm_fd, 0, MM_PAGESZ, MM_MAP_RDWR|MM_MAP_SHARED);
+	ck_assert(map != NULL);
+	memcpy(map, args, argslen);
+
+	// Configure fdmap to keep all fd in child up to last_fd_kept
+	for (i = 0; i <= last_fd_kept; i++) {
+		fdmap[i].child_fd = i;
+		fdmap[i].parent_fd = i;
+	}
+
+	// Ensure shm_fd is inherited in child
+	fdmap_len = last_fd_kept+2;
+	sprintf(mapfile_arg_str, "mapfile-%i-4096", last_fd_kept+1);
+	fdmap[last_fd_kept+1].child_fd = last_fd_kept+1;
+	fdmap[last_fd_kept+1].parent_fd = shm_fd;
+
+	// Start process
+	rv = mm_spawn(pid_ptr, argv[0], fdmap_len, fdmap, 0, argv, NULL);
+
+	mm_unmap(map);
+	mm_close(shm_fd);
+
+	return rv;
+}
 
 
 /*
@@ -38,10 +81,6 @@ int _run_function(thread_proc_id * id, intptr_t (*fn)(void*),
                   char * fn_name, void * args, size_t argslen, int run_mode)
 {
 	int rv;
-	struct mm_remap_fd fdmap;
-	int shm_fd;
-	void * map;
-	char * argv[] = {TESTS_CHILD_BIN, fn_name, "mapfile-3-4096", NULL};
 
 	switch (run_mode) {
 	case RUN_AS_THREAD:
@@ -50,21 +89,8 @@ int _run_function(thread_proc_id * id, intptr_t (*fn)(void*),
 		break;
 
 	case RUN_AS_PROCESS:
-		shm_fd = mm_anon_shm();
-		ck_assert(shm_fd != -1);
-		mm_ftruncate(shm_fd, MM_PAGESZ);
-
-		map = mm_mapfile(shm_fd, 0, MM_PAGESZ, MM_MAP_RDWR|MM_MAP_SHARED);
-		ck_assert(map != NULL);
-		memcpy(map, args, argslen);
-
-		fdmap.child_fd = 3;
-		fdmap.parent_fd = shm_fd;
-		rv = mm_spawn(&id->proc_id, argv[0], 1, &fdmap, 0, argv, NULL);
+		rv = run_as_process(&id->proc_id, fn_name, args, argslen, 2);
 		ck_assert_msg(rv == 0, "can't create process for %s", fn_name);
-
-		mm_unmap(map);
-		mm_close(shm_fd);
 		break;
 
 	default:
