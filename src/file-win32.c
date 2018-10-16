@@ -357,7 +357,7 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 
 	fd_info = get_fd_info_checked(fd);
 	if (fd_info < 0)
-		return mm_raise_error(EBADF, "Invalid file descriptor");
+		return mm_raise_error(EBADF, "Invalid file descriptor (%i)", fd);
 
 	switch(fd_info & FD_TYPE_MASK) {
 
@@ -386,7 +386,7 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 		break;
 
 	default:
-		return mm_raise_error(EBADF, "Invalid file descriptor");
+		return mm_raise_error(EBADF, "Invalid file descriptor (%i)", fd);
 
 	}
 
@@ -405,7 +405,7 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 
 	fd_info = get_fd_info_checked(fd);
 	if (fd_info < 0)
-		return mm_raise_error(EBADF, "Invalid file descriptor");
+		return mm_raise_error(EBADF, "Invalid file descriptor (%i)", fd);
 
 	switch(fd_info & FD_TYPE_MASK) {
 
@@ -434,7 +434,7 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 		break;
 
 	default:
-		return mm_raise_error(EBADF, "Invalid file descriptor");
+		return mm_raise_error(EBADF, "Invalid file descriptor (%i)", fd);
 
 	}
 
@@ -502,7 +502,7 @@ int mm_isatty(int fd)
 
 	info = get_fd_info_checked(fd);
 	if (info == -1) {
-		mm_raise_error(EBADF, "Bad file descriptor (%i)", fd);
+		mm_raise_error(EBADF, "Invalid file descriptor (%i)", fd);
 		return -1;
 	}
 
