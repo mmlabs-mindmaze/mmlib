@@ -70,6 +70,7 @@ DOC_SRCS = \
 	$(eol)
 
 EXTRA_DIST = \
+	conf.py \
 	$(OVERRIDING_MANPAGES) \
 	$(DOC_SRCS) \
 	$(eol)
