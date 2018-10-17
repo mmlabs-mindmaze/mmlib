@@ -17,6 +17,7 @@
 
 #include "tests-child-proc.h"
 
+#define UNSET_PID_VALUE ((mm_pid_t) -23)
 #define NUM_FILE 3
 
 static mm_pid_t pid;
@@ -122,9 +123,9 @@ static void test_teardown(void)
 
 	close_unlink();
 
-	if (pid != 0)
+	if (pid != UNSET_PID_VALUE)
 		mm_wait_process(pid, &ival);
-	pid = 0;
+	pid = UNSET_PID_VALUE;
 
 	mm_unsetenv("TC_SPAWN_MODE");
 }
@@ -132,12 +133,12 @@ static void test_teardown(void)
 START_TEST(spawn_simple)
 {
 	int rv ;
-	pid = -23;
+	pid = UNSET_PID_VALUE;
 	rv = spawn_child(0);
 	ck_assert(rv == 0);
-	ck_assert(pid > 0);
+	ck_assert(pid != UNSET_PID_VALUE);
 	ck_assert(mm_wait_process(pid, NULL) == 0);
-	pid = 0;
+	pid = UNSET_PID_VALUE;
 
 	ck_assert(check_expected_fd_content(MM_NELEM(fd_map), fd_map) == 0);
 	close_unlink();
@@ -158,11 +159,10 @@ START_TEST(spawn_error)
 	int rv;
 
 	/* will spawn an immediately defunct process: path to process is NULL */
-	pid = -23;
+	pid = UNSET_PID_VALUE;
 	rv = mm_spawn(&pid, NULL, 0, NULL, MM_SPAWN_KEEP_FDS, NULL, NULL);
 	ck_assert(rv != 0);
-	ck_assert(pid == (mm_pid_t) -23);  // no process should be able to launch
-	pid = 0;
+	ck_assert(pid == UNSET_PID_VALUE);  // no process should be able to launch
 }
 END_TEST
 
@@ -185,14 +185,14 @@ START_TEST(spawn_error_limits)
 	rlim.rlim_cur = 1;
 	ck_assert(setrlimit(RLIMIT_NPROC, &rlim) == 0);
 
-	pid = -23;
+	pid = UNSET_PID_VALUE;
 	rv = spawn_child(spawn_mode);
 
 	/* restore RLIMIT_NPROC to original value */
 	ck_assert(setrlimit(RLIMIT_NPROC, &rlim_orig) == 0);
 
 	ck_assert(rv != 0);
-	ck_assert(pid == (mm_pid_t) -23);
+	ck_assert(pid == UNSET_PID_VALUE);
 	ck_assert(mm_get_lasterror_number() == EAGAIN);
 
 	pid = 0;
@@ -206,11 +206,10 @@ START_TEST(spawn_daemon_error)
 	int rv;
 
 	/* will spawn an immediately defunct process: path to process is NULL */
-	pid = -23;
+	pid = UNSET_PID_VALUE;
 	rv = mm_spawn(&pid, NULL, 0, NULL, MM_SPAWN_DAEMONIZE, NULL, NULL);
 	ck_assert(rv == -1);
-	ck_assert(pid == (mm_pid_t) -23);  // no process should be able to launch
-	pid = 0;
+	ck_assert(pid == UNSET_PID_VALUE);  // no process should be able to launch
 }
 END_TEST
 
@@ -220,11 +219,10 @@ START_TEST(spawn_invalid_args)
 	int rv;
 
 	/* cannot run "/" */
-	pid = -23;
+	pid = UNSET_PID_VALUE;
 	rv = mm_spawn(&pid, "/", 0, NULL, MM_SPAWN_KEEP_FDS, NULL, NULL);
 	ck_assert(rv == -1);
-	ck_assert(pid == (mm_pid_t) -23);  // no process should be able to launch
-	pid = 0;
+	ck_assert(pid == UNSET_PID_VALUE);  // no process should be able to launch
 }
 END_TEST
 
@@ -234,9 +232,9 @@ END_TEST
  * waiting for it */
 START_TEST(wait_twice)
 {
-	pid = -23;
+	pid = UNSET_PID_VALUE;
 	ck_assert(spawn_child(0) == 0);
-	ck_assert(pid > 0);
+	ck_assert(pid != UNSET_PID_VALUE);
 
 	/* wait once */
 	ck_assert(mm_wait_process(pid, NULL) == 0);
@@ -246,7 +244,7 @@ START_TEST(wait_twice)
 	/* wait a sacond time with the same pid */
 	ck_assert(mm_wait_process(pid, NULL) != 0);
 
-	pid = 0;
+	pid = UNSET_PID_VALUE;
 }
 END_TEST
 
