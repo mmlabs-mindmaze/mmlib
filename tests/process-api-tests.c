@@ -168,16 +168,21 @@ END_TEST
 
 #ifndef _WIN32
 #include <sys/resource.h>
-static
-void spawn_error_eagain(int max_nproc, int spawn_mode)
+
+static const int errlimits_spawn_mode_cases[] = {0, MM_SPAWN_DAEMONIZE};
+
+#define NUM_ERRLIMITS_CASES  MM_NELEM(errlimits_spawn_mode_cases)
+
+START_TEST(spawn_error_limits)
 {
 	int rv;
 	struct rlimit rlim_orig, rlim;
+	int spawn_mode = errlimits_spawn_mode_cases[_i];
 
-	/* set RLIMIT_NPROC to _i */
+	/* set RLIMIT_NPROC to 1 process */
 	ck_assert(getrlimit(RLIMIT_NPROC, &rlim_orig) == 0);
 	rlim = rlim_orig;
-	rlim.rlim_cur = max_nproc;
+	rlim.rlim_cur = 1;
 	ck_assert(setrlimit(RLIMIT_NPROC, &rlim) == 0);
 
 	pid = -23;
@@ -192,13 +197,8 @@ void spawn_error_eagain(int max_nproc, int spawn_mode)
 
 	pid = 0;
 }
-
-START_TEST(spawn_error_limits)
-{
-	spawn_error_eagain(1, 0);
-	spawn_error_eagain(1, MM_SPAWN_DAEMONIZE);
-}
 END_TEST
+
 #endif /* _WIN32 */
 
 START_TEST(spawn_daemon_error)
@@ -266,7 +266,7 @@ TCase* create_process_tcase(void)
 	tcase_add_test(tc, wait_twice);
 
 #ifndef _WIN32
-	tcase_add_test(tc, spawn_error_limits);
+	tcase_add_loop_test(tc, spawn_error_limits, 0, NUM_ERRLIMITS_CASES);
 #endif
 
 	return tc;
