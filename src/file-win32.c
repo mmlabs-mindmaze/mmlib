@@ -317,7 +317,7 @@ int mm_open(const char* path, int oflag, int mode)
 	}
 
 	fdinfo = FD_TYPE_NORMAL;
-	if (mode & O_APPEND)
+	if (oflag & O_APPEND)
 		fdinfo |= FD_FLAG_APPEND;
 
 	if (wrap_handle_into_fd(hnd, &fd, fdinfo)) {
