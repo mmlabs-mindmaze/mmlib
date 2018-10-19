@@ -796,7 +796,7 @@ int64_t timeout_list_update(struct list* timeout_list, struct timespec* now)
  * The communication with the thread client is handle asynchronously over the
  * connected named pipe. For each thread to handle, there is a connected pipe.
  * The whole communication resolves around handling the few request it can
- * make:
+ * make :
  *
  * - LOCKREF_OP_INITLOCK: request a lock to be initialized (ie, a key to be
  *     generated). The response will contain the generated key.

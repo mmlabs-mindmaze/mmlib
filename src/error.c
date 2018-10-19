@@ -317,15 +317,17 @@ int mm_save_errorstate(struct mm_error_state* state)
  * @state:      pointer to the data holding of the error state
  *
  * Use this function to restore the error state of the calling thread from the
- * information pointed by @state. Combined with mm_save_errorstate(), you:
- * - handle an error from a called function and recover the error state before
- * the failed function
- * - Copy the error state of a failed function whose call may have been
- * offloaded to a different thread or even different process
+ * information pointed by @state. Combined with mm_save_errorstate(), you
+ * may :
  *
- * Return: 0 (cannot fail)
+ * - handle an error from a called function and recover the error state before
+ *   the failed function
+ * - copy the error state of a failed function whose call may have been
+ *   offloaded to a different thread or even different process
  *
  * The reciprocal of this function is mm_save_errorstate().
+ *
+ * Return: 0 (cannot fail)
  */
 API_EXPORTED
 int mm_set_errorstate(const struct mm_error_state* state)

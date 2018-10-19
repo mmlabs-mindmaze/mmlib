@@ -615,7 +615,7 @@ void mmtoc_label(const char* label)
  * Print the timing statistics on the file descriptor specified by fd. The
  * printed statistics between each consecutive point of measure is
  * controlled by the mask parameter which will a bitwise-or'd combination of
- * the following flags:
+ * the following flags :
  *   - PROF_CURR: display the value of the current iteration
  *   - PROF_MIN:  display the min value since the last reset
  *   - PROF_MAX:  display the max value since the last reset

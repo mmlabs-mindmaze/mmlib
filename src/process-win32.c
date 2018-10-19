@@ -101,7 +101,7 @@ struct startup_config {
  *
  * When designing the Win32 size of the API of process creation and
  * termination wait, there were 2 possibilities regarding how a child
- * process must be referenced (what mm_pid_t should represent):
+ * process must be referenced (what mm_pid_t should represent) :
  *
  *  - either expose a win32 handle
  *  - either expose the process ID (as POSIX part does)
@@ -292,7 +292,7 @@ void drop_child_from_children_list(mm_pid_t pid)
  * and lack of documentation. But this is completely documented by the
  * source code of the CRT (available either in Visual Studio or in Windows
  * SDK, see UCRT source code in lowio/ioinit.cpp and exec/spawnv.cpp). The
- * &STARTUPINFO.lpReserved2 field has the follow layout:
+ * &STARTUPINFO.lpReserved2 field has the follow layout :
  *
  *  +--------+---------------------+---------------------------+
  *  | num_fd |  Array of CRT flags |   Array of win32 handle   |
@@ -827,8 +827,8 @@ void set_char(char* str, int offset, char c)
  * This function takes the string @src and transform it into an escaped
  * string suitable for consumption in CreateProcess() command line argument
  * such a way that the string will be recognized as a unique argument
- * following the interpretation detailed at:
- * https://msdn.microsoft.com/en-us/library/windows/desktop/bb776391(v=vs.85).aspx
+ * following the interpretation detailed at
+ * https://docs.microsoft.com/en-us/windows/desktop/api/shellapi/nf-shellapi-commandlinetoargvw
  *
  * Please note that the terminal byte will be written in the escaped string
  * and is taken into account in the returned number of bytes written.

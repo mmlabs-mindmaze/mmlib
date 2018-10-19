@@ -145,7 +145,8 @@ int mm_ftruncate(int fd, mm_off_t length)
  *
  * Return: a pointer to path.
  * If no dirname can be extracted from the path, it will return "." instead.
- * Eg:
+ *
+ * Example:
  * dirname("/usr/lib/") -> "/usr\0lib/"
  * dirname("usr") -> "."
  *

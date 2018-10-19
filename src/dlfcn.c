@@ -164,10 +164,10 @@ const char* mm_dl_fileext(void)
  * calling process. A successful mm_dlopen() returns an handle which the
  * caller may use on subsequent calls to mm_dlsym() and mm_dlclose().
  *
+ * If @path is NULL, this will return a handle to the main program.
+ *
  * The behavior of the function can be controlled by @flags which must be a
  * OR-combination of the following flags:
- *
- * If path is NULL, this will return a handle to the main program.
  *
  * MMLD_LAZY
  *   Relocations shall be performed at an implementation-defined time,

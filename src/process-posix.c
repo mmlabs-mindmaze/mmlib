@@ -446,7 +446,7 @@ int spawn_daemon(const struct startproc_opts* opts)
  * them (by setting &mm_remap_fd.parent_fd to -1.
  *
  * @flags must contains a OR-combination or 0 or any number of the following
- * flags:
+ * flags :
  *
  * MM_SPAWN_DAEMONIZE
  *   the created process will be detached from calling process and will
@@ -543,7 +543,7 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
  * that redirect a standard file descriptor in the parent, or close them (by
  * setting &mm_remap_fd.parent_fd to -1.
  *
- * The argument @flags must 0 or set to the following flag:
+ * The argument @flags must 0 or set to the following flag :
  *
  * MM_SPAWN_KEEP_FDS
  *   All open file descriptors that are inherintable are

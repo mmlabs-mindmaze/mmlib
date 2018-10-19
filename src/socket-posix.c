@@ -71,7 +71,7 @@ int translate_eai_to_errnum(int eai_errcode)
  * The @domain argument specifies the address family used in the
  * communications domain. The address families supported by the system are
  * system-defined. However you can expect that the following to be
- * available:
+ * available :
  *
  * %AF_UNSPEC
  *   The address family is unspecified.
@@ -82,7 +82,7 @@ int translate_eai_to_errnum(int eai_errcode)
  *
  * The @type argument specifies the socket type, which determines the
  * semantics of communication over the socket. The following socket types
- * are defined; Some systems may specify additional types:
+ * are defined; Some systems may specify additional types :
  *
  * SOCK_STREAM
  *   Provides sequenced, reliable, bidirectional, connection-mode byte
@@ -361,7 +361,7 @@ int mm_getsockopt(int sockfd, int level, int optname,
  *
  * This causes all or part of a full-duplex connection on the socket associated
  * with the file descriptor socket to be shut down. The type of shutdown is
- * controlled by @how which can be one of the following values:
+ * controlled by @how which can be one of the following values :
  *
  * SHUT_RD
  *   Disables further receive operations.
@@ -441,7 +441,7 @@ ssize_t mm_send(int sockfd, const void *buffer, size_t length, int flags)
  * permit the application to retrieve the source address of received data.
  *
  * @flags specifies the type of message reception. Values of this argument
- * are formed by logically OR'ing zero or more of the following values:
+ * are formed by logically OR'ing zero or more of the following values :
  *
  * %MSG_PEEK
  *   Peeks at an incoming message. The data is treated as unread and the
@@ -757,9 +757,10 @@ int is_valid_fd(int fd)
  * descriptors are ready. if @timeout_ms is negative, the call will block
  * indefinitely.
  *
- * &mm_pollfd.events contains a mask on revents with the following values:
- *   MM_POLLIN   // there is data to read
- *   MM_POLLOUT  // writing is now possible
+ * &mm_pollfd.events contains a mask on revents with the following values :
+ *
+ * - MM_POLLIN: there is data to read
+ * - MM_POLLOUT: writing is now possible
  *
  * &mm_pollfd.revents will contain the output events flags, a combination of
  * MM_POLLIN and MM_POLLOUT, or 0 if unset.

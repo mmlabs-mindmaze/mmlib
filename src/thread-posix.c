@@ -20,7 +20,7 @@
  * @flags:      OR-combination of flags indicating the type of mutex
  *
  * Use this function to initialize @mutex. The type of mutex is controlled
- * by @flags which must contains one or several of the following:
+ * by @flags which must contains one or several of the following :
  *
  * MMTHR_PSHARED: init a mutex shareable by other processes. When a mutex
  * is process shared, it is also a robust mutex.

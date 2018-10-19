@@ -206,13 +206,13 @@ bool is_char_valid_for_value_name(char ch)
  * @str:        string to try
  *
  * Inspect the next character of @str and test whether they form a suitable
- * name for a value (in option description). A suitable name:
+ * name for a value (in option description). A suitable name :
  * - is composed of capitals and '-' and '_' character,
  * - contains at least one valid character
  * - is not longer than VALUE_NAME_MAXLEN
  *
  * Since the value name is referenced with '@' prefixed in description,
- * this function is meant to be called when:
+ * this function is meant to be called when :
  *
  * 1. option description is scanned and no value name has been found yet.
  * 2. a '@' has been found in description
@@ -342,7 +342,7 @@ void copy_opt_desc(char* dst, const char* src, char* buffer)
  * the indentation zone.
  *
  * As an example, here is how the LOREM_IPSUM string would be displayed
- * with print_text_wrapped(60, LOREM_IPSUM, 10, "head_str"):
+ * with print_text_wrapped(60, LOREM_IPSUM, 10, "head_str") :
  *
  * head_str   Lorem ipsum dolor sit amet, consectetur adipiscing
  *            elit, sed do eiusmod tempor incididunt ut labore
