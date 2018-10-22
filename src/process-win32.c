@@ -1138,6 +1138,12 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 	DWORD pid;
 	int retval = -1;
 
+	if (!path)
+		return mm_raise_error(EINVAL, "path must not be NULL");
+
+	if (flags & ~(MM_SPAWN_KEEP_FDS | MM_SPAWN_DAEMONIZE))
+		return mm_raise_error(EINVAL, "Invalid flags (%08x)", flags);
+
 	if (!argv)
 		argv = default_argv;
 
@@ -1256,8 +1262,11 @@ int mm_execv(const char* path,
 	mm_pid_t pid;
 	HANDLE hnd;
 
+	if (!path)
+		return mm_raise_error(EINVAL, "path must not be NULL");
+
 	if (flags & ~MM_SPAWN_KEEP_FDS)
-		return mm_raise_error(EINVAL, "Invalid flags value");
+		return mm_raise_error(EINVAL, "Invalid flags (%08x)", flags);
 
 	if (mm_spawn(&pid, path, num_map, fd_map, flags, argv, envp))
 		return -1;

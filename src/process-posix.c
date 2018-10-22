@@ -491,6 +491,12 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 		.envp = envp,
 	};
 
+	if (!path)
+		return mm_raise_error(EINVAL, "path must not be NULL");
+
+	if (flags & ~(MM_SPAWN_KEEP_FDS | MM_SPAWN_DAEMONIZE))
+		return mm_raise_error(EINVAL, "Invalid flags (%08x)", flags);
+
 	if (!argv)
 		proc_opts.argv = default_argv;
 
@@ -583,6 +589,12 @@ int mm_execv(const char* path,
              int flags, char* const* argv, char* const* envp)
 {
 	char* default_argv[] = {(char*)path, NULL};
+
+	if (!path)
+		return mm_raise_error(EINVAL, "path must not be NULL");
+
+	if (flags & ~MM_SPAWN_KEEP_FDS)
+		return mm_raise_error(EINVAL, "Invalid flags (%08x)", flags);
 
 	// Perform remapping if MM_SPAWN_KEEP_FDS is not set in flags
 	if (  !(flags & MM_SPAWN_KEEP_FDS)
