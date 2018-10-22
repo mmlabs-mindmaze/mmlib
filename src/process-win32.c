@@ -1262,7 +1262,8 @@ static HANDLE child_hnd_to_exit = INVALID_HANDLE_VALUE;
 // Disable annoying and unjustified function case warning introduced in recent
 // gcc (maybe 7 and later)
 #if defined(__GNUC__)
-#  pragma GCC diagnostic push "-Wno-cast-function-type"
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 
 MM_DESTRUCTOR(waited_child)
