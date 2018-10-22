@@ -21,6 +21,10 @@
 #define UNSET_PID_VALUE ((mm_pid_t) -23)
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#define NOEXEC_FILE     "file-noexec"
+#define UNKBINFMT_FILE  "file-unkfmt"
+#define NOTEXIST_FILE   "does-not-exists"
+
 static struct process_test_data* curr_data_in_test;
 
 static
@@ -232,6 +236,36 @@ void test_teardown(void)
 }
 
 
+static
+void case_setup(void)
+{
+	int i, fd;
+	int garbage_data[128];
+
+	for (i = 0; i < MM_NELEM(garbage_data); i+=2) {
+		garbage_data[i] = 0xDEADBEEF;
+		garbage_data[i+1] = 0x7E1705;
+	}
+
+	// Write a regular file that DOES NOT have the exec permission
+	fd = mm_open(NOEXEC_FILE, O_CREAT|O_TRUNC|O_RDWR, 0666);
+	mm_write(fd, garbage_data, sizeof(garbage_data));
+	mm_close(fd);
+
+	// Write a regular executable file with unknown binary format
+	fd = mm_open(UNKBINFMT_FILE, O_CREAT|O_TRUNC|O_RDWR, 0777);
+	mm_write(fd, garbage_data, sizeof(garbage_data));
+	mm_close(fd);
+}
+
+
+static
+void case_teardown(void)
+{
+	mm_unlink(NOEXEC_FILE);
+	mm_unlink(UNKBINFMT_FILE);
+}
+
 /**************************************************************************
  *                                                                        *
  *                       process tests implementation                     *
@@ -284,15 +318,32 @@ START_TEST(spawn_daemon)
 }
 END_TEST
 
+
+static
+const struct {
+	const char* path;
+	int exp_err;
+} error_cases[] = {
+	{.path = "/",                         .exp_err = EACCES},
+	{.path = "./" NOEXEC_FILE,            .exp_err = EACCES},
+	{.path = "./" UNKBINFMT_FILE,         .exp_err = ENOEXEC},
+	{.path = "./" NOTEXIST_FILE,          .exp_err = ENOENT},
+	{.path = BUILDDIR "/" NOEXEC_FILE,    .exp_err = EACCES},
+	{.path = BUILDDIR "/" UNKBINFMT_FILE, .exp_err = ENOEXEC},
+	{.path = BUILDDIR "/" NOTEXIST_FILE,  .exp_err = ENOENT},
+};
+
 START_TEST(spawn_error)
 {
 	int rv;
 	mm_pid_t pid = UNSET_PID_VALUE;
+	const char* path = error_cases[_i].path;
 
 	/* will spawn an immediately defunct process: path to process is NULL */
-	rv = mm_spawn(&pid, NULL, 0, NULL, MM_SPAWN_KEEP_FDS, NULL, NULL);
+	rv = mm_spawn(&pid, path, 0, NULL, 0, NULL, NULL);
 	ck_assert(rv != 0);
 	ck_assert(pid == UNSET_PID_VALUE);  // no process should be able to launch
+	ck_assert_int_eq(mm_get_lasterror_number(), error_cases[_i].exp_err);
 }
 END_TEST
 
@@ -333,24 +384,41 @@ START_TEST(spawn_daemon_error)
 {
 	int rv;
 	mm_pid_t pid = UNSET_PID_VALUE;
+	const char* path = error_cases[_i].path;
 
 	/* will spawn an immediately defunct process: path to process is NULL */
-	rv = mm_spawn(&pid, NULL, 0, NULL, MM_SPAWN_DAEMONIZE, NULL, NULL);
+	rv = mm_spawn(&pid, path, 0, NULL, MM_SPAWN_DAEMONIZE, NULL, NULL);
 	ck_assert(rv == -1);
 	ck_assert(pid == UNSET_PID_VALUE);  // no process should be able to launch
+	ck_assert_int_eq(mm_get_lasterror_number(), error_cases[_i].exp_err);
 }
 END_TEST
 
+
+static
+const struct {
+	const char* path;
+	int flags;
+} inval_cases[] = {
+	{.path = NULL, .flags = 0},
+	{.path = NULL, .flags = MM_SPAWN_KEEP_FDS},
+	{.path = NULL, .flags = MM_SPAWN_DAEMONIZE},
+	{.path = NULL, .flags = MM_SPAWN_KEEP_FDS | MM_SPAWN_DAEMONIZE},
+	{.path = BUILDDIR"/child-proc"EXEEXT, .flags = (MM_SPAWN_KEEP_FDS << 2)},
+};
 
 START_TEST(spawn_invalid_args)
 {
 	int rv;
 	mm_pid_t pid = UNSET_PID_VALUE;
+	const char* path = inval_cases[_i].path;
+	int flags = inval_cases[_i].flags;
 
 	/* cannot run "/" */
-	rv = mm_spawn(&pid, "/", 0, NULL, MM_SPAWN_KEEP_FDS, NULL, NULL);
+	rv = mm_spawn(&pid, path, 0, NULL, flags, NULL, NULL);
 	ck_assert(rv == -1);
 	ck_assert(pid == UNSET_PID_VALUE);  // no process should be able to launch
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
 }
 END_TEST
 
@@ -390,14 +458,15 @@ TCase* create_process_tcase(void)
 	TCase * tc;
 
 	tc = tcase_create("process");
+	tcase_add_unchecked_fixture(tc, case_setup, case_teardown);
 	tcase_add_checked_fixture(tc, NULL, test_teardown);
 
 	tcase_add_test(tc, spawn_simple);
 	tcase_add_test(tc, execv_simple);
 	tcase_add_test(tc, spawn_daemon);
-	tcase_add_test(tc, spawn_error);
-	tcase_add_test(tc, spawn_daemon_error);
-	tcase_add_test(tc, spawn_invalid_args);
+	tcase_add_loop_test(tc, spawn_error, 0, MM_NELEM(error_cases));
+	tcase_add_loop_test(tc, spawn_daemon_error, 0, MM_NELEM(error_cases));
+	tcase_add_loop_test(tc, spawn_invalid_args, 0, MM_NELEM(inval_cases));
 	tcase_add_test(tc, wait_twice);
 
 #ifndef _WIN32
