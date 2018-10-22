@@ -557,7 +557,7 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
  * member of this array is a NULL pointer. These strings constitutes
  * the argument list available to the new process image. The value in
  * argv[0] should point to a filename that is associated with the process
- * being started. If @argv is NULL, the behavior is as if mm_spawn() were
+ * being started. If @argv is NULL, the behavior is as if mm_execv() were
  * called with a two array argument, @argv[0] = @path, @argv[1] = NULL.
  *
  * The argument @envp is an array of character pointers to null-terminated
@@ -582,10 +582,15 @@ int mm_execv(const char* path,
              int num_map, const struct mm_remap_fd* fd_map,
              int flags, char* const* argv, char* const* envp)
 {
+	char* default_argv[] = {(char*)path, NULL};
+
 	// Perform remapping if MM_SPAWN_KEEP_FDS is not set in flags
 	if (  !(flags & MM_SPAWN_KEEP_FDS)
 	   && remap_file_descriptors(num_map, fd_map))
 		return -1;
+
+	if (!argv)
+		argv = default_argv;
 
 	if (!envp)
 		envp = environ;
