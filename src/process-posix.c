@@ -587,10 +587,10 @@ int mm_execv(const char* path,
 	   && remap_file_descriptors(num_map, fd_map))
 		return -1;
 
-	if (envp)
-		execvpe(path, argv, envp);
-	else
-		execvp(path, argv);
+	if (!envp)
+		envp = environ;
+
+	execvpe(path, argv, envp);
 
 	// If we read here, execve has failed
 	mm_raise_from_errno("Cannot run \"%s\"", path);
