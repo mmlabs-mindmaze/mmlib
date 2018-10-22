@@ -359,6 +359,7 @@ int spawn_daemon(const struct startproc_opts* opts)
 	pid_t pid;
 	int status;
 	int pipefd[2], watch_fd, report_fd;
+	struct startproc_opts child_opts;
 
 	// Create pipe connecting child to parent
 	if (pipe2(pipefd, O_CLOEXEC))
@@ -385,6 +386,19 @@ int spawn_daemon(const struct startproc_opts* opts)
 
 	// We are in the child process of the first fork so setup for daemon
 	close(watch_fd);
+
+	// Turn possibly relative path to absolute executable path before
+	// changing curr dir to / (otherwise it won't be found). However
+	// apply this only if it refers to a path, not a file to be search
+	// in PATH env var (ie if path DOES NOT contains any '/')
+	child_opts = *opts;
+	if (strchr(opts->path, '/')) {
+		child_opts.path = realpath(opts->path, NULL);
+		if (!child_opts.path) {
+			mm_raise_from_errno("");
+			report_to_parent_and_exit(report_fd);
+		}
+	}
 	if (chdir("/")) {
 		mm_raise_from_errno("Unable to chdir(\"/\")");
 		report_to_parent_and_exit(report_fd);
@@ -404,7 +418,7 @@ int spawn_daemon(const struct startproc_opts* opts)
 		exit(EXIT_SUCCESS);
 	}
 
-	load_new_proc_img(opts, report_fd);
+	load_new_proc_img(&child_opts, report_fd);
 }
 
 
