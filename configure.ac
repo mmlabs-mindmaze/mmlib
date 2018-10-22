@@ -84,9 +84,9 @@ MM_OUTPUT_DEF
 AC_ARG_ENABLE([sphinxdoc], AC_HELP_STRING([--enable-sphinxdoc], [Build sphinx documention. @<:@default=detect@:>@]),
 	    [], [enable_sphinxdoc=detect])
 AM_PATH_PYTHON([3])
-AX_PYTHON_MODULE([sphinx])
-AX_PYTHON_MODULE([sphinx_rtd_theme])
-AX_PYTHON_MODULE([linuxdoc])
+MM_PYTHON_MODULE([sphinx])
+MM_PYTHON_MODULE([sphinx_rtd_theme])
+MM_PYTHON_MODULE([linuxdoc])
 
 AC_CHECK_PROG(HAVE_SPHINXBUILD, [sphinx-build], [$HAVE_PYMOD_LINUXDOC], [no])
 AS_CASE([$enable_sphinxdoc],
