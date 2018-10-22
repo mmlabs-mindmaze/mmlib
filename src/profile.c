@@ -616,14 +616,15 @@ void mmtoc_label(const char* label)
  * printed statistics between each consecutive point of measure is
  * controlled by the mask parameter which will a bitwise-or'd combination of
  * the following flags :
- *   - PROF_CURR: display the value of the current iteration
- *   - PROF_MIN:  display the min value since the last reset
- *   - PROF_MAX:  display the max value since the last reset
- *   - PROF_MEDIAN: display the median value since the last reset
- *   - PROF_FORCE_NSEC: force result display in nanoseconds
- *   - PROF_FORCE_USEC: force result display in microseconds
- *   - PROF_FORCE_MSEC: force result display in milliseconds
- *   - PROF_FORCE_SEC: force result display in seconds
+ *
+ * - PROF_CURR: display the value of the current iteration
+ * - PROF_MIN:  display the min value since the last reset
+ * - PROF_MAX:  display the max value since the last reset
+ * - PROF_MEDIAN: display the median value since the last reset
+ * - PROF_FORCE_NSEC: force result display in nanoseconds
+ * - PROF_FORCE_USEC: force result display in microseconds
+ * - PROF_FORCE_MSEC: force result display in milliseconds
+ * - PROF_FORCE_SEC: force result display in seconds
  *
  * Returns: 0 in case of success, -1 otherwise with errno set accordingly
  *
