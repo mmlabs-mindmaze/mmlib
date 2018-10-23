@@ -80,11 +80,18 @@ LOCAL_SYMBOL
 int _run_function(thread_proc_id * id, intptr_t (*fn)(void*),
                   char * fn_name, void * args, size_t argslen, int run_mode)
 {
+	union {
+		intptr_t (*proc)(void*);
+		void* (*thread)(void*);
+	} cast_fn;
 	int rv;
+
+	// Use union to cast function type (no compiler should warn this)
+	cast_fn.proc = fn;
 
 	switch (run_mode) {
 	case RUN_AS_THREAD:
-		rv = mmthr_create(&id->thread_id, (void*(*)(void*))fn, args);
+		rv = mmthr_create(&id->thread_id, cast_fn.thread, args);
 		ck_assert_msg(rv == 0, "can't create thread for %s", fn_name);
 		break;
 
