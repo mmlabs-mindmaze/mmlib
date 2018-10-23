@@ -526,6 +526,16 @@ int get_errcode_from_w32err(DWORD w32err)
 }
 
 
+static
+void replace_char(char* buff, int ch_find, int ch_replace)
+{
+	for (; *buff != '\0'; buff++) {
+		if (*buff == ch_find)
+			*buff = ch_replace;
+	}
+}
+
+
 LOCAL_SYMBOL
 int mm_raise_from_w32err_full(const char* module, const char* func,
                               const char* srcfile, int srcline,
@@ -546,6 +556,10 @@ int mm_raise_from_w32err_full(const char* module, const char* func,
 		              | FORMAT_MESSAGE_MAX_WIDTH_MASK,
 		              NULL, w32err, 0,
 		              errmsg+len, sizeof(errmsg)-len, NULL);
+
+		// Replace '%' character in win32 message to avoid messing with
+		// error message formatting in mm_raise_error_vfull()
+		replace_char(errmsg+len, '%', ' ');
 	}
 
 	// Translate win32 error into mmlib error code
