@@ -490,6 +490,7 @@ int get_errcode_from_w32err(DWORD w32err)
 	case ERROR_INVALID_ACCESS:
 	case ERROR_INVALID_DATA:
 	case WSAEINVAL:                 return EINVAL;
+	case ERROR_BAD_EXE_FORMAT:      return ENOEXEC;
 	case WSAESHUTDOWN:
 	case ERROR_NO_DATA:
 	case ERROR_BROKEN_PIPE:         return EPIPE;
