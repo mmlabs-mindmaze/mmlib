@@ -1217,16 +1217,12 @@ int mm_wait_process(mm_pid_t pid, int* status)
  **************************************************************************/
 static HANDLE child_hnd_to_exit = INVALID_HANDLE_VALUE;
 
-// Disable annoying and unjustified function case warning introduced in recent
-// gcc (maybe 7 and later)
-#if defined(__GNUC__)
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-
 MM_DESTRUCTOR(waited_child)
 {
-	LPTHREAD_START_ROUTINE exitproc;
+	union {
+		LPTHREAD_START_ROUTINE thr_start;
+		FARPROC farproc;
+	} cast_fn;
 	HMODULE hmod;
 
 	if (child_hnd_to_exit == INVALID_HANDLE_VALUE)
@@ -1234,22 +1230,19 @@ MM_DESTRUCTOR(waited_child)
 
 	// Get pointer of ExitProcess in this process. Given how windows load
 	// dll, we are ensured that the address will be the same in the child
-	// process
+	// process. union is used to cast function type to avoid compiler
+	// warnings (no compiler should warn this).
 	hmod = GetModuleHandle("kernel32.dll");
-	exitproc = (LPTHREAD_START_ROUTINE) GetProcAddress(hmod, "ExitProcess");
+	cast_fn.farproc = GetProcAddress(hmod, "ExitProcess");
 
 	// Create remotely a thread in child process that will call
 	// ExitProcess(STATUS_CONTROL_C_EXIT);
-	CreateRemoteThread(child_hnd_to_exit, NULL, 0, exitproc,
+	CreateRemoteThread(child_hnd_to_exit, NULL, 0, cast_fn.thr_start,
 	                   (LPVOID)STATUS_CONTROL_C_EXIT, 0, NULL);
 
 	CloseHandle(child_hnd_to_exit);
 	child_hnd_to_exit = NULL;
 }
-
-#if defined(__GNUC__)
-#  pragma GCC diagnostic pop
-#endif
 
 
 /* doc in posix implementation */
