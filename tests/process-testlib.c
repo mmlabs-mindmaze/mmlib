@@ -26,7 +26,8 @@ void* write_pipe_thread(void* data)
 
 	while (1) {
 		rsz = mm_write(pipe_fds[1], buffer, sizeof(buffer));
-		mm_check(rsz == sizeof(buffer));
+		if (rsz != sizeof(buffer))
+			break;
 	}
 
 	return NULL;
@@ -42,7 +43,9 @@ void* read_pipe_thread(void* data)
 	while (1) {
 		memset(buffer, 0, sizeof(buffer));
 		rsz = mm_read(pipe_fds[0], buffer, sizeof(buffer));
-		mm_check(rsz == sizeof(buffer));
+		if (rsz != sizeof(buffer))
+			break;
+
 		mm_check(memcmp(buffer, TEST_PATTERN, sizeof(buffer)) == 0);
 	}
 

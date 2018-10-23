@@ -22,7 +22,6 @@
 #include <synchapi.h>
 #include <signal.h>
 #include <stdbool.h>
-#include <tlhelp32.h>
 #include <uchar.h>
 
 /* __osfile flag values for DOS file handles */
@@ -1210,53 +1209,6 @@ int mm_wait_process(mm_pid_t pid, int* status)
  *                          mm_execv() implementation                     *
  *                                                                        *
  **************************************************************************/
-static
-void try_terminate_thread_by_id(DWORD tid)
-{
-	HANDLE hnd;
-
-	hnd = OpenThread(THREAD_TERMINATE, FALSE, tid);
-	if (hnd == INVALID_HANDLE_VALUE)
-		return;
-
-	TerminateThread(hnd, STATUS_CONTROL_C_EXIT);
-}
-
-
-/**
- * try_terminate_all_threads() - terminate all threads but current one
- */
-static
-void try_terminate_all_threads(void)
-{
-	HANDLE snapshot;
-	THREADENTRY32 te;
-	BOOL has_thread_entry;
-	DWORD pid = GetCurrentProcessId();
-	DWORD tid = get_tid();
-
-	snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-	if (snapshot == INVALID_HANDLE_VALUE)
-		return;
-
-	// Traverse list of thread and try to terminate thread
-	te.dwSize = sizeof(te);
-	has_thread_entry = Thread32First(snapshot, &te);
-	while (has_thread_entry) {
-		// Try terminate any thread that is not current. The check
-		// for PID is weird but msdn example use it:
-		// https://docs.microsoft.com/en-us/windows/desktop/ToolHelp/traversing-the-thread-list
-		if (  te.th32OwnerProcessID == pid
-		   && te.th32ThreadID != tid)
-			try_terminate_thread_by_id(te.th32ThreadID);
-
-		has_thread_entry = Thread32Next(snapshot, &te);
-	}
-
-	CloseHandle(snapshot);
-}
-
-
 static HANDLE child_hnd_to_exit = INVALID_HANDLE_VALUE;
 
 // Disable annoying and unjustified function case warning introduced in recent
@@ -1316,7 +1268,6 @@ int mm_execv(const char* path,
 	hnd = child_hnd_to_exit = get_handle_from_children_list(pid);
 	drop_child_from_children_list(pid);
 
-	try_terminate_all_threads();
 	close_all_known_fds();
 
 	// Wait for the process to be signaled (ie to stop)
