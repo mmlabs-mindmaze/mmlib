@@ -405,6 +405,10 @@ const struct {
 	{.path = NULL, .flags = MM_SPAWN_DAEMONIZE},
 	{.path = NULL, .flags = MM_SPAWN_KEEP_FDS | MM_SPAWN_DAEMONIZE},
 	{.path = BUILDDIR"/child-proc"EXEEXT, .flags = (MM_SPAWN_KEEP_FDS << 2)},
+#if defined(_WIN32)
+	{.path = BUILDDIR"/child-proc"EXEEXT, .flags = MM_SPAWN_KEEP_FDS},
+	{.path = BUILDDIR"/child-proc"EXEEXT, .flags = MM_SPAWN_KEEP_FDS | MM_SPAWN_DAEMONIZE},
+#endif
 };
 
 START_TEST(spawn_invalid_args)
@@ -418,6 +422,13 @@ START_TEST(spawn_invalid_args)
 	rv = mm_spawn(&pid, path, 0, NULL, flags, NULL, NULL);
 	ck_assert(rv == -1);
 	ck_assert(pid == UNSET_PID_VALUE);  // no process should be able to launch
+
+#if defined(_WIN32)
+	if (path && flags & MM_SPAWN_KEEP_FDS) {
+		ck_assert_int_eq(mm_get_lasterror_number(), ENOTSUP);
+		return;
+	}
+#endif
 	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
 }
 END_TEST

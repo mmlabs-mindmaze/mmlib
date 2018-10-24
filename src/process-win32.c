@@ -1144,6 +1144,10 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 	if (flags & ~(MM_SPAWN_KEEP_FDS | MM_SPAWN_DAEMONIZE))
 		return mm_raise_error(EINVAL, "Invalid flags (%08x)", flags);
 
+	if (flags & MM_SPAWN_KEEP_FDS)
+		return mm_raise_error(ENOTSUP, "MM_SPAWN_KEEP_FDS"
+		                               " not supported yet");
+
 	if (!argv)
 		argv = default_argv;
 
@@ -1151,22 +1155,10 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 	if (!esc_argv)
 		return -1;
 
-	if (flags & MM_SPAWN_KEEP_FDS) {
-		hnd = (HANDLE)_spawnvpe(_P_NOWAIT, path, (const char* const*)esc_argv, (const char* const*)envp);
-		if (hnd == INVALID_HANDLE_VALUE) {
-			mm_raise_from_errno("_spawnvpe(%s, ...) failed", path);
-			goto exit;
-		}
-
-		pid = GetProcessId(hnd);
-		goto success;
-	}
-
 	hnd = spawn_process(&pid, path, num_map, fd_map, esc_argv, envp);
 	if (hnd == INVALID_HANDLE_VALUE)
 		goto exit;
 
-success:
 	if (child_pid && !(flags & MM_SPAWN_DAEMONIZE)) {
 		add_to_children_list(pid, hnd);
 		*child_pid = pid;
