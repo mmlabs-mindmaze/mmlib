@@ -336,10 +336,10 @@ void copy_opt_desc(char* dst, const char* src, char* buffer)
  *
  * This function print @text on standard error ensuring that each displayed
  * line will not be longer than @line_maxlen, wrapping text if necessary at
- * whitespace boundaries. In addition the content of @text will be
- * displayed after applying an indent of @align_len character. Moreover, if
- * @header is not null, it will be printed on the first line displayed, in
- * the indentation zone.
+ * whitespace boundaries. The wrapping will respect the linefeed set in
+ * @text. In addition the content of @text will be displayed after applying
+ * an indent of @align_len character. Moreover, if @header is not null, it
+ * will be printed on the first line displayed, in the indentation zone.
  *
  * As an example, here is how the LOREM_IPSUM string would be displayed
  * with print_text_wrapped(60, LOREM_IPSUM, 10, "head_str") :
@@ -354,16 +354,17 @@ static
 void print_text_wrapped(int line_maxlen, const char* text,
                         int align_len, const char* header, FILE* stream)
 {
-	int textlen, len, textline_maxlen;
+	int len, textline_maxlen;
 
 	if (!header)
 		header = "";
 
 	textline_maxlen = line_maxlen - align_len;
-	textlen = strlen(text);
 	do {
+		// Get the length of the next part to print
+		len = get_first_token_length(text, '\n');
+
 		// Check whether the text is too long and must be wrapped
-		len = textlen;
 		if (len >= textline_maxlen) {
 			// Find a good place to split the string
 			len = textline_maxlen;
@@ -377,12 +378,16 @@ void print_text_wrapped(int line_maxlen, const char* text,
 
 		fprintf(stream, "%-*s%.*s\n", align_len, header, len, text);
 
+		// Skip first linefeed since it has been displayed
+		// already by the previous fprintf()
+		if (text[len] == '\n')
+			len++;
+
 		// skip spaces
 		while (text[len] == ' ')
 			len++;
 
 		text += len;
-		textlen -= len;
 		header = "";
 	} while (*text != '\0');
 }
