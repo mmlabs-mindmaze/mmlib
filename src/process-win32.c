@@ -24,6 +24,8 @@
 #include <stdbool.h>
 #include <uchar.h>
 
+#define DEFAULT_PATHSEARCH "C:\\Windows\\system32;C:\\Windows;"
+
 /* __osfile flag values for DOS file handles */
 
 #define FOPEN           0x01    /* file handle open */
@@ -1034,6 +1036,93 @@ int translate_exitcode_in_status(DWORD exitcode)
 }
 
 
+/**
+ * contains_dirsep() - indicate whether argument has a directory separator
+ * @path:       string to test
+ *
+ * Return: 1 if @path has at least one \ or / charater
+ */
+static
+int contains_dirsep(const char* path)
+{
+	char c;
+
+	for (; *path != '\0'; path++) {
+		c = *path;
+		if (c == '\\' || c == '/')
+			return 1;
+	}
+
+	return 0;
+}
+
+
+/**
+ * search_bin_in_path() - search executable in folders listed in PATH
+ * @base:       basename of the executable
+ *
+ * Return: the path of the executable found on a allocated block of memory
+ * in case of success. In such case the path returned must be cleanup using
+ * free() when no longer needed. In case of failure, NULL is returned with
+ * error state set accordingly.
+ */
+static
+char* search_bin_in_path(const char* base)
+{
+	const char *dir, *eos;
+	char *path, *new_path;
+	int baselen, dirlen, len, maxlen, error, rv;
+
+	baselen = strlen(base);
+	path = NULL;
+	maxlen = 0;
+
+	// Get the PATH environment variable.
+	dir = mm_getenv("PATH", DEFAULT_PATHSEARCH);
+
+	error = ENOENT;
+	while (dir[0] != '\0') {
+		// Compute length of the dir component (ie until next ;)
+		eos = strchr(dir, ';');
+		dirlen = eos ? (eos - dir) : (int)strlen(dir);
+
+		// Realloc path if too small
+		len = dirlen + baselen + 2;
+		if (len > maxlen) {
+			new_path = realloc(path, len);
+			if (!new_path) {
+				mm_raise_from_errno("Cannot allocate path");
+				free(path);
+				return NULL;
+			}
+			path = new_path;
+			maxlen = len;
+		}
+
+		// Form the path base on the dir component
+		memcpy(path, dir, dirlen);
+		path[dirlen] = '\\';
+		memcpy(path + dirlen + 1, base, baselen+1);
+
+		// Check the candidate path exist and can be executed
+		rv = mm_check_access(path, X_OK);
+		if (rv == 0)
+			return path;
+
+		if (rv == EACCES)
+			error = EACCES;
+
+		// Move to next dir component (maybe end of list)
+		dir += dirlen;
+		if (dir[0] == ';')
+			dir++;
+	}
+
+	mm_raise_error(error, "Cannot find %s executable in PATH", base);
+	free(path);
+	return NULL;
+}
+
 /**************************************************************************
  *                                                                        *
  *                     Spawn functions and wait                           *
@@ -1137,6 +1226,7 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 	HANDLE hnd;
 	DWORD pid;
 	int retval = -1;
+	char* actual_path = NULL;
 
 	if (!path)
 		return mm_raise_error(EINVAL, "path must not be NULL");
@@ -1155,6 +1245,13 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 	if (!esc_argv)
 		return -1;
 
+	// Search executable in PATH if path does not contains dirsep
+	if (!contains_dirsep(path)) {
+		path = actual_path = search_bin_in_path(path);
+		if (!path)
+			goto exit;
+	}
+
 	hnd = spawn_process(&pid, path, num_map, fd_map, esc_argv, envp);
 	if (hnd == INVALID_HANDLE_VALUE)
 		goto exit;
@@ -1168,6 +1265,7 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 	retval = 0;
 
 exit:
+	free(actual_path);
 	free(esc_argv);
 	return retval;
 }

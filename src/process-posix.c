@@ -25,7 +25,7 @@
 
 /**
  * struct startproc_opts - holder for argument passed to mm_spawn()
- * @path:       path to the executable file
+ * @file:       path or basename of the executable file
  * @num_map:    number of element in the @fd_map array
  * @fd_map:     array of file descriptor remapping to pass into the child
  * @flags:      spawn flags
@@ -39,7 +39,7 @@
  * implementation.
  */
 struct startproc_opts {
-	const char* path;
+	const char* file;
 	int flags;
 	int num_map;
 	const struct mm_remap_fd* fd_map;
@@ -231,10 +231,13 @@ noreturn void load_new_proc_img(const struct startproc_opts* opts,
 	  && remap_file_descriptors(opts->num_map, opts->fd_map))
 		goto failure;
 
-	execve(opts->path, opts->argv, opts->envp);
+	if (strchr(opts->file, '/'))
+		execve(opts->file, opts->argv, opts->envp);
+	else
+		execvpe(opts->file, opts->argv, opts->envp);
 
 	// If we read here, execve has failed
-	mm_raise_from_errno("Cannot run \"%s\"", opts->path);
+	mm_raise_from_errno("Cannot run \"%s\"", opts->file);
 
 failure:
 	report_to_parent_and_exit(report_pipe);
@@ -392,9 +395,9 @@ int spawn_daemon(const struct startproc_opts* opts)
 	// apply this only if it refers to a path, not a file to be search
 	// in PATH env var (ie if path DOES NOT contains any '/')
 	child_opts = *opts;
-	if (strchr(opts->path, '/')) {
-		child_opts.path = realpath(opts->path, NULL);
-		if (!child_opts.path) {
+	if (strchr(opts->file, '/')) {
+		child_opts.file = realpath(opts->file, NULL);
+		if (!child_opts.file) {
 			mm_raise_from_errno("");
 			report_to_parent_and_exit(report_fd);
 		}
@@ -425,7 +428,7 @@ int spawn_daemon(const struct startproc_opts* opts)
 /**
  * mm_spawn() - spawn a new process
  * @child_pid:  pointer receiving the child process pid
- * @path:       path to the executable file
+ * @file:       path or basename to the executable file
  * @num_map:    number of element in the @fd_map array
  * @fd_map:     array of file descriptor remapping to pass into the child
  * @flags:      spawn flags
@@ -435,9 +438,18 @@ int spawn_daemon(const struct startproc_opts* opts)
  *              of the executed program. If it is NULL, it inherit its
  *              environment from the calling process
  *
- * This function creates a new process executing the file located at @path
- * and the pid the of created child is set in the variable pointed by
+ * This function creates a new process executing the file specified by
+ * @file. The pid the of created child is set in the variable pointed by
  * @child_pid.
+ *
+ * The argument @file is used to construct a pathname that identifies the
+ * child process image file. If the @file argument contains a directory
+ * separator character, it will be used as the pathname for this file.
+ * Otherwise, the path prefix for this file is obtained by a search of the
+ * list of directories passed as the environment variable PATH. The list is
+ * searched from beginning to end, applying the filename to each prefix,
+ * until an executable file with the specified name and appropriate
+ * execution permissions is found.
  *
  * The child process will inherit only the open file descriptors specified
  * in the @fd_map array whose length is indicated by @num_map. For each
@@ -478,7 +490,7 @@ int spawn_daemon(const struct startproc_opts* opts)
  * the argument list available to the new process image. The value in
  * argv[0] should point to a filename that is associated with the process
  * being started. If @argv is NULL, the behavior is as if mm_spawn() were
- * called with a two array argument, @argv[0] = @path, @argv[1] = NULL.
+ * called with a two array argument, @argv[0] = @file, @argv[1] = NULL.
  *
  * The argument @envp is an array of character pointers to null-terminated
  * strings. These strings constitutes the environment for the new
@@ -490,14 +502,14 @@ int spawn_daemon(const struct startproc_opts* opts)
  * accordingly.
  */
 API_EXPORTED
-int mm_spawn(mm_pid_t* child_pid, const char* path,
+int mm_spawn(mm_pid_t* child_pid, const char* file,
              int num_map, const struct mm_remap_fd* fd_map,
              int flags, char* const* argv, char* const* envp)
 {
-	char* default_argv[] = {(char*)path, NULL};
+	char* default_argv[] = {(char*)file, NULL};
 	int ret;
 	struct startproc_opts proc_opts = {
-		.path = path,
+		.file = file,
 		.flags = flags,
 		.num_map = num_map,
 		.fd_map = fd_map,
@@ -505,8 +517,8 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 		.envp = envp,
 	};
 
-	if (!path)
-		return mm_raise_error(EINVAL, "path must not be NULL");
+	if (!file)
+		return mm_raise_error(EINVAL, "file must not be NULL");
 
 	if (flags & ~(MM_SPAWN_KEEP_FDS | MM_SPAWN_DAEMONIZE))
 		return mm_raise_error(EINVAL, "Invalid flags (%08x)", flags);
@@ -530,7 +542,7 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 
 /**
  * mm_execv() - replace executable image of the calling process
- * @path:       path to the executable file
+ * @file:       path or basename to the executable file
  * @num_map:    number of element in the @fd_map array
  * @fd_map:     array of file descriptor remapping to pass in the new image
  * @flags:      spawn flags
@@ -562,14 +574,14 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
  * is returned and error state is set accordingly.
  */
 API_EXPORTED
-int mm_execv(const char* path,
+int mm_execv(const char* file,
              int num_map, const struct mm_remap_fd* fd_map,
              int flags, char* const* argv, char* const* envp)
 {
-	char* default_argv[] = {(char*)path, NULL};
+	char* default_argv[] = {(char*)file, NULL};
 
-	if (!path)
-		return mm_raise_error(EINVAL, "path must not be NULL");
+	if (!file)
+		return mm_raise_error(EINVAL, "file must not be NULL");
 
 	if (flags & ~MM_SPAWN_KEEP_FDS)
 		return mm_raise_error(EINVAL, "Invalid flags (%08x)", flags);
@@ -585,10 +597,13 @@ int mm_execv(const char* path,
 	if (!envp)
 		envp = environ;
 
-	execvpe(path, argv, envp);
+	if (strchr(file, '/'))
+		execve(file, argv, envp);
+	else
+		execvpe(file, argv, envp);
 
 	// If we read here, execve has failed
-	mm_raise_from_errno("Cannot run \"%s\"", path);
+	mm_raise_from_errno("Cannot run \"%s\"", file);
 	return -1;
 }
 

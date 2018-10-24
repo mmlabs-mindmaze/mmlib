@@ -21,13 +21,23 @@
 #define UNSET_PID_VALUE ((mm_pid_t) -23)
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-#define CHILDPROC_BINPATH       BUILDDIR "/"LT_OBJDIR "child-proc"EXEEXT
+#if defined(_WIN32)
+#  define PATHSEP       ";"
+#else
+#  define PATHSEP       ":"
+#endif
+
+#define TESTCASES_PATH_ENVVAR \
+    SRCDIR PATHSEP BUILDDIR"/"LT_OBJDIR PATHSEP BUILDDIR PATHSEP
+
+#define CHILDPROC_BINPATH       BUILDDIR "/"LT_OBJDIR "child-proc" EXEEXT
 
 #define NOEXEC_FILE     "file-noexec"
 #define UNKBINFMT_FILE  "file-unkfmt"
 #define NOTEXIST_FILE   "does-not-exists"
 
 static struct process_test_data* curr_data_in_test;
+static char* path_envvar_saved = NULL;
 
 static
 int full_read(int fd, void* buf, size_t len)
@@ -84,7 +94,7 @@ int check_expected_fd_content(struct process_test_data* data)
 
 
 static
-struct process_test_data* create_process_test_data(void)
+struct process_test_data* create_process_test_data(const char* file)
 {
 	int i, child_last_fd, pipe_fds[2];
 	char name[32];
@@ -100,7 +110,7 @@ struct process_test_data* create_process_test_data(void)
 	};
 
 	// Initial process command and args
-	strcpy(data->cmd, CHILDPROC_BINPATH);
+	strcpy(data->cmd, file);
 	for (i = 0; i < MM_NELEM(argv); i++)
 		strcpy(data->argv_data[data->argv_data_len++], argv[i]);
 
@@ -241,8 +251,20 @@ void test_teardown(void)
 static
 void case_setup(void)
 {
-	int i, fd;
+	int i, fd, len;
 	int garbage_data[128];
+	char* new_path_env;
+
+	// backup PATH environment for the tests
+	path_envvar_saved = strdup(mm_getenv("PATH", NULL));
+
+	// prepend PATH folders specific for this test case to PATH envvar
+	len = strlen(TESTCASES_PATH_ENVVAR) + strlen(path_envvar_saved) + 1;
+	new_path_env = malloc(len);
+	strcpy(new_path_env, TESTCASES_PATH_ENVVAR);
+	strcat(new_path_env, path_envvar_saved);
+	mm_setenv("PATH", new_path_env, 1);
+	free(new_path_env);
 
 	for (i = 0; i < MM_NELEM(garbage_data); i+=2) {
 		garbage_data[i] = 0xDEADBEEF;
@@ -266,6 +288,10 @@ void case_teardown(void)
 {
 	mm_unlink(NOEXEC_FILE);
 	mm_unlink(UNKBINFMT_FILE);
+
+	// Restore PATH environment variable
+	mm_setenv("PATH", path_envvar_saved, 1);
+	free(path_envvar_saved);
 }
 
 /**************************************************************************
@@ -274,10 +300,17 @@ void case_teardown(void)
  *                                                                        *
  **************************************************************************/
 
+static
+const char* binpath_cases[] = {
+	CHILDPROC_BINPATH,
+	"child-proc"EXEEXT,
+};
+
 START_TEST(spawn_simple)
 {
 	int rv ;
-	struct process_test_data* data = create_process_test_data();
+	const char* file = binpath_cases[_i];
+	struct process_test_data* data = create_process_test_data(file);
 
 	rv = spawn_child(0, data);
 	ck_assert(rv == 0);
@@ -292,7 +325,8 @@ END_TEST
 START_TEST(execv_simple)
 {
 	int i, rv, last_kept_fd;
-	struct process_test_data* data = create_process_test_data();
+	const char* file = binpath_cases[_i];
+	struct process_test_data* data = create_process_test_data(file);
 
 	// Find the latest fd in the fds array of data
 	last_kept_fd = MAX(data->pipe_rd, data->pipe_wr);
@@ -312,7 +346,8 @@ END_TEST
 
 START_TEST(spawn_daemon)
 {
-	struct process_test_data* data = create_process_test_data();
+	const char* file = binpath_cases[_i];
+	struct process_test_data* data = create_process_test_data(file);
 
 	ck_assert(spawn_child(MM_SPAWN_DAEMONIZE, data) == 0);
 	wait_pipe_close(data);  // wait for the daemon process to finish
@@ -325,6 +360,7 @@ static
 const struct {
 	const char* path;
 	int exp_err;
+	int rv;
 } error_cases[] = {
 	{.path = "/",                         .exp_err = EACCES},
 	{.path = "./" NOEXEC_FILE,            .exp_err = EACCES},
@@ -333,6 +369,8 @@ const struct {
 	{.path = BUILDDIR "/" NOEXEC_FILE,    .exp_err = EACCES},
 	{.path = BUILDDIR "/" UNKBINFMT_FILE, .exp_err = ENOEXEC},
 	{.path = BUILDDIR "/" NOTEXIST_FILE,  .exp_err = ENOENT},
+	{.path = NOEXEC_FILE,                 .exp_err = EACCES},
+	{.path = NOTEXIST_FILE,               .exp_err = ENOENT},
 };
 
 START_TEST(spawn_error)
@@ -361,7 +399,7 @@ START_TEST(spawn_error_limits)
 	int rv;
 	struct rlimit rlim_orig, rlim;
 	int spawn_mode = errlimits_spawn_mode_cases[_i];
-	struct process_test_data* data = create_process_test_data();
+	struct process_test_data* data = create_process_test_data(CHILDPROC_BINPATH);
 
 	/* set RLIMIT_NPROC to 1 process */
 	ck_assert(getrlimit(RLIMIT_NPROC, &rlim_orig) == 0);
@@ -441,7 +479,8 @@ END_TEST
  * waiting for it */
 START_TEST(wait_twice)
 {
-	struct process_test_data* data = create_process_test_data();
+	const char* file = CHILDPROC_BINPATH;
+	struct process_test_data* data = create_process_test_data(file);
 	mm_pid_t pid;
 
 	ck_assert(spawn_child(0, data) == 0);
@@ -474,9 +513,9 @@ TCase* create_process_tcase(void)
 	tcase_add_unchecked_fixture(tc, case_setup, case_teardown);
 	tcase_add_checked_fixture(tc, NULL, test_teardown);
 
-	tcase_add_test(tc, spawn_simple);
-	tcase_add_test(tc, execv_simple);
-	tcase_add_test(tc, spawn_daemon);
+	tcase_add_loop_test(tc, spawn_simple, 0, MM_NELEM(binpath_cases));
+	tcase_add_loop_test(tc, execv_simple, 0, MM_NELEM(binpath_cases));
+	tcase_add_loop_test(tc, spawn_daemon, 0, MM_NELEM(binpath_cases));
 	tcase_add_loop_test(tc, spawn_error, 0, MM_NELEM(error_cases));
 	tcase_add_loop_test(tc, spawn_daemon_error, 0, MM_NELEM(error_cases));
 	tcase_add_loop_test(tc, spawn_invalid_args, 0, MM_NELEM(inval_cases));
