@@ -21,6 +21,8 @@
 #define UNSET_PID_VALUE ((mm_pid_t) -23)
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#define CHILDPROC_BINPATH       BUILDDIR "/"LT_OBJDIR "child-proc"EXEEXT
+
 #define NOEXEC_FILE     "file-noexec"
 #define UNKBINFMT_FILE  "file-unkfmt"
 #define NOTEXIST_FILE   "does-not-exists"
@@ -98,7 +100,7 @@ struct process_test_data* create_process_test_data(void)
 	};
 
 	// Initial process command and args
-	strcpy(data->cmd, BUILDDIR"/child-proc"EXEEXT);
+	strcpy(data->cmd, CHILDPROC_BINPATH);
 	for (i = 0; i < MM_NELEM(argv); i++)
 		strcpy(data->argv_data[data->argv_data_len++], argv[i]);
 
@@ -404,10 +406,10 @@ const struct {
 	{.path = NULL, .flags = MM_SPAWN_KEEP_FDS},
 	{.path = NULL, .flags = MM_SPAWN_DAEMONIZE},
 	{.path = NULL, .flags = MM_SPAWN_KEEP_FDS | MM_SPAWN_DAEMONIZE},
-	{.path = BUILDDIR"/child-proc"EXEEXT, .flags = (MM_SPAWN_KEEP_FDS << 2)},
+	{.path = CHILDPROC_BINPATH, .flags = (MM_SPAWN_KEEP_FDS << 2)},
 #if defined(_WIN32)
-	{.path = BUILDDIR"/child-proc"EXEEXT, .flags = MM_SPAWN_KEEP_FDS},
-	{.path = BUILDDIR"/child-proc"EXEEXT, .flags = MM_SPAWN_KEEP_FDS | MM_SPAWN_DAEMONIZE},
+	{.path = CHILDPROC_BINPATH, .flags = MM_SPAWN_KEEP_FDS},
+	{.path = CHILDPROC_BINPATH, .flags = MM_SPAWN_KEEP_FDS | MM_SPAWN_DAEMONIZE},
 #endif
 };
 
