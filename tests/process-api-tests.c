@@ -304,6 +304,7 @@ static
 const char* binpath_cases[] = {
 	CHILDPROC_BINPATH,
 	"child-proc"EXEEXT,
+	"child-proc",
 };
 
 START_TEST(spawn_simple)

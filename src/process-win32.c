@@ -40,7 +40,6 @@
 #define CRT_BUFFER_SIZE(nh)	(sizeof(int) + nh*(sizeof(char)+sizeof(HANDLE)))
 static const struct mm_remap_fd std_fd_mappings[] = {{0, 0}, {1, 1}, {2, 2}};
 
-
 /**
  * struct filedes_info - data to pass to child for inheriting fd type
  * @num_fd:     maximum number of opened file descriptor
@@ -1070,8 +1069,9 @@ static
 char* search_bin_in_path(const char* base)
 {
 	const char *dir, *eos;
-	char *path, *new_path;
-	int baselen, dirlen, len, maxlen, error, rv;
+	char *path, *new_path, *ext;
+	int baselen, dirlen, len, maxlen, error, rv, i;
+	const char* search_exts[] = {"", ".exe"};
 
 	baselen = strlen(base);
 	path = NULL;
@@ -1086,8 +1086,8 @@ char* search_bin_in_path(const char* base)
 		eos = strchr(dir, ';');
 		dirlen = eos ? (eos - dir) : (int)strlen(dir);
 
-		// Realloc path if too small
-		len = dirlen + baselen + 2;
+		// Realloc path if too small (take into account the extension)
+		len = dirlen + baselen + 6;
 		if (len > maxlen) {
 			new_path = realloc(path, len);
 			if (!new_path) {
@@ -1104,13 +1104,21 @@ char* search_bin_in_path(const char* base)
 		path[dirlen] = '\\';
 		memcpy(path + dirlen + 1, base, baselen+1);
 
-		// Check the candidate path exist and can be executed
-		rv = mm_check_access(path, X_OK);
-		if (rv == 0)
-			return path;
+		// Get pointer to extension substring in path
+		ext = path + dirlen + 1 + baselen;
 
-		if (rv == EACCES)
-			error = EACCES;
+		// Search a candidate by trying all the possible extension
+		for (i = 0; i < MM_NELEM(search_exts); i++) {
+			strcpy(ext, search_exts[i]);
+
+			// Check the candidate path exist and can be run
+			rv = mm_check_access(path, X_OK);
+			if (rv == 0)
+				return path;
+
+			if (rv == EACCES)
+				error = EACCES;
+		}
 
 		// Move to next dir component (maybe end of list)
 		dir += dirlen;

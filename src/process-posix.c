@@ -449,7 +449,8 @@ int spawn_daemon(const struct startproc_opts* opts)
  * list of directories passed as the environment variable PATH. The list is
  * searched from beginning to end, applying the filename to each prefix,
  * until an executable file with the specified name and appropriate
- * execution permissions is found.
+ * execution permissions is found. On Windows platform, the filename will
+ * be tried first as is and then with .exe extension.
  *
  * The child process will inherit only the open file descriptors specified
  * in the @fd_map array whose length is indicated by @num_map. For each
