@@ -37,18 +37,11 @@
 #define FDEV            0x40    /* file handle refers to device */
 #define FTEXT           0x80    /* file handle is in text mode */
 
-#define CRT_BUFFER_SIZE(nh)	(sizeof(int) + nh*(sizeof(char)+sizeof(HANDLE)))
+#define CRT_BUFFER_SIZE(nh)   ( sizeof(int)                       \
+                                + (nh) * sizeof(unsigned char)    \
+                                + (nh) * sizeof(HANDLE)           \
+                                + (nh) * sizeof(unsigned char) )
 static const struct mm_remap_fd std_fd_mappings[] = {{0, 0}, {1, 1}, {2, 2}};
-
-/**
- * struct filedes_info - data to pass to child for inheriting fd type
- * @num_fd:     maximum number of opened file descriptor
- * @info:       arrary of file descriptor information (indexed by fd number)
- */
-struct filedes_info {
-	int num_fd;
-	unsigned char info[];
-};
 
 
 /**
@@ -62,13 +55,11 @@ struct filedes_info {
  *                  INVALID_HANDLE_VALUE if not inherited). Points in @crt_buff
  * @crt_fd_flags:   array of flags indicating the type of CRT fd inherited
  *                  in the child process. Points in @crt_buff
+ * @crt_fd_infos:   mmlib fd type array passed to child, points in @crt_buff
  * @info:           WIN32 structure configured for call of CreateProcess()
  * @attr_list:      helper data holder for call of CreateProcess(). This is
  *                  internally used for setting @info up.
  * @is_attr_init:   true if @attr_list is initialized, false otherwise
- * @fd_infos_hmap:  file mapping handle supporting mmlib fd info to be
- *                  consumed by child during its initialization
- * @fd_infos:       memory mapped to @fd_infos_hmap
  *
  * This structure is meant to keep track and generate the WIN32 structures
  * to create the child process inheriting the right file descriptors and
@@ -82,11 +73,10 @@ struct startup_config {
 	BYTE* crt_buff;
 	unsigned char* crt_fd_flags;
 	HANDLE* crt_fd_hnds;
+	unsigned char* crt_fd_infos;
 	STARTUPINFOEXW info;
 	LPPROC_THREAD_ATTRIBUTE_LIST attr_list;
 	bool is_attr_init;
-	HANDLE fd_infos_hmap;
-	struct filedes_info* fd_infos;
 };
 
 
@@ -276,6 +266,9 @@ void drop_child_from_children_list(mm_pid_t pid)
 /**
  * DOC: file descriptors inherited in a new Win32 process
  *
+ * FD passing on Windows
+ * ---------------------
+ *
  * Like in POSIX, file descriptor on Windows can be inherited from parent
  * into a child at its creation. However file descriptor on Win32 are not a
  * object of the OS, but a construct provided by the CRT (msvcrt of each
@@ -318,21 +311,26 @@ void drop_child_from_children_list(mm_pid_t pid)
  * Windows 95. (MS has just added layer of validation of the data passed
  * over the versions of Windows).
  *
- * Conclusion: Even if a software cannot access to internal FD flags of a
- * CRT, if it knows the type of fd it has to pass, it can simply call setup
- * &STARTUPINFO.lpReserved2 and call CreateProcess(), the CRT (whatever it
- * is) of the child will accept the data and setup the file descriptor the
- * same way the parent would have called spawnv(). mmlib uses this keep
- * metadata regarding fd opened by itself while keeping use of CRT to handle
- * and fd allocation and close (with _open_osfhandle(), _get_osfhandle(),
- * _close()...). This allows to cooperate well with piece of code in the
- * same process that do not use mmlib to create its file descriptors.
+ * FD passing with mmlib
+ * ---------------------
+ *
+ * Even if a software cannot access to internal FD flags of a CRT, if it knows
+ * the type of fd it has to pass, it can simply setup &STARTUPINFO.lpReserved2
+ * and call CreateProcess(), the CRT (whichever it is) of the child will accept
+ * the data and setup the file descriptors the same way the parent would have
+ * called spawnv().
+ *
+ * mmlib uses this to keep metadata regarding fd opened by itself while keeping
+ * use of CRT to handle fd allocation and closing (with _open_osfhandle(),
+ * _get_osfhandle(), _close()...). It is done by adding an extra array in the
+ * data passed in &STARTUPINFO.lpReserved2. This extra array will be
+ * interpreted by mmlib at startup. This mechanism also allows to cooperate
+ * well with piece of code in the same process that do not use mmlib to create
+ * its file descriptors. The number of FD to be passed is indeed specified by
+ * the first field of &STARTUPINFO.lpReserved2: any data after the array of
+ * win32 handle will be ignored by process not using mmlib since the offset
+ * and length of this array is solely dependent on number of FD passed.
  */
-
-// Special handle values passed to startup info to recognize that mmlib has
-// created process
-#define MMLIBINIT_STDOUT_HANDLE_VALUE	((HANDLE)0xF3311BF)
-#define MMLIBINIT_STDERR_HANDLE_VALUE	((HANDLE)0x3311BFF)
 
 
 /**
@@ -345,31 +343,32 @@ void drop_child_from_children_list(mm_pid_t pid)
 MM_CONSTRUCTOR(mmlib_fd_init)
 {
 	STARTUPINFOW si;
-	HANDLE fd_infos_hmap;
-	struct filedes_info* fd_infos;
-	int fd;
+	int fd, num_fd;
+	const BYTE* crtbuff;
+	const unsigned char* fd_infos;
 
 	// Get startup parameters
 	GetStartupInfoW(&si);
 
-	// Check that this process has been created by the mm_spawn() API
-	if ( (si.hStdOutput != MMLIBINIT_STDOUT_HANDLE_VALUE)
-	  || (si.hStdError != MMLIBINIT_STDERR_HANDLE_VALUE) )
+	crtbuff = si.lpReserved2;
+	if (!crtbuff)
 		return;
 
-	// Memory map the file mapping passed from the parent
-	fd_infos_hmap = si.hStdInput;
-	fd_infos = MapViewOfFile(fd_infos_hmap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-	if (!fd_infos)
-		goto exit;
+	// Get num_fd and handle from startup info. memcpy is
+	// used because crtbuff is not guaranteed to be aligned
+	memcpy(&num_fd, crtbuff, sizeof(num_fd));
+	fd_infos = crtbuff + sizeof(int)
+	                   + num_fd * sizeof(unsigned char)
+	                   + num_fd * sizeof(HANDLE)
+	                   + num_fd * sizeof(unsigned char);
 
-	// Initialize the fd info array with the data passed in memory map
-	for (fd = 0; fd < fd_infos->num_fd; fd++)
-		set_fd_info(fd, fd_infos->info[fd]);
+	// Check from buffer size that lpReserved2 has been set by mmlib
+	if (si.cbReserved2 != CRT_BUFFER_SIZE(num_fd))
+		return;
 
-exit:
-	// The handle is no longer needed, close it to avoid a handle leak
-	CloseHandle(fd_infos_hmap);
+	// Initialize the fd info array with the data passed in startup info
+	for (fd = 0; fd < num_fd; fd++)
+		set_fd_info(fd, fd_infos[fd]);
 }
 
 
@@ -458,9 +457,10 @@ STARTUPINFOW* startup_config_get_startup_info(struct startup_config* cfg)
 			.cb = sizeof(cfg->info),
 			.cbReserved2 = CRT_BUFFER_SIZE(cfg->num_crt_fd),
 			.lpReserved2 = cfg->crt_buff,
-			.hStdInput = cfg->fd_infos_hmap,
-			.hStdOutput = MMLIBINIT_STDOUT_HANDLE_VALUE,
-			.hStdError = MMLIBINIT_STDERR_HANDLE_VALUE,
+			.dwFlags = STARTF_USESTDHANDLES,
+			.hStdInput = cfg->crt_fd_hnds[0],
+			.hStdOutput = cfg->crt_fd_hnds[1],
+			.hStdError = cfg->crt_fd_hnds[2],
 		},
 		.lpAttributeList = cfg->attr_list,
 	};
@@ -486,6 +486,7 @@ static
 int startup_config_alloc_crt_buffs(struct startup_config* cfg)
 {
 	int num_crt_fd;
+	int offset;
 
 	// Adjust num_fd so that cfg->crt_fd_hnds is aligned. This is the
 	// case if sizeof(int)+num_fd is a multiple of sizeof(HANDLE)
@@ -499,12 +500,20 @@ int startup_config_alloc_crt_buffs(struct startup_config* cfg)
 
 	// By adjustement of num_crt_fd, we are ensured that
 	// cfg->crt_fd_hnds pointer is properly aligned on HANDLE.
+	offset = 0;
 	*(int*)cfg->crt_buff = num_crt_fd;
-	cfg->crt_fd_flags = cfg->crt_buff + sizeof(int);
-	cfg->crt_fd_hnds = (HANDLE*)(cfg->crt_fd_flags + num_crt_fd);
+	offset += sizeof(int);
+
+	cfg->crt_fd_flags = cfg->crt_buff + offset;
+	offset += num_crt_fd * sizeof(unsigned char);
+
+	cfg->crt_fd_hnds = (HANDLE*)(cfg->crt_buff + offset);
+	offset += num_crt_fd * sizeof(HANDLE);
+
+	cfg->crt_fd_infos = cfg->crt_buff + offset;
 
 	return 0;
-} 
+}
 
 
 /**
@@ -539,23 +548,11 @@ int startup_config_allocate_internals(struct startup_config* cfg)
 	if (!cfg->inherited_hnds || !cfg->attr_list)
 		return mm_raise_error(ENOMEM, "Failed to alloc buffers for startup info");
 
-	// Create paging file backed file mapping for passing mmlib related fd info
-	cfg->fd_infos_hmap = CreateFileMapping(INVALID_HANDLE_VALUE, &sa,
-	                                          PAGE_READWRITE, 0, MM_PAGESZ, NULL);
-	if (cfg->fd_infos_hmap == INVALID_HANDLE_VALUE)
-		return mm_raise_from_w32err("Failed to create file mapping");
-
-	// Map the created file mapping
-	cfg->fd_infos = MapViewOfFile(cfg->fd_infos_hmap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-	if (cfg->fd_infos == NULL)
-		return mm_raise_from_w32err("Failed to map filedes info");
-
 	// Allocate a process attribute list
 	if (!InitializeProcThreadAttributeList(cfg->attr_list, 1, 0, &attrlist_bufsize))
 		return mm_raise_from_w32err("Failed to initialize attribute list");
 
 	cfg->is_attr_init = true;
-	cfg->fd_infos->num_fd = cfg->num_fd;
 	return 0;
 }
 
@@ -601,12 +598,12 @@ int startup_config_setup_mappings(struct startup_config* cfg,
 			mm_raise_error(EBADF, "fd_map[%i].parent_fd=%i does not refer to a valid fd", i, parent_fd);
 			return -1;
 		}
-	
+
 		// setup child_fd mapping
 		fd_info = get_fd_info(parent_fd);
 		cfg->crt_fd_hnds[child_fd] = hnd;
 		cfg->crt_fd_flags[child_fd] = convert_fdinfo_to_crtflags(fd_info);
-		cfg->fd_infos->info[child_fd] = fd_info;
+		cfg->crt_fd_infos[child_fd] = fd_info;
 	}
 
 	return 0;
@@ -616,7 +613,7 @@ int startup_config_setup_mappings(struct startup_config* cfg,
 /**
  * startup_config_dup_inherited_hnds() - duplicate inherited handles
  * @cfg:        being initialized startup config
- * 
+ *
  * This function, meant to be called in startup_config_init(), will populate
  * the array of inherited handle. Since this list must contains only
  * inheritable handle and we cannot know (for sure) if it is the case, we
@@ -656,13 +653,6 @@ int startup_config_dup_inherited_hnds(struct startup_config* cfg)
 		cfg->crt_fd_hnds[i] = dup_hnd;
 	}
 
-	// Add handle of file mapping of fd info to inherited handle list.
-	// Since it will be closed with the rest of other handle in
-	// inherited_hnd, we must now reset cfg->fd_info_hmap to avoid
-	// double close of the handle.
-	cfg->inherited_hnds[cfg->num_hnd++] = cfg->fd_infos_hmap;
-	cfg->fd_infos_hmap = INVALID_HANDLE_VALUE;
-
 	// Add the inherited handle list in attribute list
 	UpdateProcThreadAttribute(cfg->attr_list, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
 	                          cfg->inherited_hnds, cfg->num_hnd*sizeof(*cfg->inherited_hnds),
@@ -690,17 +680,11 @@ void startup_config_deinit(struct startup_config* cfg)
 	for (i = 0; i < cfg->num_hnd; i++)
 		CloseHandle(cfg->inherited_hnds[i]);
 
-	if (cfg->fd_infos != NULL)
-		UnmapViewOfFile(cfg->fd_infos);
-
-	if (cfg->fd_infos_hmap != INVALID_HANDLE_VALUE)
-		CloseHandle(cfg->fd_infos_hmap);
-
 	free(cfg->crt_buff);
 	free(cfg->inherited_hnds);
 	free(cfg->attr_list);
 
-	*cfg = (struct startup_config){.fd_infos_hmap = INVALID_HANDLE_VALUE};
+	*cfg = (struct startup_config){.num_fd = 0};
 }
 
 
@@ -728,7 +712,6 @@ int startup_config_init(struct startup_config* cfg,
 		num_fd = 3;
 
 	*cfg = (struct startup_config) {
-		.fd_infos_hmap = INVALID_HANDLE_VALUE,
 		.num_fd = num_fd,
 	};
 
