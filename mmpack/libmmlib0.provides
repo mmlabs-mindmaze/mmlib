@@ -1,0 +1,35 @@
+# vi: syntax=yaml
+
+elf:
+  mm_aaxis_from_mat3: 0.0.0
+  mm_cross: 0.0.0
+  mm_mat3_from_quat: 0.0.0
+  mm_quat_from_mat3: 0.0.0
+  mm_mat_from_quat: 0.0.0
+  mm_quat_from_mat: 0.0.0
+  mm_rotate: 0.0.0
+  mmimage_buffer_size: 0.0.0
+  mmimg_alloc_buffer: 0.2.0
+  mmimg_pixel_size: 0.2.0
+  mmimg_set_stride: 0.2.0
+  mmlog_log: 0.0.0
+  mmprofile_print: 0.1.0
+  mmprofile_reset: 0.1.0
+  mmstrerror: 0.0.0
+  mmstrerror_r: 0.0.0
+  mmtic: 0.1.0
+  mmtoc: 0.1.0
+  mmtoc_label: 0.3.0
+  plane_distance: 0.0.0
+  plane_from_point: 0.0.0
+  plane_intersect: 0.0.0
+  plane_projection: 0.0.0
+  quat_mul: 0.0.0
+  skl_add: 0.0.0
+  skl_add_to: 0.0.0
+  skl_deinit: 0.0.0
+  skl_find: 0.0.0
+  skl_init: 0.0.0
+  skl_load_data: 0.0.0
+  skl_parentlist: 0.0.0
+  skl_save_data: 0.0.0
