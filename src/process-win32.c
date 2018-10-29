@@ -359,8 +359,7 @@ MM_CONSTRUCTOR(mmlib_fd_init)
 	memcpy(&num_fd, crtbuff, sizeof(num_fd));
 	fd_infos = crtbuff + sizeof(int)
 	                   + num_fd * sizeof(unsigned char)
-	                   + num_fd * sizeof(HANDLE)
-	                   + num_fd * sizeof(unsigned char);
+	                   + num_fd * sizeof(HANDLE);
 
 	// Check from buffer size that lpReserved2 has been set by mmlib
 	if (si.cbReserved2 != CRT_BUFFER_SIZE(num_fd))
@@ -563,7 +562,7 @@ int startup_config_allocate_internals(struct startup_config* cfg)
  * @num_map:    number of element in @fd_map
  * @fd_map:     array of file descriptor mapping elements
  *
- * Configures @cfg->crt_fd_flags, @cfg->crt_fd_hnds and cfg->fd_infos->info
+ * Configures @cfg->crt_fd_flags, @cfg->crt_fd_hnds and cfg->fd_infos
  * according to the remapping defined in @fd_map
  *
  * Return: 0 in case of success, -1 otherwise with error set accordingly.
