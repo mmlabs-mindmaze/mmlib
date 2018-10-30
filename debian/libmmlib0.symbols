@@ -1,20 +1,131 @@
 libmmlib.so.0 libmmlib0 #MINVER#
+ _mm_freea_on_heap@Base 1.0.0
+ _mm_malloca_on_heap@Base 1.0.0
  mm_aaxis_from_mat3@Base 0.0.0~~experimental3
+ mm_accept@Base 1.0.0
+ mm_aligned_alloc@Base 1.0.0
+ mm_aligned_free@Base 1.0.0
+ mm_anon_shm@Base 1.0.0
+ mm_bind@Base 1.0.0
+ mm_chdir@Base 1.0.0
+ mm_check_access@Base 1.0.0
+ mm_close@Base 1.0.0
+ mm_closedir@Base 1.0.0
+ mm_connect@Base 1.0.0
+ mm_create_sockclient@Base 1.0.0
  mm_cross@Base 0.0.0~~experimental
+ mm_dl_fileext@Base 1.0.0
+ mm_dlclose@Base 1.0.0
+ mm_dlopen@Base 1.0.0
+ mm_dlsym@Base 1.0.0
+ mm_dup2@Base 1.0.0
+ mm_dup@Base 1.0.0
+ mm_execv@Base 1.0.0
+ mm_freeaddrinfo@Base 1.0.0
+ mm_fstat@Base 1.0.0
+ mm_fsync@Base 1.0.0
+ mm_ftruncate@Base 1.0.0
+ mm_get_basedir@Base 1.0.0
+ mm_get_lasterror_desc@Base 1.0.0
+ mm_get_lasterror_extid@Base 1.0.0
+ mm_get_lasterror_location@Base 1.0.0
+ mm_get_lasterror_module@Base 1.0.0
+ mm_get_lasterror_number@Base 1.0.0
+ mm_getaddrinfo@Base 1.0.0
+ mm_getcwd@Base 1.0.0
+ mm_getenv@Base 1.0.0
+ mm_getnameinfo@Base 1.0.0
+ mm_getres@Base 1.0.0
+ mm_getsockname@Base 1.0.0
+ mm_getsockopt@Base 1.0.0
+ mm_gettime@Base 1.0.0
+ mm_isatty@Base 1.0.0
+ mm_link@Base 1.0.0
+ mm_listen@Base 1.0.0
+ mm_mapfile@Base 1.0.0
  mm_mat3_from_quat@Base 0.0.0~~experimental
- mm_quat_from_mat3@Base 0.0.0~~experimental
  (optional)mm_mat_from_quat@Base 0.0.0~~experimental
+ mm_mkdir@Base 1.0.0
+ mm_nanosleep@Base 1.0.0
+ mm_open@Base 1.0.0
+ mm_opendir@Base 1.0.0
+ mm_path_from_basedir@Base 1.0.0
+ mm_pipe@Base 1.0.0
+ mm_poll@Base 1.0.0
+ mm_print_lasterror@Base 1.0.0
+ mm_quat_from_mat3@Base 0.0.0~~experimental
  (optional)mm_quat_from_mat@Base 0.0.0~~experimental
+ mm_raise_error_full@Base 1.0.0
+ mm_raise_error_vfull@Base 1.0.0
+ mm_read@Base 1.0.0
+ mm_readdir@Base 1.0.0
+ mm_readlink@Base 1.0.0
+ mm_recv@Base 1.0.0
+ mm_recv_multimsg@Base 1.0.0
+ mm_recvmsg@Base 1.0.0
+ mm_relative_sleep_ms@Base 1.0.0
+ mm_relative_sleep_ns@Base 1.0.0
+ mm_relative_sleep_us@Base 1.0.0
+ mm_remove@Base 1.0.0
+ mm_rewinddir@Base 1.0.0
+ mm_rmdir@Base 1.0.0
  mm_rotate@Base 0.0.0~~experimental
+ mm_save_errorstate@Base 1.0.0
+ mm_seek@Base 1.0.0
+ mm_send@Base 1.0.0
+ mm_send_multimsg@Base 1.0.0
+ mm_sendmsg@Base 1.0.0
+ mm_set_errorstate@Base 1.0.0
+ mm_setenv@Base 1.0.0
+ mm_setsockopt@Base 1.0.0
+ mm_shm_open@Base 1.0.0
+ mm_shm_unlink@Base 1.0.0
+ mm_shutdown@Base 1.0.0
+ mm_socket@Base 1.0.0
+ mm_spawn@Base 1.0.0
+ mm_stat@Base 1.0.0
+ mm_symlink@Base 1.0.0
+ mm_unlink@Base 1.0.0
+ mm_unmap@Base 1.0.0
+ mm_unsetenv@Base 1.0.0
+ mm_wait_process@Base 1.0.0
+ mm_write@Base 1.0.0
+ mmarg_parse@Base 1.0.0
  mmimage_buffer_size@Base 0.0.0
  mmimg_alloc_buffer@Base 0.2.0
+ mmimg_free_buffer@Base 1.0.0
  mmimg_pixel_size@Base 0.2.0
  mmimg_set_stride@Base 0.2.0
+ mmipc_connect@Base 1.0.0
+ mmipc_connected_pair@Base 1.0.0
+ mmipc_recvmsg@Base 1.0.0
+ mmipc_sendmsg@Base 1.0.0
+ mmipc_srv_accept@Base 1.0.0
+ mmipc_srv_create@Base 1.0.0
+ mmipc_srv_destroy@Base 1.0.0
  mmlog_log@Base 0.0.0~~experimental
+ mmprofile_get_data@Base 1.0.0
  mmprofile_print@Base 0.1.0
  mmprofile_reset@Base 0.1.0
  mmstrerror@Base 0.0.0~~experimental
  mmstrerror_r@Base 0.0.0~~experimental
+ mmthr_cond_broadcast@Base 1.0.0
+ mmthr_cond_deinit@Base 1.0.0
+ mmthr_cond_init@Base 1.0.0
+ mmthr_cond_signal@Base 1.0.0
+ mmthr_cond_timedwait@Base 1.0.0
+ mmthr_cond_wait@Base 1.0.0
+ mmthr_create@Base 1.0.0
+ mmthr_detach@Base 1.0.0
+ mmthr_join@Base 1.0.0
+ mmthr_mtx_consistent@Base 1.0.0
+ mmthr_mtx_deinit@Base 1.0.0
+ mmthr_mtx_init@Base 1.0.0
+ mmthr_mtx_lock@Base 1.0.0
+ mmthr_mtx_trylock@Base 1.0.0
+ mmthr_mtx_unlock@Base 1.0.0
+ mmthr_once@Base 1.0.0
+ mmthr_self@Base 1.0.0
  mmtic@Base 0.1.0
  mmtoc@Base 0.1.0
  mmtoc_label@Base 0.3.0
