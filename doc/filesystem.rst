@@ -11,3 +11,4 @@ Filesystem
     :no-header:
     :module: filesystem
     :headers: mmsysio.h
+    :export:

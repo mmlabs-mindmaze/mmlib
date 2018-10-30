@@ -11,3 +11,4 @@ Process and shared objects
     :no-header:
     :module: process
     :headers: mmsysio.h
+    :export:

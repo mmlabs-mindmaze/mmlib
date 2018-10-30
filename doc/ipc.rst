@@ -5,3 +5,4 @@ IPC
     :no-header:
     :module: ipc
     :headers: mmsysio.h
+    :export:

@@ -5,3 +5,4 @@ Dynamic shared object handling
     :no-header:
     :module: dlfcn
     :headers: mmdlfcn.h
+    :export:

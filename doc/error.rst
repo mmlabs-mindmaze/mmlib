@@ -9,3 +9,4 @@ Error reporting
     :module: error
     :no-header:
     :headers: mmerrno.h
+    :export:
