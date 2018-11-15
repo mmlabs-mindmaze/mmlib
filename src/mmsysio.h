@@ -391,7 +391,11 @@ struct msghdr {
 	socklen_t     msg_controllen;
 	int           msg_flags;
 };
-#endif
+
+#  define SHUT_RD       0
+#  define SHUT_WR       1
+#  define SHUT_RDWR     2
+#endif /* _WIN32 */
 
 
 /**
