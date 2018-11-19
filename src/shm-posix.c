@@ -250,6 +250,8 @@ int get_mmap_flags(int mflags)
 
 	if (mflags & MM_MAP_SHARED)
 		flags |= MAP_SHARED;
+	else
+		flags |= MAP_PRIVATE;
 
 	return flags;
 }
