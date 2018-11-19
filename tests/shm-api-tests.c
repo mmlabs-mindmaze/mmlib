@@ -18,11 +18,42 @@
 
 #define TEST_SHM "test-shm-name"
 
+
+static struct {
+	int oflags;
+	int mflags;
+} valid_map_cases[] = {
+	{.oflags = O_RDWR,   .mflags = MM_MAP_RDWR |MM_MAP_SHARED},
+	{.oflags = O_RDWR,   .mflags = MM_MAP_READ |MM_MAP_SHARED},
+	{.oflags = O_RDWR,   .mflags = MM_MAP_WRITE|MM_MAP_SHARED},
+	{.oflags = O_RDWR,   .mflags = MM_MAP_RDWR},
+	{.oflags = O_RDWR,   .mflags = MM_MAP_READ},
+	{.oflags = O_RDWR,   .mflags = MM_MAP_WRITE},
+	{.oflags = O_RDONLY, .mflags = MM_MAP_READ |MM_MAP_SHARED},
+	{.oflags = O_RDONLY, .mflags = MM_MAP_READ},
+};
+
+#define NUM_VALID_MAP_CASES     MM_NELEM(valid_map_cases)
+
+
 static
 void test_teardown(void)
 {
 	mm_shm_unlink(TEST_SHM);
 }
+
+
+static
+void create_rw_shm(const char* path)
+{
+	int fd_shm;
+
+	fd_shm = mm_shm_open(path, O_RDWR|O_CREAT|O_EXCL, 0600);
+	ck_assert(fd_shm > 0);
+	ck_assert(mm_ftruncate(fd_shm, MM_PAGESZ) == 0);
+	mm_close(fd_shm);
+}
+
 
 START_TEST(shm_open_test)
 {
@@ -54,12 +85,17 @@ START_TEST(mapfile_test)
 {
 	int fd;
 	void * map;
+	int oflags = valid_map_cases[_i].oflags;
+	int mflags = valid_map_cases[_i].mflags;
 
-	fd = mm_shm_open(TEST_SHM, O_RDWR|O_CREAT|O_EXCL, 0);
+	// Create a shm object located at TEST_SHM with file size
+	// MM_PAGESZ so that we can access it even if oflags is O_RDONLY
+	create_rw_shm(TEST_SHM);
+
+	fd = mm_shm_open(TEST_SHM, oflags, 0);
 	ck_assert(fd > 0);
 
-	mm_ftruncate(fd, MM_PAGESZ);
-	map = mm_mapfile(fd, 0, MM_PAGESZ, MM_MAP_RDWR|MM_MAP_SHARED);
+	map = mm_mapfile(fd, 0, MM_PAGESZ, mflags);
 	ck_assert(map != NULL);
 
 	mm_unmap(map);
@@ -129,7 +165,7 @@ TCase* create_shm_tcase(void)
 
 	tcase_add_test(tc, shm_open_test);
 	tcase_add_test(tc, shm_open_duplicate_test);
-	tcase_add_test(tc, mapfile_test);
+	tcase_add_loop_test(tc, mapfile_test, 0, NUM_VALID_MAP_CASES);
 	tcase_add_test(tc, mapfile_invalid_offset_test);
 	tcase_add_test(tc, invalid_unmap_test);
 	tcase_add_test(tc, multiple_maps_test);
