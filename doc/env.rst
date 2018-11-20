@@ -3,7 +3,7 @@ Environment manipulation
 
 .. kernel-doc:: src/mmlib.h
     :module: env
-    :headers: mmlib.h
+    :functions: mm_known_dir
 
 .. kernel-doc:: src/utils.c
     :module: env
