@@ -9,7 +9,6 @@
 #include "mmerrno.h"
 #include "mmpredefs.h"
 #include "mmsysio.h"
-#include "error-internal.h"
 #include "file-internal.h"
 
 #include <sys/stat.h>

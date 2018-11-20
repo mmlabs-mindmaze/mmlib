@@ -121,6 +121,15 @@
 #  endif
 #endif
 
+
+#define MM_ERROR_IGNORE 0x01
+#define MM_ERROR_NOLOG  0x02
+#define MM_ERROR_ALL_ALTERNATE  0xffffffff
+
+#define MM_ERROR_SET    0xffffffff
+#define MM_ERROR_UNSET  0x00000000
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -191,6 +200,7 @@ MMLIB_API int mm_raise_error_vfull(int errnum, const char* module, const char* f
                                    const char* srcfile, int srcline,
                                    const char* extid, const char* desc, va_list args);
 
+MMLIB_API int mm_error_set_flags(int flags, int mask);
 MMLIB_API int mm_save_errorstate(struct mm_error_state* state);
 MMLIB_API int mm_set_errorstate(const struct mm_error_state* state);
 MMLIB_API void mm_print_lasterror(const char* info, ...);

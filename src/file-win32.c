@@ -12,7 +12,6 @@
 #include "mmsysio.h"
 #include "mmerrno.h"
 #include "mmlib.h"
-#include "error-internal.h"
 #include "file-internal.h"
 #include "utils-win32.h"
 

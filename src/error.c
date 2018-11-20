@@ -15,7 +15,6 @@
 #include <assert.h>
 
 #include "nls-internals.h"
-#include "error-internal.h"
 
 #ifndef thread_local
 #  if defined(__GNUC__)
@@ -189,7 +188,7 @@ static thread_local struct error_info last_error;
  *
  * Return: the previous state flags
  */
-LOCAL_SYMBOL
+API_EXPORTED
 int mm_error_set_flags(int flags, int mask)
 {
 	struct error_info* state = &last_error;
