@@ -149,7 +149,7 @@ MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
  * be set, it will then be your responsibility once you detect the
  * third-party call has failed to set the error state using mm_raise_error().
  *
- * Return: 0 is @errnum is 0, -1 otherwise.
+ * Return: always -1.
  */
 #define mm_raise_error(errnum, desc, ...) \
 		mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, NULL, desc,  ## __VA_ARGS__ )
@@ -177,7 +177,7 @@ MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
  * right language) that make sense in the context of the usage of the
  * product and maybe what the enduser has to do.
  *
- * Return: 0 is @errnum is 0, -1 otherwise.
+ * Return: always -1.
  */
 #define mm_raise_error_with_extid(errnum, extid, desc, ...) \
 		mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, extid, desc,  ## __VA_ARGS__ )

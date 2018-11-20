@@ -194,7 +194,7 @@ int mm_error_set_flags(int flags, int mask)
  * Exactly the same as mm_raise_error_full() but using a va_list to pass
  * argument to the format passed in @desc.
  *
- * Return: 0 if @errnum is 0, -1 otherwise.
+ * Return: always -1.
  */
 API_EXPORTED
 int mm_raise_error_vfull(int errnum, const char* module, const char* func,
@@ -204,9 +204,6 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
 {
 	struct error_info* state;
 	int flags;
-
-	if (!errnum)
-		return 0;
 
 	if (!module)
 		module = "unknown";
@@ -240,7 +237,8 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
 	// Set errno for backward compatibility, ie case of module that has
 	// been updated to use mm_error* but whose client code (user of this
 	// module) is not using yet mm_error*
-	errno = errnum;
+	if (errnum != 0)
+		errno = errnum;
 
 	if (state->flags & MM_ERROR_NOLOG)
 		return -1;
@@ -271,7 +269,7 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
  * mm_raise_error_with_extid() macros. You are advised to use the macros instead
  * unless you want to build your own wrapper.
  *
- * Return: 0 is @errnum is 0, -1 otherwise.
+ * Return: always -1.
  */
 API_EXPORTED
 int mm_raise_error_full(int errnum, const char* module, const char* func,
