@@ -73,6 +73,21 @@ const char* get_mm_errmsg(int errnum)
 }
 
 
+/**
+ * mmstrerror() - Get description for error code
+ * @errnum:     error to describe
+ *
+ * This function maps the error number in @errnum to a locale-dependent
+ * error message string and return a pointer to it.
+ *
+ * mmstrerror() function is not be thread-safe. The application must not
+ * modify the string returned. The returned string pointer might be
+ * invalidated or the string content might be overwritten by a subsequent
+ * call to mmstrerror(), strerror(), or by subsequent call to strerror_l()
+ * in the same thread.
+ *
+ * Return: pointer to the generated message string.
+ */
 API_EXPORTED
 const char* mmstrerror(int errnum)
 {
