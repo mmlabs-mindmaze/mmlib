@@ -26,11 +26,11 @@ static struct {
 	{.oflags = O_RDWR,   .mflags = MM_MAP_RDWR |MM_MAP_SHARED},
 	{.oflags = O_RDWR,   .mflags = MM_MAP_READ |MM_MAP_SHARED},
 	{.oflags = O_RDWR,   .mflags = MM_MAP_WRITE|MM_MAP_SHARED},
-	{.oflags = O_RDWR,   .mflags = MM_MAP_RDWR},
-	{.oflags = O_RDWR,   .mflags = MM_MAP_READ},
-	{.oflags = O_RDWR,   .mflags = MM_MAP_WRITE},
+	{.oflags = O_RDWR,   .mflags = MM_MAP_RDWR |MM_MAP_PRIVATE},
+	{.oflags = O_RDWR,   .mflags = MM_MAP_READ |MM_MAP_PRIVATE},
+	{.oflags = O_RDWR,   .mflags = MM_MAP_WRITE|MM_MAP_PRIVATE},
 	{.oflags = O_RDONLY, .mflags = MM_MAP_READ |MM_MAP_SHARED},
-	{.oflags = O_RDONLY, .mflags = MM_MAP_READ},
+	{.oflags = O_RDONLY, .mflags = MM_MAP_READ |MM_MAP_PRIVATE},
 };
 
 #define NUM_VALID_MAP_CASES     MM_NELEM(valid_map_cases)

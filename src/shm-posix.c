@@ -273,7 +273,16 @@ int get_mmap_flags(int mflags)
  * The flags in parameters @mflags determines whether read, write, execute,
  * or some combination of accesses are permitted to the data being mapped.
  * The requested access can of course cannot grant more permission than the
- * one associated with @fd.
+ * one associated with @fd. It must be one of the following flags :
+ *
+ * MM_MAP_SHARED
+ *   Modifications to the mapped data are propagated to the underlying object.
+ * MM_MAP_PRIVATE
+ *   Modifications to the mapped data will be visible only to the calling
+ *   process and shall not change the underlying object.
+ *
+ * In addition to the previous flag, @mflags can contain a OR-combination
+ * of the following flags :
  *
  * MM_MAP_READ
  *   Data can be read
@@ -281,13 +290,8 @@ int get_mmap_flags(int mflags)
  *   Data can be written
  * MM_MAP_EXEC
  *   Data can be executed
- * MM_MAP_SHARED
- *   Change to mapping are shared
- *
- * If MM_MAP_SHARED is specified, write change the underlying object.
- * Otherwise, modifications to the mapped data by the calling process will
- * be visible only to the calling process and shall not change the
- * underlying object.
+ * MM_MAP_RDWR
+ *   alias to MM_MAP_READ|MM_MAP_WRITE
  *
  * The mm_mapfile() function adds an extra reference to the file associated
  * with the file descriptor @fd which is not removed by a subsequent
