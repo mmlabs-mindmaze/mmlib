@@ -3,7 +3,7 @@ Error reporting
 
 .. kernel-doc:: src/mmerrno.h
     :module: error
-    :doc: error codes
+    :headers: mmerrno.h
 
 .. kernel-doc:: src/error.c
     :module: error
