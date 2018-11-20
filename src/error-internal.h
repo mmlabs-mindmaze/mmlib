@@ -6,7 +6,7 @@
 
 #define MM_ERROR_IGNORE 0x01
 #define MM_ERROR_NOLOG  0x02
-#define MM_ERROR_ALL    0xffffffff
+#define MM_ERROR_ALL_ALTERNATE  0xffffffff
 
 #define MM_ERROR_SET    0xffffffff
 #define MM_ERROR_UNSET  0x00000000

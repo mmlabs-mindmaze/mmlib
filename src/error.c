@@ -153,19 +153,41 @@ struct error_info {
 static thread_local struct error_info last_error;
 
 /**
- * mm_error_set_flags() - set the error flags
+ * mm_error_set_flags() - set the error reporting behavior
  * @flags:                the flags to add
  * @mask:                 mask applied on the flags
  *
- * Possible flags values are MM_ERROR_IGNORE and MM_ERROR_NOLOG.
- * Additionally, mask can be set to MM_ERROR_ALL.
+ * This function allows to modify the behavior when an error is raised with
+ * mm_raise_error() and similar function. Normally when an error is raised,
+ * the usual behavior is to set the error and its details in a thread local
+ * variable (error state) and to log it. The aspect of this behavior can be
+ * modified depending on @mask which must be an OR-combination of the
+ * following flags :
+ *
+ * MM_ERROR_IGNORE
+ *   error are silently ignored... Thread error state will not be changed
+ *   and no log will be produced.
+ *
+ * MM_ERROR_NOLOG
+ *   log will not be produced when an error is raised.
+ *
+ * The aspect of the error raising behavior is controlled by the flags set
+ * in @flags combined with @mask. In other words, the aspect of behavior
+ * mentioned in the previous list is modified if the corresponding bit is
+ * set in @mask and the alternate behavior is respectively used or not
+ * depending on the corresponding bit is set or not in @flags. If a bit is
+ * unset in @mask, the same behavior is kept as before the call to
+ * mm_error_set_flags(). MM_ERROR_ALL_ALTERNATE is defined to modify all
+ * possible behavior aspect.
+ *
+ * The return variable can be used to restore the previous state.
  *
  * For example use previous = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_NOLOG)
  * to stop logging errors. The previous variable will contain the original
  * flag variable state, which can then be restored using
  * mm_error_set_flags(previous, MM_ERROR_NOLOG).
  *
- * Return: the previous error_info flags
+ * Return: the previous state flags
  */
 LOCAL_SYMBOL
 int mm_error_set_flags(int flags, int mask)

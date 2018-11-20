@@ -782,9 +782,9 @@ int mm_remove(const char* path, int flags)
 			return mm_raise_from_errno("recursive mm_remove(%s) failed: "
 			                           "cannot open directory", path);
 		}
-		error_flags = mm_error_set_flags(MM_ERROR_NOLOG, MM_ERROR_NOLOG);
+		error_flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_NOLOG);
 		rv = mm_remove_rec(dirfd, flags, RECURSION_MAX);
-		mm_error_set_flags(error_flags, MM_ERROR_ALL);
+		mm_error_set_flags(error_flags, MM_ERROR_NOLOG);
 		if (rv != 0 && !(flags & MM_FAILONERROR)) {
 			return mm_raise_from_errno("recursive mm_remove(%s) failed", path);
 		}

@@ -1047,9 +1047,9 @@ int mm_remove(const char* path, int flags)
 		if (type == MM_DT_DIR) {
 			dir = mm_opendir(path);
 
-			error_flags = mm_error_set_flags(MM_ERROR_NOLOG, MM_ERROR_NOLOG);
+			error_flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_NOLOG);
 			rv = mm_remove_rec(path, dir, flags, RECURSION_MAX);
-			mm_error_set_flags(error_flags, MM_ERROR_ALL);
+			mm_error_set_flags(error_flags, MM_ERROR_NOLOG);
 			mm_closedir(dir);
 			if (rv != 0 && !(flags & MM_FAILONERROR)) {
 				return mm_raise_from_errno("recursive mm_remove(%s) failed", path);
