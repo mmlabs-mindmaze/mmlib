@@ -83,6 +83,34 @@ START_TEST(mmstrcasecmp_test)
 END_TEST
 
 
+START_TEST(get_set_unset_env)
+{
+	// Verify DUMMY_VAR is initially unset
+	ck_assert(mm_getenv("DUMMY_VAR", NULL) == NULL);
+
+	// Test get default value is used for getenv if variable is unset
+	ck_assert_str_eq(mm_getenv("DUMMY_VAR", "something"), "something");
+
+	// test setenv without overwrite works
+	mm_setenv("DUMMY_VAR", "a val", 0);
+	ck_assert_str_eq(mm_getenv("DUMMY_VAR", NULL), "a val");
+	mm_setenv("DUMMY_VAR", "another", 0);
+	ck_assert_str_eq(mm_getenv("DUMMY_VAR", NULL), "a val");
+
+	// test setenv with overwrite works
+	mm_setenv("DUMMY_VAR", "another", 1);
+	ck_assert_str_eq(mm_getenv("DUMMY_VAR", NULL), "another");
+
+	// test default value of getenv is not used if variable is set
+	ck_assert_str_eq(mm_getenv("DUMMY_VAR", "something"), "another");
+
+	// test unsetenv works
+	mm_unsetenv("DUMMY_VAR");
+	ck_assert(mm_getenv("DUMMY_VAR", NULL) == NULL);
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -96,6 +124,7 @@ TCase* create_utils_tcase(void)
 	tcase_add_loop_test(tc, get_basedir, -5, MM_NUM_DIRTYPE+5);
 	tcase_add_loop_test(tc, path_from_base, -5, MM_NUM_DIRTYPE+5);
 	tcase_add_test(tc, mmstrcasecmp_test);
+	tcase_add_test(tc, get_set_unset_env);
 
 	return tc;
 }
