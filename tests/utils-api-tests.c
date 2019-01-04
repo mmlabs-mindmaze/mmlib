@@ -111,6 +111,56 @@ START_TEST(get_set_unset_env)
 END_TEST
 
 
+static
+const char* get_value_from_envp(const char* const* envp, const char* key)
+{
+	int i, keylen;
+
+	keylen = strlen(key);
+
+	for (i = 0; envp[i] != NULL; i++) {
+		if (  memcmp(key, envp[i], keylen) == 0
+		   && envp[i][keylen] == '=')
+			return envp[i] + keylen + 1;
+	}
+
+	return NULL;
+}
+
+
+START_TEST(get_environ)
+{
+	const char* const* envp;
+
+	// Verify DUMMY_VAR is initially unset
+	ck_assert(mm_getenv("DUMMY_VAR", NULL) == NULL);
+
+	// Check return envp does not contains DUMMY_VAR
+	envp = mm_get_environ();
+	ck_assert(envp != NULL);
+	ck_assert(get_value_from_envp(envp, "DUMMY_VAR") == NULL);
+
+	// Check return envp contains DUMMY_VAR set to value set
+	mm_setenv("DUMMY_VAR", "a_val", 0);
+	envp = mm_get_environ();
+	ck_assert(envp != NULL);
+	ck_assert_str_eq(get_value_from_envp(envp, "DUMMY_VAR"), "a_val");
+
+	// Check return envp contains DUMMY_VAR set to new value set
+	mm_setenv("DUMMY_VAR", "another", 1);
+	envp = mm_get_environ();
+	ck_assert(envp != NULL);
+	ck_assert_str_eq(get_value_from_envp(envp, "DUMMY_VAR"), "another");
+
+	// Check return envp contains no DUMMY_VAR after unset
+	mm_unsetenv("DUMMY_VAR");
+	envp = mm_get_environ();
+	ck_assert(envp != NULL);
+	ck_assert(get_value_from_envp(envp, "DUMMY_VAR") == NULL);
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -125,6 +175,7 @@ TCase* create_utils_tcase(void)
 	tcase_add_loop_test(tc, path_from_base, -5, MM_NUM_DIRTYPE+5);
 	tcase_add_test(tc, mmstrcasecmp_test);
 	tcase_add_test(tc, get_set_unset_env);
+	tcase_add_test(tc, get_environ);
 
 	return tc;
 }

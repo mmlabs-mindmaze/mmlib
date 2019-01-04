@@ -8,6 +8,7 @@
 #include "mmlib.h"
 #include "utils-win32.h"
 #include <stdlib.h>
+#include <string.h>
 #include <uchar.h>
 #include <errno.h>
 
@@ -35,11 +36,13 @@ struct envstr {
  * @max_arrlen: allocated number of element in @array
  * @arrlen:     number of element used in @array
  * @array:      buffer of environment strings
+ * @envp:       cache of NULL terminated array to environment strings
  */
 struct envcache {
 	int max_arrlen;
 	int arrlen;
 	struct envstr* array;
+	char** envp;
 };
 
 
@@ -180,6 +183,7 @@ void envcache_deinit(struct envcache* cache)
 	for (i = 0; i < cache->arrlen; i++)
 		envstr_deinit(&cache->array[i]);
 
+	free(cache->envp);
 	free(cache->array);
 	*cache = (struct envcache){.array = NULL};
 }
@@ -272,6 +276,31 @@ void envcache_remove_entry(struct envcache* cache, struct envstr* entry)
 }
 
 
+/**
+ * envcache_update_envp() - update environ strings array
+ * @cache:       environment cache to update
+ *
+ * return: the new environ strings array in case of success, NULL otherwise
+ */
+static
+char** envcache_update_envp(struct envcache* cache)
+{
+	int i;
+	char** envp;
+
+	envp = realloc(cache->envp, (cache->arrlen+1)*sizeof(*envp));
+	if (!envp)
+		return NULL;
+
+	for (i = 0; i < cache->arrlen; i++)
+		envp[i] = cache->array[i].str;
+
+	envp[cache->arrlen] = NULL;
+	cache->envp = envp;
+	return envp;
+}
+
+
 /**************************************************************************
  *                                                                        *
  *                 UTF-8 encoded environment manipulation                 *
@@ -316,6 +345,75 @@ static struct envcache utf8_env_cache;
 MM_DESTRUCTOR(utf8_environment_cache_cleanup)
 {
 	envcache_deinit(&utf8_env_cache);
+}
+
+
+/**
+ * update_environment_cache() - update cache from "key=val" string in UTF-16
+ * @cache:       environment cache to update
+ * @envstr_u16:  "key=val" string in UTF-16
+ */
+static
+void update_environment_cache(struct envcache* cache, const char16_t* envstr_u16)
+{
+	int len8;
+	char *envstr_u8, *name, *value;
+	struct envstr* entry;
+
+	// Get temporary UTF-8 env string from envstr_u16.
+	len8 = get_utf8_buffer_len_from_utf16(envstr_u16);
+	envstr_u8 = mm_malloca(len8);
+	conv_utf16_to_utf8(envstr_u8, len8, envstr_u16);
+
+	// Get pointer of name and value (terminate name by '\0')
+	name = envstr_u8;
+	value = strchr(envstr_u8, '=');
+	*value = '\0';
+	value++;
+
+	// Create new or get existing entry with name
+	entry = envcache_find_entry(cache, name);
+	if (!entry) {
+		entry = envcache_create_entry(cache, name);
+		if (!entry)
+			goto exit;
+	}
+
+	envstr_set_value(entry, value);
+
+exit:
+	mm_freea(envstr_u8);
+}
+
+
+/**
+ * get_environ_utf8() - Get array of environement strings in UTF-8
+ *
+ * This function update the envionment cache with all environment variable
+ * sets in the process.
+ *
+ * Return: NULL terminated array of the environment string in UTF-8. In
+ * case of failure (memory allocation issues), NULL is returned.
+ */
+LOCAL_SYMBOL
+char** get_environ_utf8(void)
+{
+	struct envcache* cache = &utf8_env_cache;
+	LPWCH env_strw;
+	char16_t* env16;
+
+	env_strw = GetEnvironmentStringsW();
+	if (env_strw == NULL)
+		return NULL;
+
+	// Update the environement cache with all key=value strings present
+	// in environement
+	for (env16 = env_strw; *env16 != L'\0'; env16 += wcslen(env16)+1)
+		update_environment_cache(cache, env16);
+
+	FreeEnvironmentStringsW(env_strw);
+
+	return envcache_update_envp(cache);
 }
 
 

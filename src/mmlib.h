@@ -44,6 +44,7 @@ enum mm_known_dir {
 MMLIB_API const char* mm_getenv(const char* name, const char* default_value);
 MMLIB_API int mm_setenv(const char* name, char* value, int overwrite);
 MMLIB_API int mm_unsetenv(const char* name);
+MMLIB_API char const* const* mm_get_environ(void);
 
 MMLIB_API const char* mm_get_basedir(enum mm_known_dir dirtype);
 MMLIB_API char* mm_path_from_basedir(enum mm_known_dir dirtype,

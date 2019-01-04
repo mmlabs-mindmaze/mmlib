@@ -24,6 +24,10 @@
 #  define setenv setenv_utf8
 #  define unsetenv unsetenv_utf8
 
+#else //!_WIN32
+
+extern char** environ;
+
 #endif
 
 
@@ -92,6 +96,35 @@ int mm_unsetenv(const char* name)
 		mm_raise_from_errno("unsetenv(%s) failed", name);
 
 	return 0;
+}
+
+
+/**
+ * mm_get_environ() - get array of environment variables
+ *
+ * This function gets an NULL-terminated array of strings corresponding to
+ * the environment of the current process. Each string has the format
+ * "key=val" where key is the name of the environment variable and val its
+ * value.
+ *
+ * NOTE: The array and its content is valid until the environment is
+ * modified, ie until any environment variable is added, modified or
+ * removed.
+ *
+ * Return: a NULL terminated array of "key=val" environment strings.
+ */
+API_EXPORTED
+char const* const* mm_get_environ(void)
+{
+	char** envp;
+
+#if _WIN32
+	envp = get_environ_utf8();
+#else
+	envp = environ;
+#endif
+
+	return (char const* const*) envp;
 }
 
 
