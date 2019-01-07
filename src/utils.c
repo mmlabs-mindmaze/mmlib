@@ -46,33 +46,69 @@ const char* mm_getenv(const char* name, const char* default_value)
 	return (value) ? value : default_value;
 }
 
-
+#ifdef _WIN32
+#define MM_ENV_DELIM ";"
+#else
+#define MM_ENV_DELIM ":"
+#endif
 /**
  * mm_setenv() - Add or change environment variable
  * @name:       name of the environment variable
  * @value:      value to set the environment variable called @name
- * @overwrite:  set to 0 if only add is permitted
+ * @action:     set to 0 if only add is permitted
  *
  * This updates or adds a variable in the environment of the calling
  * process. The @name argument points to a string containing the name of an
  * environment variable to be added or altered. The environment variable
  * will be set to the value to which @value points. If the environment
- * variable named by @name already exists and the value of overwrite is
- * non-zero, the function return success and the environment is updated. If
- * the environment variable named by @name already exists and the value of
- * @overwrite is zero, the function shall return success and the environment
- * shall remain unchanged.
+ * variable named by @name already exists, behavior is determined by the value
+ * of the @action variable.
+ *
+ * If the value of @action is 0, the function shall return success and the
+ * environment shall remain unchanged.
+ * If the value of @action is 1/MM_ENV_OVERWRITE, the function overwrites the
+ * environment and returns.
+ * If the value of @action is 2/MM_ENV_PREPEND, the function prepends the
+ * @value to the environment.
+ * If the value of @action is 3/MM_ENV_APPEND, the function appends the @value
+ * to the environment.
+ *
+ * Note: the PREPEND and APPEND actions only make sense when used with PATH-like
+ * environment variables
  *
  * Return: 0 in case of success, -1 otherwise with error state set
  * accordingly.
  */
 API_EXPORTED
-int mm_setenv(const char* name, char* value, int overwrite)
+int mm_setenv(const char* name, char* value, int action)
 {
-	if (setenv(name,  value, overwrite))
-		mm_raise_from_errno("setenv(%s, %s) failed", name, value);
+	int rv;
+	const char * old_value;
+	char * new_value = NULL;
 
-	return 0;
+	if (action < 0 || action >= MM_ENV_MAX)
+		return mm_raise_error(EINVAL, "invalid action value");
+
+	if (action == MM_ENV_PREPEND || action == MM_ENV_APPEND) {
+		old_value = mm_getenv(name, NULL);
+		if (old_value != NULL) {
+			new_value = mm_malloca(strlen(value) + 1 + strlen(old_value));
+			if (action == MM_ENV_PREPEND)
+				sprintf(new_value, "%s%s%s", value, MM_ENV_DELIM, old_value);
+			else  /* action == MM_ENV_APPEND */
+				sprintf(new_value, "%s%s%s", old_value, MM_ENV_DELIM, value);
+
+			value = new_value;
+		}
+	}
+
+	rv = setenv(name, value, action);
+	mm_freea(new_value);
+
+	if (rv != 0)
+		return mm_raise_from_errno("setenv(%s, %s) failed", name, value);
+	else
+		return 0;
 }
 
 

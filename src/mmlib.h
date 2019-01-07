@@ -41,8 +41,28 @@ enum mm_known_dir {
 	MM_NUM_DIRTYPE,
 };
 
+
+/**
+ * enum mm_env_action - used for setenv action argument
+ * @MM_ENV_PRESERVE: preserve environment if set
+ * @MM_ENV_OVERWRITE: overwrite environment
+ * @MM_ENV_PREPEND: prepend to environment
+ * @MM_ENV_APPEND: append to environment
+ *
+ * @MM_ENV_MAX: internal
+ */
+enum mm_env_action {
+	MM_ENV_PRESERVE = 0,
+	MM_ENV_OVERWRITE = 1,
+	MM_ENV_PREPEND = 2,
+	MM_ENV_APPEND = 3,
+
+	MM_ENV_MAX
+};
+
+
 MMLIB_API const char* mm_getenv(const char* name, const char* default_value);
-MMLIB_API int mm_setenv(const char* name, char* value, int overwrite);
+MMLIB_API int mm_setenv(const char* name, char* value, int action);
 MMLIB_API int mm_unsetenv(const char* name);
 MMLIB_API char const* const* mm_get_environ(void);
 

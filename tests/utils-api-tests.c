@@ -85,6 +85,49 @@ START_TEST(mmstrcasecmp_test)
 END_TEST
 
 
+#define STR_STARTS_WITH(str, const_str) \
+	(strlen(str) >= (sizeof(const_str) - 1) \
+	 && memcmp(str, const_str, sizeof(const_str) - 1) == 0)
+
+#define STR_ENDS_WITH(str, const_str) \
+	(strlen(str) >= (sizeof(const_str) - 1) \
+	 && memcmp(str + strlen(str) - sizeof(const_str) + 1, const_str, sizeof(const_str) - 1) == 0)
+
+START_TEST(append_prepend_environ)
+{
+	// Verify DUMMY_VAR is initially unset
+	ck_assert(mm_getenv("DUMMY_VAR", NULL) == NULL);
+
+	// Test get default value is used for getenv if variable is unset
+	ck_assert_str_eq(mm_getenv("DUMMY_VAR", "something"), "something");
+
+	// test setenv with overwrite works
+	mm_setenv("DUMMY_VAR", "another", MM_ENV_OVERWRITE);
+	ck_assert_str_eq(mm_getenv("DUMMY_VAR", NULL), "another");
+
+	// test setenv with prepend flag
+	mm_setenv("DUMMY_VAR", "before", MM_ENV_PREPEND);
+	ck_assert(STR_STARTS_WITH(mm_getenv("DUMMY_VAR", NULL), "before"));
+
+	// test setenv with append flag
+	mm_setenv("DUMMY_VAR", "after", MM_ENV_APPEND);
+	ck_assert(STR_ENDS_WITH(mm_getenv("DUMMY_VAR", NULL), "after"));
+
+	// test unsetenv works
+	mm_unsetenv("DUMMY_VAR");
+	ck_assert(mm_getenv("DUMMY_VAR", NULL) == NULL);
+
+	// test setenv append on empty var
+	mm_setenv("DUMMY_VAR", "a val", MM_ENV_APPEND);
+	ck_assert_str_eq(mm_getenv("DUMMY_VAR", NULL), "a val");
+
+	// cleaning
+	mm_unsetenv("DUMMY_VAR");
+	ck_assert(mm_getenv("DUMMY_VAR", NULL) == NULL);
+}
+END_TEST
+
+
 START_TEST(get_set_unset_env)
 {
 	// Verify DUMMY_VAR is initially unset
@@ -232,6 +275,7 @@ TCase* create_utils_tcase(void)
 	tcase_add_test(tc, get_set_unset_env);
 	tcase_add_test(tc, get_environ);
 	tcase_add_test(tc, multiple_set_unset_env);
+	tcase_add_test(tc, append_prepend_environ);
 
 	return tc;
 }
