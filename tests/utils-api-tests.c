@@ -14,6 +14,8 @@
 #include "mmerrno.h"
 #include "mmlib.h"
 
+#define NUM_ENVVAR 32
+
 
 START_TEST(get_basedir)
 {
@@ -161,6 +163,59 @@ START_TEST(get_environ)
 END_TEST
 
 
+/*
+ * Instead of setting only one variable and see its value over different
+ * manipulation, here we ensure that setting/unsetting multiple variable does
+ * not have buggy side effect on the other variables.
+ */
+START_TEST(multiple_set_unset_env)
+{
+	char name[NUM_ENVVAR][16], value[NUM_ENVVAR][16];
+	const char* const* envp;
+	const char* val;
+	int i;
+
+	// set multiple variable first
+	for (i = 0; i < NUM_ENVVAR; i++) {
+		sprintf(name[i], "ENV-KEY-%i", i);
+		sprintf(value[i], "VAL-%i", i);
+		ck_assert(mm_setenv(name[i], value[i], 0) == 0);
+	}
+
+	// unset 1 envvar out of 3
+	for (i = 0; i < NUM_ENVVAR; i++) {
+		if (i % 3 == 0)
+			mm_unsetenv(name[i]);
+	}
+
+	// check expected state of the envvar
+	for (i = 0; i < NUM_ENVVAR; i++) {
+		val = mm_getenv(name[i], NULL);
+		if (i % 3 == 0)
+			ck_assert(val == NULL);
+		else
+			ck_assert_str_eq(val, value[i]);
+	}
+
+	// check expected state through mm_get_environ()
+	envp = mm_get_environ();
+	for (i = 0; i < NUM_ENVVAR; i++) {
+		val = get_value_from_envp(envp, name[i]);
+		if (i % 3 == 0)
+			ck_assert(val == NULL);
+		else
+			ck_assert_str_eq(val, value[i]);
+	}
+
+	// cleanup
+	for (i = 0; i < NUM_ENVVAR; i++) {
+		mm_unsetenv(name[i]);
+		ck_assert(mm_getenv(name[i], NULL) == NULL);
+	}
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -176,6 +231,7 @@ TCase* create_utils_tcase(void)
 	tcase_add_test(tc, mmstrcasecmp_test);
 	tcase_add_test(tc, get_set_unset_env);
 	tcase_add_test(tc, get_environ);
+	tcase_add_test(tc, multiple_set_unset_env);
 
 	return tc;
 }
