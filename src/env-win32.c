@@ -268,7 +268,7 @@ void envcache_remove_entry(struct envcache* cache, struct envstr* entry)
 	envstr_deinit(entry);
 
 	// Remove the entry from the array
-	index = (entry - cache->array) / sizeof(*entry);
+	index = entry - cache->array;
 	memmove(cache->array + index, cache->array + index + 1,
 	        (cache->arrlen - index -1)*sizeof(*entry));
 
