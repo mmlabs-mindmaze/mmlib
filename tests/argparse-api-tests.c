@@ -5,6 +5,7 @@
 # include <config.h>
 #endif
 
+#include "api-testcases.h"
 #include "mmargparse.h"
 #include "mmpredefs.h"
 
