@@ -277,18 +277,6 @@ void local_toc(void)
 }
 
 
-/*
- * init_profile() - init profiling to use CPU based timer
- *
- * INIT: This function is called AUTOMATICALLY at the beginning of a program using
- * mmlib and before the main().
- */
-MM_CONSTRUCTOR(init_profile)
-{
-	mmprofile_reset(0);
-}
-
-
 /**************************************************************************
  *                                                                        *
  *                           result display helpers                       *
