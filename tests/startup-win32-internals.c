@@ -34,6 +34,12 @@ struct cmdline_case cmdline_cases[] = {
 	 .argv = {"prog", "arg1", "arg2"}},
 	{.cmdline = "prog \"arg1 arg2\"remaining", .argc = 2,
 	 .argv = {"prog", "arg1 arg2remaining"}},
+	{.cmdline = "prog ", .argc = 1,
+	 .argv = {"prog"}},
+	{.cmdline = "prog  arg", .argc = 2,
+	 .argv = {"prog", "arg"}},
+	{.cmdline = "prog  arg    arg2", .argc = 3,
+	 .argv = {"prog", "arg", "arg2"}},
 };
 
 START_TEST(split_cmdline)

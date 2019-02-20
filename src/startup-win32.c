@@ -105,14 +105,14 @@ char* write_nbackslash(char* str, int nbackslash)
  *
  * Return: in case of success, the number of argument in the array of
  * argument strings. In such a case, *@p_argv receive the array. In case of
- * failure, - is returned.
+ * failure, -1 is returned.
  */
 static
 int parse_cmdline(char*** p_argv, const char* cmdline)
 {
 	char c, *str, **argv;
 	int argc = 0, nbackslash = 0;
-	bool in_quotes = false;
+	bool in_quotes = false, prev_is_whitespace = false;
 
 	argv = alloc_argv_block(&str, cmdline);
 	if (!argv)
@@ -125,6 +125,7 @@ int parse_cmdline(char*** p_argv, const char* cmdline)
 		switch (c) {
 		case '\\':
 			nbackslash++;
+			prev_is_whitespace = false;
 			break;
 
 		case '"':
@@ -136,15 +137,24 @@ int parse_cmdline(char*** p_argv, const char* cmdline)
 				*str++ = '"';
 			}
 			nbackslash = 0;
+			prev_is_whitespace = false;
 			break;
 
 		case '\t':
+		case '\r':
+		case '\n':
+		case '\v':
+		case '\f':
 		case ' ':
 			// If not in quotes, terminate argument string,
 			// otherwise normal processing
 			if (!in_quotes) {
+				if (prev_is_whitespace)
+					break;
+
 				*str++ = '\0';
 				argv[++argc] = str;
+				prev_is_whitespace = true;
 				break;
 			}
 			/* fall through */
@@ -153,13 +163,17 @@ int parse_cmdline(char*** p_argv, const char* cmdline)
 			str = write_nbackslash(str, nbackslash);
 			nbackslash = 0;
 			*str++ = c;
+			prev_is_whitespace = false;
 			break;
 		}
 	}
 
 	// Terminate current argument string and the argv pointer array
-	*str++ = '\0';
-	argv[++argc] = NULL;
+	if (!prev_is_whitespace) {
+		*str++ = '\0';
+		argc++;
+	}
+	argv[argc] = NULL;
 
 	*p_argv = argv;
 	return argc;
