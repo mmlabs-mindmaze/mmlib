@@ -5,6 +5,7 @@ clean-local:
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
+	-DLOCALEDIR=\"$(localedir)\" \
 	-DBUILDDIR=\"$(abs_builddir)\" \
 	-DEXEEXT=\"$(EXEEXT)\" \
 	-DTOP_BUILDDIR=\"$(abs_top_builddir)\" \
@@ -77,11 +78,21 @@ testinternals_tap_SOURCES = \
 	internals-testcases.h \
 	testinternals.c \
 	log-internals.c \
+	../src/alloc.c \
+	../src/error.c \
 	$(eol)
-testinternals_tap_LDADD = $(CHECK_LIBS)
+testinternals_tap_LDADD = \
+	$(CHECK_LIBS) \
+	@LTLIBINTL@ \
+	$(eol)
 testinternals_tap_CPPFLAGS = $(AM_CPPFLAGS)
 
 if OS_TYPE_WIN32
+
+testinternals_tap_SOURCES += \
+	startup-win32-internals.c \
+	../src/utils-win32.c \
+	$(eol)
 
 testinternals_tap_CPPFLAGS += \
 	-DMMLIB_API=API_EXPORTED \
