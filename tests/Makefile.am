@@ -73,7 +73,10 @@ dynlib_test_la_LDFLAGS= \
 	-rpath /nowhere \
 	$(eol)
 
-testinternals_SOURCES = testinternals.c
+testinternals_SOURCES = \
+	testinternals.c \
+	log-internals.c \
+	$(eol)
 testinternals_LDADD = $(CHECK_LIBS)
 
 testapi_tap_SOURCES = \
