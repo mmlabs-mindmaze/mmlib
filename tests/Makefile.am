@@ -33,7 +33,7 @@ TESTS = \
 
 if BUILD_CHECK_TESTS
 TESTS += \
-	testinternals \
+	testinternals.tap \
 	testapi.tap \
 	$(eol)
 endif
@@ -73,11 +73,22 @@ dynlib_test_la_LDFLAGS= \
 	-rpath /nowhere \
 	$(eol)
 
-testinternals_SOURCES = \
+testinternals_tap_SOURCES = \
+	internals-testcases.h \
 	testinternals.c \
 	log-internals.c \
 	$(eol)
-testinternals_LDADD = $(CHECK_LIBS)
+testinternals_tap_LDADD = $(CHECK_LIBS)
+testinternals_tap_CPPFLAGS = $(AM_CPPFLAGS)
+
+if OS_TYPE_WIN32
+
+testinternals_tap_CPPFLAGS += \
+	-DMMLIB_API=API_EXPORTED \
+	-DWIN32_LEAN_AND_MEAN \
+	$(eol)
+
+endif
 
 testapi_tap_SOURCES = \
 	testapi.c \
@@ -135,9 +146,3 @@ tests_child_proc_CPPFLAGS = \
 	-DMMLOG_MODULE_NAME=\"tests_child_proc\" \
 	$(eol)
 
-if OS_TYPE_WIN32
-testinternals_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
-	-DMMLIB_API=API_EXPORTED \
-	$(eol)
-endif
