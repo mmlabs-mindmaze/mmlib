@@ -73,8 +73,14 @@ ssize_t mmlib_read(int fd, void* buf, size_t nbyte)
 	if (unwrap_handle_from_fd(&hnd, fd))
 		return -1;
 
-	if (!ReadFile(hnd, buf, nbyte, &read_sz, NULL))
+	if (!ReadFile(hnd, buf, nbyte, &read_sz, NULL)) {
+		// If write end is closed and pipe is empty, this is not an
+		// error. A success must be returned with 0 byte read.
+		if (GetLastError() == ERROR_BROKEN_PIPE)
+			return 0;
+
 		return mm_raise_from_w32err("ReadFile() for fd=%i failed", fd);
+	}
 
 	return read_sz;
 }
