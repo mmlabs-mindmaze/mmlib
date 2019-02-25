@@ -412,6 +412,39 @@ START_TEST(one_way_pipe)
 }
 END_TEST
 
+
+START_TEST(read_closed_pipe)
+{
+	int fds[2];
+	ssize_t rsz, wsz;
+	char buff[128];
+
+	gen_rand_data(buff, sizeof(buff));
+
+	// Create connected pipe endpoints
+	ck_assert(mm_pipe(fds) == 0);
+
+	// Write random and close the write end
+	rsz = mm_write(fds[1], buff, sizeof(buff)/2);
+	ck_assert(rsz == sizeof(buff)/2);
+	mm_close(fds[1]);
+
+	// Read bigger size, ensure that data is cropped to what was written
+	wsz = mm_read(fds[0], buff, sizeof(buff));
+	ck_assert(rsz == wsz);
+
+	// At this point, the pipe is empty
+	// Ensure that all read read return 0
+	ck_assert(mm_read(fds[0], buff, sizeof(buff)) == 0);
+	ck_assert(mm_read(fds[0], buff, sizeof(buff)) == 0);
+	ck_assert(mm_read(fds[0], buff, sizeof(buff)) == 0);
+
+	mm_close(fds[0]);
+
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -458,6 +491,7 @@ TCase* create_file_tcase(void)
 	tcase_add_test(tc, symbolic_link);
 	tcase_add_test(tc, unlink_before_close);
 	tcase_add_test(tc, one_way_pipe);
+	tcase_add_test(tc, read_closed_pipe);
 
 	return tc;
 }
