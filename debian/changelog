@@ -1,3 +1,10 @@
+mmlib (1.0.0+next) UNRELEASED; urgency=medium
+
+  * Add mm_error_set_flags() API
+  * Add mm_get_environ() API
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Tue, 26 Feb 2019 15:32:59 +0100
+
 mmlib (1.0.0) unstable; urgency=medium
 
   [ Nicolas Bourdaud ]
