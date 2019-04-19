@@ -117,7 +117,7 @@
 #    define ENOTRECOVERABLE 127
 #  endif
 #  ifndef ENOMSG
-#    define ENOMSG 42
+#    define ENOMSG 122
 #  endif
 #endif
 
