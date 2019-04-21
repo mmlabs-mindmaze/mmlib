@@ -480,6 +480,7 @@ int get_errcode_from_w32err(DWORD w32err)
 	case WSAEMFILE:                 return EMFILE;
 	case ERROR_FILE_EXISTS:
 	case ERROR_ALREADY_EXISTS:      return EEXIST;
+	case ERROR_INVALID_NAME:
 	case ERROR_PATH_NOT_FOUND:
 	case ERROR_FILE_NOT_FOUND:      return ENOENT;
 	case ERROR_INVALID_HANDLE:      return EBADF;
