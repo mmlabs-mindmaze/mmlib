@@ -347,6 +347,54 @@ START_TEST(dir_symbolic_link)
 END_TEST
 
 
+// On Windows following a dangling directory symlink returns EACCES error
+// while on POSIX platforms it returns ENOENT. Since the cost to harmonize
+// this is rather high while the inconveniency is rather small, we leave it
+// as it is
+#if defined(WIN32)
+#  define DANGLING_DIR_SYM_ERROR EACCES
+#else
+#  define DANGLING_DIR_SYM_ERROR ENOENT
+#endif
+
+
+static
+void assert_dangling_symlink(const char* linkname, int exp_err)
+{
+	ck_assert(mm_open(linkname, O_RDONLY, 0) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), exp_err);
+}
+
+
+START_TEST(dangling_symlink)
+{
+	int fd;
+
+	// Create symlink on non existing target
+	ck_assert(mm_symlink("./does-not-exist", LINKNAME) == 0);
+	assert_dangling_symlink(LINKNAME, ENOENT);
+	assert_dangling_symlink(LINKNAME"/afile", ENOENT);
+	ck_assert(mm_unlink(LINKNAME) == 0);
+
+	// Create symlink to disappearing target dir
+	ck_assert(mm_mkdir("adir", 0777, 0) == 0);
+	ck_assert(mm_symlink("adir", LINKNAME) == 0);
+	ck_assert(mm_remove("adir", MM_DT_ANY) == 0);
+	assert_dangling_symlink(LINKNAME, DANGLING_DIR_SYM_ERROR);
+	assert_dangling_symlink(LINKNAME"/afile", ENOENT);
+	ck_assert(mm_unlink(LINKNAME) == 0);
+
+	// Create symlink to disappearing target file
+	fd = mm_open("afile", O_CREAT|O_WRONLY, 0666);
+	mm_close(fd);
+	ck_assert(mm_symlink("afile", LINKNAME) == 0);
+	mm_remove("afile", MM_DT_ANY);
+	assert_dangling_symlink(LINKNAME, ENOENT);
+	ck_assert(mm_unlink(LINKNAME) == 0);
+}
+END_TEST
+
+
 START_TEST(check_access)
 {
 	int i, exp_rv;
@@ -524,6 +572,7 @@ TCase* create_file_tcase(void)
 	tcase_add_test(tc, hard_link);
 	tcase_add_test(tc, symbolic_link);
 	tcase_add_test(tc, dir_symbolic_link);
+	tcase_add_test(tc, dangling_symlink);
 	tcase_add_test(tc, unlink_before_close);
 	tcase_add_test(tc, one_way_pipe);
 	tcase_add_test(tc, read_closed_pipe);
