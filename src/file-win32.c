@@ -917,10 +917,10 @@ int mm_rmdir(const char* path)
 static
 int translate_filetype(DWORD type)
 {
-	if (type & FILE_ATTRIBUTE_DIRECTORY) {
-		return MM_DT_DIR;
-	} else if (type & FILE_ATTRIBUTE_REPARSE_POINT) {
+	if (type & FILE_ATTRIBUTE_REPARSE_POINT) {
 		return MM_DT_LNK;
+	} else if (type & FILE_ATTRIBUTE_DIRECTORY) {
+		return MM_DT_DIR;
 	} else if ((type & FILE_ATTRIBUTE_NORMAL)
 			|| (type & FILE_ATTRIBUTE_ARCHIVE)) {
 		return MM_DT_REG;
