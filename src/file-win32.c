@@ -762,6 +762,7 @@ int mm_symlink(const char* oldpath, const char* newpath)
 	char16_t *oldpath_u16, *newpath_u16;
 	int retval = 0;
 	int err;
+	DWORD flags, file_attrs;
 
 	// Get the length (in byte) of the string when converted in UTF-8
 	oldpath_u16_len = get_utf16_buffer_len_from_utf8(oldpath);
@@ -777,13 +778,25 @@ int mm_symlink(const char* oldpath, const char* newpath)
 	conv_utf8_to_utf16(oldpath_u16, oldpath_u16_len, oldpath);
 	conv_utf8_to_utf16(newpath_u16, newpath_u16_len, newpath);
 
+	flags = SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
 
-	err = CreateSymbolicLinkW(newpath_u16, oldpath_u16,
-			SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE);
+	// Make directory symlink if target is detected as such. If target
+	// (specified by oldpath) does not exist, the symlink will be
+	// assumed to be symlink to a file. This is not a major problem to
+	// do this assumption because having a file symlink pointing to a
+	// directory is still functional to a certain extent (only opening
+	// the target folder handle seems not functional)
+	file_attrs = GetFileAttributesW(oldpath_u16);
+	if (  (file_attrs != INVALID_FILE_ATTRIBUTES)
+	   && (file_attrs & FILE_ATTRIBUTE_DIRECTORY))
+		flags |= SYMBOLIC_LINK_FLAG_DIRECTORY;
+
+	err = CreateSymbolicLinkW(newpath_u16, oldpath_u16, flags);
 	if (!err && GetLastError() == ERROR_INVALID_PARAMETER) {
 		/* SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE was introduced in 2017-03
 		 * if it is not recognized, try again without it */
-		err = CreateSymbolicLinkW(newpath_u16, oldpath_u16, 0);
+		flags &= ~SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
+		err = CreateSymbolicLinkW(newpath_u16, oldpath_u16, flags);
 	}
 	if (!err) {
 		mm_raise_from_w32err("CreateSymbolicLinkW(%s, %s) failed", newpath, oldpath);

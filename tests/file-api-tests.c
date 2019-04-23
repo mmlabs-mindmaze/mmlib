@@ -313,6 +313,40 @@ START_TEST(symbolic_link)
 END_TEST
 
 
+START_TEST(dir_symbolic_link)
+{
+	int fd;
+	struct mm_stat st = {0};
+	struct mm_stat st_ref = {0};
+
+	mm_mkdir("somedir", 0777, 0);
+
+	// Create symlink to somefile parent dir
+	ck_assert(mm_symlink("somedir", "link-to-somedir") == 0);
+
+	ck_assert(mm_stat("link-to-somedir", &st, MM_NOFOLLOW) == 0);
+	ck_assert(S_ISLNK(st.mode));
+	ck_assert(mm_stat("link-to-somedir", &st, 0) == 0);
+	ck_assert(S_ISDIR(st.mode));
+
+	// Create file in somedir
+	fd = mm_open("somedir/somefile", O_CREAT|O_WRONLY, 0666);
+	mm_close(fd);
+	mm_stat("somedir/somefile", &st_ref, 0);
+
+	// Check file opened with symlinked parent dir point to same file
+	fd = mm_open("link-to-somedir/somefile", O_RDONLY, 0);
+	ck_assert(mm_fstat(fd, &st) == 0);
+	ck_assert(mm_ino_equal(st.ino, st_ref.ino));
+	ck_assert_int_eq(st.dev, st_ref.dev);
+	mm_close(fd);
+
+	ck_assert(mm_unlink("link-to-somedir") == 0);
+	mm_rmdir("somedir");
+}
+END_TEST
+
+
 START_TEST(check_access)
 {
 	int i, exp_rv;
@@ -489,6 +523,7 @@ TCase* create_file_tcase(void)
 	tcase_add_test(tc, check_access);
 	tcase_add_test(tc, hard_link);
 	tcase_add_test(tc, symbolic_link);
+	tcase_add_test(tc, dir_symbolic_link);
 	tcase_add_test(tc, unlink_before_close);
 	tcase_add_test(tc, one_way_pipe);
 	tcase_add_test(tc, read_closed_pipe);
