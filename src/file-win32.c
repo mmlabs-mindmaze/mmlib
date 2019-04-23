@@ -581,13 +581,17 @@ int mm_unlink(const char* path)
 {
 	size_t delpath_maxlen;
 	char* delpath;
+	DWORD flags;
 	HANDLE hnd;
 	int i;
 
-	// Open file with DELETE_ON_CLOSE flag. If this operation has
-	// succeed, the file will be deleted when CloseHandle() is called.
-	hnd = open_handle(path, DELETE, OPEN_EXISTING, NULL,
-	                  FILE_FLAG_DELETE_ON_CLOSE | FILE_FLAG_OPEN_REPARSE_POINT);
+	// Open file with DELETE_ON_CLOSE flag. If this operation has succeed,
+	// the file will be deleted when CloseHandle() is called. Also do not
+	// follow symlink (Hence FILE_FLAG_OPEN_REPARSE_POINT). Finally
+	// FILE_FLAG_BACKUP_SEMANTICS is added to handle symlink to folder.
+	flags = FILE_FLAG_DELETE_ON_CLOSE
+	        | FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS;
+	hnd = open_handle(path, DELETE, OPEN_EXISTING, NULL, flags);
 	if (hnd == INVALID_HANDLE_VALUE)
 		return mm_raise_from_w32err("Can't get handle for %s", path);
 
