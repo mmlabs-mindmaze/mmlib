@@ -80,7 +80,7 @@ const char* mm_getenv(const char* name, const char* default_value)
  * accordingly.
  */
 API_EXPORTED
-int mm_setenv(const char* name, char* value, int action)
+int mm_setenv(const char* name, const char* value, int action)
 {
 	int rv;
 	const char * old_value;

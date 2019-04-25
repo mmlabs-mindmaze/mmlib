@@ -480,7 +480,7 @@ char* getenv_utf8(const char* name)
  * errno set to indicate the error, and the environment will be unchanged.
  */
 LOCAL_SYMBOL
-int setenv_utf8(const char* name, char* value, int overwrite)
+int setenv_utf8(const char* name, const char* value, int overwrite)
 {
 	struct envstr* entry;
 	char16_t* str_u16;

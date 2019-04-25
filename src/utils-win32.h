@@ -195,7 +195,7 @@ int conv_utf16_to_utf8(char* utf8_str, int utf8_len, const char16_t* utf16_str);
 
 char** get_environ_utf8(void);
 char* getenv_utf8(const char* name);
-int setenv_utf8(const char* name, char* value, int overwrite);
+int setenv_utf8(const char* name, const char* value, int overwrite);
 int unsetenv_utf8(const char* name);
 
 

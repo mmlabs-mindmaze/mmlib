@@ -62,7 +62,7 @@ enum mm_env_action {
 
 
 MMLIB_API const char* mm_getenv(const char* name, const char* default_value);
-MMLIB_API int mm_setenv(const char* name, char* value, int action);
+MMLIB_API int mm_setenv(const char* name, const char* value, int action);
 MMLIB_API int mm_unsetenv(const char* name);
 MMLIB_API char const* const* mm_get_environ(void);
 
