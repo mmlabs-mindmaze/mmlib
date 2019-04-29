@@ -124,6 +124,7 @@ struct mmarg_opt {
 
 #define MMARGPARSE_ERROR        -1
 #define MMARGPARSE_STOP         -2
+#define MMARGPARSE_COMPLETE     -3
 
 /**
  * typedef mmarg_callback() - prototype of argument parser callback
@@ -140,6 +141,7 @@ typedef int (*mmarg_callback)(const struct mmarg_opt* opt,
                               union mmarg_val value, void* data);
 
 #define MMARG_PARSER_NOEXIT     (1 << 0)
+#define MMARG_PARSER_COMPLETION (1 << 1)
 
 /**
  * struct mmarg_parser - argument parser configuration
@@ -175,6 +177,8 @@ struct mmarg_parser {
 
 MMLIB_API int mmarg_parse(const struct mmarg_parser* parser,
                           int argc, char* argv[]);
+MMLIB_API int mmarg_parse_complete(const struct mmarg_parser* parser,
+                                   const char* arg);
 
 
 /**

@@ -48,6 +48,11 @@ const struct value_type_name typenames[] = {
 };
 
 
+static
+const struct mmarg_opt* find_opt(const struct mmarg_parser* parser,
+                                 int key, const char* name, int namelen);
+
+
 /**
  * get_value_type_name() - get string describing type name
  * @type:	MMOPT_* flags specifying a type
@@ -568,10 +573,155 @@ void print_help(const struct mmarg_parser* parser, FILE* stream)
 
 /*************************************************************************
  *                                                                       *
- *                    Argument processing functions                      *
+ *                     Completion helper functions                       *
  *                                                                       *
  *************************************************************************/
 
+static
+int is_completing(const struct mmarg_parser* parser)
+{
+	return parser->flags & MMARG_PARSER_COMPLETION;
+}
+
+
+/**
+ * complete_longopt() - print long option completion candidate
+ * @opt:        pointer to opt
+ * @len:        length of str_start
+ * @name_start: beginning of option name supplied on cmdline
+ *
+ * If beginning of long option name of @opt match @str_start, then print on
+ * standard output the synopsis of the long option form of @opt.
+ */
+static
+void complete_longopt(const struct mmarg_opt* opt,
+                     int len, const char* name_start)
+{
+	const char* lname = mmarg_opt_get_name(opt);
+
+	// Filter completion candidate: the supplied argument must match the
+	// beginning of option name
+	if (!lname || strncmp(name_start, lname, len))
+		return;
+
+	switch (opt->flags & MMOPT_REQMASK) {
+	case MMOPT_NOVAL:
+		printf("--%s\n", lname);
+		break;
+
+	case MMOPT_NEEDVAL:
+		printf("--%s=\n", lname);
+		break;
+
+	case MMOPT_OPTVAL:
+		printf("--%s=\n", lname);
+		printf("--%s\n", lname);
+		break;
+	}
+}
+
+
+/**
+ * complete_longopts() - generate list of long option for completion
+ * @parser:     argument parser configuration
+ * @arg:        beginning of argument supplied on cmdline that should be
+ *              completed. To be passed without leading "--" (can be NULL)
+ *
+ * Print on standard output the list long options compatible with the partial
+ * option name specified by @arg. If @arg is NULL, it is assumed to
+ * be empty.
+ *
+ * Return: always MMARGPARSE_COMPLETE
+ */
+static
+int complete_longopts(const struct mmarg_parser* parser, const char* arg)
+{
+	int i, len;
+
+	if (arg == NULL)
+		arg = "";
+
+	len = strlen(arg);
+
+	for (i = 0; i < parser->num_opt; i++)
+		complete_longopt(&parser->optv[i], len, arg);
+
+	complete_longopt(&help_opt, len, arg);
+
+	return MMARGPARSE_COMPLETE;
+}
+
+
+/**
+ * complete_shortopts() - generate list of short option for completion
+ * @arg:        beginning of argument supplied on cmdline that should be
+ *              completed. To be passed without leading "-" (can be NULL)
+ * @parser:     argument parser configuration
+ *
+ * Return: always MMARGPARSE_COMPLETE
+ */
+static
+int complete_shortopts(const struct mmarg_parser* parser, const char* arg)
+{
+	int i, key, len;
+
+	if (arg == NULL)
+		arg = "";
+
+	len = strlen(arg);
+
+	// Verify that all previous short option in the argument are
+	// recognized. If not, do not propose any completion.
+	for (i = 0; i < len; i++) {
+		if (!find_opt(parser, arg[i], NULL, 0))
+			return MMARGPARSE_COMPLETE;
+	}
+
+	// If there is already options in argument, propose only the current
+	// argument as completion, this will make completion add space and
+	// move to a new argument
+	if (len != 0) {
+		printf("-%s\n", arg);
+		return MMARGPARSE_COMPLETE;
+	}
+
+	// We have currently an empty argument, loop over all option
+	// providing short key display tham as completion proposal
+	for (i = 0; i < parser->num_opt; i++) {
+		key = mmarg_opt_get_key(&parser->optv[i]);
+		if (key)
+			printf("-%c\n", key);
+	}
+
+	printf("-h\n");
+	return MMARGPARSE_COMPLETE;
+}
+
+
+/**
+ * complete_opt_value() - gen list of option value acceptable for option
+ * @opt:        option whose value is being completed
+ * @arg:        beginning of value supplied on cmdline
+ *
+ * Return: always MMARGPARSE_COMPLETE
+ */
+static
+int complete_opt_value(const struct mmarg_opt* opt, const char* arg)
+{
+	(void)opt;
+
+	if (arg)
+		printf("%s\n", arg);
+
+	return MMARGPARSE_COMPLETE;
+}
+
+
+/*************************************************************************
+ *                                                                       *
+ *                    Argument processing functions                      *
+ *                                                                       *
+ *************************************************************************/
 
 /**
  * match_opt_key_or_name() - test whether a name or key match a option
@@ -861,8 +1011,8 @@ int mmarg_opt_set_value(const struct mmarg_opt* opt, union mmarg_val val)
  * @value:      string of value if one has been supplied, NULL otherwise
  * @parser:     parser used
  *
- * Return: 0 in case of success, or MMARGPARSE_ERROR (-1) if a validation issue has occurred or
- * MMARGPARSE_STOP (-2) if early stop has been requested
+ * Return: 0 in case of success, or MMARGPARSE_ERROR (-1) if a validation issue has occurred and
+ * MMARGPARSE_STOP (-2) if early stop has been requested.
  */
 static
 int process_opt_value(const struct mmarg_opt* opt, const char* value,
@@ -877,6 +1027,9 @@ int process_opt_value(const struct mmarg_opt* opt, const char* value,
 	// If the recognized option is the help option added internally, just
 	// print help and return stop
 	if (opt == &help_opt) {
+		if (is_completing(parser))
+			return 0;
+
 		print_help(parser, stdout);
 		return MMARGPARSE_STOP;
 	}
@@ -910,18 +1063,22 @@ int process_opt_value(const struct mmarg_opt* opt, const char* value,
  * @parser:     argument parser to use
  * @opts:       string of concatenated options (without -)
  * @next_arg:   pointer to next argument if present, NULL otherwise
+ * @next_is_last: set to one if @next_arg is the last argument of cmdline
  *
  * Return: a non-negative number indicating the number of next argument to
  * skip in case of success. -1 in case of failure
  */
 static
 int process_short_opt(const struct mmarg_parser* parser,
-                      const char* opts, const char* next_arg)
+                      const char* opts, const char* next_arg, int next_is_last)
 {
 	const struct mmarg_opt* opt_parser;
 	const char* value = NULL;
 	int move_arg_index = 0;
 	int rv, reqflags;
+
+	if (is_completing(parser) && !next_arg)
+		return complete_shortopts(parser, opts);
 
 	while (opts[0] != '\0') {
 		opt_parser = find_opt(parser, opts[0], NULL, 0);
@@ -938,6 +1095,8 @@ int process_short_opt(const struct mmarg_parser* parser,
 		   && !is_arg_an_option(next_arg)  ) {
 			value = next_arg;
 			move_arg_index = 1;
+		        if (is_completing(parser) && next_is_last)
+				return complete_opt_value(opt_parser, value);
 		}
 
 		rv = process_opt_value(opt_parser, value, parser);
@@ -956,32 +1115,43 @@ int process_short_opt(const struct mmarg_parser* parser,
  * process_long_opt() - find and parses option assuming long option
  * @parser:     argument parser to use
  * @arg:        argument supplied (without --)
+ * @do_complete: execute completion
  *
  * Return: 0 in case of success, -1 otherwise
  */
 static
-int process_long_opt(const struct mmarg_parser* parser, const char* arg)
+int process_long_opt(const struct mmarg_parser* parser, const char* arg,
+                     int do_complete)
 {
 	const char* name;
 	const char* value;
 	int namelen, rv;
 	const struct mmarg_opt* opt;
 
-	// Assert option name has an acceptable form
-	if (!is_valid_long_opt_name(arg, true))
-		return -1;
-
 	// Set the name and value token
 	name = arg;
 	namelen = get_first_token_length(arg, '=');
 	value = (arg[namelen] == '=') ? arg+namelen+1 : NULL;
 
+	// If we are in the mode of autocompletion mode, generate
+	// the list of long options if we are still not writing value
+	if (do_complete && arg[namelen] != '=') {
+		complete_longopts(parser, arg);
+		return MMARGPARSE_COMPLETE;
+	}
+
 	// Search for a matching option
 	opt = find_opt(parser, IGNORE_KEY, name, namelen);
 	if (!opt) {
+		if (do_complete)
+			return MMARGPARSE_COMPLETE;
+
 		fprintf(stderr, "Unsupported option --%.*s\n", namelen, arg);
-		return -1;
+		return MMARGPARSE_ERROR;
 	}
+
+	if (do_complete)
+		return complete_opt_value(opt, value);
 
 	// Process the found option
 	if ((rv = process_opt_value(opt, value, parser)) < 0)
@@ -1046,7 +1216,7 @@ int early_stop_parsing(const struct mmarg_parser* parser, int retval)
 {
 	int exitcode = EXIT_SUCCESS;
 
-	if (retval == -1) {
+	if (retval == MMARGPARSE_ERROR) {
 		fprintf(stderr, "Use -h or --help to display usage.\n");
 		exitcode = EXIT_FAILURE;
 	}
@@ -1076,9 +1246,16 @@ int early_stop_parsing(const struct mmarg_parser* parser, int retval)
  * process will exit with EXIT_FAILURE code. In other case, the parsing will
  * continued until "--" or a non optional argument is encountered.
  *
- * If MMARG_PARSER_NOEXIT is set in @parser->flags, the process will not exit
- * in case of help printing nor in case of error but mmarg_parse() will return
- * respectively MMARGPARSE_STOP and MMARGPARSE_ERROR.
+ * The value of @parser->flags is a OR-combination of any number of the
+ * following flags :
+ *
+ * - %MMARG_PARSER_NOEXIT: the process will not exit in case of help printing
+ *   nor in case of error but mmarg_parse() will return respectively
+ *   MMARGPARSE_STOP and MMARGPARSE_ERROR.
+ * - %MMARG_PARSER_COMPLETION: the parser is invoked for being used in shell
+ *   completion script. In case of unknown option, the completed candidate
+ *   options are printed on standard output (in a format suitable for bash
+ *   completion script).
  *
  * There are 2 non-exclusive ways to get the values of the option supplied
  * on command line
@@ -1094,16 +1271,20 @@ int early_stop_parsing(const struct mmarg_parser* parser, int retval)
  * - MMARGPARSE_ERROR (-1): an error of argument parsing or validation occurred
  * - MMARGPARSE_STOP (-2): help display has been requested or early parsing
  *   stop has been requested by callback.
+ * - MMARGPARSE_COMPLETE (-3): parser was in completion mode and the last
+ *   argument has been completed (completion candidates have been printed on
+ *   output).
  */
 API_EXPORTED
 int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 {
 	const char *arg, *next_arg;
-	int index, r;
+	int index, r, do_complete;
 
 	if (validate_options(parser))
 		return early_stop_parsing(parser, MMARGPARSE_ERROR);
 
+	do_complete = 0;
 	for (index = 1; index < argc; index++) {
 		arg = argv[index];
 
@@ -1115,7 +1296,8 @@ int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 		// if arg has form "-string", process as short option
 		if (is_valid_short_opt_key(arg[1])) {
 			next_arg = (index+1 < argc) ? argv[index+1] : NULL;
-			r = process_short_opt(parser, arg+1, next_arg);
+			r = process_short_opt(parser, arg+1, next_arg,
+			                      index+2 == argc);
 			if (r < 0)
 				return early_stop_parsing(parser, r);
 
@@ -1123,18 +1305,67 @@ int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 			continue;
 		}
 
+		// If completion is enabled, run it on last argument
+		if ((index == argc-1) && is_completing(parser))
+			do_complete = 1;
+
+		// Complete if we have an incomplete option
+		if ((arg[1] == '\0') && do_complete) {
+			mmarg_parse_complete(parser, arg);
+			return early_stop_parsing(parser, MMARGPARSE_COMPLETE);
+		}
+
 		if (arg[1] != '-')
 			break;
 
 		// if arg is "--", position the argument index to the next
 		// argument and stop processing options
-		if (arg[2] == '\0')
+		if ((arg[2] == '\0') && !do_complete)
 			return index+1;
 
 		// arg has the form of "--string", process as long option
-		if ((r = process_long_opt(parser, arg+2)) < 0)
+		if ((r = process_long_opt(parser, arg+2, do_complete)) < 0)
 			return early_stop_parsing(parser, r);
 	}
 
 	return index;
+}
+
+
+/**
+ * mmarg_parse_complete() - print list of opts of arg parser for completion
+ * @parser:     argument parser configuration
+ * @arg:        beginning of argument (can be NULL)
+ *
+ * This function print on standard output the list of option accepted by
+ * parser and whose beginning match @arg (if supplied). This list is the
+ * same format as bash compgen command.
+ *
+ * Return: 0 in case of success, MMARGPARSE_ERROR otherwise (validation
+ * error occurred)
+ */
+API_EXPORTED
+int mmarg_parse_complete(const struct mmarg_parser* parser, const char* arg)
+{
+	int len;
+
+	if (validate_options(parser))
+		return early_stop_parsing(parser, MMARGPARSE_ERROR);
+
+	if (!arg)
+		return 0;
+
+	len = strlen(arg);
+
+	// Short option completion is triggered by "" and "-something"
+	if (len < 1 || arg[0] == '-')
+		complete_shortopts(parser, len >= 1 ? arg+1 : "");
+
+	// Long option completion is triggered by "", "-", "--something"
+	if (  (len == 0)
+	   || (len == 1 && arg[0] == '-')
+	   || (len >= 2 && arg[0] == '-' && arg[1] == '-'))
+		complete_longopts(parser, len >= 2 ? arg+2 : "");
+
+	return 0;
 }

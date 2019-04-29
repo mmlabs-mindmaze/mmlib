@@ -8,9 +8,11 @@
 #include "api-testcases.h"
 #include "mmargparse.h"
 #include "mmpredefs.h"
+#include "mmsysio.h"
 
 #include <check.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define LOREM_IPSUM "Lorem ipsum dolor sit amet, consectetur adipiscing"   \
 "elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." \
@@ -18,6 +20,10 @@
 "ut aliquip ex ea commodo consequat..."
 
 #define NARGV_MAX	10
+
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO 1
+#endif
 
 struct argv_case {
 	char* argv[NARGV_MAX];
@@ -41,6 +47,109 @@ int argv_len(char* argv[])
 
 	return len;
 }
+
+/**************************************************************************
+ *                                                                        *
+ *                           setup/teardown of tests                      *
+ *                                                                        *
+ **************************************************************************/
+static int prev_stdout_fd;
+static int rw_out_fd;
+static FILE* read_out_fp;
+
+/**
+ * reset_output_fd() - reset file of redirected output
+ *
+ * This function cleanup the content of file receiving the redirected
+ * standard output and reset its file pointer.
+ */
+static
+void reset_output_fd(void)
+{
+	fseek(read_out_fp, 0, SEEK_SET);
+	mm_ftruncate(rw_out_fd, 0);
+}
+
+
+/**
+ * argparse_case_setup() - global setup of argparse tests
+ *
+ * This backups the current standard output object and create a file that
+ * will receive the redirected standard output during the tests
+ */
+static
+void argparse_case_setup(void)
+{
+	// Save standard output object
+	prev_stdout_fd = mm_dup(STDOUT_FILENO);
+
+	// Create file that will receive the standard output of test
+	rw_out_fd = mm_open(BUILDDIR"/argparse.out",
+	                      O_RDWR|O_CREAT|O_TRUNC|O_APPEND, 0666);
+	read_out_fp = fdopen(rw_out_fd, "r");
+}
+
+
+/**
+ * argparse_case_teardown() - global cleanup of argparse tests
+ *
+ * Restore the standard output as it was before running the argparse test
+ * cases and close the file receiving the redirected  standard output
+ */
+static
+void argparse_case_teardown(void)
+{
+	// Close standard output object backup
+	mm_close(prev_stdout_fd);
+
+	// This will close rw_out_fd as well
+	fclose(read_out_fp);
+}
+
+
+/**
+ * each_test_setup() - setup run before each argparse test
+ *
+ * This test setup reset (empty) the content of the redirected standard
+ * output. Also it restablish the redirection standard output to file. This
+ * redirection is necessary to catch and inspect the standard output produced
+ * during the test.
+ */
+static
+void each_test_setup(void)
+{
+	// Since we are going to change the standard output object, we must
+	// flush any pending data in stdout file stream (the thing behind
+	// printf()), otherwise previous write might occurs on redirected
+	// object. In particular, without flush, TAP report may appear in
+	// the wrong place.
+	fflush(stdout);
+
+	reset_output_fd();
+
+	// Connect standard output to a file we can read
+	mm_dup2(rw_out_fd, STDOUT_FILENO);
+}
+
+
+/**
+ * each_test_teardown() - cleanup run after each argparse test
+ *
+ * This test setup restore the standard output to its initial object. This
+ * is necessary to communicate the test result to the upper layers.
+ */
+static
+void each_test_teardown(void)
+{
+	// Same as setup counterpart, we change object behind STDOUT_FILENO
+	// file descriptor, so we need to flush stdout file stream
+	// beforehand.
+	fflush(stdout);
+
+	// Restore previous standard output
+	mm_dup2(prev_stdout_fd, STDOUT_FILENO);
+}
+
 
 /**************************************************************************
  *                                                                        *
@@ -285,6 +394,127 @@ END_TEST
 
 /**************************************************************************
  *                                                                        *
+ *                           completion tests                             *
+ *                                                                        *
+ **************************************************************************/
+
+// Given an number of option, the number N of completion proposal can be up
+// to 2*N + 2 (short option and long option) and -h and --help. Also We need
+// to count an additional one for the NULL terminator.
+#define NMAX_PROPS (2*MM_NELEM(argval_valid_tests_optv) + 2 + 1)
+struct {
+	char* arg;
+	char* props[NMAX_PROPS];
+} comp_cases[] = {
+	{"-", {"-h", "--help", "--set-ll=", "--set-ull=", "-i", "--set-i=", "--set-ui=", "--set-str="}},
+	{"--", {"--help", "--set-ll=", "--set-ull=", "--set-i=", "--set-ui=", "--set-str="}},
+	{"--set", {"--set-ll=", "--set-ull=", "--set-i=", "--set-ui=", "--set-str="}},
+	{"--set-u", {"--set-ull=", "--set-ui="}},
+	{"--set-ul", {"--set-ull="}},
+	{"--set-ull=", {""}},
+	{"--set-ull=123", {"123"}},
+};
+
+
+/**
+ * check_props_from_output_file() - verify completion proposal are present
+ * @expected_props:     array of expected completion proposal (NULL term)
+ *
+ * This function verifies that the lines sent to standard output (which has
+ * been redirected to a file) correspond to the expected completion proposal
+ * listed in @expected_props. The completion proposal in the standard output
+ * do not need to appear in the same order as in @expected_props.
+ */
+static
+void check_props_from_output_file(char* expected_props[])
+{
+	char prop[128];
+	int expected_prop_seen[NMAX_PROPS] = {0};
+	int n_expected, n_seen, i, len;
+
+	n_expected = argv_len(expected_props);
+	n_seen = 0;
+
+	// Flush standard output to ensure that content accessible through
+	// read_out_fp is complete
+	fflush(stdout);
+
+	fseek(read_out_fp, 0, SEEK_SET);
+
+	// loop over of the line of the file
+	while (fgets(prop, sizeof(prop), read_out_fp)) {
+		// Remove final end of line (if any)
+		len = strlen(prop);
+		if (prop[len-1] == '\n')
+			prop[len-1] = '\0';
+
+		// Search the line in the expected props
+		for (i = 0; i < n_expected; i++) {
+			if (!strcmp(prop, expected_props[i]))
+				break;
+		}
+
+		// Fail if line could have not been found
+		ck_assert_msg(i != n_expected, "\"%s\" not found", prop);
+
+		n_seen++;
+
+		// Check we have not already seen the expected prop
+		ck_assert(expected_prop_seen[i]++ == 0);
+	}
+
+	// verify that we have not missed any expected prop
+	ck_assert_int_eq(n_seen, n_expected);
+}
+
+
+START_TEST(complete_empty_arg)
+{
+	struct mmarg_parser parser = {
+		.flags = MMARG_PARSER_NOEXIT | MMARG_PARSER_COMPLETION,
+		.optv = argval_valid_tests_optv,
+		.num_opt = MM_NELEM(argval_valid_tests_optv),
+	};
+	char* only_argv[] = {"bin", ""};
+	char* few_argv[] = {"bin", "--set-ll=42", "-i", "-23", ""};
+	int rv;
+
+	rv = mmarg_parse(&parser, MM_NELEM(only_argv), only_argv);
+	ck_assert_int_eq(rv, MM_NELEM(only_argv)-1);
+
+	rv = mmarg_parse(&parser, MM_NELEM(few_argv), few_argv);
+	ck_assert_int_eq(rv, MM_NELEM(few_argv)-1);
+}
+END_TEST
+
+
+START_TEST(complete_opt)
+{
+	struct mmarg_parser parser = {
+		.flags = MMARG_PARSER_NOEXIT | MMARG_PARSER_COMPLETION,
+		.optv = argval_valid_tests_optv,
+		.num_opt = MM_NELEM(argval_valid_tests_optv),
+	};
+	char** expected_props = comp_cases[_i].props;
+	char* only_argv[] = {"bin", comp_cases[_i].arg};
+	char* few_argv[] = {"bin", "--set-ll=42", comp_cases[_i].arg};
+	int rv;
+
+	rv = mmarg_parse(&parser, MM_NELEM(only_argv), only_argv);
+	ck_assert_int_eq(rv, MMARGPARSE_COMPLETE);
+	check_props_from_output_file(expected_props);
+
+	reset_output_fd();
+
+	rv = mmarg_parse(&parser, MM_NELEM(few_argv), few_argv);
+	ck_assert_int_eq(rv, MMARGPARSE_COMPLETE);
+	check_props_from_output_file(expected_props);
+}
+END_TEST
+
+
+/**************************************************************************
+ *                                                                        *
  *                          Test suite setup                              *
  *                                                                        *
  **************************************************************************/
@@ -293,12 +523,17 @@ TCase* create_argparse_tcase(void)
 {
 	TCase *tc = tcase_create("argparse");
 
+	tcase_add_unchecked_fixture(tc, argparse_case_setup, argparse_case_teardown);
+	tcase_add_checked_fixture(tc, each_test_setup, each_test_teardown);
+
 	tcase_add_loop_test(tc, get_key, 0, MM_NELEM(parse_optname_cases));
 	tcase_add_loop_test(tc, get_name, 0, MM_NELEM(parse_optname_cases));
 	tcase_add_loop_test(tc, parsing_order_cb, 0, MM_NELEM(parsing_order_cases));
 	tcase_add_loop_test(tc, print_help, 0, MM_NELEM(help_argv_cases));
 	tcase_add_loop_test(tc, parsing_error, 0, MM_NELEM(error_argv_cases));
 	tcase_add_loop_test(tc, parsing_success, 0, MM_NELEM(success_argv_cases));
+	tcase_add_test(tc, complete_empty_arg);
+	tcase_add_loop_test(tc, complete_opt, 0, MM_NELEM(comp_cases));
 
 	return tc;
 }
