@@ -1,9 +1,11 @@
-mmlib (1.0.0+next) UNRELEASED; urgency=medium
+mmlib (1.0.0+next2) UNRELEASED; urgency=medium
 
   * Add mm_error_set_flags() API
   * Add mm_get_environ() API
+  * change win32 symlink behavior
+  * change win32 ENOMSG error code value
 
- -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Tue, 26 Feb 2019 15:32:59 +0100
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Mon, 29 Apr 2019 10:17:51 +0200
 
 mmlib (1.0.0) unstable; urgency=medium
 

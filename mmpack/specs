@@ -1,6 +1,6 @@
 general:
   name: mmlib
-  version: 1.0.0+next
+  version: 1.0.0+next2
   maintainer: nicolas.bourdaud@mindmaze.ch
   url: ssh://intranet.mindmaze.ch:29418/mmlib
   description: |
