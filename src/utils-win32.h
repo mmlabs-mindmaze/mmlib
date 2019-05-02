@@ -85,8 +85,9 @@ enum {
 	FD_TYPE_MASK = 0x07
 };
 
-#define FD_FIRST_FLAG	(FD_TYPE_MASK+1)
-#define FD_FLAG_APPEND	(FD_FIRST_FLAG << 0)
+#define FD_FIRST_FLAG   (FD_TYPE_MASK+1)
+#define FD_FLAG_APPEND  (FD_FIRST_FLAG << 0)
+#define FD_FLAG_ISATTY  (FD_FIRST_FLAG << 1)
 
 int get_fd_info_checked(int fd);
 int get_fd_info(int fd);

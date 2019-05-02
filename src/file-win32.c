@@ -511,7 +511,7 @@ int mm_isatty(int fd)
 		return -1;
 	}
 
-	return (info == FD_TYPE_CONSOLE);
+	return (info & FD_FLAG_ISATTY) == FD_FLAG_ISATTY;
 }
 
 

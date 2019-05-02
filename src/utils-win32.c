@@ -583,6 +583,61 @@ int mm_raise_from_w32err_full(const char* module, const char* func,
  **************************************************************************/
 
 /**
+ * is_cygpty_pipe() - Test a pipe handle is a cygwin PTY
+ * @hnd:        a handle to a pipe
+ *
+ * cygwin/msys often use mintty to emulate terminal. When this happens, the
+ * handle associated with the terminal is not of the type Console but a
+ * named pipe connected to a local server which implements the xterm
+ * protocol. The name of the pipe is very specific to it and can be
+ * recognized easily. Example of read handle of PTY1 when using msys:
+ * \msys-dd50a72ab4668b33-pty1-from-master
+ *
+ * Return: 1 if @hnd has been recognized to be cygwin/msys PTY, 0 otherwise
+ */
+static
+int is_cygpty_pipe(HANDLE hnd)
+{
+	char buff[256];
+	FILE_NAME_INFO* info = (FILE_NAME_INFO*)buff;
+	char* name_u8;
+	char orig[8] = "";
+	char dir[16] = "";
+	int r, len;
+
+	// Get name associated with the handle... Advertised buffer size is
+	// smaller to ensure we can write null terminator at the end
+	// of filename. Also we don't bother to get the name if buffer is
+	// not sufficient, because in this case, the name definitively does
+	// not fit the PTY name pattern
+	if (!GetFileInformationByHandleEx(hnd, FileNameInfo,
+	                                  info, sizeof(buff)-sizeof(WCHAR)))
+		return 0;
+
+	// Add null terminator to filename
+	len = info->FileNameLength/sizeof(*info->FileName);
+	info->FileName[len] = L'\0';
+
+	// Convert filename in utf8
+	name_u8 = alloca(len + 1);
+	if (conv_utf16_to_utf8(name_u8, len+1, info->FileName) < 0)
+		return 0;
+
+	// PTY from cygwin/msys have a name of the form:
+	// \(cygwin|msys)-[number_in_hexa]-ptyN-(from-master|to-master)
+	// (the actual \Device\NamedPipe part is striped by
+	// GetFileInformationByHandleEx(FileNameInfo)
+	r = sscanf(name_u8, "\\%7[a-z]-%*[0-9a-f]-pty%*u-%15s", orig, dir);
+	if (  (r == 2)
+	   && (!strcmp(orig, "msys") || !strcmp(orig, "cygwin"))
+	   && (!strcmp(dir, "from-master") || !strcmp(dir, "to-master")))
+		return 1;
+
+	return 0;
+}
+
+
+/**
  * guess_fd_info() - inspect fd and associated handle and guess type info
  * @fd:         file descriptor to inspect
  *
@@ -598,15 +653,19 @@ int guess_fd_info(int fd)
 {
 	int info;
 	HANDLE hnd;
-	DWORD mode;
+	DWORD mode, type;
 
 	hnd = (HANDLE)_get_osfhandle(fd);
 	if (hnd == INVALID_HANDLE_VALUE)
 		return -1;
 
+	type = GetFileType(hnd);
+
 	info = FD_TYPE_MSVCRT;
-	if (_isatty(fd) && GetConsoleMode(hnd, &mode))
-		info = FD_TYPE_CONSOLE;
+	if ((type == FILE_TYPE_CHAR) && GetConsoleMode(hnd, &mode))
+		info = FD_TYPE_CONSOLE | FD_FLAG_ISATTY;
+	else if ((type == FILE_TYPE_PIPE) && is_cygpty_pipe(hnd))
+		info = FD_TYPE_PIPE | FD_FLAG_ISATTY;
 
 	set_fd_info(fd, info);
 	return info;
