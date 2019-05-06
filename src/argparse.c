@@ -5,8 +5,11 @@
 # include <config.h>
 #endif
 
+#include "file-internal.h"
 #include "mmargparse.h"
+#include "mmerrno.h"
 #include "mmlib.h"
+#include "mmsysio.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -1368,6 +1371,104 @@ int mmarg_parse_complete(const struct mmarg_parser* parser, const char* arg)
 		complete_longopts(parser, len >= 2 ? arg+2 : "");
 
 	return 0;
+}
+
+
+/**
+ * mmarg_complete_path() - complete argument as path
+ * @arg:        beginning of argument (must not be NULL)
+ * @type_mask:  Combination of MM_DT_* flags indicating the desired file
+ * @cb:         user supplied completion callback (can be NULL)
+ * @cb_data:    pointer passed to @cb if it is not NULL
+ *
+ * This function print on standard output the list of path whose beginning
+ * match @arg and whose type match the mask specified by type_mask. This
+ * list has the same format as bash compgen command.
+ *
+ * More path candidates can be filtered out by supplying a callback through
+ * the @cb argument. If not NULL, this function will be called for each
+ * completion candidate which will be discarded if the callback does not
+ * return 1.
+ *
+ * Return: 0 in case of success, -1 otherwise
+ */
+API_EXPORTED
+int mmarg_complete_path(const char* arg, int type_mask,
+                        mmarg_complete_path_cb cb, void* cb_data)
+{
+	MMDIR* dir;
+	const struct mm_dirent* dirent;
+	char *dirpath, *base;
+	const char *disp_dir, *name;
+	int i, arglen, baselen, type, isdir;
+	int rv = -1;
+
+	if (arg == NULL)
+		return mm_raise_error(EINVAL, "arg pointer must not be NULL");
+
+	arglen = strlen(arg);
+	base = mm_malloca(arglen + 1);
+	dirpath = mm_malloca(arglen + 2);
+	if (!base || !dirpath)
+		goto exit;
+
+	// If arg is written as a folder, start search from it, otherwise,
+	// we compute its parent dir and use the basename as filter
+	if (arglen == 0 || is_path_separator(arg[arglen-1])) {
+		strcpy(dirpath, arglen ? arg : "./");
+		strcpy(base, "");
+		baselen = 0;
+	} else {
+		i = mm_dirname(dirpath, arg);
+		dirpath[i++] = '/';
+		dirpath[i] = '\0';
+		baselen = mm_basename(base, arg);
+	}
+
+	// If argument has no separator, don't prepend "./" artificially to
+	// completion candidates.
+	disp_dir = "";
+	for (i = 0; i < arglen; i++) {
+		if (is_path_separator(arg[i]))
+			disp_dir = dirpath;
+	}
+
+	dir = mm_opendir(dirpath);
+	if (!dir)
+		goto exit;
+
+	while (1) {
+		dirent = mm_readdir(dir, NULL);
+		if (!dirent)
+			break;
+
+		name = dirent->name;
+		type = dirent->type;
+
+		// Discard if base does not match the begining of filename
+		if (  strncmp(name, base, baselen) != 0
+		   || is_wildcard_directory(name))
+			continue;
+
+		// Discard if a callback did not return 1
+		if (cb && cb(name, dirpath, type, cb_data) != 1)
+			continue;
+
+		// If type does not match expected, just discard
+		if (!(type & type_mask))
+			continue;
+
+		// Display candidate. If it a dir, append a "/"
+		isdir = (type & MM_DT_DIR);
+		printf("%s%s%s\n", disp_dir, name, isdir ? "/" : "");
+	}
+	mm_closedir(dir);
+	rv = 0;
+
+exit:
+	mm_freea(dirpath);
+	mm_freea(base);
+	return rv;
 }
 
 

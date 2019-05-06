@@ -7,6 +7,7 @@
 
 #include "api-testcases.h"
 #include "mmargparse.h"
+#include "mmlib.h"
 #include "mmpredefs.h"
 #include "mmsysio.h"
 
@@ -24,6 +25,8 @@
 #ifndef STDOUT_FILENO
 #define STDOUT_FILENO 1
 #endif
+
+#define COMP_TREE_TESTDIR BUILDDIR"/completion_testdir"
 
 struct argv_case {
 	char* argv[NARGV_MAX];
@@ -56,6 +59,51 @@ int argv_len(char* argv[])
 static int prev_stdout_fd;
 static int rw_out_fd;
 static FILE* read_out_fp;
+static char* prev_cwd;
+
+static
+const char* completion_tree[] = {
+	"adir/yet_another_file",
+	"afile",
+	"anotherdir/bar",
+	"anotherdir/foo",
+	"emptydir/",
+	"file_1",
+	"file_2",
+};
+
+
+/**
+ * create_completion_test_tree() - create a completion test tree if folder
+ * @testdir:    folder where to create the completion tree (will be wiped
+ *              if it already exist).
+ */
+static
+void create_completion_test_tree(const char* testdir)
+{
+	char path[128], dirpath[128];
+	int i, len, fd;
+
+	mm_remove(testdir, MM_RECURSIVE|MM_DT_ANY);
+
+	for (i = 0; i < MM_NELEM(completion_tree); i++) {
+		sprintf(path, "%s/%s", testdir, completion_tree[i]);
+		len = strlen(path);
+
+		// If this is folder name, create only a folder
+		if (path[len-1] == '/')
+			mm_mkdir(path, 0777, MM_RECURSIVE);
+
+		// Create parent dir
+		mm_dirname(dirpath, path);
+		mm_mkdir(dirpath, 0777, MM_RECURSIVE);
+
+		// Create file
+		fd = mm_open(path, O_CREAT|O_WRONLY, 0666);
+		mm_close(fd);
+	}
+}
+
 
 /**
  * reset_output_fd() - reset file of redirected output
@@ -87,6 +135,11 @@ void argparse_case_setup(void)
 	rw_out_fd = mm_open(BUILDDIR"/argparse.out",
 	                      O_RDWR|O_CREAT|O_TRUNC|O_APPEND, 0666);
 	read_out_fp = fdopen(rw_out_fd, "r");
+
+	// Create completion test dir and change current directory for it
+	create_completion_test_tree(COMP_TREE_TESTDIR);
+	prev_cwd = mm_getcwd(NULL, 0);
+	mm_chdir(COMP_TREE_TESTDIR);
 }
 
 
@@ -104,6 +157,11 @@ void argparse_case_teardown(void)
 
 	// This will close rw_out_fd as well
 	fclose(read_out_fp);
+
+	// Remove completion testdir and restore current directory
+	mm_remove(COMP_TREE_TESTDIR, MM_RECURSIVE|MM_DT_ANY);
+	mm_chdir(prev_cwd);
+	free(prev_cwd);
 }
 
 
@@ -513,6 +571,128 @@ START_TEST(complete_opt)
 END_TEST
 
 
+struct {
+	char* arg;
+	char* props[MM_NELEM(completion_tree)];
+} comp_path_cases[] = {
+	{"", {"adir/", "afile", "anotherdir/", "emptydir/", "file_1", "file_2"}},
+	{"a", {"adir/", "afile", "anotherdir/"}},
+	{"f", {"file_1", "file_2"}},
+	{"an", {"anotherdir/"}},
+	{"anotherdir", {"anotherdir/"}},
+	{"anotherdir/", {"anotherdir/bar", "anotherdir/foo"}},
+	{"emptydir/", {}},
+};
+
+
+/**
+ * filter_props_type() - copy elements of array that match typemask
+ * @dst_props:       destination array
+ * @src_props:       source array
+ * @typemask:        mask of type flags (MM_DT_*)
+ */
+static
+void filter_props_type(char** dst_props, char** src_props, int typemask)
+{
+	struct mm_stat st;
+	int i, j;
+
+	j = 0;
+	for (i = 0; src_props[i]; i++) {
+		// Add to filtered proposal only it type match
+		if (mm_stat(src_props[i], &st, MM_NOFOLLOW))
+			continue;
+
+		if (  (S_ISREG(st.mode) && (typemask & MM_DT_REG))
+		   || (S_ISDIR(st.mode) && (typemask & MM_DT_DIR))
+		   || (S_ISLNK(st.mode) && (typemask & MM_DT_LNK)))
+			dst_props[j++] = src_props[i];
+	}
+
+	dst_props[j] = NULL;
+}
+
+
+/**
+ * filt_name_path_cb() - test whether name start string passed in data
+ * @name:       basename of completion proposal
+ * @dir:        dirname of completion proposal
+ * @type:       type of completion proposal
+ * @data:       pointer passed to mmarg_complete_path()... must hold the
+ *              string beginning to check
+ *
+ * function used to test the callback mechanism of mmarg_complete_path().
+ * It checks that completion candidate has its basename (@name) that start
+ * with a string specified by @data.
+ */
+static
+int filt_name_path_cb(const char* name, const char* dir, int type, void* data)
+{
+	const char* start = data;
+	(void) type;
+	(void) dir;
+
+	return (strncmp(start, name, strlen(start)) == 0);
+}
+
+
+/**
+ * filter_props_type() - filter array whose basename has the expected start
+ * @dst_props:       destination array
+ * @src_props:       source array
+ * @start:           string matching the beginning of basename of elements
+ */
+static
+void filter_props_name(char** dst_props, char** src_props, const char* start)
+{
+	char base[64];
+	int i, j, len;
+
+	len = strlen(start);
+
+	j = 0;
+	for (i = 0; src_props[i]; i++) {
+		mm_basename(base, src_props[i]);
+		if (strncmp(start, base, len) == 0)
+			dst_props[j++] = src_props[i];
+	}
+
+	dst_props[j] = NULL;
+}
+
+
+START_TEST(complete_path)
+{
+	char* expected_props[MM_NELEM(comp_path_cases[0].props)];
+	char** expfull_props = comp_path_cases[_i].props;
+	char* arg = comp_path_cases[_i].arg;
+	int typemasks[] = {MM_DT_ANY, MM_DT_REG, MM_DT_DIR};
+	int i, mask, rv;
+
+	for (i = 0; i < MM_NELEM(typemasks); i++) {
+		// Consider only proposal matching typemask
+		mask = typemasks[i];
+		filter_props_type(expected_props, expfull_props, mask);
+
+		// Complete path from arg and check its expected proposals
+		rv = mmarg_complete_path(arg, mask, NULL, NULL);
+		ck_assert(rv == 0);
+		check_props_from_output_file(expected_props);
+
+		reset_output_fd();
+
+		// limit further proposal whose basename start by "f"
+		filter_props_name(expected_props, expected_props, "f");
+		rv = mmarg_complete_path(arg, mask, filt_name_path_cb, "f");
+		ck_assert(rv == 0);
+		check_props_from_output_file(expected_props);
+
+		reset_output_fd();
+	}
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -534,6 +714,7 @@ TCase* create_argparse_tcase(void)
 	tcase_add_loop_test(tc, parsing_success, 0, MM_NELEM(success_argv_cases));
 	tcase_add_test(tc, complete_empty_arg);
 	tcase_add_loop_test(tc, complete_opt, 0, MM_NELEM(comp_cases));
+	tcase_add_loop_test(tc, complete_path, 0, MM_NELEM(comp_path_cases));
 
 	return tc;
 }

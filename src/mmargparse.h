@@ -140,6 +140,18 @@ struct mmarg_opt {
 typedef int (*mmarg_callback)(const struct mmarg_opt* opt,
                               union mmarg_val value, void* data);
 
+/**
+ * typedef mmarg_complete_path_cb() - prototype of path completion callback
+ * @name:       basename of path candidate
+ * @dir:        directory of path candidate.
+ * @type:       file type of path candidate (one of the MM_DT_* definition)
+ * @data:       user pointer provided when calling path completion
+ *
+ * Return: 1 if path candidate must be kept, 0 if it must be discarded.
+ */
+typedef int (*mmarg_complete_path_cb)(const char* name, const char* dir,
+                                      int type, void* data);
+
 #define MMARG_PARSER_NOEXIT     (1 << 0)
 #define MMARG_PARSER_COMPLETION (1 << 1)
 
@@ -179,6 +191,8 @@ MMLIB_API int mmarg_parse(const struct mmarg_parser* parser,
                           int argc, char* argv[]);
 MMLIB_API int mmarg_parse_complete(const struct mmarg_parser* parser,
                                    const char* arg);
+MMLIB_API int mmarg_complete_path(const char* arg, int type_mask,
+                                  mmarg_complete_path_cb cb, void* cb_data);
 MMLIB_API int mmarg_is_completing(void);
 
 
