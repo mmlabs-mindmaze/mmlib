@@ -70,6 +70,9 @@ MMLIB_API const char* mm_get_basedir(enum mm_known_dir dirtype);
 MMLIB_API char* mm_path_from_basedir(enum mm_known_dir dirtype,
                                      const char* suffix);
 
+MMLIB_API int mm_basename(char* dst, const char* path);
+MMLIB_API int mm_dirname(char* dst, const char* path);
+
 MMLIB_API void* mm_aligned_alloc(size_t alignment, size_t size);
 MMLIB_API void mm_aligned_free(void* ptr);
 

@@ -261,6 +261,105 @@ END_TEST
 
 /**************************************************************************
  *                                                                        *
+ *                       Path component parsing tests                     *
+ *                                                                        *
+ **************************************************************************/
+static const struct {
+	const char* path;
+	const char* dir;
+	const char* base;
+} dir_comp_cases[] = {
+	{.path = "/usr/lib",      .dir = "/usr",       .base = "lib"},
+	{.path = "/usr/",         .dir = "/",          .base = "usr"},
+	{.path = "usr",           .dir = ".",          .base = "usr"},
+	{.path = "/",             .dir = "/",          .base = "/"},
+	{.path = ".",             .dir = ".",          .base = "."},
+	{.path = "..",            .dir = ".",          .base = ".."},
+	{.path = "/usr//lib",     .dir = "/usr",       .base = "lib"},
+	{.path = "/usr//lib//",   .dir = "/usr",       .base = "lib"},
+	{.path = "/usr///",       .dir = "/",          .base = "usr"},
+	{.path = "///usr/",       .dir = "/",          .base = "usr"},
+	{.path = "///",           .dir = "/",          .base = "/"},
+	{.path = "./",            .dir = ".",          .base = "."},
+	{.path = "../",           .dir = ".",          .base = ".."},
+	{.path = "",              .dir = ".",          .base = "."},
+	{.path = "//",            .dir = "/",          .base = "/"},
+	{.path = "...",           .dir = ".",          .base = "..."},
+	{.path = " ",             .dir = ".",          .base = " "},
+#if defined(_WIN32)
+	{.path = "\\usr\\",       .dir = "\\",         .base = "usr"},
+	{.path = "\\usr\\lib",    .dir = "\\usr",      .base = "lib"},
+	{.path = "\\usr/lib",     .dir = "\\usr",      .base = "lib"},
+	{.path = "\\usr/lib\\hi", .dir = "\\usr/lib",  .base = "hi"},
+	{.path = "\\usr\\lib/hi", .dir = "\\usr\\lib", .base = "hi"},
+#else
+	{.path = "/1\\2/3", .dir = "/1\\2", .base = "3"},
+#endif
+};
+
+
+START_TEST(parse_dirname)
+{
+	int i, explen;
+	char result[64], path[64];
+	const char* expected;
+
+	for (i = 0; i < MM_NELEM(dir_comp_cases); i++) {
+		strcpy(path, dir_comp_cases[i].path);
+		expected = dir_comp_cases[i].dir;
+		explen = strlen(expected);
+
+		ck_assert(mm_dirname(NULL, path) == explen);
+
+		// Run on different string buffer
+		ck_assert(mm_dirname(result, path) == explen);
+		ck_assert_str_eq(result, expected);
+		ck_assert_str_eq(path, dir_comp_cases[i].path);
+
+		// Run on same string buffer
+		ck_assert(mm_dirname(path, path) == explen);
+		ck_assert_str_eq(path, expected);
+	}
+
+	ck_assert(mm_dirname(NULL, NULL) == 1);
+	ck_assert(mm_dirname(result, NULL) == 1);
+	ck_assert_str_eq(result, ".");
+}
+END_TEST
+
+
+START_TEST(parse_basename)
+{
+	int i, explen;
+	char result[64], path[64];
+	const char* expected;
+
+	for (i = 0; i < MM_NELEM(dir_comp_cases); i++) {
+		strcpy(path, dir_comp_cases[i].path);
+		expected = dir_comp_cases[i].base;
+		explen = strlen(expected);
+
+		ck_assert(mm_basename(NULL, path) == explen);
+
+		// Run on different string buffer
+		ck_assert(mm_basename(result, path) == explen);
+		ck_assert_str_eq(result, expected);
+		ck_assert_str_eq(path, dir_comp_cases[i].path);
+
+		// Run on same string buffer
+		ck_assert(mm_basename(path, path) == explen);
+		ck_assert_str_eq(path, expected);
+	}
+
+	ck_assert(mm_basename(NULL, NULL) == 1);
+	ck_assert(mm_basename(result, NULL) == 1);
+	ck_assert_str_eq(result, ".");
+}
+END_TEST
+
+
+/**************************************************************************
+ *                                                                        *
  *                          Test suite setup                              *
  *                                                                        *
  **************************************************************************/
@@ -276,6 +375,8 @@ TCase* create_utils_tcase(void)
 	tcase_add_test(tc, get_environ);
 	tcase_add_test(tc, multiple_set_unset_env);
 	tcase_add_test(tc, append_prepend_environ);
+	tcase_add_test(tc, parse_dirname);
+	tcase_add_test(tc, parse_basename);
 
 	return tc;
 }

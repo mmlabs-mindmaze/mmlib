@@ -325,3 +325,171 @@ char* mm_path_from_basedir(enum mm_known_dir dirtype, const char* suffix)
 	sprintf(dir, "%s/%s", base, suffix);
 	return dir;
 }
+
+
+/**************************************************************************
+ *                                                                        *
+ *                       Path manipulation utils                          *
+ *                                                                        *
+ **************************************************************************/
+
+static
+int is_path_separator(char c)
+{
+#if defined(_WIN32)
+	return (c == '\\' || c == '/');
+#else
+	return (c == '/');
+#endif
+}
+
+
+static
+const char* get_last_nonsep_ptr(const char* path)
+{
+	const char* c = path + strlen(path) - 1;
+
+	// skip trailing path separators
+	while (c > path && is_path_separator(*c))
+		c--;
+
+	return c;
+}
+
+
+static
+const char* get_basename_ptr(const char* path)
+{
+	const char *c, *lastptr;
+
+	lastptr = get_last_nonsep_ptr(path);
+
+	for (c = lastptr-1; c >= path; c--) {
+		if (is_path_separator(*c))
+			return (c == lastptr) ? c : c + 1;
+	}
+
+	return path;
+}
+
+
+/**
+ * mm_basename() - get basename of a path
+ * @base:       string buffer receiving the result (may be NULL)
+ * @path:       path whose basename must be computed (may be NULL)
+ *
+ * This function takes the pathname pointed to by @path and write in
+ * @base (if not NULL) the final component of the pathname, deleting any
+ * trailing path separator characters ('/' on POSIX, '/' and '\\' on
+ * Windows). If @base is NULL, the result is not written, only the number
+ * of character needed by the resulting string is returned.
+ *
+ * If path is NULL or "", the resulting basename will be ".";
+ *
+ * Thr pointer @base and @path need not be different: it is legal to use
+ * the same buffer for both (thus realizing an inplace transformation of
+ * the path). More generally, @base and @path may overlap. Also contrary to
+ * its POSIX equivalent, this function is guaranteed to be reentrant.
+ *
+ * NOTE: If allocated length for @base is greater or equal to length of
+ * @path (including null terminator) with a minimum of 2, then it is
+ * guaranteed that the result will not overflow @base.
+ *
+ * Return: the number of character (excluding null termination) that are
+ * written to @base (or would be written if @base is NULL)
+ */
+API_EXPORTED
+int mm_basename(char* base, const char* path)
+{
+	const char* baseptr;
+	const char* lastptr;
+	int len;
+
+	if (!path)
+		path = "";
+
+	baseptr = get_basename_ptr(path);
+	lastptr = get_last_nonsep_ptr(path)+1;
+
+	len = lastptr - baseptr;
+
+	// if len == 0, path was "" or "/" (or "//" or "///" or ...)
+	if (len <= 0) {
+		len = 1;
+		if (path[0] == '\0')
+			baseptr = ".";
+	}
+
+	if (base) {
+		memmove(base, baseptr, len);
+		base[len] = '\0';
+	}
+
+	return len;
+}
+
+
+/**
+ * mm_dirname() - get directory name of a path
+ * @dir:        string buffer receiving the result (may be NULL)
+ * @path:       path whose dirname must be computed (may be NULL)
+ *
+ * This takes a pointer to a character string @path that contains a
+ * pathname, and write the pathname of the parent directory of that file in
+ * the buffer pointed to by @dir (if not NULL). This does not perform
+ * pathname resolution; the result will not be affected by whether or not
+ * path exists or by its file type. Trailing path separator ('/' on POSIX,
+ * '/' and '\\' on Windows) not also leading characters are not counted as
+ * part of the path. If @dir is NULL, the result is not written, only the
+ * number of character needed by the resulting string is returned.
+ *
+ * If path is NULL or "", the resulting dirname will be ".";
+ *
+ * The pointers @dir and @path need not be different: it is legal to use
+ * the same buffer for both (thus realizing an inplace transformation of
+ * the path). More generally, @dir and @path may overlap. Also contrary to
+ * its POSIX equivalent, this function is guaranteed to be reentrant.
+ *
+ * NOTE: If allocated length for @dir is greater or equal to length of
+ * @path (including null terminator) with a minimum of 2, then it is
+ * guaranteed that the result will not overflow @dir.
+ *
+ * Return: the number of character (excluding null termination) that are
+ * written to @dir (or would be written if @dir is NULL)
+ */
+API_EXPORTED
+int mm_dirname(char* dir, const char* path)
+{
+	const char* baseptr;
+	const char* lastptr;
+	int len;
+
+	if (!path)
+		path = "";
+
+	baseptr = get_basename_ptr(path);
+
+	if (baseptr == path) {
+		len = 1;
+		if (!is_path_separator(*baseptr))
+			path = ".";
+
+		goto exit;
+	}
+
+	lastptr = baseptr-1;
+
+	// Remove trailing separator
+	while (lastptr > path && is_path_separator(*lastptr))
+		lastptr--;
+
+	len  = lastptr - path + 1;
+
+exit:
+	if (dir) {
+		memmove(dir, path, len);
+		dir[len] = '\0';
+	}
+
+	return len;
+}
