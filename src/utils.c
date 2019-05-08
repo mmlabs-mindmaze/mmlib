@@ -6,6 +6,7 @@
 #endif
 
 
+#include "file-internal.h"
 #include "mmerrno.h"
 #include "mmlib.h"
 #include "mmlog.h"
@@ -332,17 +333,6 @@ char* mm_path_from_basedir(enum mm_known_dir dirtype, const char* suffix)
  *                       Path manipulation utils                          *
  *                                                                        *
  **************************************************************************/
-
-static
-int is_path_separator(char c)
-{
-#if defined(_WIN32)
-	return (c == '\\' || c == '/');
-#else
-	return (c == '/');
-#endif
-}
-
 
 static
 const char* get_last_nonsep_ptr(const char* path)

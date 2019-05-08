@@ -521,11 +521,11 @@ const char * win32_basename(const char * path)
 	const char * c = path + strlen(path) - 1;
 
 	/* skip the last chars if they're not a path */
-	while (c > path && (*c == '/' || *c == '\\'))
+	while (c > path && is_path_separator(*c))
 		c--;
 
 	while (c > path) {
-		if (*c == '/' || *c == '\\')
+		if (is_path_separator(*c))
 			return c + 1;
 		c--;
 	}

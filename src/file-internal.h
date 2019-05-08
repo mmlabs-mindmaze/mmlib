@@ -5,6 +5,17 @@
 #define FILE_INTERNAL_H
 
 
+static inline
+int is_path_separator(char c)
+{
+#if defined(_WIN32)
+	return (c == '\\' || c == '/');
+#else
+	return (c == '/');
+#endif
+}
+
+
 /* use to skip "." and ".." directories */
 static inline
 int is_wildcard_directory(const char * name)

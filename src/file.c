@@ -128,14 +128,6 @@ int mm_ftruncate(int fd, mm_off_t length)
 }
 
 
-#if defined(_WIN32)
-#define IS_PATH_SEPARATOR(c) \
-	((*c) == '\\' || (*c) == '/')
-#else
-#define IS_PATH_SEPARATOR(c) \
-	((*c) == '/')
-#endif
-
 /**
  * internal_dirname() -  quick implementation of dirname()
  * @path:         the path to get the dir of
@@ -158,13 +150,13 @@ char * internal_dirname(char * path)
 	char * c = path + strlen(path) - 1;
 
 	/* skip the last chars if they're not a path */
-	while (c > path && IS_PATH_SEPARATOR(c))
+	while (c > path && is_path_separator(*c))
 		c--;
 
 	while (--c > path) {
-		if (IS_PATH_SEPARATOR(c)) {
+		if (is_path_separator(*c)) {
 			/* remove consecutive separators (if any) */
-			while (c > path && IS_PATH_SEPARATOR(c)) {
+			while (c > path && is_path_separator(*c)) {
 				*c = '\0';
 				c--;
 			}

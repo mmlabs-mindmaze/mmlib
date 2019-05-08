@@ -9,6 +9,7 @@
 #define _WIN32_WINNT 0x0600
 #endif
 
+#include "file-internal.h"
 #include "mmsysio.h"
 #include "mmerrno.h"
 #include "mmlog.h"
@@ -1030,7 +1031,7 @@ int contains_dirsep(const char* path)
 
 	for (; *path != '\0'; path++) {
 		c = *path;
-		if (c == '\\' || c == '/')
+		if (is_path_separator(c))
 			return 1;
 	}
 
