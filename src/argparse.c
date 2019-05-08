@@ -711,10 +711,16 @@ int complete_shortopts(const struct mmarg_parser* parser, const char* arg)
 static
 int complete_opt_value(const struct mmarg_opt* opt, const char* arg)
 {
-	(void)opt;
+	int flags;
 
-	if (arg)
+	if (opt->flags & (MMOPT_FILEPATH | MMOPT_DIRPATH)) {
+		flags = 0;
+		flags |= (opt->flags & MMOPT_FILEPATH) ? MM_DT_REG|MM_DT_DIR : 0;
+		flags |= (opt->flags & MMOPT_DIRPATH) ? MM_DT_DIR : 0;
+		mmarg_complete_path(arg, flags, NULL, NULL);
+	} else if (arg) {
 		printf("%s\n", arg);
+	}
 
 	return MMARGPARSE_COMPLETE;
 }

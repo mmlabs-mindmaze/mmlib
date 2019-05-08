@@ -693,6 +693,62 @@ START_TEST(complete_path)
 END_TEST
 
 
+struct {
+	char* argv[4];
+	int opttype;
+	char* props[MM_NELEM(completion_tree)];
+} comp_argval_path_cases[] = {
+	{
+		{"prog", "--set-path="}, MMOPT_NEEDFILE,
+		{"adir/", "afile", "anotherdir/", "emptydir/", "file_1", "file_2"}
+	}, {
+		{"prog", "-p", ""}, MMOPT_NEEDFILE,
+		{"adir/", "afile", "anotherdir/", "emptydir/", "file_1", "file_2"}
+	}, {
+		{"prog", "--set-path="}, MMOPT_NEEDDIR,
+		{"adir/", "anotherdir/", "emptydir/"}
+	}, {
+		{"prog", "-p", ""}, MMOPT_NEEDDIR,
+		{"adir/", "anotherdir/", "emptydir/"}
+	}, {
+		{"prog", "--set-path=a"}, MMOPT_NEEDFILE,
+		{"adir/", "afile", "anotherdir/"}
+	}, {
+		{"prog", "-p", "a"}, MMOPT_NEEDFILE,
+		{"adir/", "afile", "anotherdir/"}
+	}, {
+		{"prog", "--set-path=a"}, MMOPT_NEEDDIR,
+		{"adir/", "anotherdir/"}
+	}, {
+		{"prog", "--set-path=foobar"}, MMOPT_NEEDFILE, {}
+	},
+};
+
+
+START_TEST(complete_argval_path)
+{
+	char** expected_props = comp_argval_path_cases[_i].props;
+	char** argv = comp_argval_path_cases[_i].argv;
+	const char* str = NULL;
+	struct mmarg_opt optv[] = {
+		{"p|set-path", comp_argval_path_cases[_i].opttype,
+		 NULL, {.sptr = &str}, NULL},
+	};
+	struct mmarg_parser parser = {
+		.flags = MMARG_PARSER_NOEXIT | MMARG_PARSER_COMPLETION,
+		.optv = optv, .num_opt = MM_NELEM(optv),
+	};
+	int rv;
+
+	rv = mmarg_parse(&parser, argv_len(argv), argv);
+	ck_assert(rv == MMARGPARSE_COMPLETE);
+	check_props_from_output_file(expected_props);
+
+	// Ensure that str has NOT been set (completion must not set val)
+	ck_assert(str == NULL);
+}
+END_TEST
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -715,6 +771,8 @@ TCase* create_argparse_tcase(void)
 	tcase_add_test(tc, complete_empty_arg);
 	tcase_add_loop_test(tc, complete_opt, 0, MM_NELEM(comp_cases));
 	tcase_add_loop_test(tc, complete_path, 0, MM_NELEM(comp_path_cases));
+	tcase_add_loop_test(tc, complete_argval_path,
+	                    0, MM_NELEM(comp_argval_path_cases));
 
 	return tc;
 }
