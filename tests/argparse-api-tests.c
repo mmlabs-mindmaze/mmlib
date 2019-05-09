@@ -245,8 +245,10 @@ struct argv_case parsing_order_cases[] = {
 };
 
 static
-int parse_option_cb(const struct mmarg_opt* opt, union mmarg_val value, void* data)
+int parse_option_cb(const struct mmarg_opt* opt, union mmarg_val value,
+                    void* data, int state)
 {
+	(void)state;
 	const char** strval = data;
 
 	if (mmarg_opt_get_key(opt) == 's')
@@ -749,6 +751,76 @@ START_TEST(complete_argval_path)
 }
 END_TEST
 
+
+#define INIT_IVAL 9999
+static
+struct mmarg_opt completion_in_cb_optv[] = {
+	{"d|distractor", MMOPT_NEEDSTR, "default_distractor", {NULL}, NULL},
+	{"i|set-i", MMOPT_OPTINT, "-1", {NULL}, NULL},
+};
+
+static struct {
+	char* argv[10];
+	int exp_val;
+	char* props[2*MM_NELEM(completion_in_cb_optv)+3];
+} comp_in_cb_cases[] = {
+	{{"prg_name", "--set-i="}, INIT_IVAL, {"512", "1024"}},
+	{{"prg_name", "--set-i=42"}, INIT_IVAL, {"512", "1024"}},
+	{{"prg_name", "--set-i=42", "--set-i=24"}, 42, {"512", "1024"}},
+	{{"prg_name", "--set-i=42", "--"}, 42, {"--help", "--set-i", "--set-i=", "--distractor="}},
+	{{"prg_name", "-i"}, INIT_IVAL, {"-i"}},
+	{{"prg_name", "-i", "42"}, INIT_IVAL, {"512", "1024"}},
+	{{"prg_name", "-i", "42", "-i", "24"}, 42, {"512", "1024"}},
+	{{"prg_name", "-i", "42", "-i"}, 42, {"-i"}},
+	{{"prg_name", "-i", "42"}, INIT_IVAL, {"512", "1024"}},
+	{{"prg_name", "--set-i=42", "--distractor=24"}, 42, {"24"}},
+	{{"prg_name", "-i", "42", "-d", "24"}, 42, {"24"}},
+};
+
+
+static
+int comp_option_parse_cb(const struct mmarg_opt* opt, union mmarg_val value,
+                         void* data, int state)
+{
+	int* ival = data;
+
+	if (mmarg_opt_get_key(opt) == 'i') {
+		if (state & MMARG_OPT_COMPLETION) {
+			printf("512\n1024\n");
+			return MMARGPARSE_COMPLETE;
+		}
+
+		*ival = value.i;
+	}
+
+	return 0;
+}
+
+
+START_TEST(completion_in_cb)
+{
+	int i_value = INIT_IVAL;
+	struct mmarg_parser parser = {
+		.flags = MMARG_PARSER_NOEXIT | MMARG_PARSER_COMPLETION,
+		.optv = completion_in_cb_optv,
+		.num_opt = MM_NELEM(completion_in_cb_optv),
+		.cb = comp_option_parse_cb,
+		.cb_data = &i_value,
+	};
+	int arg_index, argc;
+	char** argv = comp_in_cb_cases[_i].argv;
+	char** expected_props = comp_in_cb_cases[_i].props;
+
+	argc = argv_len(argv);
+	arg_index = mmarg_parse(&parser, argc, argv);
+
+	ck_assert_int_eq(arg_index, MMARGPARSE_COMPLETE);
+	ck_assert_int_eq(i_value, comp_in_cb_cases[_i].exp_val);
+	check_props_from_output_file(expected_props);
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -773,6 +845,7 @@ TCase* create_argparse_tcase(void)
 	tcase_add_loop_test(tc, complete_path, 0, MM_NELEM(comp_path_cases));
 	tcase_add_loop_test(tc, complete_argval_path,
 	                    0, MM_NELEM(comp_argval_path_cases));
+	tcase_add_loop_test(tc, completion_in_cb, 0, MM_NELEM(comp_in_cb_cases));
 
 	return tc;
 }

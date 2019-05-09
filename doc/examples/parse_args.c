@@ -48,14 +48,17 @@ struct mmarg_opt cmdline_optv[] = {
  * @opt:        parser configuration of option recognized
  * @value:      value about to be set for option
  * @data:       callback data
+ * @state:      flags indicating the state of option parsing.
  *
  * Return: 0 is parsing must continue, -1 if error has been detect and
  * parsing must stop.
  */
 static
-int parse_option_cb(const struct mmarg_opt* opt, union mmarg_val value, void* data)
+int parse_option_cb(const struct mmarg_opt* opt, union mmarg_val value,
+                    void* data, int state)
 {
 	struct config* conf = data;
+	(void)state;
 
 	switch (mmarg_opt_get_key(opt)) {
 	case 'n':

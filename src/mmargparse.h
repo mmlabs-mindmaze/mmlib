@@ -132,19 +132,33 @@ struct mmarg_opt {
 #define MMARGPARSE_STOP         -2
 #define MMARGPARSE_COMPLETE     -3
 
+#define MMARG_OPT_COMPLETION (1 << 0)
+
 /**
  * typedef mmarg_callback() - prototype of argument parser callback
  * @opt:        pointer to matching option
  * @value:      value set for option. The field of the union to use is
  *              determined with mmarg_opt_get_type(@opt).
  * @data:       user pointer provided for hold state while running parser
+ * @state:      flags indicating the state of option parsing.
+ *
+ * The flags in @state indicates special calling context. It can be a
+ * combination of the following flags :
+ *
+ * %MMARG_OPT_COMPLETION: the option value is being completed. The value
+ * passed is then always a string, no matter is @opt->value. Also its
+ * content may be incomplete. If the callback want to provide completion
+ * candidates, it has to write them on standard output, each candidate on
+ * its own line. If it returns MMARGPARSE_COMPLETE, no further completion
+ * proposal will be added. This flag cannot appear if the flag
+ * %MMARG_PARSER_COMPLETION has not been set in argument parser.
  *
  * Return: 0 in case of success, MMARGPARSE_ERROR (-1) if an error has been
- * detected or MMARGPARSE_STOP (-2) if early exit is requested like with help
- * display
+ * detected, MMARGPARSE_STOP (-2) if early exit is requested like with help
+ * display or MMARGPARSE_COMPLETE (-3) if value has been completed.
  */
 typedef int (*mmarg_callback)(const struct mmarg_opt* opt,
-                              union mmarg_val value, void* data);
+                              union mmarg_val value, void* data, int state);
 
 /**
  * typedef mmarg_complete_path_cb() - prototype of path completion callback

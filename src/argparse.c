@@ -703,15 +703,25 @@ int complete_shortopts(const struct mmarg_parser* parser, const char* arg)
 
 /**
  * complete_opt_value() - gen list of option value acceptable for option
+ * @parser:     argument parser configuration
  * @opt:        option whose value is being completed
  * @arg:        beginning of value supplied on cmdline
  *
  * Return: always MMARGPARSE_COMPLETE
  */
 static
-int complete_opt_value(const struct mmarg_opt* opt, const char* arg)
+int complete_opt_value(const struct mmarg_parser* parser,
+                       const struct mmarg_opt* opt, const char* arg)
 {
-	int flags;
+	int rv, flags;
+	union mmarg_val value = {.str = arg};
+
+	if (parser->cb) {
+		rv = parser->cb(opt, value, parser->cb_data,
+		                MMARG_OPT_COMPLETION);
+		if (rv)
+			return MMARGPARSE_COMPLETE;
+	}
 
 	if (opt->flags & (MMOPT_FILEPATH | MMOPT_DIRPATH)) {
 		flags = 0;
@@ -1059,7 +1069,7 @@ int process_opt_value(const struct mmarg_opt* opt, const char* value,
 	// Convert string value to argval union and run callback if one is
 	// present
 	if (  (rv = conv_str_to_argval(opt, &argval, value)) < 0
-	   || (cb && (rv = cb(opt, argval, cb_data)) < 0)  )
+	   || (cb && (rv = cb(opt, argval, cb_data, 0)) < 0)  )
 		return rv;
 
 	// set value if specified in option parser
@@ -1105,7 +1115,8 @@ int process_short_opt(const struct mmarg_parser* parser,
 			value = next_arg;
 			move_arg_index = 1;
 		        if (is_completing(parser) && next_is_last)
-				return complete_opt_value(opt_parser, value);
+				return complete_opt_value(parser,
+				                          opt_parser, value);
 		}
 
 		rv = process_opt_value(opt_parser, value, parser);
@@ -1160,7 +1171,7 @@ int process_long_opt(const struct mmarg_parser* parser, const char* arg,
 	}
 
 	if (do_complete)
-		return complete_opt_value(opt, value);
+		return complete_opt_value(parser, opt, value);
 
 	// Process the found option
 	if ((rv = process_opt_value(opt, value, parser)) < 0)
