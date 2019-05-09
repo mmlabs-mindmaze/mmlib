@@ -975,7 +975,7 @@ int win32_unlinkat(const char * prefix, const char * name, int type)
  * @flags:         option flag to return on error
  * @rec_lvl:       maximum recursion level
  *
- * Many error return values are *explicitely* skipped.
+ * Many error return values are *explicitly* skipped.
  * Since this is a recursive removal, we should not stop when we encounter
  * a forbidden file or folder. This except if the @flag contains MM_FAILONERROR.
  *
@@ -1186,7 +1186,7 @@ MMDIR * mm_opendir(const char* path)
 	strcat(d->dirname, "/*");
 
 	/* call FindFirstFile() to ensure that the given path
-	 * is meaningfull, and to keep ithe folder opened */
+	 * is meaningful, and to keep ithe folder opened */
 	if(win32_find_file(d))
 		goto error;
 
@@ -1266,7 +1266,7 @@ const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
  * HANDLE:      handle of a open reparse point
  *
  * Return: initialized REPARSE_DATA_BUFFER in case of success, NULL
- * othewise. Must be cleanup with free() when you don't need it any longer
+ * otherwise. Must be cleanup with free() when you don't need it any longer
  */
 static
 REPARSE_DATA_BUFFER* get_reparse_data(HANDLE hnd)

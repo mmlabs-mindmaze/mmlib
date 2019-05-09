@@ -224,7 +224,7 @@ int mm_error_set_flags(int flags, int mask)
  * @srcfile:    filename of source code at the origin of the error
  * @srcline:    line number of file at the origin of the error
  * @extid:      extended error id (identifier of a specific error case)
- * @desc_fmt:   description intended for developper (vprintf-like extensible)
+ * @desc_fmt:   description intended for developer (vprintf-like extensible)
  * @args:       va_list of arguments for @desc
  *
  * Exactly the same as mm_raise_error_full() but using a va_list to pass
@@ -299,7 +299,7 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
  * @srcfile:    filename of source code at the origin of the error
  * @srcline:    line number of file at the origin of the error
  * @extid:      extended error id (identifier of a specific error case)
- * @desc_fmt:   description intended for developper (printf-like extensible)
+ * @desc_fmt:   description intended for developer (printf-like extensible)
  *
  * This function is the actual function invoked by the mm_raise_error() and
  * mm_raise_error_with_extid() macros. You are advised to use the macros instead

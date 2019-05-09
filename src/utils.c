@@ -269,7 +269,7 @@ void init_basedirs(void)
  *
  * The base folder provided follow the XDG base directory specification
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html.
- * As such, the reported folder can be controlled through environement variables.
+ * As such, the reported folder can be controlled through environment variables.
  *
  * Return: pointer to the corresponding string in case of success, NULL
  * otherwise with error state set accordingly. If @dirtype is valid, the

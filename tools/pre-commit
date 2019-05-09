@@ -3,7 +3,7 @@
 # check the necesessary tools exist
 command -v uncrustify >/dev/null
 if [ $? != 0 ]; then
-	echo "uncrustify missing. Please run: apt-get instal uncrustify" 2>&1
+	echo "uncrustify missing. Please run: apt-get install uncrustify" 2>&1
 	exit 1
 fi
 

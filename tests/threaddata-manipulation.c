@@ -34,7 +34,7 @@
  * touch_data() - modify data and restore it
  * @data:       address of shared data to modify
  * @tid:        data identifying uniquely the calling thread
- * @do_sleep:   if true, sleep between data modifcation and data value restoration
+ * @do_sleep:   if true, sleep between data modification and data value restoration
  *
  * Return: true if no inconsistency has been detected, false otherwise
  */

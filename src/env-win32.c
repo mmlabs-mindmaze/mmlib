@@ -48,7 +48,7 @@ struct envcache {
 
 /**
  * envstr_init() - environment string initialization
- * @entry:      env string to intialize
+ * @entry:      env string to initialize
  * @name:       name of the environment variable in UTF-8
  *
  * Return: 0 in case of success, -1 with errno set otherwise
@@ -321,7 +321,7 @@ char16_t* get_u16env(const char* name_u8)
 	int u16_len;
 
 	// Estimate the size of the variable name in UTF-16. If the name in
-	// invalid, we consider (rightfully) that the envionment does not
+	// invalid, we consider (rightfully) that the environment does not
 	// contains such a name
 	u16_len = get_utf16_buffer_len_from_utf8(name_u8);
 	if (u16_len  < 0)
@@ -387,9 +387,9 @@ exit:
 
 
 /**
- * get_environ_utf8() - Get array of environement strings in UTF-8
+ * get_environ_utf8() - Get array of environment strings in UTF-8
  *
- * This function update the envionment cache with all environment variable
+ * This function update the environment cache with all environment variable
  * sets in the process.
  *
  * Return: NULL terminated array of the environment string in UTF-8. In
@@ -406,8 +406,8 @@ char** get_environ_utf8(void)
 	if (env_strw == NULL)
 		return NULL;
 
-	// Update the environement cache with all key=value strings present
-	// in environement
+	// Update the environment cache with all key=value strings present
+	// in environment
 	for (env16 = env_strw; *env16 != L'\0'; env16 += wcslen(env16)+1)
 		update_environment_cache(cache, env16);
 

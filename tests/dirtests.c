@@ -446,7 +446,7 @@ bool test_symlinks(void)
 		fprintf(stderr, "Skipping symlink tests: "
 		                "unsupported on windows without special privileges\n"
 		                "\n"
-		                "Try runinng as administrator or with developper features enabled\n");
+		                "Try runinng as administrator or with developer features enabled\n");
 		return false;
 	}
 

@@ -248,7 +248,7 @@ int mmthr_mtx_unlock(mmthr_mtx_t* mutex)
 
 /**
  * mmthr_mtx_deinit() - cleanup an initialized mutex
- * @mutex:      intialized mutex to destroy
+ * @mutex:      initialized mutex to destroy
  *
  * This destroys the mutex object referenced by @mutex; the mutex object
  * becomes, in effect, uninitialized. A destroyed mutex object can be
@@ -462,7 +462,7 @@ int mmthr_cond_broadcast(mmthr_cond_t* cond)
 
 /**
  * mmthr_cond_deinit() - cleanup an initialized condition variable
- * @cond:       intialized condition variable to destroy
+ * @cond:       initialized condition variable to destroy
  *
  * This destroys the condition variable object referenced by @cond which
  * becomes, in effect, uninitialized. A destroyed condition variable object

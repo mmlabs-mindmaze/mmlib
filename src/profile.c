@@ -692,7 +692,7 @@ int64_t mmprofile_get_data(int measure_point, int type)
 
 /**
  * mmprofile_reset() - Reset the statistics and change the timer
- * @flags:	bit-OR comination of flags influencing the reset behavior.
+ * @flags:	bit-OR combination of flags influencing the reset behavior.
  *
  * Reset the timing statistics, ie, reset the min, max, mean values as well
  * as the number of point used in one iteration and the associated labels.

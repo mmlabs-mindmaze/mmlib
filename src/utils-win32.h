@@ -153,7 +153,7 @@ error:
 	unwrap_handle_from_fd_with_logctx(p_hnd, fd, __func__, __FILE__, __LINE__)
 
 
-HANDLE open_handle(const char* path, DWORD access, DWORD creat,
+HANDLE open_handle(const char* path, DWORD access, DWORD create,
                    SECURITY_DESCRIPTOR* sec, DWORD flags);
 
 /**

@@ -199,7 +199,7 @@ int submit_recv_xfer(struct xfer_data* xfer, SOCKET s,
 
 	// Submit async recv. Oddly WSARecvFrom failed with UDP socket
 	// when addr is NULL (while it works with TCP socket) proving MSDN
-	// documention of WSARecvFrom() wrong
+	// documentation of WSARecvFrom() wrong
 	xfer->status = XFER_PENDING;
 	if (msg->msg_name == NULL) {
 		ret = WSARecv(s, buffs, msg->msg_iovlen, NULL, &dwflags,

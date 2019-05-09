@@ -132,7 +132,7 @@ int64_t get_lockval_change(int64_t lockval, int is_waiter, DWORD tid)
 
 
 /**
- * cleanup_mutex_lock() - peform mutex cleanup job
+ * cleanup_mutex_lock() - perform mutex cleanup job
  * @hmap:       handle of file mapping containing the cleanup job
  * @shlock:     description of shared lock (contains pointer of lock value)
  * @ack_msg:    data to use to reply to server.
@@ -229,7 +229,7 @@ struct robust_data* create_robust_data(HANDLE pipe)
  * @conn:       connection data to initialize
  *
  * This function establish the connection with the lock referee server
- * (spawing it on the way if necessary) and get the robust data to use. This
+ * (spawning it on the way if necessary) and get the robust data to use. This
  * function is meant to be called once for each thread that need interact
  * with process shared mutex or conditions, ie, @conn is assumed to point
  * to thread local data.
@@ -353,7 +353,7 @@ int pshared_wait_on_lock(struct lockref_connection* conn, struct shared_lock loc
 	}
 
 	// Send wait request and wait for server reply. Server might
-	// (occasionaly) reply with a request to cleanup the lock. If this
+	// (occasionally) reply with a request to cleanup the lock. If this
 	// happens, do the job and acknowedge it. Redo this until the server
 	// reply without a cleanup job request.
 	while (1) {
@@ -375,7 +375,7 @@ int pshared_wait_on_lock(struct lockref_connection* conn, struct shared_lock loc
  * pshared_wake_lock() - wake a process shared lock
  * @conn:       connection of the thread to the lock referee server
  * @shlock:     shared lock
- * @val:        wakup value
+ * @val:        wakeup value
  * @num_wakeup: minimum number of thread to wakeup
  *
  * This function indicates the lock referee server to wakeup at least

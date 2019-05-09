@@ -281,7 +281,7 @@ ssize_t write_ancillary_data(struct ancillary_data* data,
  * @hpipe:      handle to which the message is intended
  * @msg:        user provided scatter/gather buffer to be serialize
  * @msg_data:   buffer receiving the serialized message
- * @p_hdr_sz:   pointer to a variable receiveing the ancillary data size
+ * @p_hdr_sz:   pointer to a variable receiving the ancillary data size
  *
  * Return: total size of the serialized message in case of success, -1
  * otheriwse with error state set accordingly
@@ -483,13 +483,13 @@ int mmipc_connected_pair(int fds[2])
 	                     0, NULL, OPEN_EXISTING, 0, NULL);
 	if (hclient == INVALID_HANDLE_VALUE) {
 		mm_raise_from_w32err("Can't connect named pipe");
-		mm_close(srv_fd); // This closes hsrv implicitely
+		mm_close(srv_fd); // This closes hsrv implicitly
 		return -1;
 	}
 
 	if (wrap_handle_into_fd(hclient, &client_fd, FD_TYPE_IPCDGRAM)) {
 		CloseHandle(hclient);
-		mm_close(srv_fd); // This closes hsrv implicitely
+		mm_close(srv_fd); // This closes hsrv implicitly
 		return -1;
 	}
 

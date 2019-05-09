@@ -90,7 +90,7 @@ struct camera_calibration {
  * DOC: Pixel formats
  *
  * The formats code are formed by using 2 parts which indicated how to
- * interprete the pixel data. The first part how the components are stored:
+ * interpret the pixel data. The first part how the components are stored:
  * in integer of 8, 16 or 32 bits, float or double. The second part
  * indicates in which order, which components must be read.
  *

@@ -141,7 +141,7 @@ MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
 /**
  * mm_raise_error() - set and log an error
  * @errnum:     error class number
- * @desc:       description intended for developper (printf-like extensible)
+ * @desc:       description intended for developer (printf-like extensible)
  *
  * Set the state of an error in the running thread. If @errnum is 0, the
  * thread error state will kept untouched.
@@ -167,10 +167,10 @@ MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
 	mm_raise_error_full(errno, MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, NULL, desc ": %s", ##__VA_ARGS__, strerror(errno))
 
 /**
- * mm_raise_error_with_extid() - set and log an error with an extented error id
+ * mm_raise_error_with_extid() - set and log an error with an extended error id
  * @errnum:     error class number
  * @extid:      extended error id (identifier of a specific error case)
- * @desc:       description intended for developper (printf-like extensible)
+ * @desc:       description intended for developer (printf-like extensible)
  *
  * Same as mm_raise_error() with an extended error id set to @extid. If @extid
  * is NULL, the effect is exactly the same as calling mm_raise_error().

@@ -658,7 +658,7 @@ void lock_array_deinit(struct lock_array* lk_arr)
 
 
 /**
- * lock_array_init() - Intialize a lock array
+ * lock_array_init() - Initialize a lock array
  * @lk_arr:     lock array to initialize
  *
  * Return: 0 in case of success, -1 otherwise

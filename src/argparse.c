@@ -755,7 +755,7 @@ int check_value_is_positive(const char* str)
  * @argval:     pointer to argval union that will receive the result
  * @value:      string of the value to convert
  *
- * Return: 0 in case of succcess, -1 otherwise
+ * Return: 0 in case of success, -1 otherwise
  */
 static
 int conv_str_to_argval(const struct mmarg_opt* opt,
@@ -1070,7 +1070,7 @@ int early_stop_parsing(const struct mmarg_parser* parser, int retval)
  * not set in @parser->optv, a parser always supports the "-h" or "--help"
  * option. If encountered, the program usage will be printed on standard
  * output and the process will exit with EXIT_SUCCESS code (This behaviour
- * can be overriden is "h|help" is explicitely defined as option in
+ * can be overridden is "h|help" is explicitly defined as option in
  * @parser->optv). If the parsing operation fails (because of invalid option
  * or value), the error diagnostic will be printed on standard error and the
  * process will exit with EXIT_FAILURE code. In other case, the parsing will

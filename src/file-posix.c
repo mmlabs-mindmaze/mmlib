@@ -215,7 +215,7 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
  * This function creates a new file descriptor referencing the same file
  * description as the one referenced by @fd.
  *
- * Note that the two file decriptors point to the same file. They will share
+ * Note that the two file descriptors point to the same file. They will share
  * the same file pointer.
  *
  * Return: a non-negative integer representing the new file descriptor in case
@@ -673,7 +673,7 @@ int get_file_type(int dirfd, const char* path)
  * @flags:           option flag to return on error
  * @rec_lvl:         maximum recursion level
  *
- * Many error return values are *explicitely* skipped.
+ * Many error return values are *explicitly* skipped.
  * Since this is a recursive removal, we should not stop when we encounter
  * a forbidden file or folder. This except if the @flag contains MM_FAILONERROR.
  *

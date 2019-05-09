@@ -293,7 +293,7 @@ struct lockref_connection* get_thread_lockref_data(void)
  * @robust_data: robust data of the calling thread
  *
  * Indicates the beginning of a mutex lock or mutex unlock and is the
- * symetric of finish_mtx_lock() or finish_mtx_unlock(). This will register
+ * symmetric of finish_mtx_lock() or finish_mtx_unlock(). This will register
  * the mutex lock key into the robust data of the thread.
  */
 static

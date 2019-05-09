@@ -620,7 +620,7 @@ int mm_execv(const char* file,
  *
  * If @status is not NULL, it refers to a location that will receive the
  * status information of the terminated process. The information is a mask
- * of MM_WSTATUS_* indicating wheter the child has terminated because of
+ * of MM_WSTATUS_* indicating whether the child has terminated because of
  * normal termination or abnormal one and the exit code (or signal number).
  * To be accessible in the status information, the return code of a child
  * program must be between 0 and 255.

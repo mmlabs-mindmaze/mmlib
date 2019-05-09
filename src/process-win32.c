@@ -107,7 +107,7 @@ struct startup_config {
  *
  * However if we only expose PID (ie, we forget the handle that are granted
  * at process creation), we run into other issues: the PID can be reused if
- * the process finishs, and it is not sure that can obtain an handle (with
+ * the process finishes, and it is not sure that can obtain an handle (with
  * sufficient rights) from the PID when we will ask later. To solve those
  * issues, we can simply keep the handle that the process creation provides
  * as internal data (along with PID) and expose the PID. As long as the
@@ -398,7 +398,7 @@ unsigned char convert_fdinfo_to_crtflags(int fdinfo)
 
 /**
  * get_highest_child_fd() - get the child fd which the highest index
- * @num_map:     number of mappping element in @fd_map
+ * @num_map:     number of mapping element in @fd_map
  * @fd_map:      array of remapping file descriptor between child and parent
  *
  * Return: the value of the highest &mm_remap_fd.child_fd member in the
@@ -491,13 +491,13 @@ int startup_config_alloc_crt_buffs(struct startup_config* cfg)
 	// case if sizeof(int)+num_fd is a multiple of sizeof(HANDLE)
 	num_crt_fd = round_up(sizeof(int)+cfg->num_fd, sizeof(HANDLE)) - sizeof(int);
 
-	// Allocate a CRT buffer with the ajusted number of file descriptor
+	// Allocate a CRT buffer with the adjusted number of file descriptor
 	cfg->num_crt_fd = num_crt_fd;
 	cfg->crt_buff = calloc(1, CRT_BUFFER_SIZE(cfg->num_crt_fd));
 	if (!cfg->crt_buff)
 		return mm_raise_error(ENOMEM, "Failed to CRT buffers");
 
-	// By adjustement of num_crt_fd, we are ensured that
+	// By adjustment of num_crt_fd, we are ensured that
 	// cfg->crt_fd_hnds pointer is properly aligned on HANDLE.
 	offset = 0;
 	*(int*)cfg->crt_buff = num_crt_fd;
@@ -1021,7 +1021,7 @@ int translate_exitcode_in_status(DWORD exitcode)
  * contains_dirsep() - indicate whether argument has a directory separator
  * @path:       string to test
  *
- * Return: 1 if @path has at least one \ or / charater
+ * Return: 1 if @path has at least one \ or / character
  */
 static
 int contains_dirsep(const char* path)

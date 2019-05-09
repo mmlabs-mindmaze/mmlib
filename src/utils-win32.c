@@ -670,7 +670,7 @@ void set_fd_info(int fd, int info)
 /**
  * close_all_known_fds() - forcingly close all open file descriptors
  *
- * Use this function only in case of unsual cleanup process.
+ * Use this function only in case of unusual cleanup process.
  * Beware: this is not thread safe. Use only this function if the other
  * threads cannot oipen new fds or if it does not matter
  */

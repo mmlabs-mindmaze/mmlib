@@ -276,11 +276,11 @@ int setup_argv_utf8(char*** p_argv)
  * thus override it.
  *
  * ucrt.dll (MSVC from VS2015):
- * The argment array is initialized in _configure_narrow_argv() whose behavior
+ * The argument array is initialized in _configure_narrow_argv() whose behavior
  * depends on the function _get_startup_argv_mode(). (See exe_main.cpp,
  * exe_common.inl and vcstartup_internal.h from VC source code of CRT
  * initialization). The _get_startup_argv_mode() function has its default
- * implementation in the CRT init bits but can be overriden by any function of
+ * implementation in the CRT init bits but can be overridden by any function of
  * this name that would appear first in the linking order, ie, any function in
  * object file or linked libraries. Please note that new version on mingw64-crt
  * (used by mingw and clang) allows to use ucrt instead of msvcrt, however it

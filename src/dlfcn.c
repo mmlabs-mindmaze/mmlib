@@ -211,7 +211,7 @@ mmdynlib_t* mm_dlopen(const char* path, int flags)
 	if (!path_ext)
 		return NULL;
 
-	// Form dynamic libray filename
+	// Form dynamic library filename
 	strcpy(path_ext, path);
 	if (flags & MMLD_APPEND_EXT)
 		strcat(path_ext, LT_MODULE_EXT);
