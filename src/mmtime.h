@@ -106,7 +106,7 @@ int64_t mm_timediff_ns(const struct timespec* ts,
 {
 	int64_t dt;
 
-	dt = (ts->tv_sec - orig->tv_sec) * NS_IN_SEC;
+	dt = (ts->tv_sec - orig->tv_sec) * (int64_t)NS_IN_SEC;
 	dt += ts->tv_nsec - orig->tv_nsec;
 
 	return dt;
@@ -126,7 +126,7 @@ int64_t mm_timediff_us(const struct timespec* ts,
 {
 	int64_t dt;
 
-	dt = (ts->tv_sec - orig->tv_sec) * US_IN_SEC;
+	dt = (ts->tv_sec - orig->tv_sec) * (int64_t)US_IN_SEC;
 	dt += (ts->tv_nsec - orig->tv_nsec) / (NS_IN_SEC/US_IN_SEC);
 
 	return dt;
@@ -146,7 +146,7 @@ int64_t mm_timediff_ms(const struct timespec* ts,
 {
 	int64_t dt;
 
-	dt = (ts->tv_sec - orig->tv_sec) * MS_IN_SEC;
+	dt = (ts->tv_sec - orig->tv_sec) * (int64_t)MS_IN_SEC;
 	dt += (ts->tv_nsec - orig->tv_nsec) / (NS_IN_SEC/MS_IN_SEC);
 
 	return dt;
