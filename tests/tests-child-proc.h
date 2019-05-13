@@ -7,7 +7,15 @@
 #include <mmsysio.h>
 #include <mmthread.h>
 
-#define TESTS_CHILD_BIN BUILDDIR "/"LT_OBJDIR "tests-child-proc"EXEEXT
+// workaround for libtool on windows: we need to execute directly the
+// binary (the folder of mmlib dll is added at startup of testapi). On
+// other platform we must use the normal wrapper script located in BUILDDIR
+#if defined(_WIN32)
+#  define TESTS_CHILD_BIN BUILDDIR "/.libs/tests-child-proc.exe"
+#else
+#  define TESTS_CHILD_BIN BUILDDIR "/tests-child-proc"
+#endif
+
 #define WR_PIPE_FD 3
 #define RD_PIPE_FD 4
 

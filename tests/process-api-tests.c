@@ -21,16 +21,16 @@
 #define UNSET_PID_VALUE ((mm_pid_t) -23)
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+// workaround for libtool on windows: we need to execute directly the
+// binary (the folder of mmlib dll is added at startup of testapi). On
+// other platform we must use the normal wrapper script located in BUILDDIR
 #if defined(_WIN32)
-#  define PATHSEP       ";"
+#  define CHILDPROC_BINPATH     BUILDDIR"/.libs/child-proc.exe"
 #else
-#  define PATHSEP       ":"
+#  define CHILDPROC_BINPATH     BUILDDIR"/child-proc"
 #endif
 
-#define TESTCASES_PATH_ENVVAR \
-    SRCDIR PATHSEP BUILDDIR"/"LT_OBJDIR PATHSEP BUILDDIR PATHSEP
-
-#define CHILDPROC_BINPATH       BUILDDIR "/"LT_OBJDIR "child-proc" EXEEXT
+#define TEST_DATADIR "process-data"
 
 #define NOEXEC_FILE     "file-noexec"
 #define UNKBINFMT_FILE  "file-unkfmt"
@@ -251,33 +251,32 @@ void test_teardown(void)
 static
 void case_setup(void)
 {
-	int i, fd, len;
+	int i, fd;
 	int garbage_data[128];
-	char* new_path_env;
+	char childproc_dir[sizeof(CHILDPROC_BINPATH)];
 
 	// backup PATH environment for the tests
 	path_envvar_saved = strdup(mm_getenv("PATH", NULL));
 
 	// prepend PATH folders specific for this test case to PATH envvar
-	len = strlen(TESTCASES_PATH_ENVVAR) + strlen(path_envvar_saved) + 1;
-	new_path_env = malloc(len);
-	strcpy(new_path_env, TESTCASES_PATH_ENVVAR);
-	strcat(new_path_env, path_envvar_saved);
-	mm_setenv("PATH", new_path_env, 1);
-	free(new_path_env);
+	mm_dirname(childproc_dir, CHILDPROC_BINPATH);
+	mm_setenv("PATH", childproc_dir, MM_ENV_PREPEND);
+	mm_setenv("PATH", BUILDDIR"/"TEST_DATADIR, MM_ENV_PREPEND);
 
 	for (i = 0; i < MM_NELEM(garbage_data); i+=2) {
 		garbage_data[i] = 0xDEADBEEF;
 		garbage_data[i+1] = 0x7E1705;
 	}
 
+	mm_mkdir(TEST_DATADIR, 0777, MM_RECURSIVE);
+
 	// Write a regular file that DOES NOT have the exec permission
-	fd = mm_open(NOEXEC_FILE, O_CREAT|O_TRUNC|O_RDWR, 0666);
+	fd = mm_open(TEST_DATADIR "/" NOEXEC_FILE, O_CREAT|O_TRUNC|O_RDWR, 0666);
 	mm_write(fd, garbage_data, sizeof(garbage_data));
 	mm_close(fd);
 
 	// Write a regular executable file with unknown binary format
-	fd = mm_open(UNKBINFMT_FILE, O_CREAT|O_TRUNC|O_RDWR, 0777);
+	fd = mm_open(TEST_DATADIR "/" UNKBINFMT_FILE, O_CREAT|O_TRUNC|O_RDWR, 0777);
 	mm_write(fd, garbage_data, sizeof(garbage_data));
 	mm_close(fd);
 }
@@ -286,8 +285,7 @@ void case_setup(void)
 static
 void case_teardown(void)
 {
-	mm_unlink(NOEXEC_FILE);
-	mm_unlink(UNKBINFMT_FILE);
+	mm_remove(TEST_DATADIR, MM_DT_ANY|MM_RECURSIVE);
 
 	// Restore PATH environment variable
 	mm_setenv("PATH", path_envvar_saved, 1);
@@ -363,15 +361,15 @@ const struct {
 	int exp_err;
 	int rv;
 } error_cases[] = {
-	{.path = "/",                         .exp_err = EACCES},
-	{.path = "./" NOEXEC_FILE,            .exp_err = EACCES},
-	{.path = "./" UNKBINFMT_FILE,         .exp_err = ENOEXEC},
-	{.path = "./" NOTEXIST_FILE,          .exp_err = ENOENT},
-	{.path = BUILDDIR "/" NOEXEC_FILE,    .exp_err = EACCES},
-	{.path = BUILDDIR "/" UNKBINFMT_FILE, .exp_err = ENOEXEC},
-	{.path = BUILDDIR "/" NOTEXIST_FILE,  .exp_err = ENOENT},
-	{.path = NOEXEC_FILE,                 .exp_err = EACCES},
-	{.path = NOTEXIST_FILE,               .exp_err = ENOENT},
+	{.path = "/",                                      .exp_err = EACCES},
+	{.path = "./"TEST_DATADIR"/"NOEXEC_FILE,           .exp_err = EACCES},
+	{.path = "./"TEST_DATADIR"/"UNKBINFMT_FILE,        .exp_err = ENOEXEC},
+	{.path = "./"TEST_DATADIR"/"NOTEXIST_FILE,         .exp_err = ENOENT},
+	{.path = BUILDDIR"/"TEST_DATADIR"/"NOEXEC_FILE,    .exp_err = EACCES},
+	{.path = BUILDDIR"/"TEST_DATADIR"/"UNKBINFMT_FILE, .exp_err = ENOEXEC},
+	{.path = BUILDDIR"/"TEST_DATADIR"/"NOTEXIST_FILE,  .exp_err = ENOENT},
+	{.path = NOEXEC_FILE,                              .exp_err = EACCES},
+	{.path = NOTEXIST_FILE,                            .exp_err = ENOENT},
 };
 
 START_TEST(spawn_error)

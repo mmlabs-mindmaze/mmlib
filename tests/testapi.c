@@ -43,7 +43,10 @@ int main(void)
 	SRunner* runner;
 	int exitcode = EXIT_SUCCESS;
 
-	mm_setenv("MMLIB_LOCKREF_BIN", TEST_LOCK_REFEREE_SERVER_BIN, 1);
+#if defined(_WIN32)
+	mm_setenv("MMLIB_LOCKREF_BIN", TEST_LOCK_REFEREE_SERVER_BIN, MM_ENV_OVERWRITE);
+	mm_setenv("PATH", TOP_BUILDDIR"/src/.libs", MM_ENV_PREPEND);
+#endif
 
 	suite = api_suite();
 	runner = srunner_create(suite);
