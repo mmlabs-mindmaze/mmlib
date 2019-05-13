@@ -191,7 +191,7 @@ void realloc_if_needed(char ** buf, size_t *buf_len, size_t required_len)
 		new_len *= 2;
 
 	ptr = realloc(*buf, new_len);
-	ck_assert(ptr);
+	ck_assert(ptr != NULL);
 
 	*buf = ptr;
 	*buf_len = new_len;
