@@ -37,6 +37,7 @@ nobase_dist_doc_DATA = \
 	$(pshared_parent_SOURCES) \
 	$(pshared_child_SOURCES) \
 	$(parse_args_SOURCES) \
+	examples/completion_parse_args \
 	$(eol)
 
 OVERRIDING_MANPAGES = \

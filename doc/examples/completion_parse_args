@@ -1,0 +1,32 @@
+# @mindmaze_header@
+#
+# vi:syntax=sh
+#
+# Example of bash completion script for mmlib based argument parsing (to be
+# sourced)
+#
+
+_parse_args_completion() {
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    local prev=${COMP_WORDS[COMP_CWORD-1]}
+
+    # If completion is done on empty word AND we are not completing long option
+    # value, then we invoked the command with an explicit "" final arg
+    # Without, the completion would have been done on previous arg
+    if [[ "$cur" == "" && "$prev" != "=" ]]; then
+        COMPREPLY=($(MMLIB_CMD_COMPLETION=yes $COMP_LINE "" 2>/dev/null))
+    else
+        COMPREPLY=($(MMLIB_CMD_COMPLETION=yes $COMP_LINE 2>/dev/null))
+    fi
+
+    # if there is only one possibility, do not add space if string finishes
+    # by '='. In such a case, we are completing the value of a long
+    # option... Same if it finishes with '/': we are completing a path
+    # Hence we test that number of elements in COMPREPLY is 1 and that the
+    # first element of COMPREPLY ends with '=' or '/'
+    if [[ ${#COMPREPLY[@]} -eq 1 && ${COMPREPLY[0]} == *[=/] ]]; then
+        compopt -o nospace
+    fi
+}
+
+complete -F _parse_args_completion parse_args
