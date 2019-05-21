@@ -1369,3 +1369,35 @@ int mmarg_parse_complete(const struct mmarg_parser* parser, const char* arg)
 
 	return 0;
 }
+
+
+/**
+ * mmarg_is_completing() - indicates whether shell completion is running
+ *
+ * The function indicates if command completion has been requested through
+ * %MMLIB_CMD_COMPLETION environment variable: by convention command
+ * completion is requested if this variable is set (no matter the value).
+ *
+ * Please note that you are not forced to use this environment variable to
+ * trigger command completion. You may use any environment variable or any
+ * other mechanism of your choosing. If mmarg_parse() is used to parse
+ * options, completion will run only if the flag %MMARG_PARSER_COMPLETION
+ * is set in the flags field of struct mmarg_parser. However on the other
+ * hand, there is little reason not to use %MMLIB_CMD_COMPLETION environment
+ * variable. Hence if a code is mmarg_parse() and using command completion
+ * through its executable, it is invited to set %MMARG_PARSER_COMPLETION if
+ * mmarg_is_completing() returns 1.
+ *
+ * Return: 1 if completion is running, 0 otherwise.
+ */
+API_EXPORTED
+int mmarg_is_completing(void)
+{
+	static int is_completing = -1;
+
+	if (is_completing >= 0)
+		return is_completing;
+
+	is_completing = mm_getenv("MMLIB_CMD_COMPLETION", NULL) ? 1 : 0;
+	return is_completing;
+}

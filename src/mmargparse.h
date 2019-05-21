@@ -179,6 +179,7 @@ MMLIB_API int mmarg_parse(const struct mmarg_parser* parser,
                           int argc, char* argv[]);
 MMLIB_API int mmarg_parse_complete(const struct mmarg_parser* parser,
                                    const char* arg);
+MMLIB_API int mmarg_is_completing(void);
 
 
 /**
