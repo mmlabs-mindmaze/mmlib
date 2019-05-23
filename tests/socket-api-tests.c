@@ -1077,6 +1077,8 @@ static const struct {
 } sockclient_cases[] = {
 	{"msnp://localhost", SOCK_STREAM, 1863},
 	{"rlp://localhost", SOCK_DGRAM, 39},
+	{"tcp://localhost:" MM_STRINGIFY(PORT), SOCK_STREAM, PORT},
+	{"udp://localhost:" MM_STRINGIFY(PORT), SOCK_DGRAM, PORT},
 };
 
 
@@ -1126,6 +1128,9 @@ START_TEST(create_invalid_sockclient)
 
 	ck_assert(mm_create_sockclient("ssh://localhost:10") == -1);
 	ck_assert_int_eq(mm_get_lasterror_number(), ECONNREFUSED);
+
+	ck_assert(mm_create_sockclient("tcp://localhost") == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
 }
 END_TEST
 

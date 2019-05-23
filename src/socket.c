@@ -211,10 +211,35 @@ int internal_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
  *                                                                        *
  **************************************************************************/
 
+static struct {
+	char name[8];
+	int socktype;
+} protocol_services[] = {
+	{"tcp", SOCK_STREAM},
+	{"udp", SOCK_DGRAM},
+};
+
+
 static
-int create_connected_socket(const char* service, const char *host, int port)
+int get_socktype_from_protocol_services(const char* service)
 {
-	struct addrinfo *ai, *res, hints = {.ai_family = AF_UNSPEC};
+	int i;
+
+	for (i = 0; i < MM_NELEM(protocol_services); i++) {
+		if (!strcmp(protocol_services[i].name, service))
+			return protocol_services[i].socktype;
+	}
+
+	// No match, so return unspecified socket type
+	return 0;
+}
+
+
+static
+int create_connected_socket(const char* service, const char *host, int port,
+                            const struct addrinfo* hints)
+{
+	struct addrinfo *ai, *res;
 	int fd, family, socktype;
 	struct sockaddr_in6* addrin6;
 	struct sockaddr_in* addrin;
@@ -223,7 +248,7 @@ int create_connected_socket(const char* service, const char *host, int port)
 	fd = -1;
 
 	// Name resolution
-	if (mm_getaddrinfo(host, service, &hints, &res))
+	if (mm_getaddrinfo(host, service, hints, &res))
 		return -1;
 
 	// Create and connect socket (loop over all possible addresses)
@@ -269,6 +294,10 @@ int create_connected_socket(const char* service, const char *host, int port)
  * @uri and the resulting socket will be configured and connected to the
  * resource.
  *
+ * In addition to the normal services registered in the system, the function
+ * supports tcp and udp as scheme in the URI. In such a case, the port number
+ * must be specified in the URI, otherwise the function will fail.
+ *
  * Return: a non-negative integer representing the file descriptor in case
  * of success. Otherwise -1 is returned with error state set accordingly.
  */
@@ -280,6 +309,9 @@ int mm_create_sockclient(const char* uri)
 	char* host;
 	int port = -1;
 	int num_field, retval;
+	struct addrinfo hints = {
+		.ai_family = AF_UNSPEC,
+	};
 
 	if (!uri)
 		return mm_raise_error(EINVAL, "uri cannot be NULL");
@@ -291,13 +323,29 @@ int mm_create_sockclient(const char* uri)
 
 	num_field = sscanf(uri, "%[a-z]://%[^/:]:%i", service, host, &port);
 	if (num_field < 2) {
-		mm_raise_error(EINVAL, "uri \"%s\" does follow"
+		mm_raise_error(EINVAL, "uri \"%s\" does not follow"
 		               " service://host or service://host:port"
 		               " format", uri);
 		return -1;
 	}
 
-	retval = create_connected_socket(service, host, port);
+	// Force socket type from service name if tcp:// or udp://.
+	// Otherwise the socket type will be 0 (ie unspecified) and will be
+	// left to mm_getaddrinfo() to propose proper matches.
+	hints.ai_socktype = get_socktype_from_protocol_services(service);
+	if (hints.ai_socktype != 0) {
+		if (port < 0) {
+			mm_raise_error(EINVAL, "port must be specified"
+			                       " with %s", service);
+			return -1;
+		}
+
+		sprintf(service, "%i", port);
+		hints.ai_flags |= AI_NUMERICSERV;
+		port = -1;
+	}
+
+	retval = create_connected_socket(service, host, port, &hints);
 
 	mm_freea(host);
 	return retval;
