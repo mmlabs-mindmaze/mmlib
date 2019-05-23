@@ -539,12 +539,6 @@ static struct childproc child = {
 	.sockfd = -1,
 };
 
-static
-void socket_test_teardown(void)
-{
-	clean_childproc(&child);
-}
-
 
 START_TEST(recv_on_localhost)
 {
@@ -1026,9 +1020,130 @@ END_TEST
 
 /**************************************************************************
  *                                                                        *
+ *                           socket helper tests                          *
+ *                                                                        *
+ **************************************************************************/
+static int num_fd_to_close = 0;
+static int fds_to_close[8];
+
+static
+void clean_helper_test_data(void)
+{
+	while (num_fd_to_close)
+		mm_close(fds_to_close[--num_fd_to_close]);
+}
+
+
+static
+void add_fd_to_close(int fd)
+{
+	ck_assert(num_fd_to_close != MM_NELEM(fds_to_close));
+	fds_to_close[num_fd_to_close++] = fd;
+}
+
+
+static
+int get_socktype(int fd)
+{
+	int socktype = -1;
+	socklen_t len = sizeof(socktype);
+
+	if (  mm_getsockopt(fd, SOL_SOCKET, SO_TYPE, &socktype, &len)
+	   || len != sizeof(socktype))
+		return -1;
+
+	return socktype;
+}
+
+
+static
+int get_peer_port(int fd)
+{
+	struct sockaddr_in6 addr = {.sin6_port = 0};
+	socklen_t len = sizeof(addr);
+
+	if (  mm_getpeername(fd, (struct sockaddr*)&addr, &len)
+	   || len != sizeof(addr))
+		return -1;
+
+	return ntohs(addr.sin6_port);
+}
+
+
+static const struct {
+	const char* uri;
+	int exp_socktype;
+	int exp_port;
+} sockclient_cases[] = {
+	{"msnp://localhost", SOCK_STREAM, 1863},
+	{"rlp://localhost", SOCK_DGRAM, 39},
+};
+
+
+START_TEST(create_sockclient)
+{
+	int fd, socktype, port;
+	int exp_socktype = sockclient_cases[_i].exp_socktype;
+	int exp_port = sockclient_cases[_i].exp_port;
+	const char* uri = sockclient_cases[_i].uri;
+
+	// Try to create listening server socket (stream). If the address
+	// is already bound, the port is already opened out of the process:
+	// this is fine for us, we can use this one.
+	if (exp_socktype == SOCK_STREAM) {
+		fd = create_server_socket(AF_INET6, SOCK_STREAM, exp_port);
+		if (fd != -1) {
+			ck_assert(mm_listen(fd, 1) == 0);
+			add_fd_to_close(fd);
+		} else if (mm_get_lasterror_number() != EADDRINUSE) {
+			ck_abort_msg("Cannot create server socket");
+		}
+	}
+
+	fd = mm_create_sockclient(uri);
+	ck_assert(fd != -1);
+
+	socktype = get_socktype(fd);
+	port = get_peer_port(fd);
+	mm_close(fd);
+
+	ck_assert_int_eq(socktype, exp_socktype);
+	ck_assert_int_eq(port, exp_port);
+}
+END_TEST
+
+
+START_TEST(create_invalid_sockclient)
+{
+	ck_assert(mm_create_sockclient(NULL) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+
+	ck_assert(mm_create_sockclient("localhost") == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+
+	ck_assert(mm_create_sockclient("dummy://localhost") == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENOTFOUND);
+
+	ck_assert(mm_create_sockclient("ssh://localhost:10") == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), ECONNREFUSED);
+}
+END_TEST
+
+
+/**************************************************************************
+ *                                                                        *
  *                          Test suite setup                              *
  *                                                                        *
  **************************************************************************/
+
+static
+void socket_test_teardown(void)
+{
+	clean_childproc(&child);
+	clean_helper_test_data();
+}
+
+
 LOCAL_SYMBOL
 TCase* create_socket_tcase(void)
 {
@@ -1059,6 +1174,10 @@ TCase* create_socket_tcase(void)
 	tcase_add_loop_test(tc, test_getpeername, 0, num_cases);
 	tcase_add_test(tc, getaddrinfo_valid);
 	tcase_add_test(tc, getaddrinfo_error);
+
+	tcase_add_loop_test(tc, create_sockclient,
+	                    0, MM_NELEM(sockclient_cases));
+	tcase_add_test(tc, create_invalid_sockclient);
 
 	return tc;
 }
