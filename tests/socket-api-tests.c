@@ -532,7 +532,12 @@ void setup_recvmsg_test_iteration(struct childproc* child, size_t size_in_iov,
  *                       socket tests implementation                      *
  *                                                                        *
  **************************************************************************/
-static struct childproc child;
+static struct childproc child = {
+	.wr_pipe_fd = -1,
+	.rd_pipe_fd = -1,
+	.pid = 0,
+	.sockfd = -1,
+};
 
 static
 void socket_test_teardown(void)
