@@ -28,7 +28,7 @@ int mm_gettime(clockid_t clock_id, struct timespec *ts)
 
 	ret = clock_gettime(clock_id, ts);
 	if (ret) {
-		mm_raise_error(ret, "clock_gettime failed: %s", strerror(ret));
+		mm_raise_from_errno("clock_gettime failed");
 		return -1;
 	}
 
@@ -64,7 +64,7 @@ int mm_getres(clockid_t clock_id, struct timespec *res)
 
 	ret = clock_getres(clock_id, res);
 	if (ret) {
-		mm_raise_error(ret, "clock_getres failed: %s", strerror(ret));
+		mm_raise_from_errno("clock_getres failed");
 		return -1;
 	}
 
