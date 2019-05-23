@@ -7,6 +7,7 @@
 
 #include <check.h>
 
+#include "mmerrno.h"
 #include "mmtime.h"
 #include "mmpredefs.h"
 #include "mmlib.h"
@@ -257,6 +258,26 @@ START_TEST(monotonic_update)
 END_TEST
 
 
+START_TEST(invalid_clock_id)
+{
+	struct timespec ts;
+	clockid_t inval_clkid = 42; // No platform has this clock id
+
+	ck_assert(mm_gettime(inval_clkid, &ts) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+
+	ck_assert(mm_getres(inval_clkid, &ts) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+
+	ck_assert(mm_nanosleep(inval_clkid, &ts) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+
+	ck_assert(mm_nanosleep(MM_CLK_CPU_THREAD, &ts) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                              sleep tests                               *
@@ -350,6 +371,7 @@ TCase* create_time_tcase(void)
 	tcase_add_loop_test(tc, add_time_ns, 0, MM_NELEM(ts_cases));
 	tcase_add_loop_test(tc, add_time_us, 0, MM_NELEM(ts_cases));
 	tcase_add_loop_test(tc, add_time_ms, 0, MM_NELEM(ts_cases));
+	tcase_add_test(tc, invalid_clock_id);
 
 	if (!strcmp(mm_getenv("MMLIB_DISABLE_CLOCK_TESTS", "no"), "yes")) {
 		fputs("Disable clock based tests\n", stderr);
