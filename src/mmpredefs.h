@@ -117,6 +117,29 @@
 
 
 /*
+ * Define nonnull attribute for function parameters
+ */
+
+/* for all attributes, or as parameter attribute with clang */
+#ifndef NONNULL
+#  if defined(__GNUC__)
+#    define NONNULL __attribute__((nonnull))
+#  else
+#    define NONNULL
+#  endif
+#endif
+
+/* for specifying a single attribute. function attribute only */
+#ifndef NONNULL_ARGS
+#  if defined(__GNUC__)
+#    define NONNULL_ARGS(...) __attribute__((nonnull(__VA_ARGS__)))
+#  else
+#    define NONNULL_ARGS
+#  endif
+#endif
+
+
+/*
  Macros to get the number of element in a C array.
  */
 #define MM_NELEM(arr)	((int)(sizeof(arr)/sizeof(arr[0])))
