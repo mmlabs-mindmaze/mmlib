@@ -583,7 +583,7 @@ struct {
 	{"an", {"anotherdir/"}},
 	{"anotherdir", {"anotherdir/"}},
 	{"anotherdir/", {"anotherdir/bar", "anotherdir/foo"}},
-	{"emptydir/", {}},
+	{"emptydir/", {0}},
 };
 
 
@@ -722,7 +722,7 @@ struct {
 		{"prog", "--set-path=a"}, MMOPT_NEEDDIR,
 		{"adir/", "anotherdir/"}
 	}, {
-		{"prog", "--set-path=foobar"}, MMOPT_NEEDFILE, {}
+		{"prog", "--set-path=foobar"}, MMOPT_NEEDFILE, {0}
 	},
 };
 
