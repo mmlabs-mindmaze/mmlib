@@ -397,6 +397,27 @@ struct msghdr {
 #  define SHUT_RD       0
 #  define SHUT_WR       1
 #  define SHUT_RDWR     2
+
+// The following constants are defined on Windows platform from ws2tcpip.h
+// if _WIN32_WINNT is defined higher to 0x0600 (corresponding roughly to
+// windows vista release). It is way below the support threshold of mmlib.
+// We can then assume their availability. ws2tcpip.h is included at the top
+// of this file but we cannot expect _WIN32_WINNT to be defined in the
+// project using mmlib. Hence we define the constants to their right values
+// if they are not defined yet.
+#  ifndef AI_NUMERICSERV
+#    define AI_NUMERICSERV              0x00000008
+#  endif
+#  ifndef AI_ALL
+#    define AI_ALL                      0x00000100
+#  endif
+#  ifndef AI_ADDRCONFIG
+#    define AI_ADDRCONFIG               0x00000400
+#  endif
+#  ifndef AI_V4MAPPED
+#    define AI_V4MAPPED                 0x00000800
+#  endif
+
 #endif /* _WIN32 */
 
 
