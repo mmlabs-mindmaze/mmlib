@@ -11,9 +11,11 @@
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 
 #include "mmsysio.h"
 #include "mmerrno.h"
+#include "socket-internal.h"
 
 #include <sys/socket.h>
 
@@ -21,42 +23,6 @@ union posix_sockopt {
 	int ival;
 	struct timeval timeout;
 };
-
-static
-int translate_eai_to_errnum(int eai_errcode)
-{
-	switch(eai_errcode) {
-	case EAI_AGAIN:
-		return EAGAIN;
-
-	case EAI_ADDRFAMILY:
-	case EAI_NONAME:
-		return MM_ENOTFOUND;
-
-	case EAI_NODATA:
-		return EADDRNOTAVAIL;
-
-	case EAI_BADFLAGS:
-	case EAI_SERVICE:
-		return EINVAL;
-
-	case EAI_SOCKTYPE:
-		return EPROTOTYPE;
-
-	case EAI_MEMORY:
-		return ENOMEM;
-
-	case EAI_FAMILY:
-		return EAFNOSUPPORT;
-
-	case EAI_SYSTEM:
-		return errno;
-
-	default:
-		return EIO;
-	}
-}
-
 
 /**
  * mm_socket() - create an endpoint for communication
@@ -667,24 +633,56 @@ int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
  *
  * Return: 0 in case of success, -1 otherwise with error state set
  * accordingly.
+ *
+ * Errors:
+ * In case of failure, the error number reported in the error state
+ * indicates the origin of failure :
+ *
+ * %MM_ENONAME
+ *   The @node is not known.
+ * %MM_ENOTFOUND
+ *   The service is not known or not available for the requested socket
+ *   type.
+ * %EDDRNOTAVAILABLE
+ *   Host is found but does not have any network address or in the requested
+ *   family.
+ * %EAGAIN
+ *   The name server returned a temporary failure indication. Try again
+ *   later.
+ * %EAFNOSUPPORT
+ *   Address family is not supported or address length was invalid for
+ *   specifed family
+ * %EINVAL
+ *   Invalid salue in flags. Both @node and @service are NULL. %AI_CANONNAME
+ *   set in flags but @node is NULL. %AI_NUMERICSERV set in flags but
+ *   @service is not numeric port-number string.
+ * %EPROTOTYPE
+ *   Requested socket type is not supported or inconsistent with protocol.
+ *
+ * Other error can be reported by the platform is other case not listed
+ * above.
  */
 API_EXPORTED
 int mm_getaddrinfo(const char *node, const char *service,
                    const struct addrinfo *hints,
 		   struct addrinfo **res)
 {
-	int retcode, errnum;
-	const char* errmsg;
+	int errnum;
+	char errmsg[256];
 
-	retcode = getaddrinfo(node, service, hints, res);
-	if (retcode != 0) {
-		errnum = translate_eai_to_errnum(retcode);
-		errmsg = gai_strerror(retcode);
-		mm_raise_error(errnum, "getaddrinfo() failed: %s", errmsg);
-		return -1;
+	errnum = internal_getaddrinfo(node, service, hints, res, errmsg);
+	if (errnum == 0)
+		return 0;
+
+	// Handle platform specific error
+	if (errnum == -1) {
+		errnum = errno;
+		strerror_r(errnum, errmsg, sizeof(errmsg));
 	}
 
-	return 0;
+	mm_raise_error(errnum, "getaddrinfo(%s, %s) failed: %s",
+	               node, service, errmsg);
+	return -1;
 }
 
 
@@ -709,18 +707,22 @@ int mm_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
                    char *host, socklen_t hostlen,
                    char *serv, socklen_t servlen, int flags)
 {
-	int retcode, errnum;
-	const char* errmsg;
+	int errnum;
+	char errmsg[256];
 
-	retcode = getnameinfo(addr, addrlen, host, hostlen, serv, servlen, flags);
-	if (retcode != 0) {
-		errnum = translate_eai_to_errnum(retcode);
-		errmsg = gai_strerror(retcode);
-		mm_raise_error(errnum, "getnameinfo() failed: %s", errmsg);
-		return -1;
+	errnum = internal_getnameinfo(addr, addrlen, host, hostlen,
+	                              serv, servlen, flags, errmsg);
+	if (errnum == 0)
+		return 0;
+
+	// Handle platform specific error
+	if (errnum == -1) {
+		errnum = errno;
+		strerror_r(errnum, errmsg, sizeof(errmsg));
 	}
 
-	return 0;
+	mm_raise_error(errnum, "getnameinfo() failed: %s", errmsg);
+	return -1;
 }
 
 

@@ -10,6 +10,7 @@
 #include "mmerrno.h"
 #include "mmpredefs.h"
 #include "mmthread.h"
+#include "socket-internal.h"
 #include "utils-win32.h"
 
 #include <winsock2.h>
@@ -516,19 +517,93 @@ int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
 }
 
 
+/**
+ * validate_hints() - validate protocol with other fields in hints
+ * @hints:     pointer to hints
+ * @errmsg:    pointer to buffer where to write message in case of error
+ *
+ * Return: 0 if hints are valid, the error number in case of error.
+ */
+static
+int validate_hints(const struct addrinfo *hints, char* errmsg)
+{
+	int valid, socktype, family;
+
+	if (!hints || !hints->ai_protocol)
+		return 0;
+
+	socktype = hints->ai_socktype;
+	family = hints->ai_family;
+
+	switch (hints->ai_protocol) {
+	case IPPROTO_UDP:
+		valid = (!socktype || socktype == SOCK_DGRAM)
+		        && (!family || family == AF_INET || family == AF_INET6);
+		break;
+
+	case IPPROTO_TCP:
+		valid = (!socktype || socktype == SOCK_STREAM)
+		        && (!family || family == AF_INET || family == AF_INET6);
+		break;
+
+	case IPPROTO_ICMP:
+		valid = (!socktype || socktype == SOCK_DGRAM)
+		        && (!family || family == AF_INET);
+		break;
+
+	case IPPROTO_ICMPV6:
+		valid = (!socktype || socktype == SOCK_DGRAM)
+		        && (!family || family == AF_INET6);
+		break;
+
+	default:
+		// If we cannot prove there is an issue, better let it pass
+		valid = 1;
+		break;
+	}
+
+	if (!valid) {
+		strcpy(errmsg, "requested protocol inconsistent with"
+		               " requested family or socket type");
+		return EPROTOTYPE;
+	}
+
+	return 0;
+}
+
+
 /* doc in posix implementation */
 API_EXPORTED
 int mm_getaddrinfo(const char *node, const char *service,
                    const struct addrinfo *hints,
 		   struct addrinfo **res)
 {
+	int errnum;
+	DWORD w32err;
+	char errmsg[256];
+
 	if (check_wsa_init())
 		return -1;
 
-	if (getaddrinfo(node, service, hints, res) != 0)
-		return mm_raise_from_w32err("getaddrinfo() failed");
+	errnum = validate_hints(hints, errmsg);
+	if (errnum != 0)
+		goto error_exit;
 
-	return 0;
+	errnum = internal_getaddrinfo(node, service, hints, res, errmsg);
+	if (errnum == 0)
+		return 0;
+
+	// Handle platform specific error
+	if (errnum == -1) {
+		w32err = GetLastError();
+		errnum = get_errcode_from_w32err(w32err);
+		write_w32err_msg(w32err, sizeof(errmsg), errmsg);
+	}
+
+error_exit:
+	mm_raise_error(errnum, "getaddrinfo(%s, %s) failed: %s",
+	               node, service, errmsg);
+	return -1;
 }
 
 
@@ -538,13 +613,27 @@ int mm_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
                    char *host, socklen_t hostlen,
                    char *serv, socklen_t servlen, int flags)
 {
+	int errnum;
+	DWORD w32err;
+	char errmsg[256];
+
 	if (check_wsa_init())
 		return -1;
 
-	if (getnameinfo(addr, addrlen, host, hostlen, serv, servlen, flags) != 0)
-		return mm_raise_from_w32err("getaddrinfo() failed");
+	errnum = internal_getnameinfo(addr, addrlen, host, hostlen,
+	                              serv, servlen, flags, errmsg);
+	if (errnum == 0)
+		return 0;
 
-	return 0;
+	// Handle platform specific error
+	if (errnum == -1) {
+		w32err = GetLastError();
+		errnum = get_errcode_from_w32err(w32err);
+		write_w32err_msg(w32err, sizeof(errmsg), errmsg);
+	}
+
+	mm_raise_error(errnum, "getnameinfo() failed: %s", errmsg);
+	return -1;
 }
 
 

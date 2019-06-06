@@ -41,6 +41,7 @@ libmmlib_la_SOURCES = \
 	mmtime.h time.c \
 	mmsysio.h \
 	file.c file-internal.h \
+	socket-internal.h \
 	socket.c \
 	mmthread.h \
 	mmdlfcn.h dlfcn.c \

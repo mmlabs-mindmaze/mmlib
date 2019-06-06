@@ -7,6 +7,7 @@
 
 #include <check.h>
 
+#include "mmerrno.h"
 #include "mmsysio.h"
 #include "socket-testlib.h"
 #include "tests-child-proc.h"
@@ -917,6 +918,84 @@ START_TEST(test_getsockname)
 END_TEST
 
 
+static
+void assert_addrinfo(struct addrinfo* rp, int exp_socktype, short exp_port)
+{
+	struct sockaddr_in* addrin;
+	struct sockaddr_in6* addrin6;
+
+	ck_assert(rp->ai_socktype == exp_socktype);
+	if (rp->ai_family == AF_INET) {
+		addrin = (struct sockaddr_in*)rp->ai_addr;
+		ck_assert_int_eq(htons(addrin->sin_port), exp_port);
+	} else if (rp->ai_family == AF_INET6) {
+		addrin6 = (struct sockaddr_in6*)rp->ai_addr;
+		ck_assert_int_eq(htons(addrin6->sin6_port), exp_port);
+	} else {
+		ck_abort_msg("Not matching address family");
+	}
+}
+
+
+START_TEST(getaddrinfo_valid)
+{
+	struct addrinfo *rp, *res = NULL;
+	struct addrinfo hints = {.ai_family = AF_UNSPEC};
+
+	ck_assert(mm_getaddrinfo("localhost", "ssh", &hints, &res) == 0);
+	for (rp = res; rp != NULL; rp = rp->ai_next)
+		assert_addrinfo(rp, SOCK_STREAM, 22);
+	mm_freeaddrinfo(res);
+
+	hints.ai_flags = AI_NUMERICSERV;
+	hints.ai_socktype = SOCK_DGRAM;
+	ck_assert(mm_getaddrinfo("localhost", "42", &hints, &res) == 0);
+	for (rp = res; rp != NULL; rp = rp->ai_next)
+		assert_addrinfo(rp, SOCK_DGRAM, 42);
+	mm_freeaddrinfo(res);
+}
+END_TEST
+
+
+START_TEST(getaddrinfo_error)
+{
+	struct addrinfo *res = NULL;
+	struct addrinfo hints = {.ai_family = AF_INET};
+
+	ck_assert(mm_getaddrinfo("notanhost.localdomain", "ssh", &hints, &res) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENONAME);
+
+	ck_assert(mm_getaddrinfo("localhost", "joke", &hints, &res) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENOTFOUND);
+
+	hints.ai_socktype = SOCK_DGRAM;
+	ck_assert(mm_getaddrinfo("localhost", "ssh", &hints, &res) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENOTFOUND);
+	hints.ai_socktype = 0;
+
+	ck_assert(mm_getaddrinfo(NULL, NULL, &hints, &res) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+
+	hints.ai_flags = AI_CANONNAME;
+	ck_assert(mm_getaddrinfo(NULL, "ssh", &hints, &res) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+	hints.ai_flags = 0;
+
+	hints.ai_flags = AI_NUMERICSERV;
+	ck_assert(mm_getaddrinfo("localhost", "123joke", &hints, &res) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+	hints.ai_flags = 0;
+
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_UDP;
+	ck_assert(mm_getaddrinfo("localhost", "ssh", &hints, &res) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EPROTOTYPE);
+	hints.ai_socktype = 0;
+	hints.ai_protocol = 0;
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -949,6 +1028,8 @@ TCase* create_socket_tcase(void)
 	tcase_add_test(tc, test_poll_invalid);
 	tcase_add_test(tc, test_poll_simple);
 	tcase_add_test(tc, test_getsockname);
+	tcase_add_test(tc, getaddrinfo_valid);
+	tcase_add_test(tc, getaddrinfo_error);
 
 	return tc;
 }
