@@ -24,6 +24,8 @@ struct w32_create_file_options {
 };
 
 int set_w32_create_file_options(struct w32_create_file_options* opts, int oflags);
+int get_errcode_from_w32err(DWORD w32err);
+void write_w32err_msg(DWORD w32err, size_t len, char* buff);
 int mm_raise_from_w32err_full(const char* module, const char* func,
                               const char* srcfile, int srcline,
                               const char* desc, ...);

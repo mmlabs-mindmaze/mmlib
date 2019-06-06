@@ -467,7 +467,13 @@ mode_t local_secdesc_get_mode(struct local_secdesc* lsd)
  *                       Win32 Error reporting                            *
  *                                                                        *
  **************************************************************************/
-static
+/**
+ * get_errcode_from_w32err() - translate Win32 error into error code
+ * @w32err:     error value returned by GetLastError()
+ *
+ * Return: translated error code usable in mm_raise_error()
+ */
+LOCAL_SYMBOL
 int get_errcode_from_w32err(DWORD w32err)
 {
 	switch(w32err) {
@@ -526,12 +532,32 @@ int get_errcode_from_w32err(DWORD w32err)
 }
 
 
-static
-void replace_char(char* buff, int ch_find, int ch_replace)
+/**
+ * write_w32err_msg() - write error message associated to Win32 error
+ * @w32err:     Win32 error code (for example from GetLastError())
+ * @len:        length of buffer in @errmsg
+ * @buff:       buffer that must receive the error message
+ *
+ * This writes in @buff the error message associated with Win32 error code
+ * specified by @w32err. If @len is too short, the error message will be
+ * truncated. The resulting string will be null-terminated (if @len is not 0).
+ */
+LOCAL_SYMBOL
+void write_w32err_msg(DWORD w32err, size_t len, char* buff)
 {
+	if (len == 0)
+		return;
+
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
+	              | FORMAT_MESSAGE_IGNORE_INSERTS
+	              | FORMAT_MESSAGE_MAX_WIDTH_MASK,
+	              NULL, w32err, 0, buff, len-1, NULL);
+
+	// Replace '%' character in win32 message to avoid messing with
+	// error message formatting in mm_raise_error_vfull()
 	for (; *buff != '\0'; buff++) {
-		if (*buff == ch_find)
-			*buff = ch_replace;
+		if (*buff == '%')
+			*buff = ' ';
 	}
 }
 
@@ -550,17 +576,7 @@ int mm_raise_from_w32err_full(const char* module, const char* func,
 	len = snprintf(errmsg, sizeof(errmsg), "%s : ", desc);
 
 	// Append Win32 error message if space is remaining on string
-	if (len < sizeof(errmsg)-1) {
-		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
-		              | FORMAT_MESSAGE_IGNORE_INSERTS
-		              | FORMAT_MESSAGE_MAX_WIDTH_MASK,
-		              NULL, w32err, 0,
-		              errmsg+len, sizeof(errmsg)-len, NULL);
-
-		// Replace '%' character in win32 message to avoid messing with
-		// error message formatting in mm_raise_error_vfull()
-		replace_char(errmsg+len, '%', ' ');
-	}
+	write_w32err_msg(w32err, sizeof(errmsg)-len, errmsg+len);
 
 	// Translate win32 error into mmlib error code
 	errcode = get_errcode_from_w32err(w32err);
