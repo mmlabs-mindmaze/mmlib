@@ -513,7 +513,9 @@ int get_errcode_from_w32err(DWORD w32err)
 	case WSAENOPROTOOPT:            return ENOPROTOOPT;
 	case WSAEPFNOSUPPORT:
 	case WSAEAFNOSUPPORT:           return EAFNOSUPPORT;
+	case WSAESOCKTNOSUPPORT:
 	case WSAEPROTOTYPE:             return EPROTOTYPE;
+	case WSAEPROTONOSUPPORT:        return EPROTONOSUPPORT;
 	case WAIT_TIMEOUT:
 	case WSAETIMEDOUT:              return ETIMEDOUT;
 	case ERROR_NO_UNICODE_TRANSLATION: return EILSEQ;
