@@ -97,6 +97,9 @@
  *
  * MM_ECAMERROR:
  *   Communication error with camera hardware
+ *
+ * MM_NONAME:
+ *   The specified hostname cannot be resolved
  */
 
 #define MM_EDISCONNECTED	1000
@@ -109,6 +112,7 @@
 #define MM_ENOCALIB		1007
 #define MM_ENOINERTIAL		1008
 #define MM_ECAMERROR		1009
+#define MM_ENONAME		1010
 
 // Surprisingly some compilers targeting windows fail to define
 // ENOTRECOVERABLE error code while they define EOWNERDEAD

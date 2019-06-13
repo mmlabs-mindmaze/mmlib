@@ -50,6 +50,7 @@ static const struct errmsg_entry error_tab[] = {
 	{.errnum = MM_ENOINERTIAL, .msg = N_("Hand trackers not detected.\n"
 		"Please ensure the USB dongle is connected \nand the sensors are switched on")},
 	{.errnum = MM_ECAMERROR, .msg = N_("Communication error with camera hardware.")},
+	{.errnum = MM_ENONAME, .msg = N_("Specified hostname cannot be resolved")},
 };
 
 #define NUM_ERROR_ENTRY	(sizeof(error_tab)/sizeof(error_tab[0]))
