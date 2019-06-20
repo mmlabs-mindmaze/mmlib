@@ -5,10 +5,6 @@
 # include <config.h>
 #endif
 
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT _WIN32_WINNT_WIN8
-#endif
-
 #include "mmsysio.h"
 #include "mmerrno.h"
 #include "mmlib.h"

@@ -86,6 +86,11 @@ endif
 
 if OS_TYPE_WIN32
 
+AM_CPPFLAGS += \
+	-DWIN32_LEAN_AND_MEAN \
+	-D_WIN32_WINNT=_WIN32_WINNT_WIN8 \
+	$(eol)
+
 defexecdir = $(bindir)
 defexec_DATA =
 CLEANFILES = $(defexec_DATA)
@@ -118,7 +123,6 @@ libmmlib_la_SOURCES += \
 	$(eol)
 
 libmmlib_la_CPPFLAGS += \
-	-DWIN32_LEAN_AND_MEAN \
 	-DMMLIB_API=API_EXPORTED \
 	-D__USE_MINGW_ANSI_STDIO=1 \
 	$(eol)
@@ -139,7 +143,6 @@ else #!LOCKSERVER_IN_MMLIB_DLL
 pkglibexec_PROGRAMS += lock-referee
 lock_referee_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-DWIN32_LEAN_AND_MEAN \
 	-DMMLOG_MODULE_NAME=\"lock-referee\" \
 	$(eol)
 

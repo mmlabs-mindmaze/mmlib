@@ -5,10 +5,6 @@
 # include <config.h>
 #endif
 
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
 #include "pshared-lock.h"
 #include "lock-referee-proto.h"
 #include "mmsysio.h"

@@ -97,6 +97,7 @@ testinternals_tap_SOURCES += \
 testinternals_tap_CPPFLAGS += \
 	-DMMLIB_API=API_EXPORTED \
 	-DWIN32_LEAN_AND_MEAN \
+	-D_WIN32_WINNT=_WIN32_WINNT_WIN8 \
 	$(eol)
 
 endif
