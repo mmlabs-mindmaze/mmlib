@@ -45,6 +45,8 @@ struct childproc {
 	int rd_pipe_fd;
 	mm_pid_t pid;
 	int sockfd;
+	struct sockaddr_storage peer_addr;
+	socklen_t peer_addr_len;
 };
 
 
@@ -218,11 +220,11 @@ int create_connected_socket_and_child(struct childproc* child,
 	spawn_childproc(child,
 	                domain_str, socktype_str, "localhost", MM_STRINGIFY(PORT), NULL);
 
+	child->peer_addr_len = sizeof(child->peer_addr);
 	if (socktype == SOCK_DGRAM) {
-		struct sockaddr_storage addr;
 		struct msghdr msg = {
-			.msg_name = &addr,
-			.msg_namelen = sizeof(addr),
+			.msg_name = &child->peer_addr,
+			.msg_namelen = child->peer_addr_len,
 		};
 
 		// Get first packet from client (when UDP, the child process
@@ -230,11 +232,13 @@ int create_connected_socket_and_child(struct childproc* child,
 		// the address and connect to the client socket
 		ck_assert(mm_recvmsg(fd, &msg, 0) == 0);
 		ck_assert(mm_connect(fd, msg.msg_name, msg.msg_namelen) == 0);
+		child->peer_addr_len = msg.msg_namelen;
 
 		child->sockfd = fd;
 	} else {
 		// Accept incoming TCP connection and close listening socket
-		child->sockfd = mm_accept(fd, NULL, NULL);
+		child->sockfd = mm_accept(fd, (struct sockaddr*)&child->peer_addr,
+		                              &child->peer_addr_len);
 		mm_close(fd);
 		ck_assert(child->sockfd != -1);
 	}
@@ -918,6 +922,25 @@ START_TEST(test_getsockname)
 END_TEST
 
 
+START_TEST(test_getpeername)
+{
+	int sockfd;
+	int domain = test_cases[_i].domain;
+	int socktype = test_cases[_i].socktype;
+	struct sockaddr_storage addr;
+	socklen_t addrlen =  sizeof(addr);
+
+	// Create connected socket and child process (the created child and
+	// socket are cleaned up in teardown)
+	sockfd = create_connected_socket_and_child(&child, domain, socktype);
+
+	ck_assert(mm_getpeername(sockfd, (struct sockaddr*)&addr, &addrlen) != -1);
+	ck_assert_int_eq(addrlen, child.peer_addr_len);
+	ck_assert(memcmp(&addr, &child.peer_addr, addrlen) == 0);
+}
+END_TEST
+
+
 static
 void assert_addrinfo(struct addrinfo* rp, int exp_socktype, short exp_port)
 {
@@ -1028,6 +1051,7 @@ TCase* create_socket_tcase(void)
 	tcase_add_test(tc, test_poll_invalid);
 	tcase_add_test(tc, test_poll_simple);
 	tcase_add_test(tc, test_getsockname);
+	tcase_add_loop_test(tc, test_getpeername, 0, num_cases);
 	tcase_add_test(tc, getaddrinfo_valid);
 	tcase_add_test(tc, getaddrinfo_error);
 

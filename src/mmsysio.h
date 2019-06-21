@@ -416,6 +416,7 @@ struct mmsock_multimsg {
 MMLIB_API int mm_socket(int domain, int type);
 MMLIB_API int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 MMLIB_API int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+MMLIB_API int mm_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 MMLIB_API int mm_listen(int sockfd, int backlog);
 MMLIB_API int mm_accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen);
 MMLIB_API int mm_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);

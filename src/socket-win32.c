@@ -282,6 +282,24 @@ int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 /* doc in posix implementation */
 API_EXPORTED
+int mm_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+	SOCKET s;
+
+	if ( check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd) )
+		return -1;
+
+	if (getpeername(s, addr, addrlen) < 0)
+		return mm_raise_from_w32err("getpeername() failed");
+
+	return 0;
+
+}
+
+
+/* doc in posix implementation */
+API_EXPORTED
 int mm_listen(int sockfd, int backlog)
 {
 	SOCKET s;

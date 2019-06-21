@@ -123,6 +123,30 @@ int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 
 /**
+ * mm_getpeername() - get name of connected peer socket
+ * @sockfd:     file descriptor to which the socket is bound
+ * @addr:       points to a &struct sockaddr containing the peer address
+ * @addrlen:    length of the &struct sockaddr pointed to by @addr
+ *
+ * This obtains the address of the peer connected to the socket @sockfd in
+ * the buffer pointed to by @addr. The @addrlen argument should be
+ * initialized to indicate the amount of space (in bytes) pointed to by
+ * addr. On return it contains the actual size of the socket address.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
+API_EXPORTED
+int mm_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+	if (getpeername(sockfd, addr, addrlen) < 0)
+		return mm_raise_from_errno("getpeername() failed");
+
+	return 0;
+}
+
+
+/**
  * mm_listen() - listen for socket connections
  * @sockfd:     file descriptor of the socket that must listen
  * @backlog:    hint for the queue limit
