@@ -1,9 +1,14 @@
-mmlib (1.0.0+next2) UNRELEASED; urgency=medium
+mmlib (1.0.0+next3) UNRELEASED; urgency=medium
 
   * Add mm_error_set_flags() API
   * Add mm_get_environ() API
   * change win32 symlink behavior
   * change win32 ENOMSG error code value
+  * Add completion support in argparse
+  * define NONNULL macro mmpredefs.h
+  * Define MM_ENONAME error code
+  * Add mm_getpeername()
+  * Add mm_basename() and mm_dirname()
 
  -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Mon, 29 Apr 2019 10:17:51 +0200
 
