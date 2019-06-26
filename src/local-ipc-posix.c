@@ -138,10 +138,14 @@ API_EXPORTED
 int mmipc_connect(const char* addr)
 {
 	int fd;
+	size_t len;
 	struct sockaddr_un address = {.sun_family = AF_UNIX};
 
 	address.sun_path[0] = '\0';
-	strncpy(address.sun_path+1, addr, sizeof(address.sun_path) - 1);
+	/* do not use strncpy() to prevent invalid stringop-truncation warning:
+	 * this is not a string that needs to be null-terminated */
+	len = strnlen(addr, sizeof(address.sun_path) - 1);
+	memcpy(address.sun_path + 1, addr, len);
 
 	if ( (fd = socket(AF_UNIX, SOCK_SEQPACKET, 0)) < 0
 	 || connect(fd, (struct sockaddr*)&address, sizeof(address)) < 0 ) {
