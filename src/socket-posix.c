@@ -701,7 +701,7 @@ int mm_getaddrinfo(const char *node, const char *service,
 	// Handle platform specific error
 	if (errnum == -1) {
 		errnum = errno;
-		strerror_r(errnum, errmsg, sizeof(errmsg));
+		mmstrerror_r(errnum, errmsg, sizeof(errmsg));
 	}
 
 	mm_raise_error(errnum, "getaddrinfo(%s, %s) failed: %s",
@@ -742,7 +742,7 @@ int mm_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
 	// Handle platform specific error
 	if (errnum == -1) {
 		errnum = errno;
-		strerror_r(errnum, errmsg, sizeof(errmsg));
+		mmstrerror_r(errnum, errmsg, sizeof(errmsg));
 	}
 
 	mm_raise_error(errnum, "getnameinfo() failed: %s", errmsg);
