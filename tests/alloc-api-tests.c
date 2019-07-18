@@ -10,10 +10,22 @@
 
 #include "api-testcases.h"
 #include "mmlib.h"
+#include "mmlog.h"
 #include "mmerrno.h"
 #include "mmpredefs.h"
 
 #define NUM_ALLOC	30
+
+static int prev_max_loglvl;
+static void setup(void)
+{
+	prev_max_loglvl = mmlog_set_maxlvl(MMLOG_NONE);
+}
+
+static void teardown(void)
+{
+	mmlog_set_maxlvl(prev_max_loglvl);
+}
 
 START_TEST(aligned_heap_allocation)
 {
@@ -142,6 +154,7 @@ LOCAL_SYMBOL
 TCase* create_allocation_tcase(void)
 {
 	TCase *tc = tcase_create("allocation");
+	tcase_add_checked_fixture(tc, setup, teardown);
 
 	tcase_add_test(tc, aligned_heap_allocation);
 	tcase_add_test(tc, aligned_heap_allocation_error);

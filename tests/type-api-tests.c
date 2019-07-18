@@ -5,13 +5,28 @@
 #include <config.h>
 #endif
 
+/* disable error logging for this test module */
+#define MMLOG_MAXLEVEL 0
+
 #include <mmtype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <check.h>
 #include "api-testcases.h"
+#include "mmlog.h"
 
 #define NUMEL(array) (sizeof(array)/sizeof(array[0]))
+
+static int prev_max_loglvl;
+static void setup(void)
+{
+	prev_max_loglvl = mmlog_set_maxlvl(MMLOG_NONE);
+}
+
+static void teardown(void)
+{
+	mmlog_set_maxlvl(prev_max_loglvl);
+}
 
 /**************************************************************************
  *                                                                        *
@@ -137,6 +152,8 @@ TCase* create_type_tcase(void)
 {
 	/* Core test case */
 	TCase *tc = tcase_create("type");
+	tcase_add_checked_fixture(tc, setup, teardown);
+
 	tcase_add_loop_test(tc, buffer_size_test, 0, NUMEL(exp_imgsz));
 	tcase_add_loop_test(tc, pixel_size_test, 0, NUMEL(exp_pixsz));
 	tcase_add_loop_test(tc, valid_stride_test, 1, MAX_ALIGNMENT);
