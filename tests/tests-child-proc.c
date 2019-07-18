@@ -50,8 +50,9 @@ int main(int argc, char* argv[])
 		if (hndl == NULL)
 			goto exit;
 
-		intptr_t (*fn)(void*) = (intptr_t (*)(void*))mm_dlsym(hndl,
-		                                                      argv[1]);
+		/* silence gcc pedantic warning. See man dlopen(3) */
+		intptr_t (*fn)(void*);
+		*(void **) (&fn) = mm_dlsym(hndl, argv[1]);
 		if (fn == NULL) {
 			fprintf(stderr, "Unknown arg: %s\n", argv[1]);
 			exitcode = EXIT_FAILURE;
