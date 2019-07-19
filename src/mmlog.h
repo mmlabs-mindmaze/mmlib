@@ -85,6 +85,8 @@ extern "C" {
 
 MMLIB_API void mmlog_log(int lvl, const char* location, const char* msg, ...);
 
+MMLIB_API int mmlog_set_maxlvl(int lvl);
+
 #ifdef __cplusplus
 }
 #endif

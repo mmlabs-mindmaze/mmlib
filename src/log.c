@@ -56,17 +56,17 @@ MM_CONSTRUCTOR(init_log)
 	envlvl = getenv("MMLOG_MAXLEVEL");
 	if (!envlvl)
 		return;
-	
+
 	for (i=0; i<(int)NLEVEL; i++) {
 		if (!strcmp(loglevel[i], envlvl)) {
 			maxloglvl = i;
 			return;
 		}
 	}
-	
+
 	// If we reach each, unknown level has been set through environment
 	// In that case, it should be equivalent to no log
-	maxloglvl = MMLOG_NONE;		
+	maxloglvl = MMLOG_NONE;
 }
 
 
@@ -201,3 +201,17 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 	} while (len);
 }
 
+
+/**
+ * mmlog_set_maxlvl() - set maximum log level
+ * @lvl: log level to set
+ *
+ * Return: previous log level
+ */
+API_EXPORTED
+int mmlog_set_maxlvl(int lvl)
+{
+	int rv = maxloglvl;
+	maxloglvl = lvl;
+	return rv;
+}
