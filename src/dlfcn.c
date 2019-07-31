@@ -60,14 +60,20 @@ void arch_dlclose(mmdynlib_t* handle)
 static
 void* arch_dlsym(mmdynlib_t* handle, const char* symbol)
 {
-	void* ptr = (void*)GetProcAddress((HMODULE)handle, symbol);
-	if (!ptr) {
+	union {
+		void* ptr;
+		FARPROC proc;
+	} addr;
+
+	/* Use union to allow cast between func pointer and void* */
+	addr.proc = GetProcAddress((HMODULE)handle, symbol);
+	if (!addr.proc) {
 		mm_raise_error(MM_ENOTFOUND, "symbol (%s) could not be found"
 		               " in dynamic library (h=%p): %s", symbol, handle);
 		return NULL;
 	}
 
-	return ptr;
+	return addr.ptr;
 }
 
 

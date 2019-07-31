@@ -23,6 +23,10 @@ int main(int argc, char* argv[])
 	unsigned int mapsz;
 	int exitcode;
 	void *hndl = NULL;
+	union {
+		void* ptr;
+		intptr_t (*fn)(void*);
+	} symbol;
 
 	// If 3 argument looks like "mapfile-%i-%u", it means that the caller
 	// want us to map the file and size as specified in the argument
@@ -50,10 +54,9 @@ int main(int argc, char* argv[])
 		if (hndl == NULL)
 			goto exit;
 
-		/* silence gcc pedantic warning. See man dlopen(3) */
-		intptr_t (*fn)(void*);
-		*(void **) (&fn) = mm_dlsym(hndl, argv[1]);
-		if (fn == NULL) {
+		/* Use union to allow cast between func pointer and void* */
+		symbol.ptr = mm_dlsym(hndl, argv[1]);
+		if (symbol.ptr == NULL) {
 			fprintf(stderr, "Unknown arg: %s\n", argv[1]);
 			exitcode = EXIT_FAILURE;
 			goto exit;
@@ -61,7 +64,7 @@ int main(int argc, char* argv[])
 
 		fprintf(stderr, "Running: %s\n", argv[1]);
 		/* function should return NULL on success */
-		exitcode = fn(map);
+		exitcode = symbol.fn(map);
 		printf("%s exited: %d\n", argv[1], exitcode);
 	}
 
