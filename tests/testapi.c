@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "mmlib.h"
+#include "mmsysio.h"
 #include "api-testcases.h"
 
 #define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"lock-referee.exe"
@@ -42,6 +43,8 @@ int main(void)
 	Suite* suite;
 	SRunner* runner;
 	int exitcode = EXIT_SUCCESS;
+
+	mm_chdir(BUILDDIR);
 
 #if defined(_WIN32)
 	mm_setenv("MMLIB_LOCKREF_BIN", TEST_LOCK_REFEREE_SERVER_BIN, MM_ENV_OVERWRITE);
