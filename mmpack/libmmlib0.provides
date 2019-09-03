@@ -1,6 +1,6 @@
 # vi: syntax=yaml
 
-elf:
+sharedlib:
   mm_aaxis_from_mat3: 0.0.0
   mm_accept: 1.0.0
   mm_aligned_alloc: 1.0.0
