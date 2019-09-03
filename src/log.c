@@ -129,7 +129,7 @@ size_t format_log_str(char* restrict buff, size_t blen,
  * @location:   origin of the log message.
  * @msg:        log message.
  *
- * Writes an entry in the log following the suggested format by the Mindmaze
+ * Writes an entry in the log following the suggested format by the mmlib
  * standard: date, time, origin, level, message. The origin part is specified
  * by the @location parameter. The severity part is defined by the @lvl
  * parameter which must one of this value listed from the most critical to the

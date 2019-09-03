@@ -4,7 +4,5 @@ Upstream-Contact: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>
 Source: http://intranet.mindmaze.ch
 
 Files: *
-Copyright: 2012-2018, Mindmaze SA
-License: proprietary
- Copyright (C) 2012-2018  MindMaze SA
- All right reserved
+License: Apache-2.0
+Copyright: Copyright (C) 2012-2018  MindMaze SA

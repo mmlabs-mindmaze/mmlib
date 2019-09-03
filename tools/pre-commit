@@ -22,7 +22,7 @@ if [ -z "$1" ] && [ -f "$hook_script" ]; then
     fi
 fi
 
-CONFIG=tools/mindmaze-uncrustify.cfg
+CONFIG=tools/uncrustify.cfg
 if [ ! -e $CONFIG ] ; then
 	echo "uncrustify config file not found." 2>&1
 	exit 1
@@ -38,7 +38,7 @@ fi
 uncrustify  --version
 uncrustify --check -c ${CONFIG} $FILE_LIST
 if [ ! $? -eq 0 ] ; then
-	echo "Error: your files do not comply with MindMaze coding style. Please run from $GIT_ROOT_DIR:" 2>&1
-	echo "uncrustify --replace -c tools/mindmaze-uncrustify.cfg $(echo $FILE_LIST)" 2>&1
+	echo "Error: your files do not comply with mmlib coding style. Please run from $GIT_ROOT_DIR:" 2>&1
+	echo "uncrustify --replace -c tools/uncrustify.cfg $(echo $FILE_LIST)" 2>&1
 	exit 1
 fi

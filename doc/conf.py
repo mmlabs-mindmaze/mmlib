@@ -58,8 +58,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'mmlib'
-copyright = u'2017, Mindmaze'
-author = u'Mindmaze'
+copyright = u'2019, Apache 2.0'
+author = u'nicolas.bourdaud@mindmaze.ch'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

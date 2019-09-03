@@ -20,7 +20,7 @@
  * lower layer). It will thus use the code to filter the error it handle and
  * propagate to the upper layers the others.
  *
- * Mindmaze software defines a number of error in addition to the usual one
+ * mmlib defines a number of error in addition to the usual one
  * defined in errno.h by the system to address the case not covered by the
  * system error. In the following table, you will find the list of typical
  * error that you will most likely use (or receive)
@@ -32,7 +32,7 @@
  * ENOSYS:
  *   Function not implemented. This indicates that the function called is not
  *   implemented at all, either in the C library, in the operating
- *   system or in a Mindmaze lib (typically you try to access a set of
+ *   system or in a library (typically you try to access a set of
  *   functionality that are disabled by a compilation flag). When you get
  *   this error, you can be sure that this particular function will always
  *   fail with ENOSYS unless you install a new version of the operating
@@ -155,12 +155,13 @@ MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
  * source code file and line number).
  *
  * This must be called the closest place where the error is detected. Ie, if
- * you call a mindmaze function that sets the error and you, you shall not
- * the error because your callee has failed, the only thing that might be
- * done is this case would be adding a log line (if necessary). On the other
- * side, if you call function from third party, the error state will of course not
- * be set, it will then be your responsibility once you detect the
- * third-party call has failed to set the error state using mm_raise_error().
+ * you call a function that sets an error, you should not raise an error
+ * yourself, because your callee has failed and done so already, the only
+ * thing that might be done in this case would be adding a log line (if
+ * necessary). On the other side, if you call function from third party,
+ * the error state will of course not be set, it will then be your
+ * responsibility once you detect the third-party call has failed to set
+ * the error state using mm_raise_error().
  *
  * Return: always -1.
  */

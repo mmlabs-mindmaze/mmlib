@@ -156,7 +156,7 @@ int mmstrerror_r(int errnum, char *buf, size_t buflen)
 
 struct error_info {
 	int flags;              //< flags to finetune error handling
-	int errnum;             //< error class (standard and mindmaze errno value)
+	int errnum;             //< error class (standard and mmlib errno value)
 	char extended_id[64];   //< message to display to end user if has not been caught before
 	char module[32];        //< module that has generated the error
 	char location[256];     //< which function/file/line has generated the error
