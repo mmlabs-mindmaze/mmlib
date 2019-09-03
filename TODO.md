@@ -1,3 +1,9 @@
+Cleaning before opening
+=======================
+
+* remove johnny files
+* either complete or remove .po files
+
 ABI non-breaking changes
 ========================
 
