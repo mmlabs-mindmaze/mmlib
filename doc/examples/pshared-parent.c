@@ -15,7 +15,7 @@
  *
  *     ...|+child-Z+||+child-W+||+child-X+||+child-Y+|...
  *
- * Because of the concurent access, the children use a process shared mutex
+ * Because of the concurrent access, the children use a process shared mutex
  * mapped in the shared memory. They can recover from a child dying while
  * owning the mutex. Put simulate this, the SEGFAULT_IN_CHILD environment
  * variable can be set. If a child process see its identification string
@@ -108,7 +108,7 @@ failure:
  * instance as the first argument.
  */
 static
-int spawn_children(int shm_fd, int num_child, mm_pid_t* childs)
+int spawn_children(int shm_fd, int num_child, mm_pid_t* children)
 {
 	int i;
 	char process_identifier[32];
@@ -126,7 +126,7 @@ int spawn_children(int shm_fd, int num_child, mm_pid_t* childs)
 		sprintf(process_identifier, "child-%i", i);
 
 		// Spawn the process
-		if (mm_spawn(&childs[i], argv[0], 1, &fd_map, 0, argv, NULL))
+		if (mm_spawn(&children[i], argv[0], 1, &fd_map, 0, argv, NULL))
 			return -1;
 	}
 
@@ -135,12 +135,12 @@ int spawn_children(int shm_fd, int num_child, mm_pid_t* childs)
 
 
 static
-int wait_children_termination(int num_child, const mm_pid_t* childs)
+int wait_children_termination(int num_child, const mm_pid_t* children)
 {
 	int i;
 
 	for (i = 0; i < num_child; i++) {
-		if (mm_wait_process(childs[i], NULL))
+		if (mm_wait_process(children[i], NULL))
 			return -1;
 	}
 
@@ -171,7 +171,7 @@ void broadcast_start_notification(struct pshared_data* psh_data)
 
 int main(void)
 {
-	mm_pid_t childs[NUM_CHILD];
+	mm_pid_t children[NUM_CHILD];
 	int shm_fd = -1;
 	struct pshared_data* psh_data = NULL;
 	int exitcode = EXIT_FAILURE;
@@ -185,7 +185,7 @@ int main(void)
 		goto exit;
 
 	// Create the children inheriting the shared memory object
-	if (spawn_children(shm_fd, MM_NELEM(childs), childs))
+	if (spawn_children(shm_fd, MM_NELEM(children), children))
 		goto exit;
 
 	// Close shm_fd because now that it is mapped, and transmitted to
@@ -195,7 +195,7 @@ int main(void)
 
 	broadcast_start_notification(psh_data);
 
-	wait_children_termination(MM_NELEM(childs), childs);
+	wait_children_termination(MM_NELEM(children), children);
 	exitcode = EXIT_SUCCESS;
 
 exit:

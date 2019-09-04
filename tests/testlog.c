@@ -30,7 +30,7 @@ void on_sigabrt (int signum)
 	longjmp (env, 1);
 }
 
-// Returns 1 iff the function does not abort
+// Returns 1 if the function does not abort
 static
 int try_and_catch_abort (void (*func)(void))
 {

@@ -60,7 +60,7 @@ const struct mmarg_opt* find_opt(const struct mmarg_parser* parser,
  * get_value_type_name() - get string describing type name
  * @type:	MMOPT_* flags specifying a type
  *
- * Return: The type string, ot "unknown" if not found.
+ * Return: The type string, or "unknown" if not found.
  */
 static
 const char* get_value_type_name(int type)
@@ -1462,7 +1462,7 @@ int mmarg_complete_path(const char* arg, int type_mask,
 		name = dirent->name;
 		type = dirent->type;
 
-		// Discard if base does not match the begining of filename
+		// Discard if base does not match the beginning of filename
 		if (  strncmp(name, base, baselen) != 0
 		   || is_wildcard_directory(name))
 			continue;

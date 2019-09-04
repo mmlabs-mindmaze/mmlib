@@ -317,7 +317,7 @@ int max_label_len(void)
  * @num_points: number of time measure (ie number of call to mmtoc())
  * @data:       array (num_col x @num_points) receiving the results
  *
- * Returns: the number of differents timing computation requested, i.e. the
+ * Returns: the number of different timing computation requested, i.e. the
  * number of columns in @data array.
  */
 static

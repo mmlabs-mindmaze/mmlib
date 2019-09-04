@@ -16,7 +16,7 @@
  *
  *     ...|+child-Z+||+child-W+||+child-X+||+child-Y+|...
  *
- * Because of the concurent access, the children use a process shared mutex
+ * Because of the concurrent access, the children use a process shared mutex
  * mapped in the shared memory. They can recover from a child dying while
  * owning the mutex. Put simulate this, the SEGFAULT_IN_CHILD environment
  * variable can be set. If a child process see its identification string
@@ -168,7 +168,7 @@ void write_shared_data(struct pshared_data* psh_data, const char* id_str,
 		// owner failed (or refused) to mark lock as consistent,
 		// thus rendering the lock unusable. This provokes all
 		// waiters for the lock to be waken up and ENOTRECOVERABLE
-		// is returned. Any new attempt to lock the mutex wil return
+		// is returned. Any new attempt to lock the mutex will return
 		// ENOTRECOVERABLE (until it is deinit and init again).
 
 		// So now, we don't have the lock and we can only stop

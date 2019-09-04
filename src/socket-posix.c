@@ -675,7 +675,7 @@ int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
  *   later.
  * %EAFNOSUPPORT
  *   Address family is not supported or address length was invalid for
- *   specifed family
+ *   specified family
  * %EINVAL
  *   Invalid salue in flags. Both @node and @service are NULL. %AI_CANONNAME
  *   set in flags but @node is NULL. %AI_NUMERICSERV set in flags but
