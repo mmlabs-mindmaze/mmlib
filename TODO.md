@@ -1,7 +1,6 @@
 Cleaning before opening
 =======================
 
-* remove johnny files
 * either complete or remove .po files
 * change source URL once the new server is in place
 
