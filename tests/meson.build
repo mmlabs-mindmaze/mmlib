@@ -8,67 +8,72 @@ unittest_args = [
     '-DLT_OBJDIR="."',
 ]
 
-
+testlog_sources = files('testlog.c')
 testlog = executable('testlog',
-        files('testlog.c'),
+        testlog_sources,
         c_args : unittest_args,
         include_directories : configuration_inc,
         link_with : mmlib,
 )
 test('testlog', testlog)
 
+testerrno_sources = files('testerrno.c')
 testerrno = executable('testerrno',
-        files('testerrno.c'),
+        testerrno_sources,
         c_args : unittest_args,
         include_directories : configuration_inc,
         link_with : mmlib,
 )
 test('testerrno', testerrno)
 
+testprofile_sources = files('testprofile.c')
 testprofile = executable('testprofile',
-        files('testprofile.c'),
+        testprofile_sources,
         c_args : unittest_args,
         include_directories : configuration_inc,
         link_with : mmlib,
 )
 test('testprofile', testprofile)
 
-
+child_proc_sources = files('child-proc.c')
 executable('child-proc',
-        files('child-proc.c'),
+        child_proc_sources,
         c_args : unittest_args,
         include_directories : configuration_inc,
         link_with : mmlib,
 )
 
+tests_child_proc_files = files('tests-child-proc.c',
+        'tests-child-proc.h',
+        'process-testlib.c',
+        'process-testlib.h',
+        'threaddata-manipulation.h',
+        'threaddata-manipulation.c',
+        'socket-testlib.h',
+        'socket-testlib.c',
+        'ipc-api-tests-exported.c',
+        'ipc-api-tests-exported.h',
+)
 executable('tests-child-proc',
-        files('tests-child-proc.c',
-            'tests-child-proc.h',
-            'process-testlib.c',
-            'process-testlib.h',
-            'threaddata-manipulation.h',
-            'threaddata-manipulation.c',
-            'socket-testlib.h',
-            'socket-testlib.c',
-            'ipc-api-tests-exported.c',
-            'ipc-api-tests-exported.h',
-        ),
+        tests_child_proc_files,
         c_args : unittest_args + ['-DMMLOG_MODULE_NAME="tests_child_proc"'],
         export_dynamic : true,
         include_directories : configuration_inc,
         link_with : mmlib,
 )
 
+perflock_sources = files('perflock.c')
 perflock = executable('perflock',
-        files('perflock.c'),
+        perflock_sources,
         include_directories : configuration_inc,
         c_args : unittest_args,
         link_with : mmlib,
         dependencies: [libcheck],
 )
 
+dynlib_test_sources = files('dynlib-api.h', 'dynlib-test.c')
 shared_module('dynlib-test',
-        files('dynlib-api.h', 'dynlib-test.c'),
+        dynlib_test_sources,
         name_prefix : '',  # do not prefix with 'lib'
         include_directories : configuration_inc,
         c_args : unittest_args,

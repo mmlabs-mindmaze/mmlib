@@ -13,3 +13,12 @@ test-coverage:
 
 clean-local:
 	$(srcdir)/tools/coverage.sh clean
+
+checkstyle:
+	$(MAKE) -C src $@
+
+fixstyle:
+	$(MAKE) -C src $@
+
+spelling:
+	$(MAKE) -C src $@

@@ -11,20 +11,26 @@ install_man(files('mmlog_debug.3',
     'mmtoc_label.3',
 ))
 
+pshared_parent_doc_example_sources = files(
+        'examples/pshared-common.h',
+        'examples/pshared-parent.c'
+)
 executable('pshared-parent-doc-example',
-        files('examples/pshared-common.h', 'examples/pshared-parent.c'),
+        pshared_parent_doc_example_sources,
         include_directories : include_directories('.'),
         link_with : mmlib,
 )
 
+pshared_child_doc_example_sources = files('examples/pshared-child.c')
 executable('pshared-child-doc-example',
-        files('examples/pshared-child.c'),
+        pshared_child_doc_example_sources,
         include_directories : include_directories('.'),
         link_with : mmlib,
 )
 
+parse_args_doc_example = files('examples/parse_args.c')
 executable('parse-args-doc-example',
-        files('examples/parse_args.c'),
+        parse_args_doc_example,
         include_directories : include_directories('.'),
         link_with : mmlib,
 )

@@ -15,7 +15,7 @@ public_headers = files(
 )
 install_headers(public_headers)
 
-sources = files(
+mmlib_sources = files(
         'alloc.c',
         'argparse.c',
         'dlfcn.c',
@@ -51,7 +51,7 @@ cflags = []
 dependencies = [libthread, libm]
 
 if host_machine.system() == 'windows'
-    sources += files(
+    mmlib_sources += files(
         'atomic-win32.h',
         'clock-win32.c',
         'clock-win32.h',
@@ -81,7 +81,7 @@ if host_machine.system() == 'windows'
     ]
     dependencies += [libpowrprof, libws2_32]
 else
-    sources += files(
+    mmlib_sources += files(
         'file-posix.c',
         'local-ipc-posix.c',
         'process-posix.c',
@@ -109,7 +109,7 @@ patch = '0'
 version = major + '.' + minor + '.' + patch
 
 mmlib = shared_library('mmlib',
-        sources,
+        mmlib_sources,
         c_args : cflags,
         install : true,
         version : version,
@@ -117,16 +117,17 @@ mmlib = shared_library('mmlib',
         dependencies : [dependencies],
 )
 
-
+lock_referee_sources = []
 if host_machine.system() == 'windows'
     libadvapi32 = cc.find_library('advapi32', required : true)
+    lock_referee_sources += files(
+            'lock-referee-proto.h',
+            'lock-referee-server.c',
+            'clock-win32.h',
+            'clock-win32.c',
+    )
     executable('lock-referee',
-            files(
-                'lock-referee-proto.h',
-                'lock-referee-server.c',
-                'clock-win32.h',
-                'clock-win32.c',
-            ),
+            lock_referee_sources,
             c_args : cflags + ['-DMMLOG_MODULE_NAME="lock-referee"'],
             include_directories : configuration_inc,
             install : true,

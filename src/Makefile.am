@@ -162,3 +162,18 @@ endif #!LOCKSERVER_IN_MMLIB_DLL
 
 
 endif #OS_TYPE_WIN32
+
+# check all the source files for correct coding style
+.PHONY: checkstyle
+checkstyle: ../tools/uncrustify.cfg
+	cd $(srcdir) && uncrustify -c ../tools/uncrustify.cfg -l C --check \
+		$(libmmlib_la_SOURCES)
+
+.PHONY: fixstyle
+fixstyle: ../tools/uncrustify.cfg
+	cd $(srcdir) && uncrustify -c ../tools/uncrustify.cfg -l C --replace \
+		$(libmmlib_la_SOURCES)
+
+.PHONY: spelling
+spelling: $(libmmlib_la_SOURCES)
+	$(AM_V_at) codespell $^

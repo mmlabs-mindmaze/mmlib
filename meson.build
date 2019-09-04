@@ -69,3 +69,5 @@ endif
 if get_option('docs')
     subdir('doc')
 endif
+
+subdir('tools')
