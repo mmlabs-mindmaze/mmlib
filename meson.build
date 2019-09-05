@@ -63,6 +63,10 @@ configure_file(output : build_cfg, configuration : config)
 # config.h file (same as autotools)
 add_project_arguments('-DHAVE_CONFIG_H', language : 'c')
 
+if get_option('nls')
+    subdir('po')
+endif
+
 subdir('src')
 
 if get_option('tests')

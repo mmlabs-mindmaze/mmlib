@@ -49,6 +49,13 @@ libm = cc.find_library('m', required : true)
 cflags = []
 dependencies = [libm]
 
+if get_option('nls')
+    cflags += '-DENABLE_NLS'
+    if not cc.has_function('ngettext')
+        dependencies += cc.find_library('intl', required : true)
+    endif
+endif
+
 if host_machine.system() == 'windows'
     mmlib_sources += files(
         'atomic-win32.h',
