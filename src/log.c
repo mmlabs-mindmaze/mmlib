@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -33,7 +33,7 @@
 #endif
 
 #ifndef MMLOG_LINE_MAXLEN
-#define MMLOG_LINE_MAXLEN	256
+#define MMLOG_LINE_MAXLEN 256
 #endif
 
 static int maxloglvl = MMLOG_INFO;
@@ -57,7 +57,7 @@ MM_CONSTRUCTOR(init_log)
 	if (!envlvl)
 		return;
 
-	for (i=0; i<(int)NLEVEL; i++) {
+	for (i = 0; i < (int)NLEVEL; i++) {
 		if (!strcmp(loglevel[i], envlvl)) {
 			maxloglvl = i;
 			return;
@@ -106,15 +106,15 @@ size_t format_log_str(char* restrict buff, size_t blen,
 	len = strftime(buff, blen, "%d/%m/%y %H:%M:%S", &tm);
 	buff += len;
 	rlen -= len;
-	
+
 	// format message header message
 	len = snprintf(buff, rlen-1, " %-5s %-16s : ", loglevel[lvl], location);
 	buff += len;
 	rlen -= len;
-	
+
 	// Format provided info and append end of line
 	len = vsnprintf(buff, rlen, msg, args);
-	len = (len < rlen-1) ? len : rlen-1;	// handle truncation case
+	len = (len < rlen-1) ? len : rlen-1;    // handle truncation case
 	buff[len++] = '\n';
 	rlen -= len;
 
@@ -196,6 +196,7 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 	do {
 		if ((r = mm_write(STDERR_FILENO, cbuf, len)) < 0)
 			return;
+
 		len -= r;
 		cbuf += r;
 	} while (len);

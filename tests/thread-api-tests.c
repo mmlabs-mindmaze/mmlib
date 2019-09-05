@@ -143,7 +143,7 @@ void runtest_mutex_on_pshared_write(int mutex_flags,
 	struct mm_remap_fd fdmap;
 	char* argv[] = {TESTS_CHILD_BIN, "run_write_shared_data", "mapfile-3-4096", NULL};
 
-	if ( (shm_fd = mm_anon_shm()) == -1
+	if ((shm_fd = mm_anon_shm()) == -1
 	  || mm_ftruncate(shm_fd, MM_PAGESZ)
 	  || !(map = mm_mapfile(shm_fd, 0, MM_PAGESZ, MM_MAP_RDWR|MM_MAP_SHARED)) ) {
 		goto exit;
@@ -234,7 +234,7 @@ START_TEST(robust_mutex)
 	struct mm_remap_fd fdmap;
 	char* argv[] = {TESTS_CHILD_BIN, "run_robust_mutex_write_data", "mapfile-3-4096", NULL};
 
-	if ( (shm_fd = mm_anon_shm()) == -1
+	if ((shm_fd = mm_anon_shm()) == -1
 	  || mm_ftruncate(shm_fd, MM_PAGESZ)
 	  || !(map = mm_mapfile(shm_fd, 0, MM_PAGESZ, MM_MAP_RDWR|MM_MAP_SHARED)) ) {
 		goto exit;
@@ -396,7 +396,7 @@ void runtest_signal_or_broadcast_process(int mutex_flags, bool do_broadcast)
 	struct mm_remap_fd fdmap;
 	char* argv[] = {TESTS_CHILD_BIN, "run_notif_data", "mapfile-3-4096", NULL};
 
-	if ( (shm_fd = mm_anon_shm()) == -1
+	if ((shm_fd = mm_anon_shm()) == -1
 	  || mm_ftruncate(shm_fd, MM_PAGESZ)
 	  || !(map = mm_mapfile(shm_fd, 0, MM_PAGESZ, MM_MAP_RDWR|MM_MAP_SHARED)) ) {
 		goto exit;

@@ -7,9 +7,9 @@ project('mmlib', 'c',
 # * MAJOR version when you make incompatible API changes,
 # * MINOR version when you add functionality in a backwards-compatible manner
 # * PATCH version when you make backwards-compatible bug fixes.
-major = '0' 
-minor = '3' 
-patch = '4' 
+major = '0'
+minor = '3'
+patch = '4'
 version = major + '.' + minor + '.' + patch
 
 

@@ -67,7 +67,7 @@ mmlib (0.3.0) unstable; urgency=medium
   * New module version 0.3.0:
     - Added labelled toc for profiling
     - Add skeleton joint name definition of new mindmaze standard
-  * Update libmmlib0 symbols of the new module version 
+  * Update libmmlib0 symbols of the new module version
 
  -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.ch>  Fri, 12 Dec 2014 16:34:46 +0100
 
@@ -81,7 +81,7 @@ mmlib (0.2.2+1) unstable; urgency=medium
 
 mmlib (0.2.2) unstable; urgency=medium
 
-  * Update error message for MM_ENOINERTIAL 
+  * Update error message for MM_ENOINERTIAL
   * Removes mmlicence manpage
 
  -- Sébastien Lasserre <sebastien.lasserre@mindmaze.ch>  Mon, 14 Jul 2014 22:36:22 +0200

@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef SOCKET_INTERNAL_H
 #define SOCKET_INTERNAL_H
 
@@ -12,4 +12,4 @@ int internal_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
                          char *serv, socklen_t servlen, int flags,
                          char* errmsg);
 
-#endif
+#endif /* ifndef SOCKET_INTERNAL_H */

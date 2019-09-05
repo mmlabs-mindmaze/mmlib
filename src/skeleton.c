@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -81,14 +81,14 @@ void pop_locale(struct locale_store* store)
 		freelocale(store->newloc);
 }
 
-#endif
+#endif /* ifdef _WIN32 */
 
 static
 const char skel_magic_number[] = {'%', 'M', 'M', 'S', 'K', 'E', 'L', '0'};
 
 static
 int bone_dfs(const struct mmskel* skel, int cur, int par, void* funcdata,
-              int (bone_func)(const struct mmskel*, int, int, void*))
+             int(bone_func)(const struct mmskel*, int, int, void*))
 {
 	if (bone_func(skel, cur, par, funcdata))
 		return -1;
@@ -98,8 +98,10 @@ int bone_dfs(const struct mmskel* skel, int cur, int par, void* funcdata,
 	while (cur != -1) {
 		if (bone_dfs(skel, cur, par, funcdata, bone_func))
 			return -1;
+
 		cur = skel->bones[cur].brother;
 	}
+
 	return 0;
 }
 
@@ -118,7 +120,10 @@ static
 const char* get_joint_name(const struct mmskel* restrict skel, int boneind)
 {
 	if (boneind >= skel->nbone || boneind < 0) {
-		mm_raise_error(MM_ENOTFOUND, "Joint %i not in the admissible range [0-%i]", boneind, skel->nbone);
+		mm_raise_error(MM_ENOTFOUND,
+		               "Joint %i not in the admissible range [0-%i]",
+		               boneind,
+		               skel->nbone);
 		return NULL;
 	}
 
@@ -130,7 +135,7 @@ static
 int save_bone_data(const struct mmskel* skel, int c, int par, void* data)
 {
 	int wsize;
-	const char *bone, *parent;
+	const char * bone, * parent;
 	const float* pos = skel->bones[c].pos;
 	FILE* fp = data;
 
@@ -138,11 +143,12 @@ int save_bone_data(const struct mmskel* skel, int c, int par, void* data)
 	parent = (par >= 0) ? get_joint_name(skel, par) : "NULL";
 
 	wsize = fprintf(fp, "\n|%s|%s|%f|%f|%f|",
-	                    parent, bone, pos[0], pos[1], pos[2]);
+	                parent, bone, pos[0], pos[1], pos[2]);
 	if (wsize < 0) {
 		mm_raise_from_errno("cannot write bone line");
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -151,7 +157,7 @@ API_EXPORTED
 int skl_find(const struct mmskel* restrict skel, const char* name)
 {
 	int i;
-	
+
 	for (i = 0; i < skel->nbone; i++) {
 		if (!strcmp(name, get_joint_name(skel, i)))
 			return i;
@@ -167,11 +173,11 @@ API_EXPORTED
 int skl_add(struct mmskel* skel, int par, const char* jname)
 {
 	char* strcache = skel->strcache;
-	struct mmbone *bones = skel->bones;
-	int *name_idx = skel->name_idx;
+	struct mmbone * bones = skel->bones;
+	int * name_idx = skel->name_idx;
 	int alloc_nbone = skel->nbone;
 	int alloc_cachelen = skel->cachelen;
-	short *next;
+	short * next;
 	int ind;
 
 	// Resize graph memory
@@ -184,7 +190,8 @@ int skl_add(struct mmskel* skel, int par, const char* jname)
 		free((strcache != skel->strcache) ? strcache : NULL);
 		free((bones != skel->bones) ? bones : NULL);
 		free((name_idx != skel->name_idx) ? name_idx : NULL);
-		mm_raise_error(errno, "Cannot resize skeleton internal buffers");
+		mm_raise_error(errno,
+		               "Cannot resize skeleton internal buffers");
 		return -1;
 	}
 
@@ -200,6 +207,7 @@ int skl_add(struct mmskel* skel, int par, const char* jname)
 		next = &(bones[par].child);
 		while (*next != -1)
 			next = &(bones[*next].brother);
+
 		*next = ind;
 	}
 
@@ -218,7 +226,7 @@ API_EXPORTED
 int skl_add_to(struct mmskel* skel, const char* parent, const char* name)
 {
 	int par = parent ? skl_find(skel, parent) : -1;
-	
+
 	// Check that a bone parent has been found when one is specified
 	if (parent && par == -1) {
 		return -1;
@@ -304,31 +312,34 @@ int skl_load_data(struct mmskel* skel, int fd)
 		mm_raise_error(EINVAL, "Skeleton argument not set");
 		return -1;
 	}
+
 	skl_init(skel);
 
 	if ((newfd = dup(fd)) == -1
 #ifndef _WIN32
-	  || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
+	    || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
 #endif
-	  || push_default_locale(&locstore)
-	  || !(fp = fdopen(newfd, "r")) )
+	    || push_default_locale(&locstore)
+	    || !(fp = fdopen(newfd, "r")))
 		goto exit;
 
 	// Check file format
-	if ( (nf = fread(magic, sizeof(magic), 1, fp)) < 1
+	if ((nf = fread(magic, sizeof(magic), 1, fp)) < 1
 	    || memcmp(magic, skel_magic_number, sizeof(magic))) {
 		if (nf == 1)
 			errno = MM_EBADFMT;
+
 		goto exit;
 	}
 
 	// Loop over the file and add each bone
 	while (!feof(fp)) {
 		nf = fscanf(fp, " |%31[^|]|%32[^|]|%f|%f|%f| ",
-		                parent, bone, &pos[0], &pos[1], &pos[2]);
+		            parent, bone, &pos[0], &pos[1], &pos[2]);
 		if (nf < 5) {
 			if (!ferror(fp))
 				errno = MM_EBADFMT;
+
 			goto exit;
 		}
 
@@ -387,10 +398,10 @@ int skl_save_data(struct mmskel* skel, int fd)
 
 	if ((newfd = dup(fd)) == -1
 #ifndef _WIN32
-	  || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
+	    || fcntl(newfd, F_SETFL, fcntl(newfd, F_GETFL) | FD_CLOEXEC)
 #endif
-	  || push_default_locale(&locstore)
-	  || !(fp = fdopen(newfd, "w")) ) {
+	    || push_default_locale(&locstore)
+	    || !(fp = fdopen(newfd, "w"))) {
 		mm_raise_from_errno("Cannot change locale or use fd");
 		goto exit;
 	}

@@ -48,7 +48,7 @@ static const struct timespec_case ts_cases[] = {
 };
 
 /*
- * 
+ *
  */
 START_TEST(diff_time_ns)
 {
@@ -89,7 +89,7 @@ END_TEST
 START_TEST(add_time_ns)
 {
 	struct timespec t1;
-	struct timespec t2; 
+	struct timespec t2;
 	int64_t diff = ts_cases[_i].ns;
 
 	t1 = ts_cases[_i].t1;
@@ -108,7 +108,7 @@ END_TEST
 START_TEST(add_time_us)
 {
 	struct timespec t1;
-	struct timespec t2; 
+	struct timespec t2;
 	int64_t diff = ts_cases[_i].us;
 
 	t1 = ts_cases[_i].t1;
@@ -127,7 +127,7 @@ END_TEST
 START_TEST(add_time_ms)
 {
 	struct timespec t1;
-	struct timespec t2; 
+	struct timespec t2;
 	int64_t diff = ts_cases[_i].ms;
 
 	t1 = ts_cases[_i].t1;
@@ -226,8 +226,8 @@ START_TEST(wallclock_time)
 		diff_ns = mm_timediff_ns(&ts_utc, &ts_realtime);
 		diff_ns = (diff_ns > 0) ? diff_ns : -diff_ns;
 		if (diff_ns > WALLCLOCK_MAXDIFF_NS)
-			ck_abort_msg("mm_gettime(MM_CLK_REALTIME) differs"
-			             " from time(NULL): diff_ns = %li",
+			ck_abort_msg("mm_gettime(MM_CLK_REALTIME) differs "
+			             "from time(NULL): diff_ns = %li",
 			             (long)diff_ns);
 	}
 }

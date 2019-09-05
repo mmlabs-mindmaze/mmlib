@@ -144,9 +144,9 @@ int mm_nanosleep(clockid_t clock_id, const struct timespec *target)
 	struct timespec now;
 	int64_t delta_ns;
 
-	if (  clock_id != MM_CLK_REALTIME
+	if (clock_id != MM_CLK_REALTIME
 	   && clock_id != MM_CLK_MONOTONIC
-	   && clock_id != MM_CLK_MONOTONIC_RAW  )
+	   && clock_id != MM_CLK_MONOTONIC_RAW)
 		return mm_raise_error(EINVAL, "Invalid clock (%i)", clock_id);
 
 	// Wait until the target timestamp is reached

@@ -115,11 +115,11 @@ void* test_handle_client(void * arg)
 		goto cleanup;
 
 	/* check the client message */
-	if (  ctx->shared_object == SHARED_FILE
+	if (ctx->shared_object == SHARED_FILE
 	   || ctx->shared_object == SHARED_MEM)
 		mm_seek(tmpfd, 0, SEEK_SET);
 
-	if (  mm_read(tmpfd, line, sizeof(line)) < 0
+	if (mm_read(tmpfd, line, sizeof(line)) < 0
 	   || strncmp(line, "client message in shared object\n",
 	              sizeof("client message in shared object\n") - 1)) {
 		ck_abort_msg(stderr,

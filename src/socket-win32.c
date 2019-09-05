@@ -251,8 +251,8 @@ int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
 	SOCKET s;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (bind(s, addr, addrlen) < 0)
@@ -268,8 +268,8 @@ int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
 	SOCKET s;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (getsockname(s, addr, addrlen) < 0)
@@ -286,8 +286,8 @@ int mm_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
 	SOCKET s;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (getpeername(s, addr, addrlen) < 0)
@@ -304,8 +304,8 @@ int mm_listen(int sockfd, int backlog)
 {
 	SOCKET s;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (listen(s, backlog) < 0)
@@ -322,8 +322,8 @@ int mm_accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen)
 	SOCKET listening_sock, s;
 	int conn_fd;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&listening_sock, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&listening_sock, sockfd))
 		return -1;
 
 	s = accept(listening_sock, addr, addrlen);
@@ -345,8 +345,8 @@ int mm_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
 	SOCKET s;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (connect(s, addr, addrlen) < 0)
@@ -363,8 +363,8 @@ int mm_setsockopt(int sockfd, int level, int optname,
 {
 	SOCKET s;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (setsockopt(s, level, optname, optval, optlen) < 0)
@@ -381,8 +381,8 @@ int mm_getsockopt(int sockfd, int level, int optname,
 {
 	SOCKET s;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (getsockopt(s, level, optname, optval, optlen) < 0)
@@ -398,8 +398,8 @@ int mm_shutdown(int sockfd, int how)
 {
 	SOCKET s;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (shutdown(s, how) < 0)
@@ -416,8 +416,8 @@ ssize_t mm_send(int sockfd, const void *buffer, size_t length, int flags)
 	SOCKET s;
 	ssize_t ret_sz;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	ret_sz = send(s, buffer, length, flags);
@@ -435,8 +435,8 @@ ssize_t mm_recv(int sockfd, void *buffer, size_t length, int flags)
 	SOCKET s;
 	ssize_t ret_sz;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	ret_sz = recv(s, buffer, length, flags);
@@ -455,12 +455,12 @@ ssize_t mm_sendmsg(int sockfd, const struct msghdr *msg, int flags)
 	struct xfer_data xfer;
 	const char* errmsg;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
-	if ( submit_send_xfer(&xfer, s, msg, flags)
-	  || wait_operation_xfer(&xfer) ) {
+	if (submit_send_xfer(&xfer, s, msg, flags)
+	  || wait_operation_xfer(&xfer)) {
 		errmsg = msg->msg_name ? "WsaSendTo() failed" : "WsaSend() failed";
 		return mm_raise_from_w32err(errmsg);
 	}
@@ -477,12 +477,12 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr *msg, int flags)
 	struct xfer_data xfer;
 	const char* errmsg;
 
-	if ( check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd) )
+	if (check_wsa_init()
+	  || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
-	if ( submit_recv_xfer(&xfer, s, msg, flags)
-	  || wait_operation_xfer(&xfer) ) {
+	if (submit_recv_xfer(&xfer, s, msg, flags)
+	  || wait_operation_xfer(&xfer)) {
 		errmsg = msg->msg_name ? "WsaRecvFrom() failed" : "WsaRecv() failed";
 		return mm_raise_from_w32err(errmsg);
 	}
@@ -581,8 +581,8 @@ int validate_hints(const struct addrinfo *hints, char* errmsg)
 	}
 
 	if (!valid) {
-		strcpy(errmsg, "requested protocol inconsistent with"
-		               " requested family or socket type");
+		strcpy(errmsg, "requested protocol inconsistent with "
+		               "requested family or socket type");
 		return EPROTOTYPE;
 	}
 

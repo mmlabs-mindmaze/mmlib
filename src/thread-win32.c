@@ -618,7 +618,7 @@ static
 int pshared_mtx_consistent(mmthr_mtx_t* mutex)
 {
 	int64_t lockval;
-	
+
 	lockval = atomic_load(&mutex->lock);
 
 	if (!is_mtx_ownerdead(lockval))

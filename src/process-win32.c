@@ -37,7 +37,7 @@
 #define CRT_BUFFER_SIZE(nh)   ( sizeof(int)                       \
                                 + (nh) * sizeof(unsigned char)    \
                                 + (nh) * sizeof(HANDLE)           \
-                                + (nh) * sizeof(unsigned char) )
+                                + (nh) * sizeof(unsigned char))
 static const struct mm_remap_fd std_fd_mappings[] = {{0, 0}, {1, 1}, {2, 2}};
 
 
@@ -625,13 +625,13 @@ int startup_config_dup_inherited_hnds(struct startup_config* cfg)
 	HANDLE hnd, dup_hnd, proc_hnd;
 
 	proc_hnd = GetCurrentProcess();
-	
+
 	for (i = 0; i < cfg->num_fd; i++) {
 		hnd = cfg->crt_fd_hnds[i];
 
 		// Skip if not inherited in child
-		if ( (hnd == INVALID_HANDLE_VALUE)
-		  || !(cfg->crt_fd_flags[i] & FOPEN) )
+		if ((hnd == INVALID_HANDLE_VALUE)
+		  || !(cfg->crt_fd_flags[i] & FOPEN))
 			continue;
 
 		// Duplicate handle: all handle in the attr_list must be
@@ -711,10 +711,10 @@ int startup_config_init(struct startup_config* cfg,
 		.num_fd = num_fd,
 	};
 
-	if ( startup_config_allocate_internals(cfg)
+	if (startup_config_allocate_internals(cfg)
 	  || startup_config_setup_mappings(cfg, MM_NELEM(std_fd_mappings), std_fd_mappings)
 	  || startup_config_setup_mappings(cfg, num_map, fd_map)
-	  || startup_config_dup_inherited_hnds(cfg) ) {
+	  || startup_config_dup_inherited_hnds(cfg)) {
 		startup_config_deinit(cfg);
 		return -1;
 	}
@@ -1222,8 +1222,8 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 		return mm_raise_error(EINVAL, "Invalid flags (%08x)", flags);
 
 	if (flags & MM_SPAWN_KEEP_FDS)
-		return mm_raise_error(ENOTSUP, "MM_SPAWN_KEEP_FDS"
-		                               " not supported yet");
+		return mm_raise_error(ENOTSUP, "MM_SPAWN_KEEP_FDS "
+		                               "not supported yet");
 
 	if (!argv)
 		argv = default_argv;
@@ -1267,7 +1267,7 @@ int mm_wait_process(mm_pid_t pid, int* status)
 
 	hnd = get_handle_from_children_list(pid);
 	if (hnd == NULL) {
-		mm_raise_error(ECHILD, "Cannot find process %lli in the list"
+		mm_raise_error(ECHILD, "Cannot find process %lli in the list "
 		                       "of children", pid);
 		return -1;
 	}

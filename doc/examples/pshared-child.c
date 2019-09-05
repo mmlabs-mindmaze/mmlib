@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 
 /* process shared data: child program
  *
@@ -41,7 +41,7 @@
 
 #include "pshared-common.h"
 
-#define BAD_ADDR	(void*)0xDEADBEEF
+#define BAD_ADDR (void*)0xDEADBEEF
 
 
 static
@@ -75,7 +75,8 @@ void wait_start_notification(struct pshared_data* psh_data)
 	handle_notif_lock_retval(lockret, psh_data);
 
 	while (!psh_data->start) {
-		lockret = mmthr_cond_wait(&psh_data->notif_cond, &psh_data->notif_mtx);
+		lockret = mmthr_cond_wait(&psh_data->notif_cond,
+		                          &psh_data->notif_mtx);
 		handle_notif_lock_retval(lockret, psh_data);
 	}
 
@@ -131,7 +132,7 @@ void recover_shared_text_from_owner_dead(struct pshared_data* psh_data)
 
 	// Find index of text immediately after the last occurrence of "+|"
 	while (len > 0) {
-		if ((len > 2) && (text[len-2]=='+') && (text[len-1]=='|'))
+		if ((len > 2) && (text[len-2] == '+') && (text[len-1] == '|'))
 			break;
 
 		len--;

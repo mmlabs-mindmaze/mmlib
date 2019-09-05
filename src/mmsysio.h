@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef MMSYSIO_H
 #define MMSYSIO_H
 
@@ -23,7 +23,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <poll.h>
-#endif
+#endif /* ifdef _WIN32 */
 
 #include "mmpredefs.h"
 
@@ -50,9 +50,9 @@ typedef unsigned long long gid_t;
 #    define _SSIZE_T_DEFINED
 #    undef ssize_t
 #    ifdef _WIN64
-  typedef __int64 ssize_t;
+typedef __int64 ssize_t;
 #    else
-  typedef int ssize_t;
+typedef int ssize_t;
 #    endif /* _WIN64 */
 #  endif /* _SSIZE_T_DEFINED */
 #endif
@@ -175,17 +175,17 @@ extern "C" {
 /* file types returned when scanning a directory */
 #define MM_DT_UNKNOWN 0
 #define MM_DT_FIFO (1 << 1)
-#define MM_DT_CHR  (1 << 2)
-#define MM_DT_BLK  (1 << 3)
-#define MM_DT_DIR  (1 << 4)
-#define MM_DT_REG  (1 << 5)
-#define MM_DT_LNK  (1 << 6)
+#define MM_DT_CHR (1 << 2)
+#define MM_DT_BLK (1 << 3)
+#define MM_DT_DIR (1 << 4)
+#define MM_DT_REG (1 << 5)
+#define MM_DT_LNK (1 << 6)
 #define MM_DT_SOCK (1 << 7)
-#define MM_DT_ANY  (0XFF)
+#define MM_DT_ANY (0XFF)
 
-#define MM_RECURSIVE    (1 << 31)
-#define MM_FAILONERROR  (1 << 30)
-#define MM_NOFOLLOW     (1 << 29)
+#define MM_RECURSIVE (1 << 31)
+#define MM_FAILONERROR (1 << 30)
+#define MM_NOFOLLOW (1 << 29)
 
 /**
  * struct mm_stat - file status data
@@ -289,7 +289,7 @@ struct mm_remap_fd {
 };
 
 #define MM_SPAWN_DAEMONIZE 0x00000001
-#define MM_SPAWN_KEEP_FDS  0x00000002  // Keep all inheritable fd in child
+#define MM_SPAWN_KEEP_FDS 0x00000002   // Keep all inheritable fd in child
 
 MMLIB_API int mm_spawn(mm_pid_t* child_pid, const char* path,
                        int num_map, const struct mm_remap_fd* fd_map,
@@ -298,9 +298,9 @@ MMLIB_API int mm_execv(const char* path,
                        int num_map, const struct mm_remap_fd* fd_map,
                        int flags, char* const* argv, char* const* envp);
 
-#define MM_WSTATUS_CODEMASK     0x000000FF
-#define MM_WSTATUS_EXITED       0x00000100
-#define MM_WSTATUS_SIGNALED     0x00000200
+#define MM_WSTATUS_CODEMASK 0x000000FF
+#define MM_WSTATUS_EXITED   0x00000100
+#define MM_WSTATUS_SIGNALED 0x00000200
 
 MMLIB_API int mm_wait_process(mm_pid_t pid, int* status);
 
@@ -309,13 +309,13 @@ MMLIB_API int mm_wait_process(mm_pid_t pid, int* status);
  *                            memory mapping                              *
  **************************************************************************/
 
-#define MM_MAP_READ     0x00000001
-#define MM_MAP_WRITE	0x00000002
-#define MM_MAP_EXEC     0x00000004
-#define MM_MAP_SHARED   0x00000008
+#define MM_MAP_READ   0x00000001
+#define MM_MAP_WRITE  0x00000002
+#define MM_MAP_EXEC   0x00000004
+#define MM_MAP_SHARED 0x00000008
 
-#define MM_MAP_RDWR	(MM_MAP_READ | MM_MAP_WRITE)
-#define MM_MAP_PRIVATE  0x00000000
+#define MM_MAP_RDWR (MM_MAP_READ | MM_MAP_WRITE)
+#define MM_MAP_PRIVATE 0x00000000
 
 
 MMLIB_API void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags);
@@ -386,17 +386,17 @@ MMLIB_API ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg);
  */
 struct msghdr {
 	void*         msg_name;
-	socklen_t     msg_namelen;
+	socklen_t msg_namelen;
 	struct iovec* msg_iov;
-	size_t        msg_iovlen;
+	size_t msg_iovlen;
 	void*         msg_control;
-	socklen_t     msg_controllen;
-	int           msg_flags;
+	socklen_t msg_controllen;
+	int msg_flags;
 };
 
-#  define SHUT_RD       0
-#  define SHUT_WR       1
-#  define SHUT_RDWR     2
+#  define SHUT_RD 0
+#  define SHUT_WR 1
+#  define SHUT_RDWR 2
 
 // The following constants are defined on Windows platform from ws2tcpip.h
 // if _WIN32_WINNT is defined higher to 0x0600 (corresponding roughly to
@@ -406,16 +406,16 @@ struct msghdr {
 // project using mmlib. Hence we define the constants to their right values
 // if they are not defined yet.
 #  ifndef AI_NUMERICSERV
-#    define AI_NUMERICSERV              0x00000008
+#    define AI_NUMERICSERV 0x00000008
 #  endif
 #  ifndef AI_ALL
-#    define AI_ALL                      0x00000100
+#    define AI_ALL 0x00000100
 #  endif
 #  ifndef AI_ADDRCONFIG
-#    define AI_ADDRCONFIG               0x00000400
+#    define AI_ADDRCONFIG 0x00000400
 #  endif
 #  ifndef AI_V4MAPPED
-#    define AI_V4MAPPED                 0x00000800
+#    define AI_V4MAPPED 0x00000800
 #  endif
 
 #endif /* _WIN32 */
@@ -430,58 +430,63 @@ struct msghdr {
  */
 struct mmsock_multimsg {
 	struct msghdr msg;
-	unsigned int  datalen;
+	unsigned int datalen;
 };
 
 
 MMLIB_API int mm_socket(int domain, int type);
-MMLIB_API int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-MMLIB_API int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
-MMLIB_API int mm_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+MMLIB_API int mm_bind(int sockfd, const struct sockaddr * addr, socklen_t
+                      addrlen);
+MMLIB_API int mm_getsockname(int sockfd, struct sockaddr * addr,
+                             socklen_t * addrlen);
+MMLIB_API int mm_getpeername(int sockfd, struct sockaddr * addr,
+                             socklen_t * addrlen);
 MMLIB_API int mm_listen(int sockfd, int backlog);
 MMLIB_API int mm_accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen);
-MMLIB_API int mm_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+MMLIB_API int mm_connect(int sockfd, const struct sockaddr * addr, socklen_t
+                         addrlen);
 MMLIB_API int mm_setsockopt(int sockfd, int level, int optname,
-                            const void *optval, socklen_t optlen);
+                            const void * optval, socklen_t optlen);
 
 MMLIB_API int mm_getsockopt(int sockfd, int level, int optname,
-                            void *optval, socklen_t* optlen);
+                            void * optval, socklen_t* optlen);
 
 MMLIB_API int mm_shutdown(int sockfd, int how);
-MMLIB_API ssize_t mm_send(int sockfd, const void *buffer, size_t length, int flags);
-MMLIB_API ssize_t mm_recv(int sockfd, void *buffer, size_t length, int flags);
+MMLIB_API ssize_t mm_send(int sockfd, const void * buffer, size_t length, int
+                          flags);
+MMLIB_API ssize_t mm_recv(int sockfd, void * buffer, size_t length, int flags);
 MMLIB_API ssize_t mm_sendmsg(int sockfd, const struct msghdr* msg, int flags);
 MMLIB_API ssize_t mm_recvmsg(int sockfd, struct msghdr* msg, int flags);
 MMLIB_API int mm_send_multimsg(int sockfd, int vlen,
-                               struct mmsock_multimsg *msgvec, int flags);
+                               struct mmsock_multimsg * msgvec, int flags);
 
 MMLIB_API int mm_recv_multimsg(int sockfd, int vlen,
-                               struct mmsock_multimsg *msgvec, int flags,
-                               struct timespec *timeout);
+                               struct mmsock_multimsg * msgvec, int flags,
+                               struct timespec * timeout);
 
-MMLIB_API int mm_getaddrinfo(const char *node, const char *service,
-                             const struct addrinfo *hints,
-                              struct addrinfo **res);
+MMLIB_API int mm_getaddrinfo(const char * node, const char * service,
+                             const struct addrinfo * hints,
+                             struct addrinfo ** res);
 
-MMLIB_API int mm_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
-                             char *host, socklen_t hostlen,
-                             char *serv, socklen_t servlen, int flags);
+MMLIB_API int mm_getnameinfo(const struct sockaddr * addr, socklen_t addrlen,
+                             char * host, socklen_t hostlen,
+                             char * serv, socklen_t servlen, int flags);
 
-MMLIB_API void mm_freeaddrinfo(struct addrinfo *res);
+MMLIB_API void mm_freeaddrinfo(struct addrinfo * res);
 MMLIB_API int mm_create_sockclient(const char* uri);
 
 
-#if defined(_WIN32)
-#  define MM_POLLIN  0x0100
+#if defined (_WIN32)
+#  define MM_POLLIN 0x0100
 #  define MM_POLLOUT 0x0010
 #else /*  defined(_WIN32) */
-#  define MM_POLLIN  POLLIN
+#  define MM_POLLIN POLLIN
 #  define MM_POLLOUT POLLOUT
 #endif /* defined(_WIN32) */
 
-#if defined(_WIN32)
+#if defined (_WIN32)
 struct mm_pollfd {
-	int   fd;       /* file descriptor  */
+	int fd;         /* file descriptor  */
 	short events;   /* requested events */
 	short revents;  /* returned events  */
 };
@@ -489,10 +494,10 @@ struct mm_pollfd {
 #define mm_pollfd pollfd
 #endif
 
-MMLIB_API int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms);
+MMLIB_API int mm_poll(struct mm_pollfd * fds, int nfds, int timeout_ms);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* ifndef MMSYSIO_H */

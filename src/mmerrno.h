@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef MMERRNO_H
 #define MMERRNO_H
 
@@ -102,17 +102,17 @@
  *   The specified hostname cannot be resolved
  */
 
-#define MM_EDISCONNECTED	1000
-#define MM_EUNKNOWNUSER		1001
-#define MM_EWRONGPWD		1002
-#define MM_EWRONGSTATE		1003
-#define MM_ETOOMANY		1004
-#define MM_ENOTFOUND		1005
-#define MM_EBADFMT		1006
-#define MM_ENOCALIB		1007
-#define MM_ENOINERTIAL		1008
-#define MM_ECAMERROR		1009
-#define MM_ENONAME		1010
+#define MM_EDISCONNECTED 1000
+#define MM_EUNKNOWNUSER  1001
+#define MM_EWRONGPWD     1002
+#define MM_EWRONGSTATE   1003
+#define MM_ETOOMANY      1004
+#define MM_ENOTFOUND     1005
+#define MM_EBADFMT       1006
+#define MM_ENOCALIB      1007
+#define MM_ENOINERTIAL   1008
+#define MM_ECAMERROR     1009
+#define MM_ENONAME       1010
 
 // Surprisingly some compilers targeting windows fail to define
 // ENOTRECOVERABLE error code while they define EOWNERDEAD
@@ -127,11 +127,11 @@
 
 
 #define MM_ERROR_IGNORE 0x01
-#define MM_ERROR_NOLOG  0x02
-#define MM_ERROR_ALL_ALTERNATE  0xffffffff
+#define MM_ERROR_NOLOG 0x02
+#define MM_ERROR_ALL_ALTERNATE 0xffffffff
 
-#define MM_ERROR_SET    0xffffffff
-#define MM_ERROR_UNSET  0x00000000
+#define MM_ERROR_SET 0xffffffff
+#define MM_ERROR_UNSET 0x00000000
 
 
 #ifdef __cplusplus
@@ -140,7 +140,7 @@ extern "C" {
 
 MMLIB_API const char* mmstrerror(int errnum);
 
-MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
+MMLIB_API int mmstrerror_r(int errnum, char * buf, size_t buflen);
 
 /**
  * mm_raise_error() - set and log an error
@@ -166,10 +166,13 @@ MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
  * Return: always -1.
  */
 #define mm_raise_error(errnum, desc, ...) \
-		mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, NULL, desc,  ## __VA_ARGS__ )
+	mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, \
+	                    __LINE__, NULL, desc,  ## __VA_ARGS__)
 
 #define mm_raise_from_errno(desc, ...) \
-	mm_raise_error_full(errno, MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, NULL, desc ": %s", ##__VA_ARGS__, strerror(errno))
+	mm_raise_error_full(errno, MMLOG_MODULE_NAME, __func__, __FILE__, \
+	                    __LINE__, NULL, desc ": %s", ## __VA_ARGS__, \
+	                    strerror(errno))
 
 /**
  * mm_raise_error_with_extid() - set and log an error with an extended error id
@@ -194,16 +197,19 @@ MMLIB_API int mmstrerror_r(int errnum, char *buf, size_t buflen);
  * Return: always -1.
  */
 #define mm_raise_error_with_extid(errnum, extid, desc, ...) \
-		mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, extid, desc,  ## __VA_ARGS__ )
+	mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, \
+	                    __LINE__, extid, desc,  ## __VA_ARGS__)
 
 
-MMLIB_API int mm_raise_error_full(int errnum, const char* module, const char* func,
-                                  const char* srcfile, int srcline,
-                                  const char* extid, const char* desc, ...);
+MMLIB_API int mm_raise_error_full(int errnum, const char* module,
+                                  const char* func, const char* srcfile,
+                                  int srcline, const char* extid,
+                                  const char* desc, ...);
 
-MMLIB_API int mm_raise_error_vfull(int errnum, const char* module, const char* func,
-                                   const char* srcfile, int srcline,
-                                   const char* extid, const char* desc, va_list args);
+MMLIB_API int mm_raise_error_vfull(int errnum, const char* module,
+                                   const char* func, const char* srcfile,
+                                   int srcline, const char* extid,
+                                   const char* desc, va_list args);
 
 MMLIB_API int mm_error_set_flags(int flags, int mask);
 MMLIB_API int mm_save_errorstate(struct mm_error_state* state);

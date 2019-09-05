@@ -82,7 +82,7 @@ int create_server_socket(int domain, int type, int port)
 		goto error;
 
 	// Create bound socket
-	if ( (fd = mm_socket(domain, type)) < 0
+	if ((fd = mm_socket(domain, type)) < 0
 	  || mm_setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse))
 	  || mm_bind(fd, res->ai_addr, res->ai_addrlen) )
 		goto error;
@@ -114,7 +114,7 @@ int create_client_socket(int domain, int type, const char* host, int port)
 		goto error;
 
 	// Create connected socket
-	if ( (fd = mm_socket(domain, type)) < 0
+	if ((fd = mm_socket(domain, type)) < 0
 	  || mm_connect(fd, res->ai_addr, res->ai_addrlen)
 	  || mm_setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) )
 		goto error;
@@ -142,7 +142,7 @@ int pipe_write_socketdata(int pipefd, const struct socket_data* data)
 {
 	mm_check(data->len <= sizeof(data->buf));
 
-	if ( full_mm_write(pipefd, &data->len, sizeof(data->len))
+	if (full_mm_write(pipefd, &data->len, sizeof(data->len))
 	  || full_mm_write(pipefd, data->buf, data->len) )
 		return -1;
 
@@ -190,8 +190,8 @@ int handle_write_data(int sockfd, int rd_pipe_fd)
 {
 	ssize_t rsz;
 	struct socket_data data;
-		
-	if ( pipe_read_socketdata(rd_pipe_fd, &data)
+
+	if (pipe_read_socketdata(rd_pipe_fd, &data)
 	  || (rsz = mm_send(sockfd, data.buf, data.len, 0)) < 0 )
 		return -1;
 

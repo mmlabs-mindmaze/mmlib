@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef MMARGPARSE_H
 #define MMARGPARSE_H
 
@@ -11,32 +11,33 @@
 extern "C" {
 #endif
 
-#define MMOPT_NOVAL     0x00
-#define MMOPT_OPTVAL    0x01
-#define MMOPT_NEEDVAL   0x02
-#define MMOPT_REQMASK   0x03
-#define MMOPT_STR       0x00
-#define MMOPT_INT       0x10
-#define MMOPT_LLONG     0x20
-#define MMOPT_UINT      0x90
-#define MMOPT_ULLONG    0xA0
-#define MMOPT_TYPEMASK  0xF0
-#define MMOPT_FILEPATH  0x100
-#define MMOPT_DIRPATH   0x200
-#define MMOPT_OPTSTR    (MMOPT_OPTVAL | MMOPT_STR)
-#define MMOPT_NEEDSTR   (MMOPT_NEEDVAL | MMOPT_STR)
-#define MMOPT_OPTINT    (MMOPT_OPTVAL | MMOPT_INT)
-#define MMOPT_NEEDINT   (MMOPT_NEEDVAL | MMOPT_INT)
-#define MMOPT_OPTLLONG  (MMOPT_OPTVAL | MMOPT_LLONG)
-#define MMOPT_NEEDLLONG (MMOPT_NEEDVAL | MMOPT_LLONG)
+#define MMOPT_NOVAL    0x00
+#define MMOPT_OPTVAL   0x01
+#define MMOPT_NEEDVAL  0x02
+#define MMOPT_REQMASK  0x03
+#define MMOPT_STR      0x00
+#define MMOPT_INT      0x10
+#define MMOPT_LLONG    0x20
+#define MMOPT_UINT     0x90
+#define MMOPT_ULLONG   0xA0
+#define MMOPT_TYPEMASK 0xF0
+#define MMOPT_FILEPATH 0x100
+#define MMOPT_DIRPATH  0x200
+
+#define MMOPT_OPTSTR     (MMOPT_OPTVAL | MMOPT_STR)
+#define MMOPT_NEEDSTR    (MMOPT_NEEDVAL | MMOPT_STR)
+#define MMOPT_OPTINT     (MMOPT_OPTVAL | MMOPT_INT)
+#define MMOPT_NEEDINT    (MMOPT_NEEDVAL | MMOPT_INT)
+#define MMOPT_OPTLLONG   (MMOPT_OPTVAL | MMOPT_LLONG)
+#define MMOPT_NEEDLLONG  (MMOPT_NEEDVAL | MMOPT_LLONG)
 #define MMOPT_OPTUINT    (MMOPT_OPTVAL | MMOPT_UINT)
 #define MMOPT_NEEDUINT   (MMOPT_NEEDVAL | MMOPT_UINT)
 #define MMOPT_OPTULLONG  (MMOPT_OPTVAL | MMOPT_ULLONG)
 #define MMOPT_NEEDULLONG (MMOPT_NEEDVAL | MMOPT_ULLONG)
-#define MMOPT_OPTFILE   (MMOPT_OPTSTR | MMOPT_FILEPATH)
-#define MMOPT_NEEDFILE  (MMOPT_NEEDSTR | MMOPT_FILEPATH)
-#define MMOPT_OPTDIR    (MMOPT_OPTSTR | MMOPT_DIRPATH)
-#define MMOPT_NEEDDIR   (MMOPT_NEEDSTR | MMOPT_DIRPATH)
+#define MMOPT_OPTFILE    (MMOPT_OPTSTR | MMOPT_FILEPATH)
+#define MMOPT_NEEDFILE   (MMOPT_NEEDSTR | MMOPT_FILEPATH)
+#define MMOPT_OPTDIR     (MMOPT_OPTSTR | MMOPT_DIRPATH)
+#define MMOPT_NEEDDIR    (MMOPT_NEEDSTR | MMOPT_DIRPATH)
 
 
 /**
@@ -128,9 +129,9 @@ struct mmarg_opt {
 	const char* desc;
 };
 
-#define MMARGPARSE_ERROR        -1
-#define MMARGPARSE_STOP         -2
-#define MMARGPARSE_COMPLETE     -3
+#define MMARGPARSE_ERROR    -1
+#define MMARGPARSE_STOP     -2
+#define MMARGPARSE_COMPLETE -3
 
 #define MMARG_OPT_COMPLETION (1 << 0)
 
@@ -157,8 +158,8 @@ struct mmarg_opt {
  * detected, MMARGPARSE_STOP (-2) if early exit is requested like with help
  * display or MMARGPARSE_COMPLETE (-3) if value has been completed.
  */
-typedef int (*mmarg_callback)(const struct mmarg_opt* opt,
-                              union mmarg_val value, void* data, int state);
+typedef int (* mmarg_callback)(const struct mmarg_opt* opt,
+                               union mmarg_val value, void* data, int state);
 
 /**
  * typedef mmarg_complete_path_cb() - prototype of path completion callback
@@ -169,10 +170,10 @@ typedef int (*mmarg_callback)(const struct mmarg_opt* opt,
  *
  * Return: 1 if path candidate must be kept, 0 if it must be discarded.
  */
-typedef int (*mmarg_complete_path_cb)(const char* name, const char* dir,
-                                      int type, void* data);
+typedef int (* mmarg_complete_path_cb)(const char* name, const char* dir,
+                                       int type, void* data);
 
-#define MMARG_PARSER_NOEXIT     (1 << 0)
+#define MMARG_PARSER_NOEXIT (1 << 0)
 #define MMARG_PARSER_COMPLETION (1 << 1)
 
 /**
@@ -272,4 +273,4 @@ int mmarg_opt_get_type(const struct mmarg_opt* opt)
 }
 #endif
 
-#endif
+#endif /* ifndef MMARGPARSE_H */

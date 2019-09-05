@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -23,7 +23,7 @@
  *                     tracking of block of mapping                       *
  *                                                                        *
  **************************************************************************/
-#define MIN_NUM_ENTRIES		64
+#define MIN_NUM_ENTRIES 64
 
 /**
  * struct map_entry - memory map entry
@@ -165,6 +165,7 @@ exit:
 		mm_raise_error(EFAULT, "Address do no refer to any mapping");
 		return -1;
 	}
+
 	return mapping_size;
 }
 
@@ -353,6 +354,7 @@ int mm_unmap(void* addr)
 		mm_raise_from_errno("munmap failed");
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -381,10 +383,12 @@ int mm_anon_shm(void)
 	fd = shm_open(name, O_RDWR|O_CREAT|O_EXCL, 0);
 	if (fd != -1)
 		shm_unlink(name);
+
 	pthread_mutex_unlock(&mtx);
 
 	if (fd == -1)
 		return mm_raise_from_errno("anon_shm() failed");
+
 	return fd;
 }
 

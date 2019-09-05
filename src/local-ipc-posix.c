@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define BACKLOG_LENGTH	5
+#define BACKLOG_LENGTH 5
 
 struct mmipc_srv {
 	int listenfd;
@@ -54,10 +54,10 @@ struct mmipc_srv* mmipc_srv_create(const char* addr)
 	address.sun_path[0] = '\0';
 	strncpy(address.sun_path+1, addr, sizeof(address.sun_path) - 1);
 
-	if ( !(srv = malloc(sizeof(*srv)))
-	 || (fd = socket(AF_UNIX, SOCK_SEQPACKET, 0)) < 0
-	 || bind(fd, (struct sockaddr*)&address, sizeof(address)) < 0
-	 || listen(fd, BACKLOG_LENGTH) < 0) {
+	if (!(srv = malloc(sizeof(*srv)))
+	    || (fd = socket(AF_UNIX, SOCK_SEQPACKET, 0)) < 0
+	    || bind(fd, (struct sockaddr*)&address, sizeof(address)) < 0
+	    || listen(fd, BACKLOG_LENGTH) < 0) {
 		mm_raise_from_errno("Fail create listening socket on %s", addr);
 		mm_close(fd);
 		free(srv);
@@ -147,8 +147,8 @@ int mmipc_connect(const char* addr)
 	len = strnlen(addr, sizeof(address.sun_path) - 1);
 	memcpy(address.sun_path + 1, addr, len);
 
-	if ( (fd = socket(AF_UNIX, SOCK_SEQPACKET, 0)) < 0
-	 || connect(fd, (struct sockaddr*)&address, sizeof(address)) < 0 ) {
+	if ((fd = socket(AF_UNIX, SOCK_SEQPACKET, 0)) < 0
+	    || connect(fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
 		mm_raise_from_errno("Failed to connect to local IPC server");
 		mm_close(fd);
 		return -1;
@@ -187,7 +187,7 @@ ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg)
 	char cbuf[CMSG_SPACE(fd_array_len)];
 
 	if (msg->num_fds > 0) {
-		struct cmsghdr *cmsg;
+		struct cmsghdr * cmsg;
 
 		dgram.msg_control = cbuf;
 		dgram.msg_controllen = sizeof(cbuf);
@@ -244,7 +244,7 @@ ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
 		.msg_control = cbuf,
 		.msg_controllen = sizeof(cbuf),
 	};
-	struct cmsghdr *cmsg;
+	struct cmsghdr * cmsg;
 
 	// Get datagram from socket
 	rsz = recvmsg(fd, &dgram, MSG_CMSG_CLOEXEC);
@@ -258,17 +258,24 @@ ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
 	// Read ancillary data of the datagram and get file descriptor that
 	// might be sent along the datagram
 	cmsg = CMSG_FIRSTHDR(&dgram);
-	if (cmsg && cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS) {
+	if (cmsg
+	    && cmsg->cmsg_level == SOL_SOCKET
+	    && cmsg->cmsg_type == SCM_RIGHTS) {
 		// use of memcpy necessary because CMSG_DATA
 		// does not have type alignment guarantees
 		num_fd = (cmsg->cmsg_len - CMSG_LEN(0))/sizeof(int);
-		msg->num_fds = (num_fd <= msg->num_fds_max) ? num_fd : msg->num_fds_max;
+		if (num_fd <= msg->num_fds_max)
+			msg->num_fds = num_fd;
+		else
+			msg->num_fds = msg->num_fds_max;
+
 		cmsg_data = CMSG_DATA(cmsg);
 		memcpy(msg->fds, cmsg_data, msg->num_fds*sizeof(int));
 
 		// Close any fd that could not have been passed in mmipc_msg
 		for (i = msg->num_fds_max; i < num_fd; i++) {
-			memcpy(&passed_fd, cmsg_data + i*sizeof(int), sizeof(int));
+			memcpy(&passed_fd, cmsg_data + i * sizeof(int),
+			       sizeof(int));
 			close(passed_fd);
 			msg->flags |= MSG_CTRUNC;
 		}

@@ -1,12 +1,12 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef PSHARED_COMMON_H
 #define PSHARED_COMMON_H
 
 #include <mmthread.h>
 
-#define SHM_CHILD_FD    3
+#define SHM_CHILD_FD 3
 
 struct pshared_data {
 	mmthr_mtx_t mutex;
@@ -17,4 +17,4 @@ struct pshared_data {
 	int start;
 };
 
-#endif
+#endif /* ifndef PSHARED_COMMON_H */

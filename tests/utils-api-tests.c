@@ -164,7 +164,7 @@ const char* get_value_from_envp(const char* const* envp, const char* key)
 	keylen = strlen(key);
 
 	for (i = 0; envp[i] != NULL; i++) {
-		if (  memcmp(key, envp[i], keylen) == 0
+		if (memcmp(key, envp[i], keylen) == 0
 		   && envp[i][keylen] == '=')
 			return envp[i] + keylen + 1;
 	}

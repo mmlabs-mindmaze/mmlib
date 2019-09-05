@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 
 /* process shared data: parent program
  *
@@ -47,13 +47,13 @@
 
 
 #ifdef _WIN32
-#  define       BINEXT  ".exe"
+#  define       BINEXT ".exe"
 #else
 #  define       BINEXT
 #endif
 
-#define NUM_CHILD	6
-#define PSHARED_CHILD_BIN	"./pshared-child" BINEXT
+#define NUM_CHILD 6
+#define PSHARED_CHILD_BIN "./pshared-child" BINEXT
 
 /*
  * Create, map into memory and initialize the data that will shared with the
@@ -85,12 +85,12 @@ struct pshared_data* init_shared_mem_data(int* shm_fd)
 		goto failure;
 
 	// Reset the while content of structure to 0/NULL fields
-	*psh_data = (struct pshared_data){.start = 0};
+	*psh_data = (struct pshared_data) {.start = 0};
 
 	// Initialize synchronization primitives of shared data
-	if ( mmthr_mtx_init(&psh_data->mutex, MMTHR_PSHARED)
-	  || mmthr_mtx_init(&psh_data->notif_mtx, MMTHR_PSHARED)
-	  || mmthr_cond_init(&psh_data->notif_cond, MMTHR_PSHARED) )
+	if (mmthr_mtx_init(&psh_data->mutex, MMTHR_PSHARED)
+	    || mmthr_mtx_init(&psh_data->notif_mtx, MMTHR_PSHARED)
+	    || mmthr_cond_init(&psh_data->notif_cond, MMTHR_PSHARED))
 		goto failure;
 
 	*shm_fd = fd;
@@ -159,6 +159,7 @@ void broadcast_start_notification(struct pshared_data* psh_data)
 	lockret = mmthr_mtx_lock(&psh_data->notif_mtx);
 	if (lockret == ENOTRECOVERABLE)
 		return;
+
 	if (lockret == EOWNERDEAD)
 		mmthr_mtx_consistent(&psh_data->notif_mtx);
 
@@ -176,7 +177,8 @@ int main(void)
 	struct pshared_data* psh_data = NULL;
 	int exitcode = EXIT_FAILURE;
 
-	fprintf(stderr, "SEGFAULT_IN_CHILD=%s\n", mm_getenv("SEGFAULT_IN_CHILD", ""));
+	fprintf(stderr, "SEGFAULT_IN_CHILD=%s\n",
+	        mm_getenv("SEGFAULT_IN_CHILD", ""));
 
 	// Create a shared memory object with the right size and map into
 	// memory

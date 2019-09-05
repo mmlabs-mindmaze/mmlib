@@ -30,8 +30,8 @@ dump_ipc_test_ctx(const struct ipc_test_ctx * c)
 	if (c == NULL)
 		fprintf(stdout, "{NULL}\n");
 	else
-		fprintf(stdout, "{nclients=%d, run_mode=%d, index=%d,"
-		        " shared_object=%d, fd=%d}\n",
+		fprintf(stdout, "{nclients=%d, run_mode=%d, index=%d, "
+		        "shared_object=%d, fd=%d}\n",
 		        c->nclients, c->run_mode, c->index,
 		        c->shared_object, c->fd);
 }

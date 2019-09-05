@@ -1,4 +1,4 @@
-# French translation for mmlib                                                                                       
+# French translation for mmlib
 # Copyright (C) 2017 Mindmaze SA
 # This file is distributed under the same license as the mmlib package.
 # Sébastien Lasserre <sebastien.lasserre@mindmaze.ch>, 2017.

@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -75,8 +75,8 @@ const struct {
 	{EAI_AGAIN, EAGAIN,
 	 "The name server returned a temporary failure. Try again later."},
 	{EAI_FAMILY, EAFNOSUPPORT,
-	 "Address family was not recognized or address length was invalid"
-	 "  for the specified family"},
+	 "Address family was not recognized or address length was invalid "
+	 "for the specified family"},
 	{EAI_SERVICE, MM_ENOTFOUND,
 	 "Requested service not available for the requested socket type"},
 	{EAI_BADFLAGS, EINVAL, "invalid value in flags"},
@@ -138,8 +138,8 @@ int translate_eai_to_errnum(int eai, char* errmsg)
  * the system (maybe platform specific).
  */
 LOCAL_SYMBOL
-int internal_getaddrinfo(const char *node, const char *service,
-                         const struct addrinfo *hints, struct addrinfo **res,
+int internal_getaddrinfo(const char * node, const char * service,
+                         const struct addrinfo * hints, struct addrinfo ** res,
                          char* errmsg)
 {
 	int rv;
@@ -162,7 +162,7 @@ int internal_getaddrinfo(const char *node, const char *service,
 	    && (hints->ai_flags & AI_NUMERICSERV)
 	    && !is_numeric_string(service)) {
 		strcpy(errmsg, "while requested, service is not "
-		               "numeric port-number string");
+		       "numeric port-number string");
 		return EINVAL;
 	}
 
@@ -190,9 +190,9 @@ int internal_getaddrinfo(const char *node, const char *service,
  * the system (maybe platform specific).
  */
 LOCAL_SYMBOL
-int internal_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
-                         char *host, socklen_t hostlen,
-                         char *serv, socklen_t servlen, int flags,
+int internal_getnameinfo(const struct sockaddr * addr, socklen_t addrlen,
+                         char * host, socklen_t hostlen,
+                         char * serv, socklen_t servlen, int flags,
                          char* errmsg)
 {
 	int rv;
@@ -236,10 +236,10 @@ int get_socktype_from_protocol_services(const char* service)
 
 
 static
-int create_connected_socket(const char* service, const char *host, int port,
+int create_connected_socket(const char* service, const char * host, int port,
                             const struct addrinfo* hints)
 {
-	struct addrinfo *ai, *res;
+	struct addrinfo * ai, * res;
 	int fd, family, socktype;
 	struct sockaddr_in6* addrin6;
 	struct sockaddr_in* addrin;
@@ -253,7 +253,7 @@ int create_connected_socket(const char* service, const char *host, int port,
 
 	// Create and connect socket (loop over all possible addresses)
 	mm_save_errorstate(&errstate);
-	for (ai=res; ai != NULL; ai = ai->ai_next) {
+	for (ai = res; ai != NULL; ai = ai->ai_next) {
 		family = ai->ai_family;
 		socktype = ai->ai_socktype;
 
@@ -266,11 +266,11 @@ int create_connected_socket(const char* service, const char *host, int port,
 				addrin = (struct sockaddr_in*)ai->ai_addr;
 				addrin->sin_port = port;
 			}
-		}	
+		}
 
 		// Try create the socket and connect
 		if ((fd = mm_socket(family, socktype)) < 0
-		  || mm_connect(fd, ai->ai_addr, ai->ai_addrlen)) {
+		    || mm_connect(fd, ai->ai_addr, ai->ai_addrlen)) {
 			mm_close(fd);
 			fd = -1;
 		} else {
@@ -323,9 +323,9 @@ int mm_create_sockclient(const char* uri)
 
 	num_field = sscanf(uri, "%[a-z]://%[^/:]:%i", service, host, &port);
 	if (num_field < 2) {
-		mm_raise_error(EINVAL, "uri \"%s\" does not follow"
-		               " service://host or service://host:port"
-		               " format", uri);
+		mm_raise_error(EINVAL, "uri \"%s\" does not follow "
+		               "service://host or service://host:port "
+		               "format", uri);
 		return -1;
 	}
 
@@ -335,8 +335,8 @@ int mm_create_sockclient(const char* uri)
 	hints.ai_socktype = get_socktype_from_protocol_services(service);
 	if (hints.ai_socktype != 0) {
 		if (port < 0) {
-			mm_raise_error(EINVAL, "port must be specified"
-			                       " with %s", service);
+			mm_raise_error(EINVAL, "port must be specified "
+			               "with %s", service);
 			return -1;
 		}
 

@@ -127,7 +127,7 @@ void clean_function(thread_proc_id id, int run_mode)
 		break;
 
 	case RUN_AS_PROCESS:
-		if (  mm_wait_process(id.proc_id, &ival) != 0
+		if (mm_wait_process(id.proc_id, &ival) != 0
 		   || (ival ^ MM_WSTATUS_EXITED) != 0  ) {
 			ck_abort_msg("process returned %i\n", ival);
 		}

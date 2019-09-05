@@ -23,7 +23,7 @@
 
 #define NSEC_IN_MSEC (NS_IN_SEC / MS_IN_SEC)
 
-#define ROUND_UP(x, y) ( (((x)+(y)-1) / (y)) * (y) )
+#define ROUND_UP(x, y) ((((x)+(y)-1) / (y)) * (y))
 
 #ifndef DWORD_MAX
 #define DWORD_MAX	0xFFFFFFFF
@@ -555,7 +555,7 @@ int search_key_index(const struct lock* locks, int len, int64_t key)
  * @key:        pshared key corresponding to the lock to find
  * @create:     flag indicating whether the lock must be created if not found
  *
- * Return: pointer to the lock found or newly created. 
+ * Return: pointer to the lock found or newly created.
  */
 static
 struct lock* lock_array_get_lock(struct lock_array* lk_arr, int64_t key, bool create)
@@ -1562,8 +1562,8 @@ int lockref_server_init(struct lockref_server* srv)
 	if (evt == NULL)
 		goto failure;
 
-	if ( init_pipe_security_attrs(&srv->sec_attr)
-	  || lock_array_init(&srv->watched_locks) )
+	if (init_pipe_security_attrs(&srv->sec_attr)
+	  || lock_array_init(&srv->watched_locks))
 		goto failure;
 
 	pipe = create_srv_pipe(1, &srv->sec_attr);

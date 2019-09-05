@@ -126,6 +126,7 @@ if host_machine.system() == 'windows'
             'clock-win32.h',
             'clock-win32.c',
     )
+
     executable('lock-referee',
             lock_referee_sources,
             c_args : cflags + ['-DMMLOG_MODULE_NAME="lock-referee"'],

@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -14,13 +14,13 @@
 #include "mmtime.h"
 #include "mmsysio.h"
 
-#define SEC_IN_NSEC	1000000000
-#define NUM_TS_MAX	16
-#define MAX_LABEL_LEN	64
-#define VALUESTR_LEN	8
-#define UNITSTR_LEN	2
-#define UNIT_MASK	0x70
-#define NUM_COL_MAX	5
+#define SEC_IN_NSEC 1000000000
+#define NUM_TS_MAX          16
+#define MAX_LABEL_LEN       64
+#define VALUESTR_LEN         8
+#define UNITSTR_LEN          2
+#define UNIT_MASK         0x70
+#define NUM_COL_MAX          5
 
 #define MIN(a, b) ((a) <= (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -55,11 +55,12 @@ const struct unit unit_list[] = {
 /**
  * DOC:
  * The approximate median algorithm use the FAME algorithm. This is a streaming
- * estimation of the median which converge to the actual median. Details can be found at:
+ * estimation of the median which converge to the actual median. Details can be
+ * found at:
  * http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.108.7376&rep=rep1&type=pdf
  */
 
-#define STEP_NEED_INIT  INT64_MAX
+#define STEP_NEED_INIT INT64_MAX
 
 struct median_estimator {
 	int64_t median;
@@ -87,7 +88,7 @@ void median_estimator_update(struct median_estimator* me, int64_t data)
 		return;
 	}
 
-	diff  = data - median;
+	diff = data - median;
 	if (diff > 0) {
 		median += step;
 	} else if (diff < 0) {
@@ -128,7 +129,9 @@ static struct timespec timestamps[NUM_TS_MAX];  // current iteration measure
 static int64_t max_diff_ts[NUM_TS_MAX];         // max time difference
 static int64_t min_diff_ts[NUM_TS_MAX];         // min time difference
 static int64_t sum_diff_ts[NUM_TS_MAX];  // sum of time difference overall
-static struct median_estimator median_diff_ts[NUM_TS_MAX];  // approximate median of time diff
+static struct median_estimator median_diff_ts[NUM_TS_MAX];  // approximate
+                                                            // median of time
+                                                            // diff
 static char* labels[NUM_TS_MAX];
 static char label_storage[MAX_LABEL_LEN*NUM_TS_MAX];
 
@@ -273,6 +276,7 @@ void local_toc(void)
 	timestamps[next_ts] = ts;
 	if (next_ts >= num_ts)
 		num_ts = next_ts+1;
+
 	next_ts++;
 }
 
@@ -298,6 +302,7 @@ int max_label_len(void)
 		len = 2;
 		if (labels[i])
 			len = strlen(labels[i]);
+
 		max = MAX(max, len);
 	}
 
@@ -331,6 +336,7 @@ int compute_requested_timings(int mask, int num_points, int64_t data[])
 		for (i = 0; i < num_points; i++) {
 			data[i + icol*num_points] = get_diff_ts(i+1);
 		}
+
 		icol++;
 	}
 
@@ -339,6 +345,7 @@ int compute_requested_timings(int mask, int num_points, int64_t data[])
 			mean = (double)sum_diff_ts[i+1] / num_iter;
 			data[i + icol*num_points] = mean;
 		}
+
 		icol++;
 	}
 
@@ -346,6 +353,7 @@ int compute_requested_timings(int mask, int num_points, int64_t data[])
 		for (i = 0; i < num_points; i++) {
 			data[i + icol*num_points] = min_diff_ts[i+1];
 		}
+
 		icol++;
 	}
 
@@ -353,14 +361,17 @@ int compute_requested_timings(int mask, int num_points, int64_t data[])
 		for (i = 0; i < num_points; i++) {
 			data[i + icol*num_points] = max_diff_ts[i+1];
 		}
+
 		icol++;
 	}
 
 	if (mask & PROF_MEDIAN) {
 		for (i = 0; i < num_points; i++) {
-			median = median_estimator_getvalue(&median_diff_ts[i+1]);
+			median =
+				median_estimator_getvalue(&median_diff_ts[i+1]);
 			data[i + icol*num_points] = median;
 		}
+
 		icol++;
 	}
 
@@ -400,8 +411,8 @@ int get_display_unit(int num_points, int num_cols, int64_t data[], int mask)
 	// select the most suitable unit based on the min and max value
 	for (i = 0; i < NUM_UNIT-1; i++) {
 		scale = unit_list[i].scale;
-		if ( (minval < scale*100 && maxval < scale*10000)
-		  || (maxval - minval) < scale )
+		if ((minval < scale*100 && maxval < scale*10000)
+		    || (maxval - minval) < scale)
 			break;
 	}
 
@@ -591,6 +602,7 @@ void mmtoc_label(const char* label)
 		labels[next_ts] = &label_storage[next_ts*MAX_LABEL_LEN];
 		strncpy(labels[next_ts], label, MAX_LABEL_LEN-1);
 	}
+
 	local_toc();
 }
 
@@ -670,7 +682,7 @@ int64_t mmprofile_get_data(int measure_point, int type)
 
 	// Validate input type (can be only one measure type, not
 	// combination of multiple flags)
-	switch(type) {
+	switch (type) {
 	case PROF_CURR:
 	case PROF_MIN:
 	case PROF_MEAN:

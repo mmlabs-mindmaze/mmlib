@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -10,7 +10,7 @@
 #include "mmlib.h"
 #include <string.h>
 
-static mmdynlib_t* arch_dlopen(const char *path, int flags);
+static mmdynlib_t* arch_dlopen(const char * path, int flags);
 static void arch_dlclose(mmdynlib_t* handle);
 static void* arch_dlsym(mmdynlib_t* handle, const char* symbol);
 
@@ -31,7 +31,7 @@ static void* arch_dlsym(mmdynlib_t* handle, const char* symbol);
 
 
 static
-mmdynlib_t* arch_dlopen(const char *path, int flags)
+mmdynlib_t* arch_dlopen(const char * path, int flags)
 {
 	HMODULE handle;
 	(void)flags;
@@ -68,8 +68,9 @@ void* arch_dlsym(mmdynlib_t* handle, const char* symbol)
 	/* Use union to allow cast between func pointer and void* */
 	addr.proc = GetProcAddress((HMODULE)handle, symbol);
 	if (!addr.proc) {
-		mm_raise_error(MM_ENOTFOUND, "symbol (%s) could not be found"
-		               " in dynamic library (h=%p): %s", symbol, handle);
+		mm_raise_error(MM_ENOTFOUND, "symbol (%s) could not be found "
+		               "in dynamic library (h=%p): %s", symbol,
+		               handle);
 		return NULL;
 	}
 
@@ -86,7 +87,7 @@ void* arch_dlsym(mmdynlib_t* handle, const char* symbol)
 #include <dlfcn.h>
 
 static
-mmdynlib_t* arch_dlopen(const char *path, int flags)
+mmdynlib_t* arch_dlopen(const char * path, int flags)
 {
 	void* handle;
 	int dlflags = 0;
@@ -99,8 +100,8 @@ mmdynlib_t* arch_dlopen(const char *path, int flags)
 
 	handle = dlopen(path, dlflags);
 	if (!handle) {
-		mm_raise_error(ELIBEXEC, "Can't open dynamic library %s"
-		               " (mode %08x): %s", path, dlflags, dlerror());
+		mm_raise_error(ELIBEXEC, "Can't open dynamic library %s "
+		               "(mode %08x): %s", path, dlflags, dlerror());
 		return NULL;
 	}
 
@@ -120,9 +121,9 @@ void* arch_dlsym(mmdynlib_t* handle, const char* symbol)
 {
 	void* ptr = dlsym(handle, symbol);
 	if (!ptr) {
-		mm_raise_error(MM_ENOTFOUND, "symbol (%s) could not be found"
-		               " in dynamic library (h=%p): %s", symbol,
-			       handle, dlerror());
+		mm_raise_error(MM_ENOTFOUND, "symbol (%s) could not be found "
+		               "in dynamic library (h=%p): %s", symbol,
+		               handle, dlerror());
 		return NULL;
 	}
 
@@ -136,7 +137,7 @@ void* arch_dlsym(mmdynlib_t* handle, const char* symbol)
  **************************************************************************/
 #error "dynamic loading facility unknown"
 
-#endif
+#endif /* ifdef _WIN32 */
 
 
 /**************************************************************************
@@ -205,10 +206,11 @@ mmdynlib_t* mm_dlopen(const char* path, int flags)
 	mmdynlib_t* hnd;
 
 	if ((flags & MMLD_NOW) && (flags & MMLD_LAZY)) {
-		mm_raise_error(EINVAL, "MMLD_NOW and MMLD_LAZY flags cannot"
-		                       " be set at the same time.");
+		mm_raise_error(EINVAL, "MMLD_NOW and MMLD_LAZY flags cannot "
+		               "be set at the same time.");
 		return NULL;
 	}
+
 	if (path == NULL)
 		return arch_dlopen(NULL, flags);
 
@@ -269,7 +271,7 @@ void* mm_dlsym(mmdynlib_t* handle, const char* symbol)
 {
 	if (!handle || !symbol) {
 		mm_raise_error(EINVAL, "invalid handle (%p) or symbol (%s) "
-		                       " arguments", handle, symbol);
+		               " arguments", handle, symbol);
 		return NULL;
 	}
 

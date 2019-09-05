@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef MMLIB_H
 #define MMLIB_H
 
@@ -83,12 +83,12 @@ MMLIB_API void mm_aligned_free(void* ptr);
  *                                                                       *
  *************************************************************************/
 #ifdef __BIGGEST_ALIGNMENT__
-#  define MM_STK_ALIGN  __BIGGEST_ALIGNMENT__
+#  define MM_STK_ALIGN __BIGGEST_ALIGNMENT__
 #else
-#  define MM_STK_ALIGN  16
+#  define MM_STK_ALIGN 16
 #endif
 
-#define MM_STACK_ALLOC_THRESHOLD        2048
+#define MM_STACK_ALLOC_THRESHOLD 2048
 
 // Do not use those function directly. There are meant ONLY for use in
 // mm_malloca() and mm_freea()
@@ -123,12 +123,12 @@ MMLIB_API void _mm_freea_on_heap(void* ptr);
  *
  * Return: the pointer to the allocated space in case of success. Otherwise,
  * ie, if @alignment is not a power of two, NULL is returned.
-*/
-#define mm_aligned_alloca(alignment, size)                                 \
-  ( (alignment) & (alignment-1)                                            \
-    ? NULL                                                                 \
-    :(void*)( ((uintptr_t)alloca((size)+(alignment)-1) + (alignment)-1)    \
-            & ~(uintptr_t)((alignment)-1) ))
+ */
+#define mm_aligned_alloca(alignment, size) \
+	( (alignment) & (alignment-1) \
+	  ? NULL \
+	  : (void*)( ((uintptr_t)alloca((size)+(alignment)-1) + (alignment)-1) \
+	             & ~(uintptr_t)((alignment)-1)))
 
 /**
  * mm_malloca() - safely allocates memory on the stack
@@ -149,10 +149,10 @@ MMLIB_API void _mm_freea_on_heap(void* ptr);
  * case of successful allocation, the returned pointer must be passed to
  * mm_freea() before calling function returns to its caller.
  */
-#define mm_malloca(size)                                                 \
-  ( (size) > MM_STACK_ALLOC_THRESHOLD                                    \
-     ? _mm_malloca_on_heap(size)                                         \
-     : mm_aligned_alloca(2*MM_STK_ALIGN, (size)) )
+#define mm_malloca(size) \
+	( (size) > MM_STACK_ALLOC_THRESHOLD \
+	  ? _mm_malloca_on_heap(size) \
+	  : mm_aligned_alloca(2*MM_STK_ALIGN, (size)))
 
 
 /**
@@ -184,13 +184,13 @@ void mm_freea(void* ptr)
  * choose to define based on strcasecmp's name.
  */
 #ifdef _WIN32
-#define mmstrcasecmp  _stricmp
+#define mmstrcasecmp _stricmp
 #else
-#define mmstrcasecmp  strcasecmp
+#define mmstrcasecmp strcasecmp
 #endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* ifndef MMLIB_H */

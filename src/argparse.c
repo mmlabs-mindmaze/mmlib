@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -20,14 +20,14 @@
 #include <limits.h>
 #include <ctype.h>
 
-#define OPT_INDENT_LEN          30
-#define LINE_MAXLENGTH		80
+#define OPT_INDENT_LEN 30
+#define LINE_MAXLENGTH 80
 
-#define IGNORE_KEY              0
+#define IGNORE_KEY 0
 
-#define VALUE_NAME_MAXLEN       16
-#define LONGOPT_NAME_MAXLEN	32
-#define OPT_SYNOPSIS_MAXLEN     (VALUE_NAME_MAXLEN + LONGOPT_NAME_MAXLEN+16)
+#define VALUE_NAME_MAXLEN 16
+#define LONGOPT_NAME_MAXLEN 32
+#define OPT_SYNOPSIS_MAXLEN (VALUE_NAME_MAXLEN + LONGOPT_NAME_MAXLEN+16)
 
 
 static const struct mmarg_opt help_opt = {
@@ -116,8 +116,8 @@ int get_first_token_length(const char* str, char breakch)
 static
 bool is_valid_short_opt_key(int ch)
 {
-	return (  (ch >= 'a' && ch <= 'z')
-	       || (ch >= 'A' && ch <= 'Z')  );
+	return ((ch >= 'a' && ch <= 'z')
+	        || (ch >= 'A' && ch <= 'Z'));
 }
 
 
@@ -145,9 +145,9 @@ bool is_valid_long_opt_name(const char* name, bool stop_at_equal)
 	for (i = 1; name[i]; i++) {
 		ch = name[i];
 
-		if (  (ch >= 'a' && ch <= 'z')
-		   || (ch >= '0' && ch <= '9')
-		   || (ch == '-')  )
+		if ((ch >= 'a' && ch <= 'z')
+		    || (ch >= '0' && ch <= '9')
+		    || (ch == '-'))
 			continue;
 
 		if (ch == '=' && stop_at_equal)
@@ -194,9 +194,9 @@ bool is_arg_an_option(const char* arg)
 static
 bool is_char_valid_for_value_name(char ch)
 {
-	if ( (ch >= 'A' && ch <= 'Z')
-	  || (ch == '-')
-	  || (ch == '_') )
+	if ((ch >= 'A' && ch <= 'Z')
+	    || (ch == '-')
+	    || (ch == '_'))
 		return true;
 
 	return false;
@@ -298,8 +298,8 @@ void copy_opt_desc(char* dst, const char* src, char* buffer)
 	const char* start = src;
 
 	while (*src) {
-		if (  (*src == '@')
-		   && ((start == src) || !isalnum(src[-1]))  ) {
+		if ((*src == '@')
+		    && ((start == src) || !isalnum(src[-1]))) {
 			if (!valname) {
 				namelen = validate_value_name(src+1);
 				if (namelen) {
@@ -509,7 +509,7 @@ void print_option(const struct mmarg_opt* opt, FILE* stream)
 	char synopsis[OPT_SYNOPSIS_MAXLEN];
 	char type_doc[VALUE_NAME_MAXLEN+64];
 	char value_name[VALUE_NAME_MAXLEN] = "VALUE";
-	const char *opt_desc;
+	const char * opt_desc;
 	char* desc;
 	int len, desc_len;
 	int type = mmarg_opt_get_type(opt);
@@ -533,8 +533,8 @@ void print_option(const struct mmarg_opt* opt, FILE* stream)
 	if (type != MMOPT_STR) {
 		is_positive = (type == MMOPT_UINT || type == MMOPT_ULLONG);
 		sprintf(type_doc, "%s%s must be a%s integer.",
-		                  desc_len ? " " : "", value_name,
-		                  is_positive ? " non negative" : "n");
+		        desc_len ? " " : "", value_name,
+		        is_positive ? " non negative" : "n");
 		strcat(desc, type_doc);
 	}
 
@@ -598,7 +598,7 @@ int is_completing(const struct mmarg_parser* parser)
  */
 static
 void complete_longopt(const struct mmarg_opt* opt,
-                     int len, const char* name_start)
+                      int len, const char* name_start)
 {
 	const char* lname = mmarg_opt_get_name(opt);
 
@@ -725,8 +725,12 @@ int complete_opt_value(const struct mmarg_parser* parser,
 
 	if (opt->flags & (MMOPT_FILEPATH | MMOPT_DIRPATH)) {
 		flags = 0;
-		flags |= (opt->flags & MMOPT_FILEPATH) ? MM_DT_REG|MM_DT_DIR : 0;
-		flags |= (opt->flags & MMOPT_DIRPATH) ? MM_DT_DIR : 0;
+		if (opt->flags & MMOPT_FILEPATH)
+			flags |= MM_DT_REG | MM_DT_DIR;
+
+		if (opt->flags & MMOPT_DIRPATH)
+			flags |= MM_DT_DIR;
+
 		mmarg_complete_path(arg, flags, NULL, NULL);
 	} else if (arg) {
 		printf("%s\n", arg);
@@ -767,9 +771,9 @@ bool match_opt_key_or_name(const struct mmarg_opt* opt,
 
 	// Do matching based on long since key is IGNORE_KEY
 	opt_name = mmarg_opt_get_name(opt);
-	if (  opt_name != NULL
-	   && !strncmp(opt_name, name, namelen)
-	   && opt_name[namelen] == '\0'  )
+	if (opt_name != NULL
+	    && !strncmp(opt_name, name, namelen)
+	    && opt_name[namelen] == '\0')
 		return true;
 
 	return false;
@@ -858,11 +862,11 @@ void print_opt_error(const struct mmarg_opt* opt, const char* msg, ...)
  */
 static
 int cast_ll_to_argval(const struct mmarg_opt* opt,
-                      union mmarg_val *argval, long long llval)
+                      union mmarg_val * argval, long long llval)
 {
 	int type = mmarg_opt_get_type(opt);
 
-	switch(type) {
+	switch (type) {
 	case MMOPT_LLONG:
 		argval->ll = llval;
 		break;
@@ -928,7 +932,7 @@ int check_value_is_positive(const char* str)
  */
 static
 int conv_str_to_argval(const struct mmarg_opt* opt,
-                       union mmarg_val *argval, const char* value)
+                       union mmarg_val * argval, const char* value)
 {
 	int type = mmarg_opt_get_type(opt);
 	long long llval;
@@ -958,9 +962,10 @@ int conv_str_to_argval(const struct mmarg_opt* opt,
 			errno = ERANGE;
 			goto error;
 		}
+
 		argval->ull = strtoull(value, &endptr, 0);
 	} else {
-		llval= strtoll(value, &endptr, 0);
+		llval = strtoll(value, &endptr, 0);
 	}
 
 	// Check the whole string has been used for conversion
@@ -974,8 +979,8 @@ int conv_str_to_argval(const struct mmarg_opt* opt,
 
 	// If not requesting ulonglong, do final conversion of longlong to
 	// requested type
-	if (  type != MMOPT_ULLONG
-	   && cast_ll_to_argval(opt, argval, llval))
+	if (type != MMOPT_ULLONG
+	    && cast_ll_to_argval(opt, argval, llval))
 		goto error;
 
 	errno = prev_err;
@@ -983,9 +988,9 @@ int conv_str_to_argval(const struct mmarg_opt* opt,
 
 error:
 	valtype = get_value_type_name(type);
-	print_opt_error(opt, "accepting %s value type has received an"
-	                     "invalid value \"%s\" (%s)",
-			     valtype, value, strerror(errno));
+	print_opt_error(opt, "accepting %s value type has received an "
+	                "invalid value \"%s\" (%s)",
+	                valtype, value, strerror(errno));
 	return -1;
 }
 
@@ -1030,8 +1035,8 @@ int mmarg_opt_set_value(const struct mmarg_opt* opt, union mmarg_val val)
  * @value:      string of value if one has been supplied, NULL otherwise
  * @parser:     parser used
  *
- * Return: 0 in case of success, or MMARGPARSE_ERROR (-1) if a validation issue has occurred and
- * MMARGPARSE_STOP (-2) if early stop has been requested.
+ * Return: 0 in case of success, or MMARGPARSE_ERROR (-1) if a validation issue
+ * has occurred and MMARGPARSE_STOP (-2) if early stop has been requested.
  */
 static
 int process_opt_value(const struct mmarg_opt* opt, const char* value,
@@ -1068,8 +1073,8 @@ int process_opt_value(const struct mmarg_opt* opt, const char* value,
 
 	// Convert string value to argval union and run callback if one is
 	// present
-	if (  (rv = conv_str_to_argval(opt, &argval, value)) < 0
-	   || (cb && (rv = cb(opt, argval, cb_data, 0)) < 0)  )
+	if ((rv = conv_str_to_argval(opt, &argval, value)) < 0
+	    || (cb && (rv = cb(opt, argval, cb_data, 0)) < 0))
 		return rv;
 
 	// set value if specified in option parser
@@ -1109,12 +1114,12 @@ int process_short_opt(const struct mmarg_parser* parser,
 		// It is allowed to interpret the next argument as value
 		// only if the option key is the last one of the list
 		reqflags = opt_parser->flags & MMOPT_REQMASK;
-		if (  (reqflags != MMOPT_NOVAL)
-		   && (opts[1] == '\0')
-		   && !is_arg_an_option(next_arg)  ) {
+		if ((reqflags != MMOPT_NOVAL)
+		    && (opts[1] == '\0')
+		    && !is_arg_an_option(next_arg)) {
 			value = next_arg;
 			move_arg_index = 1;
-		        if (is_completing(parser) && next_is_last)
+			if (is_completing(parser) && next_is_last)
 				return complete_opt_value(parser,
 				                          opt_parser, value);
 		}
@@ -1207,10 +1212,10 @@ int validate_options(const struct mmarg_parser* parser)
 		lname = mmarg_opt_get_name(opt);
 
 		// Validate option key and/or long option name
-		if (  (key && !is_valid_short_opt_key(key))
-		   || (lname && !is_valid_long_opt_name(lname, false)) ) {
-			fprintf(stderr, "invalid short or long name for"
-			                " option %s\n", opt->name);
+		if ((key && !is_valid_short_opt_key(key))
+		    || (lname && !is_valid_long_opt_name(lname, false))) {
+			fprintf(stderr, "invalid short or long name for "
+			        "option %s\n", opt->name);
 			return -1;
 		}
 	}
@@ -1298,7 +1303,7 @@ int early_stop_parsing(const struct mmarg_parser* parser, int retval)
 API_EXPORTED
 int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 {
-	const char *arg, *next_arg;
+	const char * arg, * next_arg;
 	int index, r, do_complete;
 
 	if (validate_options(parser))
@@ -1382,9 +1387,9 @@ int mmarg_parse_complete(const struct mmarg_parser* parser, const char* arg)
 		complete_shortopts(parser, len >= 1 ? arg+1 : "");
 
 	// Long option completion is triggered by "", "-", "--something"
-	if (  (len == 0)
-	   || (len == 1 && arg[0] == '-')
-	   || (len >= 2 && arg[0] == '-' && arg[1] == '-'))
+	if ((len == 0)
+	    || (len == 1 && arg[0] == '-')
+	    || (len >= 2 && arg[0] == '-' && arg[1] == '-'))
 		complete_longopts(parser, len >= 2 ? arg+2 : "");
 
 	return 0;
@@ -1415,8 +1420,8 @@ int mmarg_complete_path(const char* arg, int type_mask,
 {
 	MMDIR* dir;
 	const struct mm_dirent* dirent;
-	char *dirpath, *base;
-	const char *disp_dir, *name;
+	char * dirpath, * base;
+	const char * disp_dir, * name;
 	int i, arglen, baselen, type, isdir;
 	int rv = -1;
 
@@ -1463,8 +1468,8 @@ int mmarg_complete_path(const char* arg, int type_mask,
 		type = dirent->type;
 
 		// Discard if base does not match the beginning of filename
-		if (  strncmp(name, base, baselen) != 0
-		   || is_wildcard_directory(name))
+		if (strncmp(name, base, baselen) != 0
+		    || is_wildcard_directory(name))
 			continue;
 
 		// Discard if a callback did not return 1
@@ -1479,6 +1484,7 @@ int mmarg_complete_path(const char* arg, int type_mask,
 		isdir = (type & MM_DT_DIR);
 		printf("%s%s%s\n", disp_dir, name, isdir ? "/" : "");
 	}
+
 	mm_closedir(dir);
 	rv = 0;
 

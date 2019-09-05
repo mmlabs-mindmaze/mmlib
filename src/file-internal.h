@@ -1,5 +1,5 @@
 /*
-        @mindmaze_header@
+ *      @mindmaze_header@
  */
 #ifndef FILE_INTERNAL_H
 #define FILE_INTERNAL_H
@@ -8,7 +8,7 @@
 static inline
 int is_path_separator(char c)
 {
-#if defined(_WIN32)
+#if defined (_WIN32)
 	return (c == '\\' || c == '/');
 #else
 	return (c == '/');

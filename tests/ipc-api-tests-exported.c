@@ -37,11 +37,11 @@ intptr_t test_client_process(void * arg)
 	if (fd == -1)
 		goto cleanup;
 
-	if (  mmipc_build_send_msg(fd, data, sizeof(data), -1) < 0
+	if (mmipc_build_send_msg(fd, data, sizeof(data), -1) < 0
 	   || recv_msg_and_fd(fd, buf, sizeof(buf), &recvfd) < 0)
 		goto cleanup;
 
-	if (  ctx->shared_object == SHARED_FILE
+	if (ctx->shared_object == SHARED_FILE
 	   || ctx->shared_object == SHARED_MEM)
 		mm_seek(recvfd, 0, SEEK_SET);
 

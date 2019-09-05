@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -17,9 +17,9 @@
 #include "nls-internals.h"
 
 #ifndef thread_local
-#  if defined(__GNUC__)
+#  if defined (__GNUC__)
 #    define thread_local __thread
-#  elif defined(_MSC_VER)
+#  elif defined (_MSC_VER)
 #    define thread_local __declspec(thread)
 #  else
 #    error Do not know how to specify thread local attribute
@@ -48,12 +48,15 @@ static const struct errmsg_entry error_tab[] = {
 	{.errnum = MM_EBADFMT, .msg = N_("Bad format")},
 	{.errnum = MM_ENOCALIB, .msg = N_("Calibration needed")},
 	{.errnum = MM_ENOINERTIAL, .msg = N_("Hand trackers not detected.\n"
-		"Please ensure the USB dongle is connected \nand the sensors are switched on")},
-	{.errnum = MM_ECAMERROR, .msg = N_("Communication error with camera hardware.")},
-	{.errnum = MM_ENONAME, .msg = N_("Specified hostname cannot be resolved")},
+		                             "Please ensure the USB dongle is connected \n"
+		                             "and the sensors are switched on")},
+	{.errnum = MM_ECAMERROR, .msg = N_(
+		 "Communication error with camera hardware.")},
+	{.errnum = MM_ENONAME, .msg = N_(
+		 "Specified hostname cannot be resolved")},
 };
 
-#define NUM_ERROR_ENTRY	(sizeof(error_tab)/sizeof(error_tab[0]))
+#define NUM_ERROR_ENTRY (sizeof(error_tab)/sizeof(error_tab[0]))
 
 /**************************************************************************
  *                                                                        *
@@ -93,7 +96,7 @@ API_EXPORTED
 const char* mmstrerror(int errnum)
 {
 	if ((errnum < error_tab[0].errnum)
-	  || (errnum > error_tab[NUM_ERROR_ENTRY-1].errnum))
+	    || (errnum > error_tab[NUM_ERROR_ENTRY-1].errnum))
 		return strerror(errnum);
 
 	return get_mm_errmsg(errnum);
@@ -102,7 +105,7 @@ const char* mmstrerror(int errnum)
 
 #ifdef _WIN32
 static
-int strerror_r(int errnum, char *strerrbuf, size_t buflen)
+int strerror_r(int errnum, char * strerrbuf, size_t buflen)
 {
 	return strerror_s(strerrbuf, buflen, errnum);
 }
@@ -118,13 +121,13 @@ int strerror_r(int errnum, char *strerrbuf, size_t buflen)
  * Return: 0 is in case of success, -1 otherwise.
  */
 API_EXPORTED
-int mmstrerror_r(int errnum, char *buf, size_t buflen)
+int mmstrerror_r(int errnum, char * buf, size_t buflen)
 {
 	const char* msg;
 	size_t msglen, trunclen;
 
 	if ((errnum < error_tab[0].errnum)
-	  || (errnum > error_tab[NUM_ERROR_ENTRY-1].errnum))
+	    || (errnum > error_tab[NUM_ERROR_ENTRY-1].errnum))
 		return strerror_r(errnum, buf, buflen);
 
 	if (buflen < 1) {
@@ -155,12 +158,14 @@ int mmstrerror_r(int errnum, char *buf, size_t buflen)
  ******************************************************************/
 
 struct error_info {
-	int flags;              //< flags to finetune error handling
-	int errnum;             //< error class (standard and mmlib errno value)
-	char extended_id[64];   //< message to display to end user if has not been caught before
-	char module[32];        //< module that has generated the error
-	char location[256];     //< which function/file/line has generated the error
-	char desc[256];         //< message intended to developer
+	int flags;              // flags to finetune error handling
+	int errnum;             // error class (standard and mmlib errno value)
+	char extended_id[64];   // message to display to end user if has not
+	                        // been caught before
+	char module[32];        // module that has generated the error
+	char location[256];     // which function/file/line has generated the
+	                        // error
+	char desc[256];         // message intended to developer
 };
 
 
@@ -235,9 +240,9 @@ int mm_error_set_flags(int flags, int mask)
  */
 API_EXPORTED
 int mm_raise_error_vfull(int errnum, const char* module, const char* func,
-                        const char* srcfile, int srcline,
-                        const char* extid,
-                        const char* desc_fmt, va_list args)
+                         const char* srcfile, int srcline,
+                         const char* extid,
+                         const char* desc_fmt, va_list args)
 {
 	struct error_info* state;
 	int flags;
@@ -266,7 +271,8 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
 	strncpy(state->extended_id, extid, sizeof(state->extended_id)-1);
 
 	// format source location field
-	snprintf(state->location, sizeof(state->location), "%s() in %s:%i", func, srcfile, srcline);
+	snprintf(state->location, sizeof(state->location), "%s() in %s:%i",
+	         func, srcfile, srcline);
 
 	// format description
 	vsnprintf(state->desc, sizeof(state->desc), desc_fmt, args);
@@ -310,8 +316,8 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
  */
 API_EXPORTED
 int mm_raise_error_full(int errnum, const char* module, const char* func,
-                      const char* srcfile, int srcline,
-                      const char* extid, const char* desc_fmt, ...)
+                        const char* srcfile, int srcline,
+                        const char* extid, const char* desc_fmt, ...)
 {
 	int ret;
 	va_list args;
@@ -470,7 +476,8 @@ const char* mm_get_lasterror_location(void)
  *
  * This function provides the extended id of the last error set in the calling
  * thread. The extended id is a string identifier destinated for the UI layer
- * of the software stack to identify a error specific situation(See explanation in mm_raise_error_with_extid()).
+ * of the software stack to identify a error specific situation(See explanation
+ * in mm_raise_error_with_extid()).
  *
  * Please note that not all error report are supposed to report an error
  * extended id (they actually should be a minority). If none has been provided

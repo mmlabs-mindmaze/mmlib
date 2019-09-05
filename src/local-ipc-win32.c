@@ -76,11 +76,11 @@ struct mmipc_srv* mmipc_srv_create(const char* addr)
 	                        BUFSIZE, BUFSIZE, 0, NULL);
 	if (hpipe == INVALID_HANDLE_VALUE) {
 		if (GetLastError() == ERROR_ACCESS_DENIED) {
-			mm_raise_error(EADDRINUSE, "addr %s already in use"
-			               " in a named pipe server", addr);
+			mm_raise_error(EADDRINUSE, "addr %s already in use "
+			               "in a named pipe server", addr);
 		} else {
-			mm_raise_from_w32err("Failed to create server"
-			                     " Named pipe at %s", addr);
+			mm_raise_from_w32err("Failed to create server "
+			                     "Named pipe at %s", addr);
 		}
 		free(srv);
 		return NULL;
@@ -115,8 +115,8 @@ int mmipc_srv_accept(struct mmipc_srv* srv)
 
 	// connect to client, It is harmless if error pipe connected is
 	// returned
-	if ( !ConnectNamedPipe(srv->hpipe, NULL)
-          && (GetLastError() != ERROR_PIPE_CONNECTED) ) {
+	if (!ConnectNamedPipe(srv->hpipe, NULL)
+          && (GetLastError() != ERROR_PIPE_CONNECTED)) {
 		mm_raise_from_w32err("Failed to connect client");
 		return -1;
 	}
@@ -152,8 +152,8 @@ int mmipc_connect(const char* addr)
 
 	// Connect named pipe to server
 	do {
-		if (  WaitNamedPipe(pipe_name, NMPWAIT_WAIT_FOREVER) == 0
-				&& GetLastError() == ERROR_FILE_NOT_FOUND) {
+		if (WaitNamedPipe(pipe_name, NMPWAIT_WAIT_FOREVER) == 0
+		    && GetLastError() == ERROR_FILE_NOT_FOUND) {
 			// server does not exist
 			mm_raise_from_w32err("Server %s not found\n", addr);
 			return -1;
@@ -250,9 +250,9 @@ ssize_t write_ancillary_data(struct ancillary_data* data,
 
 	// Duplicate WIN32 handle to send into the other endpoint process
 	for (i = 0; i < msg->num_fds; i++) {
-		if (  unwrap_handle_from_fd(&hnd, msg->fds[i])
+		if (unwrap_handle_from_fd(&hnd, msg->fds[i])
 		   || !DuplicateHandle(src_proc, hnd, dst_proc, &dst_hnd,
-		                       0, FALSE, DUPLICATE_SAME_ACCESS)  ) {
+		                       0, FALSE, DUPLICATE_SAME_ACCESS)) {
 			mm_raise_from_w32err("Failed to duplicate handle");
 			while (--i >= 0) {
 				CloseHandle(data->array[i].hnd);
@@ -406,8 +406,8 @@ ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg)
 	size_t hdr_sz;
 	uintptr_t msg_data[MAX_DATA_SIZE];
 
-	if (  unwrap_handle_from_fd(&hpipe, fd)
-	   || (len = serialize_msg(hpipe, msg, msg_data, &hdr_sz)) < 0  )
+	if (unwrap_handle_from_fd(&hpipe, fd)
+	   || (len = serialize_msg(hpipe, msg, msg_data, &hdr_sz)) < 0)
 		return -1;
 
 	if (!WriteFile(hpipe, msg_data, (DWORD)len, &send_sz, NULL))
@@ -460,8 +460,8 @@ int mmipc_connected_pair(int fds[2])
 		                       1, BUFSIZE, BUFSIZE, 0, NULL);
 		if (hsrv == INVALID_HANDLE_VALUE) {
 			// retry if we couldn't create a first instance
-			if (  GetLastError() == ERROR_ACCESS_DENIED
-			   && ++attempt < MAX_ATTEMPTS  )
+			if (GetLastError() == ERROR_ACCESS_DENIED
+			   && ++attempt < MAX_ATTEMPTS)
 				continue;
 
 			mm_raise_from_w32err("Can't create named pipe");

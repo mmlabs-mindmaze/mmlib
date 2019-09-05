@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -13,7 +13,7 @@
 #include "mmtype.h"
 #include "mmlib.h"
 
-#define CACHE_LINE_SIZE	64
+#define CACHE_LINE_SIZE 64
 
 /**
  * mmimg_pixel_size() - get the size in byte a pixel in a specified format
@@ -53,7 +53,7 @@ size_t mmimg_pixel_size(unsigned int pixfmt)
 	case MM_PIXFMT_COMP_HSVA:
 	case MM_PIXFMT_COMP_HLSA:
 		return 4*pixsize;
-	};
+	}
 
 error:
 	mm_raise_error(EINVAL, "Unknown pixel format: %08x", pixfmt);
@@ -90,6 +90,7 @@ int mmimg_set_stride(struct mm_imgdesc* img, size_t alignment)
 	// Round up the next multiple of alignment
 	if (!alignment)
 		alignment = CACHE_LINE_SIZE;
+
 	remainder = stride % alignment;
 	if (remainder)
 		stride += alignment - remainder;
@@ -150,5 +151,5 @@ API_EXPORTED
 size_t mmimage_buffer_size(const mmimage* img)
 {
 	return ( img->width * img->height * img->nch
-		* ( img->depth & ~MM_DEPTH_SIGN ) + 7 ) / 8;
+	         * ( img->depth & ~MM_DEPTH_SIGN) + 7) / 8;
 }

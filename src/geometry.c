@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -13,7 +13,7 @@
 // ----- Quaternion <-> Rotation matrix conversion ---- //
 // ---------------------------------------------------- //
 API_EXPORTED
-float* mm_quat_from_mat3(float *restrict quat, const float *restrict mat)
+float* mm_quat_from_mat3(float* restrict quat, const float* restrict mat)
 {
 	// Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
 	// article "Quaternion Calculus and Fast Animation".
@@ -23,9 +23,9 @@ float* mm_quat_from_mat3(float *restrict quat, const float *restrict mat)
 
 	if (fTrace > 0.0) {
 		// |w| > 1/2, may as well choose w > 1/2
-		fRoot = sqrtf(fTrace + 1.0f);	// 2w
+		fRoot = sqrtf(fTrace + 1.0f);   // 2w
 		quat[0] = 0.5f * fRoot;
-		fRoot = 0.5f / fRoot;	// 1/(4w)
+		fRoot = 0.5f / fRoot;   // 1/(4w)
 		quat[1] = (mat[7] - mat[5]) * fRoot;
 		quat[2] = (mat[2] - mat[6]) * fRoot;
 		quat[3] = (mat[3] - mat[1]) * fRoot;
@@ -57,6 +57,7 @@ float* mm_quat_from_mat3(float *restrict quat, const float *restrict mat)
 			kj = 2;
 			k = 0;
 		}
+
 		if (mat[8] > mat[i]) {
 			a = 2;
 			b = 0;
@@ -73,7 +74,7 @@ float* mm_quat_from_mat3(float *restrict quat, const float *restrict mat)
 		}
 
 		fRoot = sqrtf(mat[i] - mat[j] - mat[k] + 1.0f);
-		float *apkQuat[3] = { quat+1, quat+2, quat+3 };
+		float * apkQuat[3] = {quat+1, quat+2, quat+3};
 		*apkQuat[a] = 0.5f * fRoot;
 		fRoot = 0.5f / fRoot;
 		quat[0] = (mat[kj] - mat[jk]) * fRoot;
@@ -86,14 +87,14 @@ float* mm_quat_from_mat3(float *restrict quat, const float *restrict mat)
 
 
 API_EXPORTED
-float* mm_quat_from_mat(float *restrict quat, const float *restrict mat)
+float* mm_quat_from_mat(float* restrict quat, const float* restrict mat)
 {
 	return mm_quat_from_mat3(quat, mat);
 }
 
 
 API_EXPORTED
-float* mm_mat3_from_quat(float *restrict mat, const float *restrict quat)
+float* mm_mat3_from_quat(float* restrict mat, const float* restrict quat)
 {
 	float fTx = quat[1] + quat[1];
 	float fTy = quat[2] + quat[2];
@@ -123,14 +124,14 @@ float* mm_mat3_from_quat(float *restrict mat, const float *restrict quat)
 
 
 API_EXPORTED
-float* mm_mat_from_quat(float *restrict mat, const float *restrict quat)
+float* mm_mat_from_quat(float* restrict mat, const float* restrict quat)
 {
 	return mm_mat3_from_quat(mat, quat);
 }
 
 
 API_EXPORTED
-float mm_aaxis_from_mat3(float *restrict axis, const float *restrict m)
+float mm_aaxis_from_mat3(float* restrict axis, const float* restrict m)
 {
 	float q[4];
 	float sc;
@@ -155,7 +156,7 @@ float mm_aaxis_from_mat3(float *restrict axis, const float *restrict m)
 // ---- 3D Vector Operations ---- //
 // ------------------------------ //
 API_EXPORTED
-float* mm_cross(float *restrict v1, const float *restrict v2)
+float* mm_cross(float* restrict v1, const float* restrict v2)
 {
 	float out[3];
 	out[0] = v1[1]*v2[2] - v1[2]*v2[1];
@@ -166,7 +167,7 @@ float* mm_cross(float *restrict v1, const float *restrict v2)
 }
 
 API_EXPORTED
-float *mm_rotate(float *restrict v, const float *restrict q)
+float* mm_rotate(float* restrict v, const float* restrict q)
 {
 	// nVidia SDK implementation
 	float uv[3], uuv[3];
@@ -185,7 +186,7 @@ float *mm_rotate(float *restrict v, const float *restrict q)
 // -------------------------------- //
 
 API_EXPORTED
-float *quat_mul(float *restrict q1, const float *restrict q2)
+float* quat_mul(float* restrict q1, const float* restrict q2)
 {
 	float out[4];
 	out[0] = q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2] - q1[3]*q2[3];
@@ -201,21 +202,21 @@ float *quat_mul(float *restrict q1, const float *restrict q2)
 // -------------------------- //
 
 API_EXPORTED
-float *plane_from_point(float *restrict plane, const float *restrict p)
+float* plane_from_point(float* restrict plane, const float* restrict p)
 {
 	plane[3] = -mm_dot(plane, p);
 	return plane;
 }
 
 API_EXPORTED
-float plane_distance(const float *restrict p, const float *restrict plane)
+float plane_distance(const float* restrict p, const float* restrict plane)
 {
 	return fabsf(mm_dot(plane, p) + plane[3]) / mm_norm(plane);
 }
 
 API_EXPORTED
-float *plane_intersect(float *restrict p, const float *v,
-                                            const float *plane)
+float* plane_intersect(float* restrict p, const float * v,
+                       const float * plane)
 {
 	float d, v2[3];
 	d = -(mm_dot(plane, p) + plane[3]) / mm_dot(plane, v);
@@ -226,7 +227,7 @@ float *plane_intersect(float *restrict p, const float *v,
 }
 
 API_EXPORTED
-float *plane_projection(float *restrict p, const float *restrict plane)
+float* plane_projection(float* restrict p, const float* restrict plane)
 {
 	return plane_intersect(p, plane, plane);
 }

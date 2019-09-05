@@ -30,7 +30,7 @@ int mm_raise_from_w32err_full(const char* module, const char* func,
                               const char* srcfile, int srcline,
                               const char* desc, ...);
 #define mm_raise_from_w32err(desc, ...) \
-	mm_raise_from_w32err_full(MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, desc,  ## __VA_ARGS__ )
+	mm_raise_from_w32err_full(MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, desc,  ## __VA_ARGS__)
 
 
 /**************************************************************************
@@ -120,8 +120,8 @@ error:
 	errnum = errno;
 	mm_raise_error_full(errnum, MMLOG_MODULE_NAME,
 	                    func, srcfile, srcline, NULL,
-	                    "Failed to wrap windows handle into file"
-	                    " descriptor: %s", strerror(errnum));
+	                    "Failed to wrap windows handle into file "
+	                    "descriptor: %s", strerror(errnum));
 	return -1;
 }
 
@@ -144,8 +144,8 @@ error:
 	errnum = errno;
 	mm_raise_error_full(errnum, MMLOG_MODULE_NAME,
 	                    func, srcfile, srcline, NULL,
-	                    "Failed to unwrap windows handle from file"
-	                    " descriptor: %s", strerror(errnum));
+	                    "Failed to unwrap windows handle from file "
+	                    "descriptor: %s", strerror(errnum));
 	return -1;
 }
 

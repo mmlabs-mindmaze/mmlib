@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -27,8 +27,8 @@
 #  ifdef lseek
 #    undef lseek
 #  endif
-#  define lseek         _lseeki64
-#  define fsync         _commit
+#  define lseek _lseeki64
+#  define fsync _commit
 
 static
 int ftruncate(int fd, mm_off_t size)
@@ -96,7 +96,8 @@ mm_off_t mm_seek(int fd, mm_off_t offset, int whence)
 
 	loc = lseek(fd, offset, whence);
 	if (loc < 0)
-		return mm_raise_from_errno("lseek(%i, %lli, %i) failed", fd, offset, whence);
+		return mm_raise_from_errno("lseek(%i, %lli, %i) failed", fd,
+		                           offset, whence);
 
 	return loc;
 }
@@ -122,7 +123,8 @@ API_EXPORTED
 int mm_ftruncate(int fd, mm_off_t length)
 {
 	if (ftruncate(fd, length) < 0)
-		return mm_raise_from_errno("ftruncate(%i, %lli) failed", fd, length);
+		return mm_raise_from_errno("ftruncate(%i, %lli) failed", fd,
+		                           length);
 
 	return 0;
 }
@@ -145,7 +147,7 @@ int mm_ftruncate(int fd, mm_off_t length)
  * Note: windows does not provide dirname, nor memrchr
  */
 static
-char * internal_dirname(char * path)
+char* internal_dirname(char * path)
 {
 	char * c = path + strlen(path) - 1;
 
@@ -160,9 +162,11 @@ char * internal_dirname(char * path)
 				*c = '\0';
 				c--;
 			}
+
 			return path;
 		}
 	}
+
 	return ".";
 }
 
@@ -184,12 +188,13 @@ int internal_mkdir(const char* path, int mode)
 	path_u16 = mm_malloca(path_u16_len * sizeof(*path_u16));
 	if (path_u16 == NULL)
 		return mm_raise_from_w32err("Failed to alloc required memory!");
+
 	conv_utf8_to_utf16(path_u16, path_u16_len, path);
 
 	rv = _wmkdir(path_u16);
 	mm_freea(path_u16);
 	return rv;
-#endif
+#endif /* ifndef _WIN32 */
 }
 
 static
@@ -251,7 +256,8 @@ int mm_mkdir(const char* path, int mode, int flags)
 	rv = internal_mkdir(path, mode);
 
 	if (flags & MM_RECURSIVE && rv != 0) {
-		/* when recursive, do not raise an error when dir already present */
+		// when recursive, do not raise an error when dir already
+		// present
 		if (errno == EEXIST)
 			return 0;
 		else if (errno != ENOENT)
@@ -267,5 +273,6 @@ int mm_mkdir(const char* path, int mode, int flags)
 
 	if (rv != 0)
 		mm_raise_from_errno("mkdir(%s) failed", path);
+
 	return rv;
 }

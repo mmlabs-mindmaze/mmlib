@@ -107,8 +107,8 @@ ssize_t mmlib_write(int fd, const void* buf, size_t nbyte)
 	// the end.
 	if (get_fd_info(fd) & FD_FLAG_APPEND) {
 		if (!SetFilePointer(hnd, 0, NULL, FILE_END)) {
-			mm_raise_from_w32err("File (fd=%i) is opend in append mode"
-			                     " but can't seek file end", fd);
+			mm_raise_from_w32err("File (fd=%i) is opend in append mode "
+			                     "but can't seek file end", fd);
 			return -1;
 		}
 	}
@@ -654,10 +654,10 @@ int test_access(SECURITY_DESCRIPTOR* sd, DWORD access_rights)
 	MapGenericMask(&access_rights, &mapping);
 
 	// Get obtained a token suitable for impersonation and check access
-	if (  !OpenProcessToken(hproc, TOKEN_ACCESS, &proc_htoken)
+	if (!OpenProcessToken(hproc, TOKEN_ACCESS, &proc_htoken)
 	   || !DuplicateToken(proc_htoken, SecurityImpersonation, &imp_htoken)
 	   || !AccessCheck(sd, imp_htoken, access_rights, &mapping,
-	                   &privileges, &priv_len, &granted, &result)  ) {
+	                   &privileges, &priv_len, &granted, &result)) {
 		goto exit;
 	}
 
@@ -684,8 +684,8 @@ int mm_check_access(const char* path, int amode)
 		// If we receive file not found, this is not an error and
 		// must be reported as return value
 		w32err = GetLastError();
-		if (  w32err == ERROR_PATH_NOT_FOUND
-		   || w32err == ERROR_FILE_NOT_FOUND  )
+		if (w32err == ERROR_PATH_NOT_FOUND
+		   || w32err == ERROR_FILE_NOT_FOUND)
 			return ENOENT;
 
 		return mm_raise_from_w32err("Can't get handle for %s", path);
@@ -783,7 +783,7 @@ int mm_symlink(const char* oldpath, const char* newpath)
 	// directory is still functional to a certain extent (only opening
 	// the target folder handle seems not functional)
 	file_attrs = GetFileAttributesW(oldpath_u16);
-	if (  (file_attrs != INVALID_FILE_ATTRIBUTES)
+	if ((file_attrs != INVALID_FILE_ATTRIBUTES)
 	   && (file_attrs & FILE_ATTRIBUTE_DIRECTORY))
 		flags |= SYMBOLIC_LINK_FLAG_DIRECTORY;
 
@@ -868,8 +868,8 @@ char* mm_getcwd(char* buf, size_t size)
 	// If buf argument is supplied, we must check that the size is
 	// sufficient
 	if (buf && (int)size < path_u8_len) {
-		mm_raise_error(ERANGE, "Buffer too short for holding"
-		                       " current directory path");
+		mm_raise_error(ERANGE, "Buffer too short for holding "
+		                       "current directory path");
 		goto exit;
 	}
 
@@ -1176,7 +1176,7 @@ MMDIR * mm_opendir(const char* path)
 	d = malloc(sizeof(*d) + len);
 	if (d == NULL)
 		goto error;
-	
+
 	*d = (MMDIR) { .hdir = INVALID_HANDLE_VALUE };
 	strcpy(d->dirname, path);
 	strcat(d->dirname, "/*");
@@ -1361,12 +1361,12 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 	struct local_secdesc lsd;
 	int type;
 
-	if (  !GetFileInformationByHandleEx(hnd, FileAttributeTagInfo,
+	if (!GetFileInformationByHandleEx(hnd, FileAttributeTagInfo,
 	                                    &attr_tag, sizeof(attr_tag))
 	   || !GetFileInformationByHandleEx(hnd, FileIdInfo,
 	                                    &id_info, sizeof(id_info))
 	   || !GetFileInformationByHandle(hnd, &info)
-	   || local_secdesc_init_from_handle(&lsd, hnd)  ) {
+	   || local_secdesc_init_from_handle(&lsd, hnd)) {
 		return -1;
 	}
 

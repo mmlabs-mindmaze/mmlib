@@ -41,7 +41,7 @@ int try_and_catch_abort (void (*func)(void))
 	} else {
 		return 0;
 	}
-}		
+}
 
 static
 void provoke_a_crash(void)
@@ -58,7 +58,7 @@ void do_not_provoke_a_crash(void)
 static
 int test_crash(void)
 {
-	return !try_and_catch_abort(&provoke_a_crash) 
+	return !try_and_catch_abort(&provoke_a_crash)
 		&& try_and_catch_abort(&do_not_provoke_a_crash);
 }
 
@@ -103,7 +103,7 @@ int test_basic_logging(void)
 int main(void)
 {
 	return (test_basic_logging()
-					&& test_crash() 
-					&& test_check())? 
+					&& test_crash()
+					&& test_check())?
 		EXIT_SUCCESS : EXIT_FAILURE;
 }

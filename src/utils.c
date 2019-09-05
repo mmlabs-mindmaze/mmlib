@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -29,7 +29,7 @@
 
 extern char** environ;
 
-#endif
+#endif /* ifdef _WIN32 */
 
 
 /**
@@ -93,11 +93,14 @@ int mm_setenv(const char* name, const char* value, int action)
 	if (action == MM_ENV_PREPEND || action == MM_ENV_APPEND) {
 		old_value = mm_getenv(name, NULL);
 		if (old_value != NULL) {
-			new_value = mm_malloca(strlen(value) + 1 + strlen(old_value));
+			new_value = mm_malloca(strlen(value) + 1
+			                       + strlen(old_value));
 			if (action == MM_ENV_PREPEND)
-				sprintf(new_value, "%s%s%s", value, MM_ENV_DELIM, old_value);
+				sprintf(new_value, "%s%s%s", value,
+				        MM_ENV_DELIM, old_value);
 			else  /* action == MM_ENV_APPEND */
-				sprintf(new_value, "%s%s%s", old_value, MM_ENV_DELIM, value);
+				sprintf(new_value, "%s%s%s", old_value,
+				        MM_ENV_DELIM, value);
 
 			value = new_value;
 		}
@@ -107,7 +110,8 @@ int mm_setenv(const char* name, const char* value, int action)
 	mm_freea(new_value);
 
 	if (rv != 0)
-		return mm_raise_from_errno("setenv(%s, %s) failed", name, value);
+		return mm_raise_from_errno("setenv(%s, %s) failed", name,
+		                           value);
 	else
 		return 0;
 }
@@ -242,9 +246,9 @@ void set_dir_or_home_relative(enum mm_known_dir dirtype, const char* dir,
 static
 void init_basedirs(void)
 {
-	const char *home, *dir;
+	const char * home, * dir;
 
-	home =  mm_getenv("HOME", mm_getenv("USERPROFILE", NULL));
+	home = mm_getenv("HOME", mm_getenv("USERPROFILE", NULL));
 	mm_check(home != NULL, "Surprising: Home folder not specified in env");
 	set_basedir(MM_HOME, home);
 
@@ -299,8 +303,8 @@ const char* mm_get_basedir(enum mm_known_dir dirtype)
  * @suffix:     path to append to base folder
  *
  * Return: pointer to allocated string containing the specified path in case of
- * success, NULL with error state set accordingly otherwise. The allocated string
- * must be freed by a call to free() when it is no longer needed.
+ * success, NULL with error state set accordingly otherwise. The allocated
+ * string must be freed by a call to free() when it is no longer needed.
  */
 API_EXPORTED
 char* mm_path_from_basedir(enum mm_known_dir dirtype, const char* suffix)
@@ -350,7 +354,7 @@ const char* get_last_nonsep_ptr(const char* path)
 static
 const char* get_basename_ptr(const char* path)
 {
-	const char *c, *lastptr;
+	const char * c, * lastptr;
 
 	lastptr = get_last_nonsep_ptr(path);
 
@@ -473,7 +477,7 @@ int mm_dirname(char* dir, const char* path)
 	while (lastptr > path && is_path_separator(*lastptr))
 		lastptr--;
 
-	len  = lastptr - path + 1;
+	len = lastptr - path + 1;
 
 exit:
 	if (dir) {

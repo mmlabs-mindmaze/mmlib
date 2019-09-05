@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -54,21 +54,24 @@ int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags)
 		pthread_mutexattr_init(&attr);
 
 		if (flags & MMTHR_PSHARED) {
-			pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+			pthread_mutexattr_setpshared(&attr,
+			                             PTHREAD_PROCESS_SHARED);
 
 #if HAVE_PTHREAD_MUTEX_CONSISTENT
-			pthread_mutexattr_setrobust(&attr, PTHREAD_MUTEX_ROBUST);
+			pthread_mutexattr_setrobust(&attr,
+			                            PTHREAD_MUTEX_ROBUST);
 #else
-			mmlog_warn("Process shared mutex are supposed to be"
-				   "robust as well. But I do not how to have"
-				   "a robust mutex on this platform");
+			mmlog_warn("Process shared mutex are supposed to be "
+			           "robust as well. But I do not how to have "
+			           "a robust mutex on this platform");
 #endif
 		}
 	}
 
 	ret = pthread_mutex_init(mutex, flags ? &attr : NULL);
 	if (ret)
-		mm_raise_error(ret, "Failed initializing mutex: %s", strerror(ret));
+		mm_raise_error(ret, "Failed initializing mutex: %s",
+		               strerror(ret));
 
 	if (flags)
 		pthread_mutexattr_destroy(&attr);
@@ -285,8 +288,8 @@ int mmthr_mtx_deinit(mmthr_mtx_t* mutex)
  * pointed by @cond had been statically initialized with
  * MMTHR_COND_INITIALIZER.
  *
- * It is undefined behavior if a condition variable is reinitialized before getting
- * destroyed first.
+ * It is undefined behavior if a condition variable is reinitialized before
+ * getting destroyed first.
  *
  * Return: 0
  */
@@ -300,7 +303,8 @@ int mmthr_cond_init(mmthr_cond_t* cond, int flags)
 		pthread_condattr_init(&attr);
 
 		if (flags & MMTHR_PSHARED)
-			pthread_condattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+			pthread_condattr_setpshared(&attr,
+			                            PTHREAD_PROCESS_SHARED);
 
 		if (flags & MMTHR_WAIT_MONOTONIC)
 			pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
@@ -308,7 +312,8 @@ int mmthr_cond_init(mmthr_cond_t* cond, int flags)
 
 	ret = pthread_cond_init(cond, flags ? &attr : NULL);
 	if (ret)
-		mm_raise_error(ret, "Failed initializing cond: %s", strerror(ret));
+		mm_raise_error(ret, "Failed initializing cond: %s",
+		               strerror(ret));
 
 	if (flags)
 		pthread_condattr_destroy(&attr);
@@ -497,7 +502,7 @@ int mmthr_cond_deinit(mmthr_cond_t* cond)
  * Return: 0
  */
 API_EXPORTED
-int mmthr_once(mmthr_once_t* once, void (*once_routine)(void))
+int mmthr_once(mmthr_once_t* once, void (* once_routine)(void))
 {
 	return pthread_once(once, once_routine);
 }
@@ -528,7 +533,8 @@ int mmthr_create(mmthread_t* thread, void* (*proc)(void*), void* arg)
 
 	ret = pthread_create(thread, NULL, proc, arg);
 	if (ret)
-		mm_raise_error(ret, "Failed creating thread: %s", strerror(ret));
+		mm_raise_error(ret, "Failed creating thread: %s",
+		               strerror(ret));
 
 	return ret;
 }
@@ -585,7 +591,8 @@ int mmthr_detach(mmthread_t thread)
 
 	ret = pthread_detach(thread);
 	if (ret)
-		mm_raise_error(ret, "Failed to detach thread: %s", strerror(ret));
+		mm_raise_error(ret, "Failed to detach thread: %s",
+		               strerror(ret));
 
 	return ret;
 }

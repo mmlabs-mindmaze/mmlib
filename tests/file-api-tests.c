@@ -156,7 +156,7 @@ bool are_files_same(const char* path1, const char* path2)
 		}
 
 		// Read from file2 and compare data
-		if (  fullread(fd2, buff2, rsz)
+		if (fullread(fd2, buff2, rsz)
 		   || memcmp(buff1, buff2, rsz) != 0  )
 			break;
 	}
@@ -549,7 +549,7 @@ void init_testdir(void)
 
 	mm_remove(TEST_DIR, MM_DT_ANY|MM_RECURSIVE);
 
-	if (  mm_mkdir(TEST_DIR, S_IRWXU, MM_RECURSIVE)
+	if (mm_mkdir(TEST_DIR, S_IRWXU, MM_RECURSIVE)
 	   || mm_chdir(TEST_DIR)  )
 		return;
 

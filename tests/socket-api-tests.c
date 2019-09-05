@@ -306,7 +306,7 @@ int gen_random_int(int max)
  * This function configures the msg_iov split of @msg with a random lookup
  * partition of a buffer @buf of size @buflen. The partition is random, nothing
  * prevents that the elements in @msg->msg_iov will not overlap.
- * 
+ *
  * It is however guaranteed that:
  * - the element in @msg->msg_iov will always point inside @buf
  * - the combined size of @msg->msg_iov elements will be less or equal to @buflen
@@ -324,7 +324,7 @@ void gen_random_msg_iov(int num_iov_max, struct msghdr* msg, void* buf, size_t b
 		len = gen_random_int(buflen-offset);
 		if (len > rem_sz)
 			len = rem_sz;
-	
+
 		msg->msg_iov[i].iov_base = cbuf + offset;
 		msg->msg_iov[i].iov_len = len;
 
@@ -1048,7 +1048,7 @@ int get_socktype(int fd)
 	int socktype = -1;
 	socklen_t len = sizeof(socktype);
 
-	if (  mm_getsockopt(fd, SOL_SOCKET, SO_TYPE, &socktype, &len)
+	if (mm_getsockopt(fd, SOL_SOCKET, SO_TYPE, &socktype, &len)
 	   || len != sizeof(socktype))
 		return -1;
 
@@ -1062,7 +1062,7 @@ int get_peer_port(int fd)
 	struct sockaddr_in6 addr = {.sin6_port = 0};
 	socklen_t len = sizeof(addr);
 
-	if (  mm_getpeername(fd, (struct sockaddr*)&addr, &len)
+	if (mm_getpeername(fd, (struct sockaddr*)&addr, &len)
 	   || len != sizeof(addr))
 		return -1;
 

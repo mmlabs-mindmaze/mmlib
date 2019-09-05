@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -22,7 +22,7 @@
  * indicate the error.
  */
 API_EXPORTED
-int mm_gettime(clockid_t clock_id, struct timespec *ts)
+int mm_gettime(clockid_t clock_id, struct timespec * ts)
 {
 	int ret;
 
@@ -58,7 +58,7 @@ int mm_gettime(clockid_t clock_id, struct timespec *ts)
  * accuracy much worse than its resolution.
  */
 API_EXPORTED
-int mm_getres(clockid_t clock_id, struct timespec *res)
+int mm_getres(clockid_t clock_id, struct timespec * res)
 {
 	int ret;
 
@@ -88,13 +88,14 @@ int mm_getres(clockid_t clock_id, struct timespec *res)
  * indicate the error.
  */
 API_EXPORTED
-int mm_nanosleep(clockid_t clock_id, const struct timespec *ts)
+int mm_nanosleep(clockid_t clock_id, const struct timespec * ts)
 {
 	int ret;
 
 	ret = clock_nanosleep(clock_id, TIMER_ABSTIME, ts, NULL);
 	if (ret) {
-		mm_raise_error(ret, "clock_nanosleep failed: %s", strerror(ret));
+		mm_raise_error(ret, "clock_nanosleep failed: %s",
+		               strerror(ret));
 		return -1;
 	}
 

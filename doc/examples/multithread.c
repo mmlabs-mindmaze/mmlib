@@ -140,7 +140,6 @@ int main(void)
 	// Now that all thread are created, we can signal them to start
 	broadcast_start_notification(&shared);
 
-	
 	for (i = 0; i < NUM_THREAD; i++)
 		mmthr_join(thid[i], NULL);
 

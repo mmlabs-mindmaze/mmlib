@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -19,7 +19,7 @@ void* internal_aligned_alloc(size_t alignment, size_t size)
 {
 	void * ptr = NULL;
 
-#if   defined(HAVE_POSIX_MEMALIGN)
+#if defined (HAVE_POSIX_MEMALIGN)
 
 	int ret = posix_memalign(&ptr, alignment, size);
 	if (ret) {
@@ -27,13 +27,13 @@ void* internal_aligned_alloc(size_t alignment, size_t size)
 		ptr = NULL;
 	}
 
-#elif defined(HAVE_ALIGNED_ALLOC)
+#elif defined (HAVE_ALIGNED_ALLOC)
 
 	ptr = aligned_alloc(alignment, size);
 
-#elif defined(HAVE__ALIGNED_MALLOC)
+#elif defined (HAVE__ALIGNED_MALLOC)
 
-	if (!MM_IS_POW2(alignment) || (alignment < sizeof(void*)))  {
+	if (!MM_IS_POW2(alignment) || (alignment < sizeof(void*))) {
 		ptr = NULL;
 		errno = EINVAL;
 	} else {
@@ -42,7 +42,7 @@ void* internal_aligned_alloc(size_t alignment, size_t size)
 
 #else
 #  error Cannot find aligned allocation primitive
-#endif
+#endif /* if defined (HAVE_POSIX_MEMALIGN) */
 
 	return ptr;
 }
@@ -67,8 +67,9 @@ void* mm_aligned_alloc(size_t alignment, size_t size)
 	void * ptr = internal_aligned_alloc(alignment, size);
 
 	if (!ptr) {
-		mm_raise_from_errno("Cannot allocate buffer (alignment=%zu, size=%zu)",
-		                     alignment, size);
+		mm_raise_from_errno("Cannot allocate buffer "
+		                    "(alignment=%zu, size=%zu)",
+		                    alignment, size);
 		return NULL;
 	}
 

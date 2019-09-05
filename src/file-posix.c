@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -44,7 +44,7 @@
  * %O_RDWR
  *   Open for reading and writing. The result is undefined if this flag is
  *   applied to a FIFO.
- * 
+ *
  * Any combination of the following may be used
  *
  * %O_APPEND
@@ -85,7 +85,8 @@ int mm_open(const char* path, int oflag, int mode)
 
 	fd = open(path, oflag, mode);
 	if (fd < 0)
-		return mm_raise_from_errno("open(%s, %08x) failed", path, oflag);
+		return mm_raise_from_errno("open(%s, %08x) failed", path,
+		                           oflag);
 
 	return fd;
 }
@@ -341,7 +342,8 @@ API_EXPORTED
 int mm_link(const char* oldpath, const char* newpath)
 {
 	if (link(oldpath, newpath) < 0)
-		return mm_raise_from_errno("link(%s, %s) failed", oldpath, newpath);
+		return mm_raise_from_errno("link(%s, %s) failed", oldpath,
+		                           newpath);
 
 	return 0;
 }
@@ -363,7 +365,8 @@ API_EXPORTED
 int mm_symlink(const char* oldpath, const char* newpath)
 {
 	if (symlink(oldpath, newpath) < 0)
-		return mm_raise_from_errno("symlink(%s, %s) failed", oldpath, newpath);
+		return mm_raise_from_errno("symlink(%s, %s) failed", oldpath,
+		                           newpath);
 
 	return 0;
 }
@@ -701,8 +704,7 @@ int mm_remove_rec(int dirfd, int flags, int rec_lvl)
 			return 0;
 	}
 
-	while ((dp = readdir(dir)) != NULL)
-	{
+	while ((dp = readdir(dir)) != NULL) {
 		type = get_file_type(dirfd, dp->d_name);
 		if (type > 0 && (flags & type) == 0)
 			continue;  // only consider filtered files
@@ -713,7 +715,8 @@ int mm_remove_rec(int dirfd, int flags, int rec_lvl)
 
 		if (type == MM_DT_DIR) {
 			/* remove the inside of the folder */
-			if ((newdirfd = openat(dirfd, dp->d_name, O_CLOEXEC, 0)) == -1) {
+			newdirfd = openat(dirfd, dp->d_name, O_CLOEXEC, 0);
+			if (newdirfd == -1) {
 				if (flags & MM_FAILONERROR)
 					goto exit;
 				else
@@ -725,7 +728,8 @@ int mm_remove_rec(int dirfd, int flags, int rec_lvl)
 				goto exit;
 
 			/* try to remove the folder again
-			 * it MAY have been cleansed by the recursive remove call */
+			 * it MAY have been cleansed by the recursive remove
+			 * call */
 			(void) unlinkat(dirfd, dp->d_name, AT_REMOVEDIR);
 		}
 
@@ -779,13 +783,17 @@ int mm_remove(const char* path, int flags)
 	if (flags & MM_RECURSIVE && type == MM_DT_DIR) {
 		if ((dirfd = mm_open(path, O_DIRECTORY, 0)) == -1) {
 			return mm_raise_from_errno("recursive mm_remove(%s) failed: "
-			                           "cannot open directory", path);
+			                           "cannot open directory",
+			                           path);
 		}
+
 		error_flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_NOLOG);
 		rv = mm_remove_rec(dirfd, flags, RECURSION_MAX);
 		mm_error_set_flags(error_flags, MM_ERROR_NOLOG);
 		if (rv != 0 && !(flags & MM_FAILONERROR)) {
-			return mm_raise_from_errno("recursive mm_remove(%s) failed", path);
+			return mm_raise_from_errno(
+				"recursive mm_remove(%s) failed",
+				path);
 		}
 
 		/* allow rmdir(".") when called with the recursive flag only */
@@ -813,7 +821,7 @@ int mm_remove(const char* path, int flags)
  * set accordingly.
  */
 API_EXPORTED
-MMDIR * mm_opendir(const char* path)
+MMDIR* mm_opendir(const char* path)
 {
 	DIR * dir;
 	MMDIR * d;
@@ -829,6 +837,7 @@ MMDIR * mm_opendir(const char* path)
 		mm_raise_from_errno("opendir(%s) failed", path);
 		return NULL;
 	}
+
 	d->dir = dir;
 	d->dirent = NULL;
 
@@ -869,7 +878,8 @@ API_EXPORTED
 void mm_rewinddir(MMDIR* dir)
 {
 	if (dir == NULL) {
-		mm_raise_error(EINVAL, "mm_rewinddir() does not accept NULL pointers");
+		mm_raise_error(EINVAL,
+		               "mm_rewinddir() does not accept NULL pointers");
 		return;
 	}
 
@@ -880,7 +890,8 @@ void mm_rewinddir(MMDIR* dir)
 /**
  * mm_readdir() - read current entry from directory stream and advance it
  * @d:          directory stream to read
- * @status:     if not NULL, will contain whether readdir returned on error or end of dir
+ * @status:     if not NULL, will contain whether readdir returned on error or
+ *              end of dir
  *
  * The type MMDIR represents a directory stream, which is an ordered sequence
  * of all the directory entries in a particular directory. Directory entries
@@ -895,10 +906,10 @@ void mm_rewinddir(MMDIR* dir)
  * stream.
  *
  * The @status argument is optional. It can be provided to gather information on
- * why the call to mm_readdir() returned NULL. Most of the time, this will happen
- * on end-of-dir, in which case status will be 0. However this is not always 
- * the case - eg. if a required internal allocation fails - and then status
- * is filled with a negative value. 
+ * why the call to mm_readdir() returned NULL. Most of the time, this will
+ * happen on end-of-dir, in which case status will be 0. However this is not
+ * always the case - eg. if a required internal allocation fails - and then
+ * status is filled with a negative value.
  *
  * Return: pointer to the file entry if directory stream has not reached the
  * end. NULL otherwise. In such a case and if an error has occurred and error
@@ -915,7 +926,8 @@ const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
 		*status = -1;
 
 	if (d == NULL) {
-		mm_raise_error(EINVAL, "mm_readdir() does not accept NULL pointers");
+		mm_raise_error(EINVAL,
+		               "mm_readdir() does not accept NULL pointers");
 		return NULL;
 	}
 
@@ -923,6 +935,7 @@ const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
 	if (rd == NULL) {
 		if (status != NULL)
 			*status = 0;
+
 		return NULL;
 	}
 
@@ -932,14 +945,15 @@ const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
 	if (UNLIKELY(d->dirent == NULL || d->dirent->reclen < reclen)) {
 		void * tmp = realloc(d->dirent, reclen);
 		if (tmp == NULL) {
-			mm_raise_from_errno("readdir() failed to alloc the required memory");
+			mm_raise_from_errno("failed to alloc required memory");
 			return NULL;
 		}
+
 		d->dirent = tmp;
 		d->dirent->reclen = reclen;
 	}
 
-	switch(rd->d_type) {
+	switch (rd->d_type) {
 	case DT_FIFO: d->dirent->type = MM_DT_FIFO; break;
 	case DT_CHR:  d->dirent->type = MM_DT_CHR; break;
 	case DT_DIR:  d->dirent->type = MM_DT_DIR; break;

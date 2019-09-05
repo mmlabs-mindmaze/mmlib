@@ -200,7 +200,7 @@ struct envstr* envcache_find_entry(struct envcache* cache, const char* name)
 	int i, namelen;
 
 	namelen = strlen(name);
-	
+
 	for (i = 0; i < cache->arrlen; i++) {
 		if (namelen != cache->array[i].namelen)
 			continue;
@@ -447,7 +447,7 @@ char* getenv_utf8(const char* name)
 	val_u16 = get_u16env(name);
 	if (!val_u16)
 		return NULL;
-	
+
 	// Allocate an entry in the cache
 	entry = envcache_create_entry(cache, name);
 	if (!entry)
@@ -507,8 +507,8 @@ int setenv_utf8(const char* name, const char* value, int overwrite)
 	}
 
 	// Find cache entry or allocate if not found
-	if ( !(entry = envcache_find_entry(cache, name))
-	  && !(entry = envcache_create_entry(cache, name)) )
+	if (!(entry = envcache_find_entry(cache, name))
+	    && !(entry = envcache_create_entry(cache, name)))
 		goto exit;
 
 	// Store the UTF-8 value in the cache

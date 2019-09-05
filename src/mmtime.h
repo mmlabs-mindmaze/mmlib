@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef MMTIME_H
 #define MMTIME_H
 
@@ -42,26 +42,26 @@
  */
 #ifndef _WIN32
 
-#  define MM_CLK_REALTIME         CLOCK_REALTIME
-#  define MM_CLK_MONOTONIC        CLOCK_MONOTONIC
-#  define MM_CLK_CPU_PROCESS      CLOCK_PROCESS_CPUTIME_ID
-#  define MM_CLK_CPU_THREAD       CLOCK_THREAD_CPUTIME_ID
+#  define MM_CLK_REALTIME    CLOCK_REALTIME
+#  define MM_CLK_MONOTONIC   CLOCK_MONOTONIC
+#  define MM_CLK_CPU_PROCESS CLOCK_PROCESS_CPUTIME_ID
+#  define MM_CLK_CPU_THREAD  CLOCK_THREAD_CPUTIME_ID
 
 #  ifdef CLOCK_MONOTONIC_RAW
-#    define MM_CLK_MONOTONIC_RAW  CLOCK_MONOTONIC_RAW
+#    define MM_CLK_MONOTONIC_RAW CLOCK_MONOTONIC_RAW
 #  else
-#    define MM_CLK_MONOTONIC_RAW  CLOCK_MONOTONIC
+#    define MM_CLK_MONOTONIC_RAW CLOCK_MONOTONIC
 #  endif
 
 #else // WIN32
 
-#  define MM_CLK_REALTIME              0
-#  define MM_CLK_MONOTONIC             1
-#  define MM_CLK_CPU_PROCESS           2
-#  define MM_CLK_CPU_THREAD            3
-#  define MM_CLK_MONOTONIC_RAW         4
+#  define MM_CLK_REALTIME      0
+#  define MM_CLK_MONOTONIC     1
+#  define MM_CLK_CPU_PROCESS   2
+#  define MM_CLK_CPU_THREAD    3
+#  define MM_CLK_MONOTONIC_RAW 4
 
-#endif
+#endif /* ifndef _WIN32 */
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,9 +71,9 @@ extern "C" {
 typedef int clockid_t;
 #endif
 
-MMLIB_API int mm_gettime(clockid_t clock_id, struct timespec *ts);
-MMLIB_API int mm_getres(clockid_t clock_id, struct timespec *res);
-MMLIB_API int mm_nanosleep(clockid_t clock_id, const struct timespec *ts);
+MMLIB_API int mm_gettime(clockid_t clock_id, struct timespec * ts);
+MMLIB_API int mm_getres(clockid_t clock_id, struct timespec * res);
+MMLIB_API int mm_nanosleep(clockid_t clock_id, const struct timespec * ts);
 MMLIB_API int mm_relative_sleep_ms(int64_t duration_ms);
 MMLIB_API int mm_relative_sleep_us(int64_t duration_us);
 MMLIB_API int mm_relative_sleep_ns(int64_t duration_ns);
@@ -82,15 +82,15 @@ MMLIB_API int mm_relative_sleep_ns(int64_t duration_ns);
  *                     Timespec manipulation helpers                      *
  **************************************************************************/
 #ifndef NS_IN_SEC
-#define NS_IN_SEC       1000000000
+#define NS_IN_SEC 1000000000
 #endif
 
 #ifndef US_IN_SEC
-#define US_IN_SEC       1000000
+#define US_IN_SEC 1000000
 #endif
 
 #ifndef MS_IN_SEC
-#define MS_IN_SEC       1000
+#define MS_IN_SEC 1000
 #endif
 
 /**
@@ -219,4 +219,4 @@ void mm_timeadd_ms(struct timespec* ts, int64_t dt)
 }
 #endif
 
-#endif
+#endif /* ifndef MMTIME_H */

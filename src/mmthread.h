@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef MMTHREAD_H
 #define MMTHREAD_H
 
@@ -19,9 +19,9 @@ typedef pthread_cond_t mmthr_cond_t;
 typedef pthread_once_t mmthr_once_t;
 typedef pthread_t mmthread_t;
 
-#define MMTHR_MTX_INITIALIZER           PTHREAD_MUTEX_INITIALIZER
-#define MMTHR_COND_INITIALIZER          PTHREAD_COND_INITIALIZER
-#define MMTHR_ONCE_INIT                 PTHREAD_ONCE_INIT
+#define MMTHR_MTX_INITIALIZER  PTHREAD_MUTEX_INITIALIZER
+#define MMTHR_COND_INITIALIZER PTHREAD_COND_INITIALIZER
+#define MMTHR_ONCE_INIT        PTHREAD_ONCE_INIT
 
 #else // _WIN32
 
@@ -52,16 +52,16 @@ typedef struct mmthr_cond {
 
 typedef int mmthr_once_t;
 
-#define MMTHR_MTX_INITIALIZER           {0}
-#define MMTHR_COND_INITIALIZER          {0}
-#define MMTHR_ONCE_INIT                 0
+#define MMTHR_MTX_INITIALIZER {0}
+#define MMTHR_COND_INITIALIZER {0}
+#define MMTHR_ONCE_INIT 0
 
 typedef struct mmthread* mmthread_t;
 
 #endif // !_WIN32
 
-#define MMTHR_PSHARED           0x00000001
-#define MMTHR_WAIT_MONOTONIC    0x00000002
+#define MMTHR_PSHARED 0x00000001
+#define MMTHR_WAIT_MONOTONIC 0x00000002
 
 
 #ifdef __cplusplus
@@ -82,7 +82,7 @@ MMLIB_API int mmthr_cond_timedwait(mmthr_cond_t* cond, mmthr_mtx_t* mutex,
 MMLIB_API int mmthr_cond_signal(mmthr_cond_t* cond);
 MMLIB_API int mmthr_cond_broadcast(mmthr_cond_t* cond);
 MMLIB_API int mmthr_cond_deinit(mmthr_cond_t* cond);
-MMLIB_API int mmthr_once(mmthr_once_t* once, void (*once_routine)(void));
+MMLIB_API int mmthr_once(mmthr_once_t* once, void (* once_routine)(void));
 MMLIB_API int mmthr_create(mmthread_t* thread, void* (*proc)(void*), void* arg);
 MMLIB_API int mmthr_join(mmthread_t thread, void** value_ptr);
 MMLIB_API int mmthr_detach(mmthread_t thread);
@@ -92,4 +92,4 @@ MMLIB_API mmthread_t mmthr_self(void);
 }
 #endif
 
-#endif
+#endif /* ifndef MMTHREAD_H */

@@ -605,7 +605,7 @@ void filter_props_type(char** dst_props, char** src_props, int typemask)
 		if (mm_stat(src_props[i], &st, MM_NOFOLLOW))
 			continue;
 
-		if (  (S_ISREG(st.mode) && (typemask & MM_DT_REG))
+		if ((S_ISREG(st.mode) && (typemask & MM_DT_REG))
 		   || (S_ISDIR(st.mode) && (typemask & MM_DT_DIR))
 		   || (S_ISLNK(st.mode) && (typemask & MM_DT_LNK)))
 			dst_props[j++] = src_props[i];

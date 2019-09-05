@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -88,7 +88,7 @@ int mm_socket(int domain, int type)
  * accordingly.
  */
 API_EXPORTED
-int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+int mm_bind(int sockfd, const struct sockaddr * addr, socklen_t addrlen)
 {
 	if (bind(sockfd, addr, addrlen) < 0)
 		return mm_raise_from_errno("bind() failed");
@@ -98,13 +98,13 @@ int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 
 
 /**
- * mm_getsockname() - returns  the  current address to which the socket sockfd is bound
- * @sockfd:     file descriptor to which the socket is bound
- * @addr:       points to a &struct sockaddr containing the bound address
- * @addrlen:    length of the &struct sockaddr pointed to by @addr
+ * mm_getsockname() - returns the current address to which sockfd is bound
+ * @sockfd:  file descriptor to which the socket is bound
+ * @addr:    points to a &struct sockaddr containing the bound address
+ * @addrlen: length of the &struct sockaddr pointed to by @addr
  *
- * getsockname() returns the current address to which the socket sockfd is bound,
- * in the buffer pointed to by @addr.
+ * getsockname() returns the current address to which the socket sockfd is
+ * bound, in the buffer pointed to by @addr.
  * The @addrlen argument should be initialized to indicate the amount of space
  * (in bytes) pointed to by addr. On return it contains the actual size of the
  * socket address.
@@ -113,7 +113,7 @@ int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
  * accordingly.
  */
 API_EXPORTED
-int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+int mm_getsockname(int sockfd, struct sockaddr * addr, socklen_t * addrlen)
 {
 	if (getsockname(sockfd, addr, addrlen) < 0)
 		return mm_raise_from_errno("getsockname() failed");
@@ -137,7 +137,7 @@ int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
  * accordingly.
  */
 API_EXPORTED
-int mm_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+int mm_getpeername(int sockfd, struct sockaddr * addr, socklen_t * addrlen)
 {
 	if (getpeername(sockfd, addr, addrlen) < 0)
 		return mm_raise_from_errno("getpeername() failed");
@@ -228,7 +228,7 @@ int mm_accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen)
  * accordingly.
  */
 API_EXPORTED
-int mm_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+int mm_connect(int sockfd, const struct sockaddr * addr, socklen_t addrlen)
 {
 	if (connect(sockfd, addr, addrlen) < 0)
 		return mm_raise_from_errno("connect() failed");
@@ -262,7 +262,7 @@ int mm_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
  */
 API_EXPORTED
 int mm_setsockopt(int sockfd, int level, int optname,
-                  const void *optval, socklen_t optlen)
+                  const void * optval, socklen_t optlen)
 {
 	struct timeval timeout;
 	int delay_ms;
@@ -270,12 +270,12 @@ int mm_setsockopt(int sockfd, int level, int optname,
 	// If SO_RCVTIMEO/SO_SNDTIMEO, Posix mandates timeval structure.
 	// Since we accept delay in ms  mapped to int, we do the conversion
 	// now.
-	if ( (level == SOL_SOCKET)
-	  && (optname == SO_RCVTIMEO || optname == SO_SNDTIMEO) ) {
+	if ((level == SOL_SOCKET)
+	    && (optname == SO_RCVTIMEO || optname == SO_SNDTIMEO)) {
 		if (optlen != sizeof(int))
-			return mm_raise_error(EINVAL, "bad option length,"
-			                      " SO_RCVTIMEO/SO_SNDTIMEO"
-					      " accepts int (timeout in ms)");
+			return mm_raise_error(EINVAL, "bad option length, "
+			                      "SO_RCVTIMEO/SO_SNDTIMEO "
+			                      "accepts int (timeout in ms)");
 
 		delay_ms = *((int*)optval);
 		timeout.tv_sec = delay_ms / 1000;
@@ -313,7 +313,7 @@ int mm_setsockopt(int sockfd, int level, int optname,
  */
 API_EXPORTED
 int mm_getsockopt(int sockfd, int level, int optname,
-                  void *optval, socklen_t* optlen)
+                  void * optval, socklen_t* optlen)
 {
 	int ret, delay_ms;
 	union posix_sockopt posix_opt;
@@ -327,8 +327,8 @@ int mm_getsockopt(int sockfd, int level, int optname,
 	// If SO_RCVTIMEO/SO_SNDTIMEO, Posix mandates timeval structure.
 	// Since we accept delay in ms mapped to int, we do the conversion
 	// now.
-	if ( (level == SOL_SOCKET)
-	  && (optname == SO_RCVTIMEO || optname == SO_SNDTIMEO) ) {
+	if ((level == SOL_SOCKET)
+	    && (optname == SO_RCVTIMEO || optname == SO_SNDTIMEO)) {
 		delay_ms = posix_opt.timeout.tv_sec * 1000;
 		delay_ms += posix_opt.timeout.tv_usec / 1000;
 
@@ -407,7 +407,7 @@ int mm_shutdown(int sockfd, int how)
  * otherwise with error state set accordingly.
  */
 API_EXPORTED
-ssize_t mm_send(int sockfd, const void *buffer, size_t length, int flags)
+ssize_t mm_send(int sockfd, const void * buffer, size_t length, int flags)
 {
 	ssize_t ret_sz;
 
@@ -465,12 +465,12 @@ ssize_t mm_send(int sockfd, const void *buffer, size_t length, int flags)
  * otherwise with error state set accordingly.
  */
 API_EXPORTED
-ssize_t mm_recv(int sockfd, void *buffer, size_t length, int flags)
+ssize_t mm_recv(int sockfd, void * buffer, size_t length, int flags)
 {
 	ssize_t ret_sz;
 
 	ret_sz = recv(sockfd, buffer, length, flags);
-	if (ret_sz <  0)
+	if (ret_sz < 0)
 		return mm_raise_from_errno("recv() failed");
 
 	return ret_sz;
@@ -504,7 +504,7 @@ ssize_t mm_recv(int sockfd, void *buffer, size_t length, int flags)
  * otherwise with error state set accordingly.
  */
 API_EXPORTED
-ssize_t mm_sendmsg(int sockfd, const struct msghdr *msg, int flags)
+ssize_t mm_sendmsg(int sockfd, const struct msghdr * msg, int flags)
 {
 	ssize_t ret_sz;
 
@@ -523,9 +523,10 @@ ssize_t mm_sendmsg(int sockfd, const struct msghdr *msg, int flags)
  *              set) and the buffers for the inbound message.
  * @flags:      type of message reception
  *
- * This function receives a message from a connection-mode or connectionless-mode
- * socket. It is normally used with connectionless-mode sockets because it
- * permits the application to retrieve the source address of received data.
+ * This function receives a message from a connection-mode or
+ * connectionless-mode socket. It is normally used with connectionless-mode
+ * sockets because it permits the application to retrieve the source address
+ * of received data.
  *
  * In the &struct mmsock_msg structure, the &msghdr.msg_name and
  * &msghdr.msg_namelen members specify the source address if the socket is
@@ -590,7 +591,7 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr* msg, int flags)
  * returned and the error state is set accordingly.
  */
 API_EXPORTED
-int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
+int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
                      int flags)
 {
 	int ret;
@@ -628,8 +629,8 @@ int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
  * returned and the error state is set accordingly.
  */
 API_EXPORTED
-int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
-                     int flags, struct timespec *timeout)
+int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
+                     int flags, struct timespec * timeout)
 {
 	int ret;
 	struct mmsghdr* hdrvec = (struct mmsghdr*)msgvec;
@@ -687,9 +688,9 @@ int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
  * above.
  */
 API_EXPORTED
-int mm_getaddrinfo(const char *node, const char *service,
-                   const struct addrinfo *hints,
-		   struct addrinfo **res)
+int mm_getaddrinfo(const char * node, const char * service,
+                   const struct addrinfo * hints,
+                   struct addrinfo ** res)
 {
 	int errnum;
 	char errmsg[256];
@@ -727,9 +728,9 @@ int mm_getaddrinfo(const char *node, const char *service,
  * accordingly.
  */
 API_EXPORTED
-int mm_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
-                   char *host, socklen_t hostlen,
-                   char *serv, socklen_t servlen, int flags)
+int mm_getnameinfo(const struct sockaddr * addr, socklen_t addrlen,
+                   char * host, socklen_t hostlen,
+                   char * serv, socklen_t servlen, int flags)
 {
 	int errnum;
 	char errmsg[256];
@@ -758,7 +759,7 @@ int mm_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
  * mm_getaddrinfo(). If @res is NULL, mm_getnameinfo() do nothing.
  */
 API_EXPORTED
-void mm_freeaddrinfo(struct addrinfo *res)
+void mm_freeaddrinfo(struct addrinfo * res)
 {
 	freeaddrinfo(res);
 }
@@ -766,15 +767,15 @@ void mm_freeaddrinfo(struct addrinfo *res)
 static
 int is_valid_fd(int fd)
 {
-    return (fcntl(fd, F_GETFL) != -1) || (errno != EBADF);
+	return (fcntl(fd, F_GETFL) != -1) || (errno != EBADF);
 }
 
 
 /**
- * mm_poll() - waits for one of a set of file descriptors to become ready to perform I/O.
- * @fds:          array of struct pollfd. See below.
- * @nfds:         number of @fds passed in argument
- * @timeout_ms:   number of milliseconds that poll() should block waiting
+ * mm_poll() - waits for one of a set of fd to become ready to perform I/O.
+ * @fds:        array of struct pollfd. See below.
+ * @nfds:       number of @fds passed in argument
+ * @timeout_ms: number of milliseconds that poll() should block waiting
  *
  * In each element of @fds array, &mm_pollfd.fd should be a *socket* file
  * descriptor.
@@ -797,19 +798,20 @@ int is_valid_fd(int fd)
  *   (<0) a negative value on error
  */
 API_EXPORTED
-int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)
+int mm_poll(struct mm_pollfd * fds, int nfds, int timeout_ms)
 {
 	int i, rv;
 
-	for (i = 0 ; i < nfds ; i++)
+	for (i = 0; i < nfds; i++) {
 		if (!is_valid_fd(fds[i].fd))
 			return -1;
+	}
 
 	rv = poll(fds, nfds, timeout_ms);
 	if (rv < 0)
 		return mm_raise_from_errno("poll() failed");
 
-	for (i = 0 ; i < nfds ; i++) {
+	for (i = 0; i < nfds; i++) {
 		/* if an error occurrent within poll() processing the socket
 		 * return it instead of flagging it */
 		if (fds[i].events & (POLLNVAL | POLLERR))

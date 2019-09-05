@@ -79,8 +79,8 @@ int set_creation_mode(struct w32_create_file_options* opts, int oflags)
 LOCAL_SYMBOL
 int set_w32_create_file_options(struct w32_create_file_options* opts, int oflags)
 {
-	if ( set_access_mode(opts, oflags)
-	  || set_creation_mode(opts, oflags) )
+	if (set_access_mode(opts, oflags)
+	  || set_creation_mode(opts, oflags))
 		return -1;
 
 	opts->file_attribute = FILE_ATTRIBUTE_NORMAL;
@@ -339,8 +339,8 @@ int local_secdesc_init_from_mode(struct local_secdesc* lsd, mode_t mode)
 	len = sizeof(lsd->buffer);
 	lsd->sd = (SECURITY_DESCRIPTOR*)lsd->buffer;
 	while (!MakeSelfRelativeSD(&abs_sd, lsd->sd, &len)) {
-		if (  GetLastError() != ERROR_INSUFFICIENT_BUFFER
-		   || local_secdesc_resize(lsd, len)  )
+		if (GetLastError() != ERROR_INSUFFICIENT_BUFFER
+		   || local_secdesc_resize(lsd, len))
 			goto exit;
 	}
 
@@ -384,8 +384,8 @@ int local_secdesc_init_from_handle(struct local_secdesc* lsd, HANDLE hnd)
 	while (!GetKernelObjectSecurity(hnd, requested_info,
 	                                lsd->sd, len, &len)) {
 
-		if (  GetLastError() != ERROR_INSUFFICIENT_BUFFER
-		   || local_secdesc_resize(lsd, len)  ) {
+		if (GetLastError() != ERROR_INSUFFICIENT_BUFFER
+		   || local_secdesc_resize(lsd, len)) {
 			rv = -1;
 			local_secdesc_deinit(lsd);
 			break;
@@ -642,7 +642,7 @@ int is_cygpty_pipe(HANDLE hnd)
 	// (the actual \Device\NamedPipe part is striped by
 	// GetFileInformationByHandleEx(FileNameInfo)
 	r = sscanf(name_u8, "\\%7[a-z]-%*[0-9a-f]-pty%*u-%15s", orig, dir);
-	if (  (r == 2)
+	if ((r == 2)
 	   && (!strcmp(orig, "msys") || !strcmp(orig, "cygwin"))
 	   && (!strcmp(dir, "from-master") || !strcmp(dir, "to-master")))
 		return 1;

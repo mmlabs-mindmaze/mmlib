@@ -98,7 +98,7 @@ static
 bool check_dynlibdata_val(struct dynlib_data* data,
                           int expected_ival, const char* expected_str)
 {
-	if (  (data->intval != expected_ival)
+	if ((data->intval != expected_ival)
 	   || (strcmp(data->str, expected_str) != 0) )
 		return false;
 
@@ -117,12 +117,12 @@ int run_plugin_tests(const char* plugin, int flags)
 		goto error;
 
 	// Test symbol loading
-	if (  !(data = mm_dlsym(libhnd, "libdata"))
+	if (!(data = mm_dlsym(libhnd, "libdata"))
 	   || !(vtab = mm_dlsym(libhnd, "api")) )
 		goto error;
 
 	// Test initial values
-	if (  !check_dynlibdata_val(data, INITIAL_INTVAL, INITIAL_STR)
+	if (!check_dynlibdata_val(data, INITIAL_INTVAL, INITIAL_STR)
 	   || (vtab->read_internal_code() != 0) ) {
 		mm_raise_error(MM_EWRONGSTATE, "Wrong initial values");
 		goto error;
@@ -141,7 +141,7 @@ int run_plugin_tests(const char* plugin, int flags)
 	}
 
 	vtab->reset_data();
-	if ( !check_dynlibdata_val(data, INITIAL_INTVAL, INITIAL_STR) ) {
+	if (!check_dynlibdata_val(data, INITIAL_INTVAL, INITIAL_STR) ) {
 		mm_raise_error(MM_EWRONGSTATE, "Wrong value reset");
 		goto error;
 	}

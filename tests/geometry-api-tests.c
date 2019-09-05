@@ -154,7 +154,7 @@ START_TEST(plane_projection_test)
 	float dist_check = 2.0, dist;
 	dist = plane_distance(point, planexy);
 	plane_projection(point, planexy);
-	ck_assert(is_equal(point, proj, 3) 
+	ck_assert(is_equal(point, proj, 3)
 	          && fabs(dist-dist_check) < FLOAT_TOLERANCE);
 }
 END_TEST

@@ -211,7 +211,7 @@ char* tree_rec(const char * path, int lvl, char ** buffer, size_t * buffer_len)
 	while ((dp = mm_readdir(dir, &status)) != NULL) {
 		ck_assert(status == 0);
 		len = strlen(dp->name);
-		if (  (len == 1 && memcmp(dp->name, ".", sizeof(".") - 1) == 0)
+		if ((len == 1 && memcmp(dp->name, ".", sizeof(".") - 1) == 0)
 		   || (len == 2 && memcmp(dp->name, "..", sizeof("..") - 1) ==
 		       0))
 			continue;
@@ -441,7 +441,7 @@ bool test_symlinks(void)
 	mm_remove("symlink-test-file", MM_DT_ANY);
 	mm_remove("symlink-test-file.lnk", MM_DT_ANY);
 
-	if (  !has_symlink_support
+	if (!has_symlink_support
 	   && strcmp(mm_getenv("TC_DIR_SYMLINK", "no"), "yes") != 0) {
 		fprintf(stderr, "Skipping symlink tests: "
 		                "unsupported on windows without special privileges\n"

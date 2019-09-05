@@ -1,11 +1,11 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#define _GNU_SOURCE		// for pipe2()
+#define _GNU_SOURCE             // for pipe2()
 
 #include "mmsysio.h"
 #include "mmerrno.h"
@@ -43,7 +43,7 @@ struct startproc_opts {
 	int flags;
 	int num_map;
 	const struct mm_remap_fd* fd_map;
-        char* const* argv;
+	char* const* argv;
 	char* const* envp;
 };
 
@@ -75,7 +75,8 @@ int set_fd_cloexec(int fd, int cloexec)
 
 /**
  * set_cloexec_all_fds() - Add FD_CLOEXEC to all FDs excepting a list
- * @min_fd:    minimal file descriptor to close (all lower fds will be kept untouched)
+ * @min_fd:    minimal file descriptor to close (all lower fds will be kept
+ * untouched)
  *
  * This function will set the FD_CLOEXEC flag to all file descriptor in the
  * caller process excepting below @min_fd. If a file descriptor has
@@ -96,9 +97,9 @@ void set_cloexec_all_fds(int min_fd)
 	DIR* dir;
 	struct dirent* entry;
 
-	if ( !(dir = opendir("/proc/self/fd"))
-	  && !(dir = opendir("/dev/fd")) ) {
-		mmlog_warn("Cannot find list of open file descriptors."
+	if (!(dir = opendir("/proc/self/fd"))
+	    && !(dir = opendir("/dev/fd"))) {
+		mmlog_warn("Cannot find list of open file descriptors. "
 		           "Leaving maybe some fd opened in the child...");
 		return;
 	}
@@ -154,10 +155,11 @@ int remap_file_descriptors(int num_map, const struct mm_remap_fd* fd_map)
 			continue;
 		}
 
-		// Duplicate parent_fd to child_fd. We use dup2, so if parent_fd has CLOEXEC
-		// flag, it will be removed in the duplicated fd
+		// Duplicate parent_fd to child_fd. We use dup2, so if parent_fd
+		// has CLOEXEC flag, it will be removed in the duplicated fd
 		if (dup2(parent_fd, child_fd) < 0) {
-			mm_raise_from_errno("dup2(%i, %i) failed", parent_fd, child_fd);
+			mm_raise_from_errno("dup2(%i, %i) failed", parent_fd,
+			                    child_fd);
 			return -1;
 		}
 	}
@@ -227,8 +229,8 @@ noreturn void load_new_proc_img(const struct startproc_opts* opts,
                                 int report_pipe)
 {
 	// Perform remapping if MM_SPAWN_KEEP_FDS is not set in flags
-	if ( !(opts->flags & MM_SPAWN_KEEP_FDS)
-	  && remap_file_descriptors(opts->num_map, opts->fd_map))
+	if (!(opts->flags & MM_SPAWN_KEEP_FDS)
+	    && remap_file_descriptors(opts->num_map, opts->fd_map))
 		goto failure;
 
 	if (strchr(opts->file, '/'))
@@ -379,7 +381,8 @@ int spawn_daemon(const struct startproc_opts* opts)
 		return -1;
 	}
 
-	// if pid > 0, this means that we are in the parent process of the first fork
+	// if pid > 0, this means that we are in the parent process of the first
+	// fork
 	if (pid > 0) {
 		close(report_fd);
 		waitpid(pid, &status, 0);
@@ -402,10 +405,12 @@ int spawn_daemon(const struct startproc_opts* opts)
 			report_to_parent_and_exit(report_fd);
 		}
 	}
+
 	if (chdir("/")) {
 		mm_raise_from_errno("Unable to chdir(\"/\")");
 		report_to_parent_and_exit(report_fd);
 	}
+
 	umask(0);
 	setsid();
 
@@ -588,8 +593,8 @@ int mm_execv(const char* file,
 		return mm_raise_error(EINVAL, "Invalid flags (%08x)", flags);
 
 	// Perform remapping if MM_SPAWN_KEEP_FDS is not set in flags
-	if (  !(flags & MM_SPAWN_KEEP_FDS)
-	   && remap_file_descriptors(num_map, fd_map))
+	if (!(flags & MM_SPAWN_KEEP_FDS)
+	    && remap_file_descriptors(num_map, fd_map))
 		return -1;
 
 	if (!argv)
