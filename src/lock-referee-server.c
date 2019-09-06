@@ -94,6 +94,9 @@ struct lockref_server {
 	struct list realtime_timeout_list;
 	struct list monotonic_timeout_list;
 	int num_thread_client;
+
+	/* keep server alive even if no client is connected */
+	int keepalive_noclient;
 	int quit;
 };
 
@@ -1478,6 +1481,9 @@ void lockref_server_update_thread_count(struct lockref_server* srv, int adjustme
 {
 	srv->num_thread_client += adjustment;
 
+	if (srv->keepalive_noclient)
+		return;
+
 	if (srv->num_thread_client != 0)
 		srv->quit = 0;
 	else
@@ -1590,12 +1596,15 @@ failure:
 
 
 static
-int run_lockserver(void)
+int run_lockserver(int argc, char ** argv)
 {
 	setbuf(stderr, NULL);
 
 	if (lockref_server_init(&server))
 		return -1;
+
+	if (argc == 2 && strcmp(argv[1], "keepalive") == 0)
+		server.keepalive_noclient = 1;
 
 	lockref_server_mainloop(&server);
 
@@ -1605,9 +1614,9 @@ int run_lockserver(void)
 
 #ifndef LOCKSERVER_IN_MMLIB_DLL
 
-int main(void)
+int main(int argc, char ** argv)
 {
-	if (run_lockserver())
+	if (run_lockserver(argc, argv))
 		return EXIT_FAILURE;
 
 	return EXIT_SUCCESS;

@@ -76,7 +76,7 @@ void init_shared_write_data(struct shared_write_data* shdata, int mutex_flags,
 	shdata->failed = false;
 	shdata->num_runner_remaining = num_runner;
 
-	mmthr_mtx_init(&shdata->mutex, mutex_flags);
+	ck_assert(mmthr_mtx_init(&shdata->mutex, mutex_flags) == 0);
 }
 
 
@@ -246,7 +246,7 @@ START_TEST(robust_mutex)
 	rdata->sleep_after_first_lock = robust_sleep_on_lock_cases[_i];
 	rdata->crash_at_iter = EXPECTED_CRASH_ITER;
 	rdata->detected_iter_after_crash = -1;
-	mmthr_mtx_init(&rdata->mutex, MMTHR_PSHARED);
+	ck_assert(mmthr_mtx_init(&rdata->mutex, MMTHR_PSHARED) == 0);
 
 	// Spawn all children for the test
 	fdmap.child_fd = 3;

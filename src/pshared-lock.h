@@ -48,7 +48,7 @@ struct lock_timeout {
 
 void deinit_lock_referee_connection(struct lockref_connection* conn);
 struct robust_data* pshared_get_robust_data(struct lockref_connection* conn);
-int64_t pshared_init_lock(struct lockref_connection* conn);
+int pshared_init_lock(struct lockref_connection* conn, int64_t * key);
 int pshared_wait_on_lock(struct lockref_connection* conn, struct shared_lock lock,
                          int64_t wakeup_val, const struct lock_timeout* timeout);
 void pshared_wake_lock(struct lockref_connection* conn, struct shared_lock lock,

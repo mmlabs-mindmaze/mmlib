@@ -13,6 +13,42 @@
 #include "api-testcases.h"
 
 #define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"/lock-referee.exe"
+#if defined(_WIN32)
+static HANDLE hlocksrv = INVALID_HANDLE_VALUE;
+
+static
+void start_lockserver(void)
+{
+	BOOL rv;
+	STARTUPINFO si = {.cb = sizeof(si)};
+	PROCESS_INFORMATION pi = {0};
+	char * const argv = {TEST_LOCK_REFEREE_SERVER_BIN " keepalive"};
+
+	rv = CreateProcess(TEST_LOCK_REFEREE_SERVER_BIN,
+	                   argv,  // Command line
+	                   NULL,  // Process handle not inheritable
+	                   NULL,  // Thread handle not inheritable
+	                   FALSE, // Set handle inheritance to FALSE
+	                   0,     // No creation flags
+	                   NULL,  // Use parent's environment block
+	                   NULL,  // Use parent's starting directory
+	                   &si,   // Pointer to STARTUPINFO structure
+	                   &pi);  // Pointer to PROCESS_INFORMATION structure
+
+	if (rv)
+		hlocksrv = pi.hProcess;
+	else
+		hlocksrv = INVALID_HANDLE_VALUE;
+}
+
+MM_DESTRUCTOR(kill_lockserver)
+{
+	if (hlocksrv != INVALID_HANDLE_VALUE) {
+		TerminateProcess(hlocksrv, 0);
+		CloseHandle(hlocksrv);
+	}
+}
+#endif /* defined(_WIN32) */
 
 static
 Suite* api_suite(void)
@@ -49,6 +85,10 @@ int main(void)
 #if defined(_WIN32)
 	mm_setenv("MMLIB_LOCKREF_BIN", TEST_LOCK_REFEREE_SERVER_BIN, MM_ENV_OVERWRITE);
 	mm_setenv("PATH", TOP_BUILDDIR"/src/"LT_OBJDIR, MM_ENV_PREPEND);
+
+	start_lockserver();
+	if (hlocksrv == INVALID_HANDLE_VALUE)
+		return EXIT_FAILURE;
 #endif
 
 	suite = api_suite();
@@ -68,5 +108,3 @@ int main(void)
 	srunner_free(runner);
 	return exitcode;
 }
-
-
