@@ -45,10 +45,9 @@ mmlib_sources = files(
         'utils.c',
 )
 
-libthread = dependency('threads', required : true)
 libm = cc.find_library('m', required : true)
 cflags = []
-dependencies = [libthread, libm]
+dependencies = [libm]
 
 if host_machine.system() == 'windows'
     mmlib_sources += files(
@@ -91,10 +90,11 @@ else
         'time-posix.c',
     )
 
+    libthread = dependency('threads', required : true)
     libdl = cc.find_library('dl', required : true)
     librt = cc.find_library('rt', required : true)
 
-    dependencies += [libdl, librt]
+    dependencies += [libthread, libdl, librt]
 endif
 
 # follow semantic versionning
