@@ -121,7 +121,7 @@ void runtest_mutex_protection_on_write(int mutex_flags, int num_iter, bool do_sl
 
 
 /**
- * runtest_mutex_protection_on_write() - test a concurrent write on shared data
+ * runtest_mutex_on_pshared_write() - test a concurrent write on shared data
  * @shdata:     structure holding test setup and shared data
  * @mutex_flags: flags to use for mutex in the test
  *
