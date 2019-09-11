@@ -11,7 +11,6 @@ include_HEADERS = \
 	mmlog.h \
 	mmerrno.h \
 	mmtype.h \
-	mmgeometry.h \
 	mmskeleton.h \
 	mmprofile.h \
 	mmpredefs.h \
@@ -32,7 +31,6 @@ libmmlib_la_SOURCES = \
 	mmerrno.h error.c \
 	mmtype.h type.c    \
 	mmskeleton.h skeleton.c	\
-	mmgeometry.h geometry.c   \
 	mmprofile.h profile.c \
 	mmlib.h \
 	alloc.c \

@@ -88,7 +88,6 @@ testapi_sources = files(
         'dirtests.c',
         'dlfcn-api-tests.c',
         'file-api-tests.c',
-        'geometry-api-tests.c',
         'ipc-api-tests.c',
         'ipc-api-tests-exported.c',
         'ipc-api-tests-exported.h',
