@@ -11,7 +11,6 @@ include_HEADERS = \
 	mmlog.h \
 	mmerrno.h \
 	mmtype.h \
-	mmskeleton.h \
 	mmprofile.h \
 	mmpredefs.h \
 	mmlib.h \
@@ -30,7 +29,6 @@ libmmlib_la_SOURCES = \
 	nls-internals.h    \
 	mmerrno.h error.c \
 	mmtype.h type.c    \
-	mmskeleton.h skeleton.c	\
 	mmprofile.h profile.c \
 	mmlib.h \
 	alloc.c \
