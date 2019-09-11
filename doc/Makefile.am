@@ -67,7 +67,6 @@ DOC_SRCS = \
 	socket.rst \
 	thread.rst \
 	time.rst \
-	type.rst \
 	$(eol)
 
 EXTRA_DIST = \

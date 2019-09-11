@@ -56,7 +56,6 @@ Supported platforms:
    socket.rst
    thread.rst
    time.rst
-   type.rst
 
 .. toctree::
    :caption: Examples

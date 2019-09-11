@@ -107,7 +107,6 @@ testapi_tap_SOURCES = \
 	api-testcases.h \
 	tests-child-proc.h \
 	tests-run-func.c \
-	type-api-tests.c \
 	alloc-api-tests.c \
 	time-api-tests.c \
 	thread-api-tests.c \

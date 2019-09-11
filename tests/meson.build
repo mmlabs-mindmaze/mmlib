@@ -103,7 +103,6 @@ testapi_sources = files(
         'threaddata-manipulation.c',
         'threaddata-manipulation.h',
         'time-api-tests.c',
-        'type-api-tests.c',
         'utils-api-tests.c'
 )
 

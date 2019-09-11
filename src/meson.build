@@ -9,7 +9,6 @@ public_headers = files(
         'mmsysio.h',
         'mmthread.h',
         'mmtime.h',
-        'mmtype.h',
 )
 install_headers(public_headers)
 
@@ -30,12 +29,10 @@ mmlib_sources = files(
         'mmsysio.h',
         'mmthread.h',
         'mmtime.h',
-        'mmtype.h',
         'nls-internals.h',
         'profile.c',
         'socket.c',
         'time.c',
-        'type.c',
         'utils.c',
 )
 

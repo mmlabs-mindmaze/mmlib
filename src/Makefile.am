@@ -10,7 +10,6 @@ AM_CFLAGS = $(MM_WARNFLAGS)
 include_HEADERS = \
 	mmlog.h \
 	mmerrno.h \
-	mmtype.h \
 	mmprofile.h \
 	mmpredefs.h \
 	mmlib.h \
@@ -28,7 +27,6 @@ libmmlib_la_SOURCES = \
 	mmlog.h log.c \
 	nls-internals.h    \
 	mmerrno.h error.c \
-	mmtype.h type.c    \
 	mmprofile.h profile.c \
 	mmlib.h \
 	alloc.c \

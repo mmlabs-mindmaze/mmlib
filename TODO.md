@@ -13,6 +13,4 @@ ABI non-breaking changes
 changes that would break ABI
 ============================
 
-* remove calibration related types
-* remove image related types
 * Add protocol parameter to mm_socket()

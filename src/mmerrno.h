@@ -8,7 +8,6 @@
 #include <errno.h>
 #include <string.h>
 #include <stdarg.h>
-#include "mmtype.h"
 #include "mmpredefs.h"
 
 /**
@@ -132,6 +131,11 @@
 
 #define MM_ERROR_SET 0xffffffff
 #define MM_ERROR_UNSET 0x00000000
+
+
+struct mm_error_state {
+	char data[1024];
+};
 
 
 #ifdef __cplusplus

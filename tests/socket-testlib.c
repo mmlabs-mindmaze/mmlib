@@ -9,7 +9,6 @@
 #include "mmsysio.h"
 #include "mmerrno.h"
 #include "mmlog.h"
-#include "mmtype.h"
 
 #include <stdio.h>
 
