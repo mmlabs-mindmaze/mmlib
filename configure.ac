@@ -78,7 +78,6 @@ AC_CHECK_HEADERS([alloca.h])
 AC_DEF_API_EXPORT_ATTRS
 AC_SET_HOSTSYSTEM
 MM_CC_WARNFLAGS
-MM_OUTPUT_DEF
 
 # Test for sphinx doc with linuxdoc
 AC_ARG_ENABLE([sphinxdoc], AC_HELP_STRING([--enable-sphinxdoc], [Build sphinx documention. @<:@default=detect@:>@]),
