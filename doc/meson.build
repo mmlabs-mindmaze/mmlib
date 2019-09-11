@@ -17,20 +17,20 @@ pshared_parent_doc_example_sources = files(
 )
 executable('pshared-parent-doc-example',
         pshared_parent_doc_example_sources,
-        include_directories : include_directories('.'),
+        include_directories : include_directories('../src'),
         link_with : mmlib,
 )
 
 pshared_child_doc_example_sources = files('examples/pshared-child.c')
 executable('pshared-child-doc-example',
         pshared_child_doc_example_sources,
-        include_directories : include_directories('.'),
+        include_directories : include_directories('../src'),
         link_with : mmlib,
 )
 
 parse_args_doc_example = files('examples/parse_args.c')
 executable('parse-args-doc-example',
         parse_args_doc_example,
-        include_directories : include_directories('.'),
+        include_directories : include_directories('../src'),
         link_with : mmlib,
 )
