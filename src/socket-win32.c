@@ -223,7 +223,7 @@ int submit_recv_xfer(struct xfer_data* xfer, SOCKET s,
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_socket(int domain, int type)
+int mm_socket(int domain, int type, int protocol)
 {
 	SOCKET s;
 	int sockfd;
@@ -231,7 +231,7 @@ int mm_socket(int domain, int type)
 	if (check_wsa_init())
 		return -1;
 
-	s = WSASocketW(domain, type, 0, NULL, 0,
+	s = WSASocketW(domain, type, protocol, NULL, 0,
 	              WSA_FLAG_OVERLAPPED|WSA_FLAG_NO_HANDLE_INHERIT);
 	if (s == INVALID_SOCKET)
 		return mm_raise_from_w32err("WSAsocket failed");

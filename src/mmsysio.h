@@ -434,7 +434,7 @@ struct mmsock_multimsg {
 };
 
 
-MMLIB_API int mm_socket(int domain, int type);
+MMLIB_API int mm_socket(int domain, int type, int protocol);
 MMLIB_API int mm_bind(int sockfd, const struct sockaddr * addr, socklen_t
                       addrlen);
 MMLIB_API int mm_getsockname(int sockfd, struct sockaddr * addr,

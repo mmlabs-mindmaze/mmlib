@@ -28,6 +28,8 @@ union posix_sockopt {
  * mm_socket() - create an endpoint for communication
  * @domain:     communications domain in which a socket is to be created
  * @type:       type of socket to be created
+ * @protocol:   particular protocol to be used with the socket. If 0, the
+ *              default protocol for the socket domain and type is used.
  *
  * The mm_socket() function creates an unbound socket in a communications
  * domain, and return a file descriptor that can be used in later function
@@ -57,17 +59,27 @@ union posix_sockopt {
  *   Provides datagrams, which are connectionless-mode, unreliable messages
  *   of fixed maximum length.
  *
+ * The @protocol specifies a particular protocol to be used with the socket.
+ * Normally only a single protocol exists to support a particular socket type
+ * within a given protocol family, in which case protocol can be specified as
+ * 0. However, it is possible that many protocols may exist, in which case a
+ * particular protocol must be specified in this manner. The protocol number to
+ * use is specific to the “communication domain” in which communication is to
+ * take place. Refer to the documentation of your system to know the supported
+ * protocols and their protocol number.
+ *
  * Return: a non-negative integer representing the file descriptor in case
  * of success. Otherwise -1 is returned with error state set accordingly.
  */
 API_EXPORTED
-int mm_socket(int domain, int type)
+int mm_socket(int domain, int type, int protocol)
 {
 	int fd;
 
-	fd = socket(domain, type, 0);
+	fd = socket(domain, type, protocol);
 	if (fd < 0)
-		return mm_raise_from_errno("socket() failed");
+		return mm_raise_from_errno("socket(%i, %i, %i) failed",
+		                           domain, type, protocol);
 
 	return fd;
 }
