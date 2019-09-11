@@ -58,6 +58,10 @@ libmmlib_la_LDFLAGS = \
         -version-info $(CURRENT):$(REVISION):$(AGE) \
 	$(eol)
 
+libmmlib_la_LDFLAGS += \
+	-Wl,--version-script -Wl,$(srcdir)/libmmlib.map \
+	$(eol)
+
 
 if OS_TYPE_POSIX
 

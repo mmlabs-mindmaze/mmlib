@@ -38,6 +38,8 @@ mmlib_sources = files(
 
 libm = cc.find_library('m', required : true)
 cflags = []
+ldflags = []
+link_deps = []
 dependencies = [libm]
 
 if host_machine.system() == 'windows'
@@ -85,6 +87,10 @@ else
     libdl = cc.find_library('dl', required : true)
     librt = cc.find_library('rt', required : true)
 
+    mmlib_map = meson.current_source_dir() + '/libmmlib.map'
+    ldflags += '-Wl,--version-script,' + mmlib_map
+    link_deps += mmlib_map
+
     dependencies += [libthread, libdl, librt]
 endif
 
@@ -102,6 +108,8 @@ version = major + '.' + minor + '.' + patch
 mmlib = shared_library('mmlib',
         mmlib_sources,
         c_args : cflags,
+        link_args : ldflags,
+        link_depends : link_deps,
         install : true,
         version : version,
         include_directories : configuration_inc,
