@@ -97,6 +97,33 @@ else
     dependencies += [libthread, libdl, librt]
 endif
 
+lock_referee_sources = []
+if host_machine.system() == 'windows'
+    if get_option('lock-server-process')
+        lock_referee_sources += files(
+                'lock-referee-proto.h',
+                'lock-referee-server.c',
+                'clock-win32.h',
+                'clock-win32.c',
+        )
+
+        libadvapi32 = cc.find_library('advapi32', required : true)
+
+        executable('lock-referee',
+                lock_referee_sources,
+                c_args : cflags + ['-DMMLOG_MODULE_NAME="lock-referee"'],
+                include_directories : configuration_inc,
+                install : true,
+                install_dir : get_option('libexecdir'),
+                dependencies : [libpowrprof, libadvapi32],
+        )
+    else
+        add_project_arguments('-DLOCKSERVER_IN_MMLIB_DLL=1', language : 'c')
+        mmlib_sources += files('lock-referee-server.c')
+    endif # lock-server-process
+endif # windows
+
+
 # follow semantic versionning
 # https://semver.org/
 # * MAJOR version when you make incompatible API changes,
@@ -116,23 +143,3 @@ mmlib = shared_library('mmlib',
         include_directories : configuration_inc,
         dependencies : [dependencies],
 )
-
-lock_referee_sources = []
-if host_machine.system() == 'windows'
-    libadvapi32 = cc.find_library('advapi32', required : true)
-    lock_referee_sources += files(
-            'lock-referee-proto.h',
-            'lock-referee-server.c',
-            'clock-win32.h',
-            'clock-win32.c',
-    )
-
-    executable('lock-referee',
-            lock_referee_sources,
-            c_args : cflags + ['-DMMLOG_MODULE_NAME="lock-referee"'],
-            include_directories : configuration_inc,
-            install : true,
-            install_dir : get_option('libexecdir'),
-            dependencies : [libpowrprof, libadvapi32],
-    )
-endif

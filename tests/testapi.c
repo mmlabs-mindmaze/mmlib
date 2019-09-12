@@ -13,7 +13,7 @@
 #include "api-testcases.h"
 
 #define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"/lock-referee.exe"
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(LOCKSERVER_IN_MMLIB_DLL)
 static HANDLE hlocksrv = INVALID_HANDLE_VALUE;
 
 static
@@ -82,7 +82,7 @@ int main(void)
 
 	mm_chdir(BUILDDIR);
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(LOCKSERVER_IN_MMLIB_DLL)
 	mm_setenv("MMLIB_LOCKREF_BIN", TEST_LOCK_REFEREE_SERVER_BIN, MM_ENV_OVERWRITE);
 	mm_setenv("PATH", TOP_BUILDDIR"/src/"LT_OBJDIR, MM_ENV_PREPEND);
 
