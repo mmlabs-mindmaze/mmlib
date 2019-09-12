@@ -138,8 +138,8 @@ int translate_eai_to_errnum(int eai, char* errmsg)
  * the system (maybe platform specific).
  */
 LOCAL_SYMBOL
-int internal_getaddrinfo(const char * node, const char * service,
-                         const struct addrinfo * hints, struct addrinfo ** res,
+int internal_getaddrinfo(const char* node, const char* service,
+                         const struct addrinfo* hints, struct addrinfo** res,
                          char* errmsg)
 {
 	int rv;
@@ -190,9 +190,9 @@ int internal_getaddrinfo(const char * node, const char * service,
  * the system (maybe platform specific).
  */
 LOCAL_SYMBOL
-int internal_getnameinfo(const struct sockaddr * addr, socklen_t addrlen,
-                         char * host, socklen_t hostlen,
-                         char * serv, socklen_t servlen, int flags,
+int internal_getnameinfo(const struct sockaddr* addr, socklen_t addrlen,
+                         char* host, socklen_t hostlen,
+                         char* serv, socklen_t servlen, int flags,
                          char* errmsg)
 {
 	int rv;
