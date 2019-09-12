@@ -1409,8 +1409,7 @@ int lockref_server_queue_connect(struct lockref_server* srv)
 		return 1;
 
 	case ERROR_PIPE_CONNECTED:
-		SetEvent(srv->connect_evt);
-		return 0;
+		return SetEvent(srv->connect_evt) ? 0 : -1;
 	}
 
 	return -1;
