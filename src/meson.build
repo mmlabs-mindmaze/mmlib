@@ -94,8 +94,8 @@ endif
 # * MINOR version when you add functionality in a backwards-compatible manner
 # * PATCH version when you make backwards-compatible bug fixes.
 
-major = '0'
-minor = '4'
+major = '1'
+minor = '0'
 patch = '0'
 version = major + '.' + minor + '.' + patch
 

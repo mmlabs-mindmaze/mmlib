@@ -9,9 +9,9 @@
 # - If any interfaces have been removed since the last public release, then
 # set age to 0.
 
-m4_define([lib_current],4)
+m4_define([lib_current],1)
 m4_define([lib_revision],0)
-m4_define([lib_age],4)
+m4_define([lib_age],0)
 
 # Setup autoconf
 AC_INIT(mmlib,[1.0.0],[nicolas.bourdaud@mindmaze.ch])
