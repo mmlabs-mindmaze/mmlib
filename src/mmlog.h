@@ -5,6 +5,7 @@
 #define MMLOG_H
 
 #include "mmpredefs.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 #define MMLOG_NONE -1
@@ -76,10 +77,13 @@
 #define mmlog_debug(msg, ...) MMLOG_VOID_CAST(0)
 #endif
 
-#define mm_crash(msg, ...) \
+#define mm_crash(fmt, ...) \
 	do { \
-		mmlog_log(MMLOG_FATAL, MMLOG_MODULE_NAME, msg, \
-		          ## __VA_ARGS__); \
+		char msg[256]; /* size of max length of log line */ \
+		snprintf(msg, sizeof(msg), fmt, ## __VA_ARGS__); \
+		mmlog_log(MMLOG_FATAL, MMLOG_MODULE_NAME, \
+		          "%s (%s() in %s:%i)", \
+		          msg, __func__, __FILE__, __LINE__); \
 		abort(); \
 	} while (0)
 
