@@ -725,23 +725,20 @@ static
 void timeout_list_add_waiter(struct list* timeout_list,
                              struct thread_client *tc)
 {
-	struct list_node *node, *next;
-	struct thread_client* next_tc;
+	struct list_node *node;
+	struct thread_client* node_tc;
 	struct timespec* timeout = &tc->wait_timeout;
 
 	node = &timeout_list->head;
-	next = node->next;
 
 	// Find the position of thread in the list of increasing timeout
 	// After this loop, the thread must be inserted after node
-	while (next) {
+	while (node->next) {
+		node = node->next;
 
-		next_tc = GET_TC_FROM_TIMEOUT_NODE(next);
-		if (mm_timediff_ns(timeout, &next_tc->wait_timeout) < 0)
+		node_tc = GET_TC_FROM_TIMEOUT_NODE(node);
+		if (mm_timediff_ns(timeout, &node_tc->wait_timeout) < 0)
 			break;
-
-		node = next;
-		next = next->next;
 	}
 
 	insert_list_node_after(&tc->timeout_node, node);
