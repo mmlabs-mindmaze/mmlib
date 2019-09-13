@@ -670,7 +670,7 @@ int lock_array_init(struct lock_array* lk_arr)
 	*lk_arr = (struct lock_array){.num_max = LOCK_LIST_INITIAL_LEN};
 
 	arrsize = lk_arr->num_max*sizeof(*lk_arr->sorted_array);
-	lk_arr->sorted_array = malloc(arrsize);
+	lk_arr->sorted_array = calloc(1, arrsize);
 	if (!lk_arr->sorted_array)
 		return -1;
 
