@@ -36,11 +36,10 @@ mmlib_sources = files(
         'utils.c',
 )
 
-libm = cc.find_library('m', required : true)
 cflags = []
 ldflags = []
 link_deps = []
-dependencies = [libm]
+dependencies = []
 
 if host_machine.system() == 'windows'
     mmlib_sources += files(
