@@ -1629,7 +1629,7 @@ void* lockserver_thread_routine(void* arg)
 {
 	(void)arg;
 
-	run_lockserver();
+	run_lockserver(0, NULL);
 
 	return NULL;
 }
