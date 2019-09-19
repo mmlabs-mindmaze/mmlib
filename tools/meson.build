@@ -56,3 +56,12 @@ if uncrustify.found()
         ],
     )
 endif # uncrustify
+
+# test public headers for most warnings and C++ compatibility
+api_compat_test = run_target('api-compat-test',
+        command : [
+            files('api-compat-test.sh'),
+            '../src',
+            public_headers,
+        ]
+)
