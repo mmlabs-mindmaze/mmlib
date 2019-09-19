@@ -71,7 +71,6 @@ void* lock_perf_routine(void* arg)
 static
 int run_perf_lock_contended(int flags)
 {
-	int rv;
 	mmthread_t thids[NUM_THREAD_PER_LOCK_MAX*NUM_LOCK_MAX];
 	int initial_lock_index[MM_NELEM(thids)];
 	int i;
@@ -80,9 +79,7 @@ int run_perf_lock_contended(int flags)
 	mmprofile_reset(0);
 
 	for (i = 0; i < num_lock; i++) {
-		rv = mmthr_mtx_init(&data_array[i].mtx, flags);
-		if (rv != 0)
-			goto exit;
+		mmthr_mtx_init(&data_array[i].mtx, flags);
 		mmthr_mtx_lock(&data_array[i].mtx);
 	}
 
@@ -106,30 +103,24 @@ int run_perf_lock_contended(int flags)
 	for (i = 0; i < num_thids; i++)
 		mmthr_join(thids[i], NULL);
 
-	rv = 0;
-
-exit:
 	for (i = 0; i < num_lock; i++)
 		mmthr_mtx_deinit(&data_array[0].mtx);
 
 	printf("\ncontended case with flags=0x%08x:\n", flags);
 	fflush(stdout);
 	mmprofile_print(PROF_DEFAULT, 1);
-	return rv;
+	return 0;
 }
 
 
 static
 int run_perf_lock_uncontended(int flags)
 {
-	int rv;
 	int i;
 
 	mmprofile_reset(0);
 
-	rv = mmthr_mtx_init(&data_array[0].mtx, flags);
-	if (rv != 0)
-		return -1;
+	mmthr_mtx_init(&data_array[0].mtx, flags);
 
 	for (i = 0; i < NUM_ITERATION; i++) {
 		mmtic();
@@ -149,8 +140,6 @@ int run_perf_lock_uncontended(int flags)
 
 int main(int argc, char* argv[])
 {
-	int rv;
-
 #if _WIN32
 	mm_setenv("MMLIB_LOCKREF_BIN", TEST_LOCK_REFEREE_SERVER_BIN, 1);
 	setbuf(stdout, NULL);
@@ -165,16 +154,12 @@ int main(int argc, char* argv[])
 	       num_lock, num_thread_per_lock);
 
 	run_perf_lock_uncontended(0);
-	rv = run_perf_lock_uncontended(MMTHR_PSHARED);
-	if (rv != 0)
-		return EXIT_FAILURE;
+	run_perf_lock_uncontended(MMTHR_PSHARED);
 
 	printf("\n\n");
 
 	run_perf_lock_contended(0);
-	rv = run_perf_lock_contended(MMTHR_PSHARED);
-	if (rv != 0)
-		return EXIT_FAILURE;
+	run_perf_lock_contended(MMTHR_PSHARED);
 
 	return EXIT_SUCCESS;
 }

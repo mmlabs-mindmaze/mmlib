@@ -36,11 +36,9 @@
  * destroyed first.
  *
  * Return:
+ *
  * 0
  *   The mutex has been initialized
- *
- * EAGAIN
- *   For shared processes only, if the lock server was unreachable
  *
  * EINVAL
  *   @flags set the robust mutex attribute without the process-shared

@@ -94,9 +94,6 @@ struct lockref_server {
 	struct list realtime_timeout_list;
 	struct list monotonic_timeout_list;
 	int num_thread_client;
-
-	/* keep server alive even if no client is connected */
-	int keepalive_noclient;
 	int quit;
 };
 
@@ -725,20 +722,23 @@ static
 void timeout_list_add_waiter(struct list* timeout_list,
                              struct thread_client *tc)
 {
-	struct list_node *node;
-	struct thread_client* node_tc;
+	struct list_node *node, *next;
+	struct thread_client* next_tc;
 	struct timespec* timeout = &tc->wait_timeout;
 
 	node = &timeout_list->head;
+	next = node->next;
 
 	// Find the position of thread in the list of increasing timeout
 	// After this loop, the thread must be inserted after node
-	while (node->next) {
-		node = node->next;
+	while (next) {
 
-		node_tc = GET_TC_FROM_TIMEOUT_NODE(node);
-		if (mm_timediff_ns(timeout, &node_tc->wait_timeout) < 0)
+		next_tc = GET_TC_FROM_TIMEOUT_NODE(next);
+		if (mm_timediff_ns(timeout, &next_tc->wait_timeout) < 0)
 			break;
+
+		node = next;
+		next = next->next;
 	}
 
 	insert_list_node_after(&tc->timeout_node, node);
@@ -1477,9 +1477,6 @@ void lockref_server_update_thread_count(struct lockref_server* srv, int adjustme
 {
 	srv->num_thread_client += adjustment;
 
-	if (srv->keepalive_noclient)
-		return;
-
 	if (srv->num_thread_client != 0)
 		srv->quit = 0;
 	else
@@ -1575,6 +1572,7 @@ int lockref_server_init(struct lockref_server* srv)
 	srv->connect_evt = evt;
 	srv->pipe = pipe;
 	srv->conn_overlapped.hEvent = evt;
+	srv->is_init = 1;
 
 	return 0;
 
@@ -1592,15 +1590,12 @@ failure:
 
 
 static
-int run_lockserver(int argc, char ** argv)
+int run_lockserver(void)
 {
 	setbuf(stderr, NULL);
 
 	if (lockref_server_init(&server))
 		return -1;
-
-	if (argc == 2 && strcmp(argv[1], "keepalive") == 0)
-		server.keepalive_noclient = 1;
 
 	lockref_server_mainloop(&server);
 
@@ -1610,9 +1605,9 @@ int run_lockserver(int argc, char ** argv)
 
 #ifndef LOCKSERVER_IN_MMLIB_DLL
 
-int main(int argc, char ** argv)
+int main(void)
 {
-	if (run_lockserver(argc, argv))
+	if (run_lockserver())
 		return EXIT_FAILURE;
 
 	return EXIT_SUCCESS;
@@ -1625,7 +1620,7 @@ void* lockserver_thread_routine(void* arg)
 {
 	(void)arg;
 
-	run_lockserver(0, NULL);
+	run_lockserver();
 
 	return NULL;
 }

@@ -18,8 +18,7 @@
 #include <windows.h>
 
 #define LOCK_REFEREE_SERVER_BIN		LIBEXECDIR"/lock-referee.exe"
-#define PIPE_WAIT_MS     50
-#define LOCKREF_MAX_NTRY 10
+#define PIPE_WAIT_MS    50
 
 
 #ifdef LOCKSERVER_IN_MMLIB_DLL
@@ -34,17 +33,17 @@ void spawn_lockserver_thread(void)
 }
 
 static
-int try_spawn_lockserver(void)
+void try_spawn_lockserver(void)
 {
 	static mmthr_once_t lockserver_once = MMTHR_ONCE_INIT;
 
-	return mmthr_once(&lockserver_once, spawn_lockserver_thread);
+	mmthr_once(&lockserver_once, spawn_lockserver_thread);
 }
 
 #else //!LOCKSERVER_IN_MMLIB_DLL
 
 static
-int try_spawn_lockserver(void)
+void try_spawn_lockserver(void)
 {
 	const char* binpath;
 	struct mm_remap_fd fd_map[] = {
@@ -56,8 +55,8 @@ int try_spawn_lockserver(void)
 	// Determine the path of the referee server
 	binpath = mm_getenv("MMLIB_LOCKREF_BIN", LOCK_REFEREE_SERVER_BIN);
 
-	return mm_spawn(NULL, binpath, MM_NELEM(fd_map), fd_map,
-	                MM_SPAWN_DAEMONIZE, NULL, NULL);
+	mm_spawn(NULL, binpath, MM_NELEM(fd_map), fd_map,
+	         MM_SPAWN_DAEMONIZE, NULL, NULL);
 }
 
 #endif //!LOCKSERVER_IN_MMLIB_DLL
@@ -77,35 +76,25 @@ int try_spawn_lockserver(void)
 static
 HANDLE connect_to_lockref_server(void)
 {
-	DWORD err;
 	HANDLE pipe = INVALID_HANDLE_VALUE;
 	BOOL ret;
 	DWORD open_mode = GENERIC_READ|GENERIC_WRITE;
 	DWORD pipe_mode = PIPE_READMODE_MESSAGE;
-	int ntry = LOCKREF_MAX_NTRY + 1;
 
-	while (pipe == INVALID_HANDLE_VALUE && ntry-- > 0) {
+	while (pipe == INVALID_HANDLE_VALUE) {
 		// Wait until a server instance of named pipe is available.
 		// If failed, try to spawn a server instance and retry
 		ret = WaitNamedPipe(referee_pipename, PIPE_WAIT_MS);
 		if (!ret) {
-			err = GetLastError();
-			if (err == ERROR_FILE_NOT_FOUND)
-				try_spawn_lockserver();
-
-			mm_relative_sleep_ms(PIPE_WAIT_MS);
+			try_spawn_lockserver();
 			continue;
 		}
 
 		// Try Connect named pipe to server. If failed, it will
 		// restart over.
 		open_mode= GENERIC_READ|GENERIC_WRITE;
-		pipe = CreateFile(referee_pipename, open_mode, 0, NULL, OPEN_EXISTING,
-		                  PIPE_WAIT_MS, NULL);
+		pipe = CreateFile(referee_pipename, open_mode, 0, NULL, OPEN_EXISTING, 0, NULL);
 	}
-
-	if (pipe == INVALID_HANDLE_VALUE)
-		return INVALID_HANDLE_VALUE;
 
 	SetNamedPipeHandleState(pipe, &pipe_mode, NULL, NULL);
 	return pipe;
@@ -242,19 +231,14 @@ struct robust_data* create_robust_data(HANDLE pipe)
  * to thread local data.
  */
 static NOINLINE
-int init_lock_referee_connection(struct lockref_connection* conn)
+void init_lock_referee_connection(struct lockref_connection* conn)
 {
 	if (conn->is_init)
-		return 0;
+		return;
 
 	conn->pipe = connect_to_lockref_server();
-	if (UNLIKELY(conn->pipe == INVALID_HANDLE_VALUE))
-		return -1;
-
 	conn->robust_data = create_robust_data(conn->pipe);
 	conn->is_init = 1;
-
-	return 0;
 }
 
 
@@ -295,10 +279,8 @@ LOCAL_SYMBOL
 struct robust_data* pshared_get_robust_data(struct lockref_connection* conn)
 {
 	// Init lock server connection if not done yet
-	if (UNLIKELY(!conn->is_init)) {
-		if (init_lock_referee_connection(conn))
-			return NULL;
-	}
+	if (UNLIKELY(!conn->is_init))
+		init_lock_referee_connection(conn);
 
 	return conn->robust_data;
 }
@@ -306,13 +288,12 @@ struct robust_data* pshared_get_robust_data(struct lockref_connection* conn)
 
 /**
  * pshared_init_lock() - generates a key for a new lock
- * @conn: data of connection to the lock server
- * @key:  key of a new lock
+ * @conn:       data of connection to the lock server
  *
- * Return: 0 on success, -1 on error
+ * Return: key of a new lock
  */
 LOCAL_SYMBOL
-int pshared_init_lock(struct lockref_connection* conn, int64_t * key)
+int64_t pshared_init_lock(struct lockref_connection* conn)
 {
 	DWORD rsz;
 	BOOL ret;
@@ -320,10 +301,8 @@ int pshared_init_lock(struct lockref_connection* conn, int64_t * key)
 	struct lockref_req_msg request;
 
 	// Init lock server connection if not done yet
-	if (UNLIKELY(!conn->is_init)) {
-		if (init_lock_referee_connection(conn))
-			return -1;
-	}
+	if (UNLIKELY(!conn->is_init))
+		init_lock_referee_connection(conn);
 
 	// Prepare INITLOCK request, send it and wait for reply
 	request.opcode = LOCKREF_OP_INITLOCK;
@@ -331,8 +310,7 @@ int pshared_init_lock(struct lockref_connection* conn, int64_t * key)
 	                        &response, sizeof(response), &rsz, NULL);
 	mm_check(ret && (rsz == sizeof(response)), "ret=%i, rsz=%lu", ret, rsz);
 
-	*key = response.key;
-	return 0;
+	return response.key;
 }
 
 

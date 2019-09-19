@@ -420,7 +420,7 @@ void finish_mtx_unlock(struct robust_data* robust_data)
  *
  * Implementation of mmthr_mtx_init() in the case of process shared mutex.
  *
- * Return: 0 on success, -1 on error
+ * Return: always 0
  */
 static
 int pshared_mtx_init(mmthr_mtx_t* mutex)
@@ -428,8 +428,7 @@ int pshared_mtx_init(mmthr_mtx_t* mutex)
 	struct lockref_connection* lockref = get_thread_lockref_data();
 
 	mutex->lock = 0;
-	if (UNLIKELY(pshared_init_lock(lockref, &mutex->pshared_key) != 0))
-		return EAGAIN;
+	mutex->pshared_key = pshared_init_lock(lockref);
 
 	return 0;
 }
@@ -460,8 +459,6 @@ int pshared_mtx_lock(mmthr_mtx_t* mutex)
 
 	lockref = get_thread_lockref_data();
 	robust_data = pshared_get_robust_data(lockref);
-	if (UNLIKELY(robust_data == NULL))
-		return ENOTRECOVERABLE;
 
 	start_mtx_operation(mutex->pshared_key, robust_data);
 
@@ -524,8 +521,6 @@ int pshared_mtx_trylock(mmthr_mtx_t* mutex)
 	bool locked;
 
 	robust_data = pshared_get_robust_data(get_thread_lockref_data());
-	if (UNLIKELY(robust_data == NULL))
-		return ENOTRECOVERABLE;
 
 	start_mtx_operation(mutex->pshared_key, robust_data);
 
@@ -582,8 +577,6 @@ int pshared_mtx_unlock(mmthr_mtx_t* mutex)
 
 	lockref = get_thread_lockref_data();
 	robust_data = pshared_get_robust_data(lockref);
-	if (UNLIKELY(robust_data == NULL))
-		return ENOTRECOVERABLE;
 
 	// Check that inconsistent state has been removed by now
 	if (is_mtx_ownerdead(atomic_load(&mutex->lock))) {
@@ -756,7 +749,7 @@ int pshared_cond_broadcast(mmthr_cond_t* cond)
  *
  * Implementation of mmthr_cond_init() in the case of process shared condition.
  *
- * Return: 0 on success, -1 on error
+ * Return: always 0
  */
 static
 int pshared_cond_init(mmthr_cond_t* cond)
@@ -764,8 +757,7 @@ int pshared_cond_init(mmthr_cond_t* cond)
 	struct lockref_connection* lockref;
 
 	lockref = get_thread_lockref_data();
-	if (UNLIKELY(pshared_init_lock(lockref, &cond->pshared_key) != 0))
-		return EAGAIN;
+	cond->pshared_key = pshared_init_lock(lockref);
 
 	return 0;
 }
