@@ -1,5 +1,8 @@
 project('mmlib', 'c',
-		default_options: [
+        version: '1.0.0',
+        license: 'apache2',
+        meson_version: '>= 0.49',
+        default_options: [
             'warning_level=3',
         ],
 )
