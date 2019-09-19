@@ -368,7 +368,7 @@ MMLIB_API ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg);
  **************************************************************************/
 
 
-#if _WIN32
+#if defined (_WIN32)
 /**
  * struct msghdr - structure for socket message
  * @msg_name:       optional address
