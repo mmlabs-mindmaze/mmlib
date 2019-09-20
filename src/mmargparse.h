@@ -87,7 +87,7 @@ union mmarg_val {
  * - "c": option can be referred only by short option "-c"
  * - "long-name": option can be referred only by long option "--long-name"
  *
- * The parameter @flags determine whether a value for a option:
+ * The parameter @flags determine whether a value for an option:
  *
  * - %MMOPT_NOVAL: value is forbidden
  * - %MMOPT_OPTVAL: value is optional and @defval will be used if not set.
@@ -181,7 +181,7 @@ typedef int (* mmarg_complete_path_cb)(const char* name, const char* dir,
  * @flags:      flags to change behavior of parsing (MMARG_PARSER_*)
  * @num_opt:    number of element in @optv.
  * @optv:       array of option supported. Please note that @optv does not
- *              need to provide a option "h|help" since argument parser add
+ *              need to provide an option "h|help" since argument parser add
  *              such option automatically which will trigger usage printing.
  *              You may however provide such option in @optv array to
  *              override the behaviour when this option is encountered.
@@ -192,7 +192,7 @@ typedef int (* mmarg_complete_path_cb)(const char* name, const char* dir,
  * @execname:   name of executable. You are invited to set it to argv[0]. If
  *              NULL, "PROGRAM" will be used instead for synopsis
  * @cb_data:    user provided data callback
- * @cb:         callback called whenever a option is recognised and parsed.
+ * @cb:         callback called whenever an option is recognised and parsed.
  *              This callback is optional and can be set to NULL if
  *              unneeded.
  */

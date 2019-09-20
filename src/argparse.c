@@ -445,7 +445,7 @@ void print_synopsis(const struct mmarg_parser* parser, FILE* stream)
 
 
 /**
- * set_option_synopsis() - format a option synopsis string
+ * set_option_synopsis() - format an option synopsis string
  * @synopsis:   buffer receiving the option string
  * @opt:        option parser
  * @valname:    the value name as it must appear in the synopsis. If NULL
@@ -747,7 +747,7 @@ int complete_opt_value(const struct mmarg_parser* parser,
  *************************************************************************/
 
 /**
- * match_opt_key_or_name() - test whether a name or key match a option
+ * match_opt_key_or_name() - test whether a name or key match an option
  * @opt:        option to try
  * @key:        key to test against @opt. If @key is not set to IGNORE_KEY,
  *              the matching is done based on short option key. Otherwise
@@ -1265,7 +1265,7 @@ int early_stop_parsing(const struct mmarg_parser* parser, int retval)
  * not set in @parser->optv, a parser always supports the "-h" or "--help"
  * option. If encountered, the program usage will be printed on standard
  * output and the process will exit with EXIT_SUCCESS code (This behaviour
- * can be overridden is "h|help" is explicitly defined as option in
+ * can be overridden if "h|help" is explicitly defined as option in
  * @parser->optv). If the parsing operation fails (because of invalid option
  * or value), the error diagnostic will be printed on standard error and the
  * process will exit with EXIT_FAILURE code. In other case, the parsing will

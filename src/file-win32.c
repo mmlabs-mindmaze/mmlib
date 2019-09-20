@@ -1259,7 +1259,7 @@ const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
 
 /**
  * reparse_data_create() - allocate and get reparse data from handle
- * HANDLE:      handle of a open reparse point
+ * HANDLE:      handle of an open reparse point
  *
  * Return: initialized REPARSE_DATA_BUFFER in case of success, NULL
  * otherwise. Must be cleanup with free() when you don't need it any longer
@@ -1318,7 +1318,7 @@ char16_t* get_target_u16_from_reparse_data(REPARSE_DATA_BUFFER* rep)
 
 /**
  * get_symlink_target_strlen() - Get size of target string of symlink
- * hnd:         handle of a open symlink
+ * hnd:         handle of an open symlink
  *
  * Return: size of the UTF-8 string of the target including null
  * terminator.

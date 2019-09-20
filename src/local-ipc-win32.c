@@ -219,7 +219,7 @@ HANDLE open_peer_process_handle(HANDLE hpipe)
 
 
 /**
- * write_ancillary_data() - write the fd passed into a ancillary data
+ * write_ancillary_data() - write the fd passed into an ancillary data
  * @data:       ancillary_data that must be written
  * @msg:        message data containing the fd that must be passed
  * @hpipe:      handle to pipe to which the message is going to be sent
@@ -317,7 +317,7 @@ ssize_t serialize_msg(HANDLE hpipe, const struct mmipc_msg* msg,
 
 
 /**
- * read_ancillary_data() - get the fd passed from a ancillary data
+ * read_ancillary_data() - get the fd passed from an ancillary data
  * @data:       ancillary_data that must be read
  * @msg:        message data that will contain the fd passed
  *
