@@ -131,7 +131,9 @@ extern "C" {
 #ifndef S_IFREG
 #define S_IFREG _S_IFREG
 #endif
+#ifndef S_IFLNK
 #define S_IFLNK (_S_IFREG|_S_IFCHR)
+#endif
 
 #define S_ISTYPE(mode, mask)  (((mode) & S_IFMT) == (mask))
 #ifndef S_ISDIR
