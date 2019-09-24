@@ -166,5 +166,5 @@ spelling: $(libmmlib_la_SOURCES)
 	$(AM_V_at) codespell $^
 
 .PHONY: api-compat-test
-api-compat-test: $(include_HEADERS)
-	cd $(srcdir) && ../tools/api-compat-test.sh $(srcdir) $(include_HEADERS)
+api-compat-test: ../tools/api-compat-test.sh $(include_HEADERS)
+	$^

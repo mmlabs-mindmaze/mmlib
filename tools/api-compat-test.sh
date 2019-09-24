@@ -1,9 +1,18 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
-includedir=$1
-shift 1
+# Create the temporary folder where to install the public headers
+includedir=$(mktemp -d ./api-compat-XXXXXXX)
+cleanup()
+{
+	rm -rf $includedir
+}
+trap cleanup EXIT
+
+# copy the public headers in the temporary folder
+cp $@ $includedir
+
 
 randomize_header_list()
 {

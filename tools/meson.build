@@ -61,7 +61,6 @@ endif # uncrustify
 api_compat_test = run_target('api-compat-test',
         command : [
             files('api-compat-test.sh'),
-            '../src',
             public_headers,
         ]
 )
