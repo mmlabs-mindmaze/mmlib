@@ -14,6 +14,7 @@
 
 #include "mmerrno.h"
 #include "mmlib.h"
+#include "mmlog.h"
 #include "mmpredefs.h"
 #include "mmsysio.h"
 #include "mmthread.h"
@@ -33,6 +34,8 @@ void test_teardown(void)
 	int i;
 	char filename[64];
 
+	int flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
+
 	mmipc_srv_destroy(srv);
 	srv = NULL;
 
@@ -40,6 +43,8 @@ void test_teardown(void)
 		sprintf(filename, "%s-%d", IPC_TMPFILE, i);
 		mm_unlink(filename);
 	}
+
+	mm_error_set_flags(flags, MM_ERROR_IGNORE);
 }
 
 START_TEST(ipc_create_simple)
