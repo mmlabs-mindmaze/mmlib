@@ -18,6 +18,7 @@
 
 #include "mmerrno.h"
 #include "mmlib.h"
+#include "mmlog.h"
 #include "mmpredefs.h"
 #include "mmsysio.h"
 
@@ -319,7 +320,7 @@ START_TEST(test_remove_rec)
 	 *   - check tree unchanged
 	 */
 	tree_ref = tree(".");
-	printf("Initial tree:\n%s", tree_ref);
+	mmlog_debug("Initial tree:\n%s", tree_ref);
 	ck_assert(strcmp(tree_ref, TREE_REF_ALPHA) == 0
 			|| strcmp(tree_ref, TREE_REF_INODE) == 0);
 
@@ -330,7 +331,7 @@ START_TEST(test_remove_rec)
 	 *   - check file1.dat still open and usable */
 	ck_assert(mm_remove(".", MM_DT_REG|MM_DT_DIR|MM_RECURSIVE) == 0);
 	tree1 = tree(".");
-	printf("Tree1:\n%s", tree1);
+	mmlog_debug("Tree1:\n%s", tree1);
 	ck_assert(strcmp(tree1, TREE_1) == 0);
 	rsz = mm_write(file1_fd, "Hello world!", sizeof("Hello world!"));
 	ck_assert(rsz == sizeof("Hello world!"));
@@ -344,7 +345,7 @@ START_TEST(test_remove_rec)
 	mm_close(file1_fd);
 	ck_assert(mm_remove(".", MM_DT_REG|MM_DT_DIR|MM_RECURSIVE) == 0);
 	tree2 = tree(".");
-	printf("Tree2:\n%s", tree2);
+	mmlog_debug("Tree2:\n%s", tree2);
 	ck_assert(strcmp(tree1, tree2) == 0);
 
 	/* cleaning */
