@@ -257,7 +257,11 @@ struct mm_dirent {
 	size_t reclen;  /* this record length */
 	int type;       /* file type (see above) */
 	int id;         /* reserved for later use */
-	char name[];    /* Null-terminated filename */
+#ifndef __cplusplus
+	char name[];    /* Null-terminated filename (C flexible array)*/
+#else
+	char name[1];   /* Null-terminated filename (C++ compatibility)*/
+#endif
 };
 
 MMLIB_API MMDIR* mm_opendir(const char* path);
