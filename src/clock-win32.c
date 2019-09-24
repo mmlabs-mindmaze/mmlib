@@ -227,7 +227,10 @@ void gettimespec_wallclock_w32(struct timespec* ts)
 LOCAL_SYMBOL
 void getres_wallclock_w32(struct timespec* res)
 {
-	getres_qpc(res);
+	// GetSystemTimePreciseAsFileTime() express time in term of number of
+	// 100-nanosecond intervals
+	res->tv_sec = 0;
+	res->tv_nsec = 100;
 }
 
 
