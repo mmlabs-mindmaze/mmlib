@@ -133,7 +133,7 @@ void gettimespec_qpc(struct timespec* ts)
 	QueryPerformanceCounter(&count);
 
 	sec = count.QuadPart / qpc_tick_freq;
-	nsec = (count.QuadPart - ts->tv_sec*qpc_tick_freq)*nsec_in_qpc_tick;
+	nsec = (count.QuadPart - sec*qpc_tick_freq)*nsec_in_qpc_tick;
 	ts->tv_sec = (time_t)sec;
 	ts->tv_nsec = (long)nsec;
 }
