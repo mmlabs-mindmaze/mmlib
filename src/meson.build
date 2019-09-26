@@ -150,3 +150,4 @@ mmlib = shared_library('mmlib',
         include_directories : configuration_inc,
         dependencies : [dependencies],
 )
+import('pkgconfig').generate(mmlib)
