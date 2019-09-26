@@ -475,15 +475,6 @@ MMLIB_API int mm_getnameinfo(const struct sockaddr * addr, socklen_t addrlen,
 MMLIB_API void mm_freeaddrinfo(struct addrinfo * res);
 MMLIB_API int mm_create_sockclient(const char* uri);
 
-
-#if defined (_WIN32)
-#  define MM_POLLIN 0x0100
-#  define MM_POLLOUT 0x0010
-#else /*  defined(_WIN32) */
-#  define MM_POLLIN POLLIN
-#  define MM_POLLOUT POLLOUT
-#endif /* defined(_WIN32) */
-
 #if defined (_WIN32)
 struct mm_pollfd {
 	int fd;         /* file descriptor  */

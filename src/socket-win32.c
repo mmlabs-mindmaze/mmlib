@@ -667,7 +667,8 @@ void mm_freeaddrinfo(struct addrinfo *res)
 API_EXPORTED
 int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)
 {
-	int i, rv;
+	int i, rv, flags;
+	int all_negative;
 	SOCKET s;
 	struct pollfd * wfds;
 
@@ -678,27 +679,43 @@ int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)
 	if (wfds == NULL)
 		return -1;
 
+	/* ignore log errors raised when unwrapping socket from fd:
+	 * poll tolerates invalid sockets */
+	rv = 0;
+	all_negative = 1;
+	flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
 	for (i = 0 ; i < nfds ; i++) {
-		if (unwrap_socket_from_fd(&s, fds[i].fd) != 0)
-			return -1;
-		wfds[i] = (struct pollfd) { .fd = s, .events = fds[i].events, };
+		s = INVALID_SOCKET;
+		if (fds[i].fd >= 0) {
+			unwrap_socket_from_fd(&s, fds[i].fd);
+			all_negative = 0;
+		}
+
+		wfds[i] = (struct pollfd) { .fd = s, .events = fds[i].events };
+	}
+	mm_error_set_flags(flags, MM_ERROR_IGNORE);
+
+	/* WSAPoll() does not wait on invalid sockets.
+	 * Let's sleep instead, then return 0 (as if timeout) */
+	if (all_negative) {
+		mm_relative_sleep_ms(timeout_ms);
+		goto exit;
 	}
 
 	rv = WSAPoll(wfds, nfds, timeout_ms);
-	if (rv < 0)
-		return mm_raise_from_w32err("poll() failed");
-
-	for (i = 0 ; i < nfds ; i++) {
-		/* if an error occurrent within poll() processing the socket
-		 * return it instead of flagging it */
-		if (fds[i].events & (POLLNVAL | POLLERR))
-			return mm_raise_error(ENOMSG, "poll() failed");
-
-		/* only return POLLIN and POLLOUT flags */
-		fds[i].events &= (POLLRDNORM | POLLWRNORM);
-
-		fds[i].revents = wfds[i].revents;
+	if (rv < 0) {
+		rv = mm_raise_from_w32err("poll() failed");
+		goto exit;
 	}
 
+	for (i = 0 ; i < nfds ; i++) {
+		if (fds[i].fd < 0)
+			fds[i].revents = 0;
+		else
+			fds[i].revents = wfds[i].revents;
+	}
+
+exit:
+	mm_freea(wfds);
 	return rv;
 }

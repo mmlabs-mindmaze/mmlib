@@ -776,12 +776,6 @@ void mm_freeaddrinfo(struct addrinfo * res)
 	freeaddrinfo(res);
 }
 
-static
-int is_valid_fd(int fd)
-{
-	return (fcntl(fd, F_GETFL) != -1) || (errno != EBADF);
-}
-
 
 /**
  * mm_poll() - waits for one of a set of fd to become ready to perform I/O.
@@ -796,13 +790,9 @@ int is_valid_fd(int fd)
  * descriptors are ready. if @timeout_ms is negative, the call will block
  * indefinitely.
  *
- * &mm_pollfd.events contains a mask on revents with the following values :
- *
- * - MM_POLLIN: there is data to read
- * - MM_POLLOUT: writing is now possible
- *
- * &mm_pollfd.revents will contain the output events flags, a combination of
- * MM_POLLIN and MM_POLLOUT, or 0 if unset.
+ * Negative file descriptors are ignored, with their .revent set to 0.
+ * mm_poll() will wait the full @timeout_ms even if all the file descriptors
+ * are negatives
  *
  * Return:
  *   (>0) On success, the number of fds on which an event was raised
@@ -812,26 +802,11 @@ int is_valid_fd(int fd)
 API_EXPORTED
 int mm_poll(struct mm_pollfd * fds, int nfds, int timeout_ms)
 {
-	int i, rv;
-
-	for (i = 0; i < nfds; i++) {
-		if (!is_valid_fd(fds[i].fd))
-			return -1;
-	}
+	int rv;
 
 	rv = poll(fds, nfds, timeout_ms);
 	if (rv < 0)
 		return mm_raise_from_errno("poll() failed");
-
-	for (i = 0; i < nfds; i++) {
-		/* if an error occurrent within poll() processing the socket
-		 * return it instead of flagging it */
-		if (fds[i].events & (POLLNVAL | POLLERR))
-			return -1;
-
-		/* only return POLLIN and POLLOUT flags */
-		fds[i].events &= (POLLIN | POLLOUT);
-	}
 
 	return rv;
 }
