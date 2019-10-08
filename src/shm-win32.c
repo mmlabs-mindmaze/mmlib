@@ -65,6 +65,7 @@ void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags)
 {
 	HANDLE hfile, hmap;
 	DWORD protect, access, off_h, off_l;
+	struct mm_stat stat;
 	void* ptr;
 
 	if (unwrap_handle_from_fd(&hfile, fd))
@@ -84,8 +85,20 @@ void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags)
 	off_l = offset & 0xffffffff;
 	ptr = MapViewOfFile(hmap, access, off_h, off_l, len);
 	if (!ptr) {
-		mm_raise_from_w32err("MapViewOfFile failed (fd=%i)", fd);
-		ptr = NULL;
+		/* when trying to map a file, if the request length is larger than
+		 * the size of the file itself, windows returns a generic permission
+		 * error. Transform it into EINVAL instead */
+		if (GetLastError() == ERROR_ACCESS_DENIED
+		    && get_stat_from_handle(hfile, &stat) == 0
+		    && S_ISREG(stat.mode)
+		    && stat.size < (mm_off_t) len) {
+			mm_raise_error(EOVERFLOW,
+			               "CreateFileMapping failed (fd=%i). "
+			               "requested len (%d) > file size (%d)",
+			               fd, stat.size, len);
+		} else {
+			mm_raise_from_w32err("MapViewOfFile failed (fd=%i)", fd);
+		}
 	}
 
 	CloseHandle(hmap);
