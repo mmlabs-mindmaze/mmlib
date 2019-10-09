@@ -1352,7 +1352,7 @@ size_t get_symlink_target_strlen(HANDLE hnd)
  * does not set error state. Only win32 last error is set. It is expected
  * to raise the corresponding in the caller (which will have more context)
  */
-static
+LOCAL_SYMBOL
 int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 {
 	FILE_ATTRIBUTE_TAG_INFO attr_tag;

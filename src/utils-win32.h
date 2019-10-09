@@ -185,6 +185,8 @@ void safe_closehandle(HANDLE hnd)
 	CloseHandle(hnd);
 }
 
+int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf);
+
 /**************************************************************************
  *                                                                        *
  *                         UTF-8/UTF-16 conversion                        *
