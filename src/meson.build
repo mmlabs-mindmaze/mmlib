@@ -76,6 +76,8 @@ if host_machine.system() == 'windows'
         'time-win32.c',
         'utils-win32.c',
         'utils-win32.h',
+        'volume-win32.c',
+        'volume-win32.h',
     )
 
     libpowrprof = cc.find_library('powrprof', required : true)

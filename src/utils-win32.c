@@ -145,6 +145,44 @@ HANDLE open_handle(const char* path, DWORD access, DWORD creat,
 }
 
 
+/**
+ * get_file_id_info_from_handle() - get file and volume ids
+ * @hnd:        handle of an opened file
+ * @info:       pointer to FILE_ID_INFO struct to fill
+ *
+ * This function is similar to GetFileInformationByHandleEx() called with
+ * FileIdInfo with fallback in case of buggy volume type:
+ * GetFileInformationByHandleEx() returns error when called on file on FAT32.
+ *
+ * Returns: 0 in case of success, -1 otherwise.
+ */
+LOCAL_SYMBOL
+int get_file_id_info_from_handle(HANDLE hnd, FILE_ID_INFO* id_info)
+{
+	BY_HANDLE_FILE_INFORMATION file_info;
+	DWORD id[4];
+
+	// First try with normal call
+	if (GetFileInformationByHandleEx(hnd, FileIdInfo, id_info, sizeof(*id_info)))
+		return 0;
+
+	// GetFileInformationByHandleEx() usually fail with file handle in
+	// FAT32. Let's fall back on GetFileInformationByHandle()
+	if (!GetFileInformationByHandle(hnd, &file_info))
+		return mm_raise_from_w32err("failed to get file info");
+
+	// Convert 2 DWORDs file ID into FILE_ID_128
+	id[0] = file_info.nFileIndexLow;
+	id[1] = file_info.nFileIndexHigh;
+	id[2] = 0;
+	id[3] = 0;
+	memcpy(&id_info->FileId, id, sizeof(id));
+
+	id_info->VolumeSerialNumber = file_info.dwVolumeSerialNumber;
+	return 0;
+}
+
+
 /**************************************************************************
  *                                                                        *
  *                       Access control setup                             *
@@ -273,7 +311,7 @@ static
 void init_owner_sid_str(void)
 {
 	union local_sid owner;
-	char16_t* sidstr;
+	char16_t* sidstr = NULL;
 
 	if (get_caller_sids(&owner.sid, NULL)
 	    || !ConvertSidToStringSidW(&owner.sid, &sidstr)) {
@@ -281,7 +319,7 @@ void init_owner_sid_str(void)
 		return;
 	}
 
-	owner_sid_strlen = wcslen(owner_sid_str);
+	owner_sid_strlen = wcslen(sidstr);
 	memcpy(owner_sid_str, sidstr, (owner_sid_strlen+1)*sizeof(*sidstr));
 
 	LocalFree(sidstr);

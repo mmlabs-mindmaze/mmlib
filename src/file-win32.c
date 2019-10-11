@@ -10,6 +10,8 @@
 #include "mmlib.h"
 #include "file-internal.h"
 #include "utils-win32.h"
+#include "volume-win32.h"
+#include "mmlog.h"
 
 #include <windows.h>
 #include <direct.h>
@@ -511,63 +513,71 @@ int mm_isatty(int fd)
 }
 
 
-static
-const char * win32_basename(const char * path)
-{
-	const char * c = path + strlen(path) - 1;
-
-	/* skip the last chars if they're not a path */
-	while (c > path && is_path_separator(*c))
-		c--;
-
-	while (c > path) {
-		if (is_path_separator(*c))
-			return c + 1;
-		c--;
-	}
-	return path;
-}
-
-
 /**
- * rename_file_handle() - rename a file though handle
- * @hnd:        file handle opened with DELETE access
- * @path:       UTF-8 path to which the file must be renamed
+ * rename_file_to_trash_from_handle() - rename a file to trash volume folder
+ * @hnd:        handle of the file opened for deletion
  *
- * Return: 0 in case of success, -1 otherwise. Please note that this
- * function is meant to be helper for implement public operation and as such
- * does not set error state (retrieve error in caller with GetLastError())
+ * This renames the file opened through @hnd to be renamed to the recycle bin
+ * folder of its volume: the recycle bin is a folder present in each mounted
+ * volume and a writeable folder is dedicated in it for each logged user. Hence
+ * the file renaming should never failed as long as the filename used is
+ * unique. To this end, the file to removed is renamed following a pattern
+ * based on its unique file id on the volume.
  */
 static
-int rename_file_handle(HANDLE hnd, const char* path)
+void rename_file_to_trash_from_handle(HANDLE hnd)
 {
-	FILE_RENAME_INFO* info;
+	FILE_ID_INFO id_info = {0};
+	const char16_t* sid;
+	const struct volume* vol;
+	union {
+		char buffer[2*(MAX_PATH+1) + sizeof(FILE_RENAME_INFO)];
+		FILE_RENAME_INFO info;
+	} rename_buffer;
+	FILE_RENAME_INFO* info = &rename_buffer.info;
 	size_t info_sz;
-	int path_u16_len, rv = -1;
+	mm_ino_t ino;
 
-	// Get size for converted path into utf-16
-	path_u16_len = get_utf16_buffer_len_from_utf8(path);
-	if (path_u16_len < 0)
-		return -1;
+	// Get file id, volume name of the handle as well as sid of calling user
+	if (get_file_id_info_from_handle(hnd, &id_info)
+	    || !(vol = get_volume_from_dev(id_info.VolumeSerialNumber))
+	    || !(sid = get_caller_string_sid_u16())) {
+		// we don't mind to fail (although very unlikely), since the
+		// file should be eventually deleted afterwards anyway
+		return;
+	}
 
-	// Allocate (and init) temporary rename info structure in order to
-	// rename path (UTF-16 in allocated within this structure)
-	info_sz = sizeof(*info);
-	info_sz += path_u16_len * sizeof(info->FileName[0]);
-	info = mm_malloca(info_sz);
-	if (!info)
-		return -1;
+	// Some version of mingw64-crt defines FILE_ID_128 as 2 ULONGLONG
+	// fields, some as BYTE[16]. Copy explicitly to mm_ino_t avoid
+	// us any trouble
+	memcpy(&ino, &id_info.FileId, sizeof(ino));
 
-	// Init rename structure (convert path to UTF-16) and try to do it
+	// Rename file so that path is available even if file is not removed
+	// immediately. We try on in recycle bin of the same volume because
+	// this is a writable folder available on each NTFS volume.  On FAT
+	// (FAT32 and exFAT), there aren't any but those filesystem does not
+	// have permission per file, hence we can always write in the root
+	// folder of the volume (if writable volume). Now for the FS not NTFS
+	// and not FAT we don't workaround. Hence we prefer hoping there is a
+	// $Recycle.Bin... We will fallback to usual windows behavior if not.
+	if (vol->fs_type == FSTYPE_FAT32 || vol->fs_type == FSTYPE_EXFAT) {
+		swprintf(info->FileName, MAX_PATH,
+		         L"%ls\\.%016llx%016llx.deleted",
+		         vol->guid_path, ino.id_high, ino.id_low);
+	} else {
+		swprintf(info->FileName, MAX_PATH,
+		         L"%ls\\$Recycle.bin\\%ls\\%016llx%016llx.deleted",
+		         vol->guid_path, sid, ino.id_high, ino.id_low);
+	}
+	info->FileName[MAX_PATH] = L'\0';  // ensure filename is terminated
+
+	// Finalize the structure of rename operation and perform it
 	info->RootDirectory = NULL;
 	info->ReplaceIfExists = FALSE;
-	info->FileNameLength = path_u16_len * sizeof(info->FileName[0]);
-	conv_utf8_to_utf16(info->FileName, path_u16_len, path);
-	if (SetFileInformationByHandle(hnd, FileRenameInfo, info, info_sz))
-		rv = 0;
-
-	mm_freea(info);
-	return rv;
+	info->FileNameLength = wcslen(info->FileName);
+	info_sz = sizeof(*info);
+	info_sz += sizeof(info->FileName[0]) * info->FileNameLength;
+	SetFileInformationByHandle(hnd, FileRenameInfo, info, info_sz);
 }
 
 
@@ -575,11 +585,8 @@ int rename_file_handle(HANDLE hnd, const char* path)
 API_EXPORTED
 int mm_unlink(const char* path)
 {
-	size_t delpath_maxlen;
-	char* delpath;
 	DWORD flags;
 	HANDLE hnd;
-	int i;
 
 	// Open file with DELETE_ON_CLOSE flag. If this operation has succeed,
 	// the file will be deleted when CloseHandle() is called. Also do not
@@ -591,38 +598,7 @@ int mm_unlink(const char* path)
 	if (hnd == INVALID_HANDLE_VALUE)
 		return mm_raise_from_w32err("Can't get handle for %s", path);
 
-	// Allocate (and init) temporary rename info structure in order to rename path
-	// into TEMP_FILE/<basename>.deleted-#### or <path>.deleted-####
-	delpath_maxlen = strlen(path)+win32_temp_path_len+64;
-	delpath = mm_malloca(delpath_maxlen);
-
-	// Rename before closing (hence marking file for deleting) to make the
-	// filename reusable immediately even if the file object is not deleted
-	// immediately (make different rename attempt in order to find a
-	// name that is available)
-
-	// try to move to TempPath if possible
-	if (win32_temp_path_len != 0) {
-		for (i = 0; i < NUM_ATTEMPT; i++) {
-			snprintf(delpath, delpath_maxlen, "%s/%s.deleted-%i",
-			        win32_temp_path, win32_basename(path), i);
-			if (rename_file_handle(hnd, delpath) == 0)
-				goto exit;
-
-			if (GetLastError() == ERROR_NOT_SAME_DEVICE)
-				break;
-		}
-	}
-
-	// try to rename the file and postfix is as deleted
-	for (i = 0; i < NUM_ATTEMPT; i++) {
-		snprintf(delpath, delpath_maxlen, "%s.deleted-%i", path, i);
-		if (rename_file_handle(hnd, delpath) == 0)
-			break;
-	}
-
-exit:
-	mm_freea(delpath);
+	rename_file_to_trash_from_handle(hnd);
 	CloseHandle(hnd);
 	return 0;
 }

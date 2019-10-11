@@ -111,6 +111,7 @@ libmmlib_internal_wrapper_la_SOURCES += \
 	socket-win32.c \
 	env-win32.c \
 	startup-win32.c \
+	volume-win32.h volume-win32.c \
 	$(eol)
 
 libmmlib_internal_wrapper_la_LIBADD += \

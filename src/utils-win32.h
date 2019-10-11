@@ -187,6 +187,7 @@ void safe_closehandle(HANDLE hnd)
 }
 
 int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf);
+int get_file_id_info_from_handle(HANDLE hnd, FILE_ID_INFO* info);
 
 /**************************************************************************
  *                                                                        *
