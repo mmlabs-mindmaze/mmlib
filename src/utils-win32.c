@@ -11,10 +11,15 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <aclapi.h>
+#include <sddl.h>
 
 #include "mmerrno.h"
 #include "mmlog.h"
 #include "mmlib.h"
+#include "mmthread.h"
+
+// https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/microsoft-windows-shell-setup-offlineuseraccounts-offlinedomainaccounts-offlinedomainaccount-sid
+#define SID_STRING_MAXLEN 256
 
 static
 int set_access_mode(struct w32_create_file_options* opts, int oflags)
@@ -257,6 +262,45 @@ int get_caller_sids(SID* owner, SID* primary_group)
 exit:
 	safe_closehandle(htoken);
 	return rv;
+}
+
+
+static int owner_sid_strlen = -1;
+static char16_t owner_sid_str[SID_STRING_MAXLEN];
+
+
+static
+void init_owner_sid_str(void)
+{
+	union local_sid owner;
+	char16_t* sidstr;
+
+	if (get_caller_sids(&owner.sid, NULL)
+	    || !ConvertSidToStringSidW(&owner.sid, &sidstr)) {
+		mm_raise_from_w32err("could not initialize owner SID string");
+		return;
+	}
+
+	owner_sid_strlen = wcslen(owner_sid_str);
+	memcpy(owner_sid_str, sidstr, (owner_sid_strlen+1)*sizeof(*sidstr));
+
+	LocalFree(sidstr);
+}
+
+
+LOCAL_SYMBOL
+const char16_t* get_caller_string_sid_u16(void)
+{
+	static mmthr_once_t sid_init_once = MMTHR_ONCE_INIT;
+
+	// Initialize owner SID string only once: the owner SID of a process
+	// cannot be changed
+	mmthr_once(&sid_init_once, init_owner_sid_str);
+
+	if (owner_sid_strlen < 0)
+		return NULL;
+
+	return owner_sid_str;
 }
 
 
