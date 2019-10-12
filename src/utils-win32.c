@@ -205,8 +205,10 @@ DWORD get_access_from_perm_bits(mode_t mode)
 
 /**
  * get_caller_sids() - retrieve owner and primary group SIDs of caller
- * @owner:       pointer to buffer that will receive the owner SID
- * @primary_group: pointer to buffer that will receive the primary group SID
+ * @owner:       pointer to buffer that will receive the owner SID.
+ *               Ignored if NULL.
+ * @primary_group: pointer to buffer that will receive the primary group SID.
+ *                 Ignored if NULL
  *
  * Return: 0 in case of success, -1 otherwise. Please note that this
  * function does not set error state. Use GetLastError() to retrieve the
@@ -227,23 +229,28 @@ int get_caller_sids(SID* owner, SID* primary_group)
 		goto exit;
 
 	// Get Owner SID
-	len = sizeof(tmp);
-	owner_info = (TOKEN_OWNER*)tmp;
-	if (!GetTokenInformation(htoken, TokenOwner, owner_info, len, &len))
-		goto exit;
+	if (owner) {
+		len = sizeof(tmp);
+		owner_info = (TOKEN_OWNER*)tmp;
+		if (!GetTokenInformation(htoken, TokenOwner,
+		                         owner_info, len, &len))
+			goto exit;
 
-	CopySid(SECURITY_MAX_SID_SIZE, owner,
-	        owner_info->Owner);
+		CopySid(SECURITY_MAX_SID_SIZE, owner,
+		        owner_info->Owner);
+	}
 
 	// Get Primary group SID
-	len = sizeof(tmp);
-	group_info = (TOKEN_PRIMARY_GROUP*)tmp;
-	if (!GetTokenInformation(htoken, TokenPrimaryGroup,
-	                        group_info, len, &len))
-		goto exit;
+	if (primary_group) {
+		len = sizeof(tmp);
+		group_info = (TOKEN_PRIMARY_GROUP*)tmp;
+		if (!GetTokenInformation(htoken, TokenPrimaryGroup,
+		                         group_info, len, &len))
+			goto exit;
 
-	CopySid(SECURITY_MAX_SID_SIZE, primary_group,
-	        group_info->PrimaryGroup);
+		CopySid(SECURITY_MAX_SID_SIZE, primary_group,
+		        group_info->PrimaryGroup);
+	}
 
 	rv = 0;
 
