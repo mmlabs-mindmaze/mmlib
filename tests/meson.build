@@ -108,7 +108,8 @@ testapi_sources = files(
         'utils-api-tests.c'
 )
 
-testapi_deps = [libcheck]
+libmath = cc.find_library('m', required : true)
+testapi_deps = [libcheck, libmath]
 if host_machine.system() == 'windows'
     testapi_deps += libws2_32
 endif
