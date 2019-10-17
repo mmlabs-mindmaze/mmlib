@@ -39,3 +39,5 @@ wchar_t.m4
 wint_t.m4
 xsize.m4
 ax_python_module.m4
+ax_append_flag.m4
+ax_check_compile_flag.m4

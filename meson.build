@@ -3,6 +3,7 @@ project('mmlib', 'c',
         license: 'apache2',
         meson_version: '>= 0.49',
         default_options: [
+            'c_std=c11',
             'warning_level=3',
         ],
 )
@@ -29,6 +30,14 @@ flags = [
     '-Wno-string-plus-int'
 ]
 add_project_arguments(cc.get_supported_arguments(flags), language : 'c')
+
+# use POSIX definitions up to POSIX.1-2008 standard
+config.set('_POSIX_C_SOURCE', '200809L')
+
+# ensure that the "default" definitions are provided
+# Note: when defined with _POSIX_C_SOURCE, POSIX sources are always preferred
+# in case of conflict
+config.set('_DEFAULT_SOURCE', '1')
 
 subdir('config/api-exports')
 subdir('config/autools-compat')
@@ -62,7 +71,7 @@ check_functions = [
 # answer. BUT sometimes, the compiler lies ... for example gcc lies on
 # mingw64 and has a builtin advertising for posix_memalign().
 foreach f : check_functions
-    if cc.has_header_symbol(f[0], f[1])
+    if cc.has_header_symbol(f[0], f[1], args:'-D_POSIX_C_SOURCE=200809L')
         config.set('HAVE_' + f[1].underscorify().to_upper(), 1)
     endif
 endforeach
