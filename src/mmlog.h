@@ -87,10 +87,10 @@
 		abort(); \
 	} while (0)
 
-#define mm_check(expr, ...) \
+#define mm_check(expr) \
 	do { \
 		if (UNLIKELY(!(expr))) { \
-			mm_crash("mm_check(" #expr ") failed. " __VA_ARGS__); \
+			mm_crash("mm_check(" #expr ") failed. "); \
 		} \
 	} while (0)
 

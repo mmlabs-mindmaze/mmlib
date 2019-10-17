@@ -204,7 +204,7 @@ struct robust_data* create_robust_data(HANDLE pipe)
 	// Send the request and get reply
 	ret = TransactNamedPipe(pipe, &request, sizeof(request),
 	                        &response, sizeof(response), &rsz, NULL);
-	mm_check(ret && (rsz == sizeof(response)), "ret=%i, rsz=%lu", ret, rsz);
+	mm_check(ret && (rsz == sizeof(response)));
 
 	// map the handle retuned by server
 	ptr = MapViewOfFile(response.hmap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
@@ -308,7 +308,7 @@ int64_t pshared_init_lock(struct lockref_connection* conn)
 	request.opcode = LOCKREF_OP_INITLOCK;
 	ret = TransactNamedPipe(conn->pipe, &request, sizeof(request),
 	                        &response, sizeof(response), &rsz, NULL);
-	mm_check(ret && (rsz == sizeof(response)), "ret=%i, rsz=%lu", ret, rsz);
+	mm_check(ret && (rsz == sizeof(response)));
 
 	return response.key;
 }
@@ -355,7 +355,7 @@ int pshared_wait_on_lock(struct lockref_connection* conn, struct shared_lock loc
 	while (1) {
 		ret = TransactNamedPipe(conn->pipe, &request, sizeof(request),
 		                        &response, sizeof(response), &rsz, NULL);
-		mm_check(ret && (rsz == sizeof(response)), "ret=%i, rsz=%lu", ret, rsz);
+		mm_check(ret && (rsz == sizeof(response)));
 
 		if (UNLIKELY(response.respcode == LOCKREF_OP_CLEANUP))
 			cleanup_mutex_lock(response.hmap, lock, &request);
@@ -396,6 +396,6 @@ void pshared_wake_lock(struct lockref_connection* conn, struct shared_lock shloc
 	// Send request to lock server and wait for reply
 	ret = TransactNamedPipe(conn->pipe, &request, sizeof(request),
 	                        &response, sizeof(response), &rsz, NULL);
-	mm_check(ret && (rsz == sizeof(response)), "ret=%i, rsz=%lu", ret, rsz);
+	mm_check(ret && (rsz == sizeof(response)));
 }
 

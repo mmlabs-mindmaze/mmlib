@@ -65,7 +65,7 @@ int test_crash(void)
 static
 void provoke_a_check_failure(void)
 {
-	mm_check(119 == 7*16, "Actually, it should be 7*%d", 119/7);
+	mm_check(119 == 7*16);
 }
 
 static

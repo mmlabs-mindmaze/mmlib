@@ -249,7 +249,7 @@ void init_basedirs(void)
 	const char * home, * dir;
 
 	home = mm_getenv("HOME", mm_getenv("USERPROFILE", NULL));
-	mm_check(home != NULL, "Surprising: Home folder not specified in env");
+	mm_check(home != NULL);
 	set_basedir(MM_HOME, home);
 
 	dir = mm_getenv("XDG_CONFIG_HOME", NULL);
