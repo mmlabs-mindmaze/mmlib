@@ -19,6 +19,20 @@ version = major + '.' + minor + '.' + patch
 cc = meson.get_compiler('c')
 config = configuration_data()
 
+# additional (optional) warnings
+flags = [
+    '-Wshadow',
+    '-Wstrict-prototypes',
+    '-Wmissing-prototypes',
+
+    # (clang) we want zero-variadic-macro GNU extension
+    '-Wno-gnu-zero-variadic-macro-arguments',
+
+    # (clang) we know how C works
+    '-Wno-string-plus-int'
+]
+add_project_arguments(cc.get_supported_arguments(flags), language : 'c')
+
 subdir('config/api-exports')
 subdir('config/autools-compat')
 
