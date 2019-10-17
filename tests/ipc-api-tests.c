@@ -49,9 +49,9 @@ void test_teardown(void)
 
 START_TEST(ipc_create_simple)
 {
-	struct mmipc_srv * srv = mmipc_srv_create(IPC_ADDR);
-	ck_assert(srv != NULL);
-	mmipc_srv_destroy(srv);
+	struct mmipc_srv * server = mmipc_srv_create(IPC_ADDR);
+	ck_assert(server != NULL);
+	mmipc_srv_destroy(server);
 }
 END_TEST
 
@@ -62,11 +62,11 @@ START_TEST(ipc_create_invalid)
 	memset(name, 'a', sizeof(name) - 1);
 	name[sizeof(name) - 1] = '\0';
 
-	struct mmipc_srv * srv = mmipc_srv_create(name);
-	ck_assert(srv == NULL);
+	struct mmipc_srv *server = mmipc_srv_create(name);
+	ck_assert(server == NULL);
 	ck_assert(mm_get_lasterror_number() == ENAMETOOLONG);
 
-	mmipc_srv_destroy(srv);
+	mmipc_srv_destroy(server);
 }
 END_TEST
 
