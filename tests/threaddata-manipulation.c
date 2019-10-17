@@ -17,6 +17,7 @@
 
 #  include <intrin.h>
 
+#  define _Atomic
 #  define atomic_store_i64(obj, val)	_InterlockedExchange64(obj, val)
 #  define atomic_fetch_sub_i64(obj, val)  _InterlockedExchangeAdd64(obj, -val)
 
@@ -39,7 +40,7 @@
  * Return: true if no inconsistency has been detected, false otherwise
  */
 static
-bool touch_data(int64_t* data, int64_t tid, bool do_sleep)
+bool touch_data(_Atomic int64_t* data, int64_t tid, bool do_sleep)
 {
 	int64_t prev;
 
@@ -68,7 +69,7 @@ intptr_t run_write_shared_data(struct shared_write_data* shdata)
 {
 	int i;
 	int num_iter = shdata->num_iteration;
-	int64_t* data = &shdata->value;
+	_Atomic int64_t* data = &shdata->value;
 	int64_t tid = (int64_t)mmthr_self();
 	bool match, do_sleep;
 
