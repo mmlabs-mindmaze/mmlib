@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <strings.h>
 
+#include "api-testcases.h"
 #include "mmerrno.h"
 #include "mmlib.h"
 #include "mmpredefs.h"

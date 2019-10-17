@@ -5,8 +5,6 @@
 # include <config.h>
 #endif
 
-#include "dynlib-api.h"
-
 #include <check.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -14,6 +12,9 @@
 
 #include <mmdlfcn.h>
 #include <mmerrno.h>
+
+#include "api-testcases.h"
+#include "dynlib-api.h"
 
 #define TEST_VAL 0x1f2f3f4f
 

@@ -20,6 +20,7 @@
 #include "mmthread.h"
 #include "mmtime.h"
 
+#include "api-testcases.h"
 #include "tests-child-proc.h"
 #include "ipc-api-tests-exported.h"
 

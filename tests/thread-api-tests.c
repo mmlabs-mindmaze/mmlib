@@ -8,12 +8,13 @@
 #include <check.h>
 #include <stdatomic.h>
 
-#include "mmthread.h"
-#include "mmsysio.h"
-#include "mmtime.h"
+#include "api-testcases.h"
 #include "mmpredefs.h"
-#include "threaddata-manipulation.h"
+#include "mmsysio.h"
+#include "mmthread.h"
+#include "mmtime.h"
 #include "tests-child-proc.h"
+#include "threaddata-manipulation.h"
 
 #define EXPECTED_VALUE	(int)0xdeadbeef
 #define NUM_CONCURRENCY	12

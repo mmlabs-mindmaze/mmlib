@@ -6,13 +6,14 @@
 #endif
 
 #include <check.h>
-
-#include "mmerrno.h"
-#include "mmtime.h"
-#include "mmpredefs.h"
-#include "mmlib.h"
-#include <strings.h>
 #include <stdio.h>
+#include <strings.h>
+
+#include "api-testcases.h"
+#include "mmerrno.h"
+#include "mmlib.h"
+#include "mmpredefs.h"
+#include "mmtime.h"
 
 /**************************************************************************
  *                                                                        *

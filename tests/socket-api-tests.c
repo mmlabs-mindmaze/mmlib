@@ -6,16 +6,17 @@
 #endif
 
 #include <check.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <strings.h>
 
+#include "api-testcases.h"
 #include "mmerrno.h"
+#include "mmlib.h"
+#include "mmpredefs.h"
 #include "mmsysio.h"
 #include "socket-testlib.h"
 #include "tests-child-proc.h"
-#include "mmpredefs.h"
-#include "mmlib.h"
-#include <strings.h>
-#include <stdio.h>
-#include <stdarg.h>
 
 #define PORT	32145
 #define MULTIMSG_LEN	6

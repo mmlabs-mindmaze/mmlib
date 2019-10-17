@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "api-testcases.h"
 #include "mmerrno.h"
 #include "mmlib.h"
 #include "mmlog.h"
