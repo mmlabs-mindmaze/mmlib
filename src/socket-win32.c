@@ -53,7 +53,7 @@ void winsock_init(void)
 
 
 static
-int check_wsa_init()
+int check_wsa_init(void)
 {
 	static mmthr_once_t wsa_ini_once = MMTHR_ONCE_INIT;
 
