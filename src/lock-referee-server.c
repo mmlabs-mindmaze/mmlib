@@ -12,6 +12,7 @@
 #include "clock-win32.h"
 #include "mmtime.h"
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <aclapi.h>
