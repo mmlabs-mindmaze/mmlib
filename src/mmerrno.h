@@ -145,7 +145,9 @@ MMLIB_API int mmstrerror_r(int errnum, char * buf, size_t buflen);
 /**
  * mm_raise_error() - set and log an error
  * @errnum:     error class number
- * @desc:       description intended for developer (printf-like extensible)
+ *
+ * mm_raise_error() takes an extensible number of arguments (printf-like)
+ * and usually receives one string describing the issue.
  *
  * Set the state of an error in the running thread. If @errnum is 0, the
  * thread error state will kept untouched.
@@ -165,19 +167,22 @@ MMLIB_API int mmstrerror_r(int errnum, char * buf, size_t buflen);
  *
  * Return: always -1.
  */
-#define mm_raise_error(errnum, desc, ...) \
+#define mm_raise_error(errnum, ...) \
 	mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, \
-	                    __LINE__, NULL, desc,  ## __VA_ARGS__)
+	                    __LINE__, NULL, __VA_ARGS__)
 
 #define mm_raise_from_errno(...) \
 	mm_raise_from_errno_full(MMLOG_MODULE_NAME, __func__, __FILE__, \
 	                         __LINE__, NULL, __VA_ARGS__)
 
+
 /**
  * mm_raise_error_with_extid() - set and log an error with an extended error id
  * @errnum:     error class number
  * @extid:      extended error id (identifier of a specific error case)
- * @desc:       description intended for developer (printf-like extensible)
+ *
+ * Same as with mm_raise_error(), this accepts an extensible number of
+ * arguments.
  *
  * Same as mm_raise_error() with an extended error id set to @extid. If @extid
  * is NULL, the effect is exactly the same as calling mm_raise_error().
@@ -195,9 +200,9 @@ MMLIB_API int mmstrerror_r(int errnum, char * buf, size_t buflen);
  *
  * Return: always -1.
  */
-#define mm_raise_error_with_extid(errnum, extid, desc, ...) \
+#define mm_raise_error_with_extid(errnum, extid, ...) \
 	mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, \
-	                    __LINE__, extid, desc,  ## __VA_ARGS__)
+	                    __LINE__, extid, __VA_ARGS__)
 
 
 MMLIB_API int mm_raise_error_full(int errnum, const char* module,

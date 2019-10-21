@@ -25,9 +25,6 @@ flags = [
     '-Wstrict-prototypes',
     '-Wmissing-prototypes',
 
-    # (clang) we want zero-variadic-macro GNU extension
-    '-Wno-gnu-zero-variadic-macro-arguments',
-
     # (clang) we know how C works
     '-Wno-string-plus-int'
 ]

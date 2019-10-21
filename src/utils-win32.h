@@ -29,8 +29,8 @@ void write_w32err_msg(DWORD w32err, size_t len, char* buff);
 int mm_raise_from_w32err_full(const char* module, const char* func,
                               const char* srcfile, int srcline,
                               const char* desc, ...);
-#define mm_raise_from_w32err(desc, ...) \
-	mm_raise_from_w32err_full(MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, desc,  ## __VA_ARGS__)
+#define mm_raise_from_w32err(...) \
+	mm_raise_from_w32err_full(MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, __VA_ARGS__)
 
 
 /**************************************************************************
