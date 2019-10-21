@@ -61,6 +61,9 @@ check_functions = [
 	['pthread.h', 'pthread_mutex_consistent'],
 ]
 
+# Note: do not use cc.has_function() here: it uses the compiler builtins to
+# answer. BUT sometimes, the compiler lies ... for example gcc lies on
+# mingw64 and has a builtin advertising for posix_memalign().
 foreach f : check_functions
     if cc.has_header_symbol(f[0], f[1])
         config.set('HAVE_' + f[1].underscorify().to_upper(), 1)
