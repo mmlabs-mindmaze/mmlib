@@ -173,7 +173,7 @@ struct thread_local_data* allocate_thread_local_data(void)
 
 
 static
-void thread_local_data_on_exit()
+void thread_local_data_on_exit(void)
 {
 	struct thread_local_data* data;
 	struct mmthread* self;
