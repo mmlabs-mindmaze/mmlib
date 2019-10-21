@@ -332,6 +332,43 @@ int mm_raise_error_full(int errnum, const char* module, const char* func,
 
 
 /**
+ * mm_raise_from_errno_full() - set and log an error (function backend)
+ * @module:     module name
+ * @func:       function name at the origin of the error
+ * @srcfile:    filename of source code at the origin of the error
+ * @srcline:    line number of file at the origin of the error
+ * @extid:      extended error id (identifier of a specific error case)
+ * @desc_fmt:   description intended for developer (printf-like extensible)
+ *
+ * This function is the actual function invoked by the mm_raise_from_errno()
+ * macro. You are advised to use the macros instead unless you want to build
+ * your own wrapper.
+ *
+ * Return: always -1.
+ */
+API_EXPORTED
+int mm_raise_from_errno_full(const char* module, const char* func,
+                             const char* srcfile, int srcline,
+                             const char* extid, const char* desc_fmt, ...)
+{
+	int ret;
+	va_list args;
+	char new_fmt[256];
+
+	snprintf(new_fmt, sizeof(new_fmt) - 1,
+	         "%s ; %s", desc_fmt, strerror(errno));
+	new_fmt[sizeof(new_fmt) - 1] = 0;
+
+	va_start(args, desc_fmt);
+	ret = mm_raise_error_vfull(errno, module, func, srcfile, srcline,
+	                           extid, new_fmt, args);
+	va_end(args);
+
+	return ret;
+}
+
+
+/**
  * mm_save_errorstate() - Save the error state on an opaque data holder
  * @state:      data holder of the error state
  *

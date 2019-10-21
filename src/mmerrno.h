@@ -169,10 +169,9 @@ MMLIB_API int mmstrerror_r(int errnum, char * buf, size_t buflen);
 	mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, \
 	                    __LINE__, NULL, desc,  ## __VA_ARGS__)
 
-#define mm_raise_from_errno(desc, ...) \
-	mm_raise_error_full(errno, MMLOG_MODULE_NAME, __func__, __FILE__, \
-	                    __LINE__, NULL, desc ": %s", ## __VA_ARGS__, \
-	                    strerror(errno))
+#define mm_raise_from_errno(...) \
+	mm_raise_from_errno_full(MMLOG_MODULE_NAME, __func__, __FILE__, \
+	                         __LINE__, NULL, __VA_ARGS__)
 
 /**
  * mm_raise_error_with_extid() - set and log an error with an extended error id
@@ -210,6 +209,11 @@ MMLIB_API int mm_raise_error_vfull(int errnum, const char* module,
                                    const char* func, const char* srcfile,
                                    int srcline, const char* extid,
                                    const char* desc, va_list args);
+
+MMLIB_API int mm_raise_from_errno_full(const char* module, const char* func,
+                                       const char* srcfile, int srcline,
+                                       const char* extid,
+                                       const char* desc_fmt, ...);
 
 MMLIB_API int mm_error_set_flags(int flags, int mask);
 MMLIB_API int mm_save_errorstate(struct mm_error_state* state);
