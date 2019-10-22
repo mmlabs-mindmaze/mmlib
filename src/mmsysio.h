@@ -372,6 +372,7 @@ MMLIB_API ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg);
  *                          Network communication                         *
  **************************************************************************/
 
+struct addrinfo;
 
 #if defined (_WIN32)
 /**
