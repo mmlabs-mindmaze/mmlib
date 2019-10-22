@@ -38,7 +38,11 @@ gcc --version
 all_included
 
 # test headers for compliance with most warnings
-all_included | gcc -x c - -I"$includedir" -Werror -Wall -pedantic
+for std in c11 c17 gnu99 gnu11 gnu17
+do
+	echo "Test C language standard : $std"
+	all_included | gcc -std=$std -x c - -I"$includedir" -Werror -Wall -pedantic
+done
 
 # also test with clang if available
 if [ -x "$(which clang)" ] ; then
@@ -48,4 +52,8 @@ if [ -x "$(which clang)" ] ; then
 fi
 
 # test headers for C++ compatibility
-all_included | gcc -x c++ - -I"$includedir" -Werror -Wall -pedantic
+for std in c++11 c++14 c++17 gnu++11 gnu++14 gnu++17
+do
+	echo "Test C++ language standard : $std"
+	all_included | gcc -std=$std -x c++ - -I"$includedir" -Werror -Wall -pedantic
+done
