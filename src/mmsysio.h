@@ -26,6 +26,7 @@
 #endif /* ifdef _WIN32 */
 
 #include "mmpredefs.h"
+#include "mmtime.h"
 
 #ifdef _WIN32
 /**
