@@ -1356,6 +1356,32 @@ int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 	return index;
 }
 
+/**
+ * mmarg_optv_parse() - parse command-line options
+ * @optn:       number of mmarg_opt elements in optv
+ * @optv:       pointer to mmarg_opt array
+ * @argc:       argument count as passed to main()
+ * @argv:       argument array as passed to main()
+ *
+ * This function wraps around mmarg_parse and it takes care to create and
+ * initialize a minimal mmarg_parser structure.
+ * It can be useful when no extended usage documentation is needed, as it
+ * just provides the standard help function.
+ *
+ * Return: a non negative value indicating the index of the first non-option
+ * argument when argument parsing has been successfully finished.
+ */
+API_EXPORTED
+int mmarg_optv_parse(int optn, const struct mmarg_opt* optv, int argc,
+                     char* argv[])
+{
+	struct mmarg_parser parser = {
+		.optv = optv,
+		.num_opt = optn > 0 ? optn : 0,
+		.execname = argv[0]
+	};
+	return mmarg_parse(&parser, argc, argv);
+}
 
 /**
  * mmarg_parse_complete() - print list of opts of arg parser for completion

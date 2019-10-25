@@ -51,6 +51,25 @@ int argv_len(char* argv[])
 	return len;
 }
 
+/**
+ * fork_enabled() - return 1 if tests are executing through fork() calls
+ *                  and 0 otherwise
+ *
+ * Return: 1 or 0 depending on the activation of fork() for tests
+ */
+static
+int fork_enabled(void)
+{
+	const char *s;
+#ifdef _WIN32
+	return 0;
+#endif
+	s = mm_getenv("CK_FORK", NULL);
+	if (s)
+		return 1;
+	return 0;
+}
+
 /**************************************************************************
  *                                                                        *
  *                           setup/teardown of tests                      *
@@ -378,6 +397,18 @@ START_TEST(parsing_error)
 END_TEST
 
 
+START_TEST(optv_parsing_error)
+{
+	int argc;
+	char** argv = (char**)error_argv_cases[_i].argv;
+
+	argc = argv_len(argv);
+	mmarg_optv_parse(MM_NELEM(argval_valid_tests_optv),
+	                 argval_valid_tests_optv, argc, argv);
+}
+END_TEST
+
+
 static const
 struct argv_case success_argv_cases[] = {
 	{.argv = {"prg_name", "an_arg", "--unknown-opt"}, "an_arg"},
@@ -399,6 +430,20 @@ START_TEST(parsing_success)
 
 	argc = argv_len(argv);
 	rv = mmarg_parse(&parser, argc, argv);
+
+	ck_assert_int_ge(rv, 0);
+	ck_assert_str_eq(argv[rv], success_argv_cases[_i].expval);
+}
+END_TEST
+
+START_TEST(optv_parsing_success)
+{
+	int argc, rv;
+	char** argv = (char**)success_argv_cases[_i].argv;
+
+	argc = argv_len(argv);
+	rv = mmarg_optv_parse(MM_NELEM(argval_valid_tests_optv),
+	                      argval_valid_tests_optv, argc, argv);
 
 	ck_assert_int_ge(rv, 0);
 	ck_assert_str_eq(argv[rv], success_argv_cases[_i].expval);
@@ -840,6 +885,11 @@ TCase* create_argparse_tcase(void)
 	tcase_add_loop_test(tc, print_help, 0, MM_NELEM(help_argv_cases));
 	tcase_add_loop_test(tc, parsing_error, 0, MM_NELEM(error_argv_cases));
 	tcase_add_loop_test(tc, parsing_success, 0, MM_NELEM(success_argv_cases));
+	if (fork_enabled()) // needed as optv_parsing_error calls exit()
+		tcase_add_loop_exit_test(tc, optv_parsing_error, EXIT_FAILURE, 0,
+					 MM_NELEM(error_argv_cases));
+	tcase_add_loop_test(tc, optv_parsing_success, 0,
+                            MM_NELEM(success_argv_cases));
 	tcase_add_test(tc, complete_empty_arg);
 	tcase_add_loop_test(tc, complete_opt, 0, MM_NELEM(comp_cases));
 	tcase_add_loop_test(tc, complete_path, 0, MM_NELEM(comp_path_cases));

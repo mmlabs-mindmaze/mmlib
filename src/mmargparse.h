@@ -210,6 +210,8 @@ struct mmarg_parser {
 
 MMLIB_API int mmarg_parse(const struct mmarg_parser* parser,
                           int argc, char* argv[]);
+MMLIB_API int mmarg_optv_parse(int optn, const struct mmarg_opt* optv,
+                               int argc, char* argv[]);
 MMLIB_API int mmarg_parse_complete(const struct mmarg_parser* parser,
                                    const char* arg);
 MMLIB_API int mmarg_complete_path(const char* arg, int type_mask,
