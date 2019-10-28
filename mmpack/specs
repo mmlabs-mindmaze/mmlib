@@ -8,3 +8,7 @@ general:
     module. It provides facilities for logging, error reporting and basic
     geometry.
   build-system: meson
+
+libmmlib0:
+  files:
+    - share/locale/.*
