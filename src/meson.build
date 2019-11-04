@@ -142,6 +142,13 @@ minor = '4'
 patch = '0'
 version = major + '.' + minor + '.' + patch
 
+mmlib_static = static_library('mmlib-static',
+        mmlib_sources,
+        c_args : cflags,
+        install : false,
+        include_directories : configuration_inc,
+        dependencies : [dependencies],
+)
 mmlib = shared_library('mmlib',
         mmlib_sources,
         c_args : cflags,

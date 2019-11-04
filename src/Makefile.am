@@ -3,6 +3,7 @@ eol=
 AM_CPPFLAGS = \
 	-DLOCALEDIR=\"$(localedir)\" \
 	-DSYSCONFDIR=\"$(sysconfdir)\" \
+	-DLIBEXECDIR='"$(pkglibexecdir)"' \
 	$(eol)
 
 AM_CFLAGS = $(MM_WARNFLAGS)
@@ -23,10 +24,20 @@ include_HEADERS = \
 	mmargparse.h \
 	$(eol)
 
+noinst_LTLIBRARIES = libmmlib-internal-wrapper.la
 lib_LTLIBRARIES = libmmlib.la
 pkglibexec_PROGRAMS =
 
-libmmlib_la_SOURCES = \
+libmmlib_la_SOURCES =
+libmmlib_la_LIBADD = libmmlib-internal-wrapper.la
+libmmlib_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	-no-undefined \
+	-version-info $(CURRENT):$(REVISION):$(AGE) \
+	$(eol)
+
+
+libmmlib_internal_wrapper_la_SOURCES = \
 	mmlog.h log.c \
 	nls-internals.h    \
 	mmerrno.h error.c \
@@ -47,27 +58,16 @@ libmmlib_la_SOURCES = \
 	mmdlfcn.h dlfcn.c \
 	$(eol)
 
-libmmlib_la_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
-	-DLIBEXECDIR='"$(pkglibexecdir)"' \
-	$(eol)
-
-libmmlib_la_LIBADD = \
+libmmlib_internal_wrapper_la_LIBADD = \
 	@LTLIBINTL@ \
 	$(MATH_LIB) \
 	$(DL_LIB) \
 	$(eol)
 
-libmmlib_la_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	-no-undefined \
-        -version-info $(CURRENT):$(REVISION):$(AGE) \
-	$(eol)
-
 
 if OS_TYPE_POSIX
 
-libmmlib_la_SOURCES += \
+libmmlib_internal_wrapper_la_SOURCES += \
 	time-posix.c \
 	file-posix.c \
 	shm-posix.c \
@@ -77,7 +77,7 @@ libmmlib_la_SOURCES += \
 	socket-posix.c \
 	$(eol)
 
-libmmlib_la_LIBADD += \
+libmmlib_internal_wrapper_la_LIBADD += \
 	$(CLOCK_LIB) \
 	$(SHM_LIB) \
 	$(PTHREAD_LIB) \
@@ -90,9 +90,11 @@ if OS_TYPE_WIN32
 AM_CPPFLAGS += \
 	-DWIN32_LEAN_AND_MEAN \
 	-D_WIN32_WINNT=_WIN32_WINNT_WIN8 \
+	-DMMLIB_API=API_EXPORTED \
+	-D__USE_MINGW_ANSI_STDIO=1 \
 	$(eol)
 
-libmmlib_la_SOURCES += \
+libmmlib_internal_wrapper_la_SOURCES += \
 	time-win32.c \
 	clock-win32.h clock-win32.c \
 	utils-win32.h utils-win32.c \
@@ -110,19 +112,14 @@ libmmlib_la_SOURCES += \
 	startup-win32.c \
 	$(eol)
 
-libmmlib_la_CPPFLAGS += \
-	-DMMLIB_API=API_EXPORTED \
-	-D__USE_MINGW_ANSI_STDIO=1 \
-	$(eol)
-
-libmmlib_la_LIBADD += \
+libmmlib_internal_wrapper_la_LIBADD += \
 	-lpowrprof \
 	-lws2_32 \
 	$(eol)
 
 if LOCKSERVER_IN_MMLIB_DLL
 
-libmmlib_la_SOURCES +=  \
+libmmlib_internal_wrapper_la_SOURCES +=  \
 	lock-referee-server.c \
 	$(eol)
 
@@ -154,15 +151,15 @@ endif #OS_TYPE_WIN32
 .PHONY: checkstyle
 checkstyle: ../tools/uncrustify.cfg
 	cd $(srcdir) && uncrustify -c ../tools/uncrustify.cfg -l C --check \
-		$(libmmlib_la_SOURCES)
+		$(libmmlib_internal_wrapper_la_SOURCES)
 
 .PHONY: fixstyle
 fixstyle: ../tools/uncrustify.cfg
 	cd $(srcdir) && uncrustify -c ../tools/uncrustify.cfg -l C --replace \
-		$(libmmlib_la_SOURCES)
+		$(libmmlib_internal_wrapper_la_SOURCES)
 
 .PHONY: spelling
-spelling: $(libmmlib_la_SOURCES)
+spelling: $(libmmlib_internal_wrapper_la_SOURCES)
 	$(AM_V_at) codespell $^
 
 .PHONY: api-compat-test

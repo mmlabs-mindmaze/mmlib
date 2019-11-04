@@ -78,12 +78,11 @@ testinternals_tap_SOURCES = \
 	internals-testcases.h \
 	testinternals.c \
 	log-internals.c \
-	../src/alloc.c \
-	../src/error.c \
 	$(eol)
 testinternals_tap_LDADD = \
 	$(CHECK_LIBS) \
 	@LTLIBINTL@ \
+	../src/libmmlib-internal-wrapper.la \
 	$(eol)
 testinternals_tap_CPPFLAGS = $(AM_CPPFLAGS)
 
@@ -91,13 +90,16 @@ if OS_TYPE_WIN32
 
 testinternals_tap_SOURCES += \
 	startup-win32-internals.c \
-	../src/utils-win32.c \
 	$(eol)
 
 testinternals_tap_CPPFLAGS += \
 	-DMMLIB_API=API_EXPORTED \
 	-DWIN32_LEAN_AND_MEAN \
 	-D_WIN32_WINNT=_WIN32_WINNT_WIN8 \
+	$(eol)
+
+testinternals_tap_LDFLAGS= \
+	-Wl,--allow-multiple-definition \
 	$(eol)
 
 endif
