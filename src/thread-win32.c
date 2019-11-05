@@ -18,6 +18,7 @@
 #include "mmlog.h"
 #include "pshared-lock.h"
 #include "atomic-win32.h"
+#include "error-internal.h"
 #include "mutex-lockval.h"
 #include "utils-win32.h"
 
@@ -59,6 +60,7 @@ struct mmthread {
 /**
  * struct thread_local_data - thread local data handling threading in mmlib
  * @lockref:    data maintaining the communication with the lock referee.
+ * @last_error: error state of the thread
  * @thread:     pointer to the thread manipulation structure. Can be NULL if
  *              thread has been created externally and mmthr_self() has not
  *              been called for the thread.
@@ -72,6 +74,7 @@ struct mmthread {
  */
 struct thread_local_data {
 	struct lockref_connection lockref;
+	struct error_info last_error;
 	struct mmthread* thread;
 };
 
@@ -244,6 +247,13 @@ static
 struct lockref_connection* get_thread_lockref_data(void)
 {
 	return &(get_thread_local_data()->lockref);
+}
+
+
+LOCAL_SYMBOL
+struct error_info* get_thread_last_error(void)
+{
+	return &(get_thread_local_data()->last_error);
 }
 
 

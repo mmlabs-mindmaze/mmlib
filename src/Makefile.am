@@ -41,6 +41,7 @@ libmmlib_internal_wrapper_la_SOURCES = \
 	mmlog.h log.c \
 	nls-internals.h    \
 	mmerrno.h error.c \
+	error-internal.h \
 	mmtype.h type.c    \
 	mmskeleton.h skeleton.c	\
 	mmgeometry.h geometry.c   \
