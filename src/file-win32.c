@@ -1337,13 +1337,29 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 	struct local_secdesc lsd;
 	int type;
 
-	if (!GetFileInformationByHandleEx(hnd, FileAttributeTagInfo,
-	                                    &attr_tag, sizeof(attr_tag))
-	   || !GetFileInformationByHandleEx(hnd, FileIdInfo,
-	                                    &id_info, sizeof(id_info))
-	   || !GetFileInformationByHandle(hnd, &info)
-	   || local_secdesc_init_from_handle(&lsd, hnd)) {
+	if (!GetFileInformationByHandle(hnd, &info)
+	    || local_secdesc_init_from_handle(&lsd, hnd)) {
 		return -1;
+	}
+
+	if (!GetFileInformationByHandleEx(hnd, FileAttributeTagInfo,
+	                                  &attr_tag, sizeof(attr_tag))
+	    || !GetFileInformationByHandleEx(hnd, FileIdInfo,
+				&id_info, sizeof(id_info))) {
+		DWORD id[4];
+
+		attr_tag = (FILE_ATTRIBUTE_TAG_INFO) {
+			.FileAttributes = info.dwFileAttributes,
+		};
+
+		// Convert 2 DWORDs file ID into FILE_ID_128
+		id[0] = info.nFileIndexLow;
+		id[1] = info.nFileIndexHigh;
+		id[2] = 0;
+		id[3] = 0;
+		memcpy(&id_info.FileId, id, sizeof(id));
+
+		id_info.VolumeSerialNumber = info.dwVolumeSerialNumber;
 	}
 
 	// translate_filetype() consider all reparse point as symlink. Here
