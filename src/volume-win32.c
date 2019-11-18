@@ -185,7 +185,7 @@ int volume_get_trash_prefix_u16(const struct volume* vol, char16_t* path)
 	// permission per file, hence we can always write in the root folder of
 	// the volume (if writable volume).
 	if (vol->fs_type == FSTYPE_FAT32 || vol->fs_type == FSTYPE_EXFAT) {
-		return swprintf(path, MAX_PATH, L"%ls\\.", vol->guid_path);
+		return swprintf(path, MAX_PATH, L"%ls\\", vol->guid_path);
 	}
 
 	sid = get_caller_string_sid_u16();

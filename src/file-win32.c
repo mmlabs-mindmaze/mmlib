@@ -514,6 +514,40 @@ int mm_isatty(int fd)
 
 
 /**
+ * scrub_user_trash_path() - attempt to clean remainings of deleted files
+ * @trash_buffer:       Buffer to use to prepare full path of file to be
+ *                      deleted. It must be initialized with the trash prefix
+ *                      to use to search for file delete by mmlib. Allocated
+ *                      size must be at least MAX_PATH+1 long.
+ * @prefix_len:         length of prefix in @trash_buffer (excluding '\0')
+ *
+ * NOTE: This function assumes this is legal to write on @trash_prefix between
+ * index @prefix_len and MAX_PATH+1
+ */
+static
+void scrub_user_trash_path(char16_t* trash_buffer, int prefix_len)
+{
+	WIN32_FIND_DATAW find_data;
+	HANDLE find_hnd;
+
+	// Start search file matching .mmlib*.deleted in prefix
+	wcscpy(trash_buffer + prefix_len, L".mmlib-*.deleted");
+	find_hnd = FindFirstFileW(trash_buffer, &find_data);
+	if (find_hnd == INVALID_HANDLE_VALUE)
+		return;
+
+	// Loop over the file matching the pattern and try delete them. We do
+	// not bother it fails.
+	do {
+		wcscpy(trash_buffer + prefix_len, find_data.cFileName);
+		DeleteFileW(trash_buffer);
+	} while (FindNextFileW(find_hnd, &find_data));
+
+	FindClose(find_hnd);
+}
+
+
+/**
  * rename_file_to_trash_from_handle() - rename a file to trash volume folder
  * @hnd:        handle of the file opened for deletion
  *
@@ -549,6 +583,8 @@ int rename_file_to_trash_from_handle(HANDLE hnd)
 		return -1;
 	}
 
+	scrub_user_trash_path(info->FileName, rlen);
+
 	// Some version of mingw64-crt defines FILE_ID_128 as 2 ULONGLONG
 	// fields, some as BYTE[16]. Copy explicitly to mm_ino_t avoid
 	// us any trouble
@@ -556,7 +592,7 @@ int rename_file_to_trash_from_handle(HANDLE hnd)
 
 	// append path of file renamed in trash (named after its file id)
 	swprintf(info->FileName + rlen, MAX_PATH - rlen,
-	         L"%016llx%016llx.deleted", ino.id_high, ino.id_low);
+	         L".mmlib-%016llx%016llx.deleted", ino.id_high, ino.id_low);
 	info->FileName[MAX_PATH] = L'\0';  // ensure filename is terminated
 
 	// Finalize the structure of rename operation and perform it
@@ -572,26 +608,57 @@ int rename_file_to_trash_from_handle(HANDLE hnd)
 }
 
 
+/**
+ * delete_file_from_handle() - delete file opened by handle
+ * @hnd:         handle of the file to be deleted opened with the appropriate
+ *               access DELETE|FILE_WRITE_ATTRIBUTES
+ *
+ * Return: 0 in case of success, -1 otherwise. Please note that this
+ * function does not set error state. Use GetLastError() to retrieve the
+ * origin of error (this is meant to be done by the caller which has more
+ * context, in particular the filename).
+ */
+static
+int delete_file_from_handle(HANDLE* hnd)
+{
+	FILE_DISPOSITION_INFO dispose = {.DeleteFile = TRUE};
+
+	// Make file path available immediately even if file object is not
+	// removed yet
+	if (rename_file_to_trash_from_handle(hnd))
+		return -1;
+
+	// Indicate kernel that file object should deleted. This will be
+	// defered to when all handle to file object will be closed. we don't
+	// mind to fail file has already been renamed: the file should be
+	// eventually deleted afterwards anyway
+	SetFileInformationByHandle(hnd, FileDispositionInfo,
+	                           &dispose, sizeof(dispose));
+	return 0;
+}
+
+
 /* doc in posix implementation */
 API_EXPORTED
 int mm_unlink(const char* path)
 {
-	DWORD flags;
+	DWORD flags, access;
 	HANDLE hnd;
+	int rv = 0;
 
-	// Open file with DELETE_ON_CLOSE flag. If this operation has succeed,
-	// the file will be deleted when CloseHandle() is called. Also do not
-	// follow symlink (Hence FILE_FLAG_OPEN_REPARSE_POINT). Finally
+	// Do not follow symlink (Hence FILE_FLAG_OPEN_REPARSE_POINT). Also
 	// FILE_FLAG_BACKUP_SEMANTICS is added to handle symlink to folder.
-	flags = FILE_FLAG_DELETE_ON_CLOSE
-	        | FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS;
-	hnd = open_handle(path, DELETE, OPEN_EXISTING, NULL, flags);
+	flags = FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS;
+	access = DELETE | FILE_WRITE_ATTRIBUTES;
+	hnd = open_handle(path, access, OPEN_EXISTING, NULL, flags);
 	if (hnd == INVALID_HANDLE_VALUE)
 		return mm_raise_from_w32err("Can't get handle for %s", path);
 
-	rename_file_to_trash_from_handle(hnd);
+	if (delete_file_from_handle(hnd))
+		rv = mm_raise_from_w32err("Can't delete %s", path);
+
 	CloseHandle(hnd);
-	return 0;
+	return rv;
 }
 
 
