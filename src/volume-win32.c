@@ -163,3 +163,39 @@ const struct volume* get_volume_from_dev(mm_dev_t dev)
 
 	return vol;
 }
+
+
+/**
+ * volume_get_trash_prefix_u16() - Get folder of user recycle bin or alike
+ * @vol:        volume in which the trash must be found
+ * @path:       output buffer (must be at least MAX_PATH char16_t wide)
+ *
+ * Return: In case of success, the length of prefix written in @path in term of
+ * number of char16_t (excluding string terminator). Otherwise, -1 is returned.
+ * Please note that this function does not set error state. Use GetLastError()
+ * to retrieve the origin of error.
+ */
+LOCAL_SYMBOL
+int volume_get_trash_prefix_u16(const struct volume* vol, char16_t* path)
+{
+	const char16_t* sid;
+
+	// On FAT (FAT32 and exFAT), there aren't any recycle bin folder (at
+	// least in many Windows version) but those filesystem do not have
+	// permission per file, hence we can always write in the root folder of
+	// the volume (if writable volume).
+	if (vol->fs_type == FSTYPE_FAT32 || vol->fs_type == FSTYPE_EXFAT) {
+		return swprintf(path, MAX_PATH, L"%ls\\.", vol->guid_path);
+	}
+
+	sid = get_caller_string_sid_u16();
+	if (!sid)
+		return -1;
+
+	// We use recycle bin of the same volume because this is a writable
+	// folder available on each NTFS volume. Now for the FS not NTFS and
+	// not FAT we don't have workaround. Hence we prefer hoping there is a
+	// $Recycle.Bin... We will fallback to usual windows behavior if not.
+	return swprintf(path, MAX_PATH, L"%ls\\$Recycle.bin\\%ls\\",
+	                vol->guid_path, sid);
+}

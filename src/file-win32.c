@@ -528,7 +528,6 @@ static
 void rename_file_to_trash_from_handle(HANDLE hnd)
 {
 	FILE_ID_INFO id_info = {0};
-	const char16_t* sid;
 	const struct volume* vol;
 	union {
 		char buffer[2*(MAX_PATH+1) + sizeof(FILE_RENAME_INFO)];
@@ -537,13 +536,12 @@ void rename_file_to_trash_from_handle(HANDLE hnd)
 	FILE_RENAME_INFO* info = &rename_buffer.info;
 	size_t info_sz;
 	mm_ino_t ino;
+	int rlen;
 
-	// Get file id, volume name of the handle as well as sid of calling user
+	// Get file id and deduce volume of the handle and volume trash prefix
 	if (get_file_id_info_from_handle(hnd, &id_info)
 	    || !(vol = get_volume_from_dev(id_info.VolumeSerialNumber))
-	    || !(sid = get_caller_string_sid_u16())) {
-		// we don't mind to fail (although very unlikely), since the
-		// file should be eventually deleted afterwards anyway
+	    || (rlen = volume_get_trash_prefix_u16(vol, info->FileName)) < 0) {
 		return;
 	}
 
@@ -552,23 +550,9 @@ void rename_file_to_trash_from_handle(HANDLE hnd)
 	// us any trouble
 	memcpy(&ino, &id_info.FileId, sizeof(ino));
 
-	// Rename file so that path is available even if file is not removed
-	// immediately. We try on in recycle bin of the same volume because
-	// this is a writable folder available on each NTFS volume.  On FAT
-	// (FAT32 and exFAT), there aren't any but those filesystem does not
-	// have permission per file, hence we can always write in the root
-	// folder of the volume (if writable volume). Now for the FS not NTFS
-	// and not FAT we don't workaround. Hence we prefer hoping there is a
-	// $Recycle.Bin... We will fallback to usual windows behavior if not.
-	if (vol->fs_type == FSTYPE_FAT32 || vol->fs_type == FSTYPE_EXFAT) {
-		swprintf(info->FileName, MAX_PATH,
-		         L"%ls\\.%016llx%016llx.deleted",
-		         vol->guid_path, ino.id_high, ino.id_low);
-	} else {
-		swprintf(info->FileName, MAX_PATH,
-		         L"%ls\\$Recycle.bin\\%ls\\%016llx%016llx.deleted",
-		         vol->guid_path, sid, ino.id_high, ino.id_low);
-	}
+	// append path of file renamed in trash (named after its file id)
+	swprintf(info->FileName + rlen, MAX_PATH - rlen,
+	         L"%016llx%016llx.deleted", ino.id_high, ino.id_low);
 	info->FileName[MAX_PATH] = L'\0';  // ensure filename is terminated
 
 	// Finalize the structure of rename operation and perform it

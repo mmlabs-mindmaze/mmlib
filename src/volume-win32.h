@@ -24,6 +24,7 @@ struct volume {
 
 
 const struct volume* get_volume_from_dev(mm_dev_t dev);
+int volume_get_trash_prefix_u16(const struct volume* vol, char16_t* path);
 
 
 #endif
