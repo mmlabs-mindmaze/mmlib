@@ -523,9 +523,13 @@ int mm_isatty(int fd)
  * the file renaming should never failed as long as the filename used is
  * unique. To this end, the file to removed is renamed following a pattern
  * based on its unique file id on the volume.
+ *
+ * Return: 0 in case of success, -1 otherwise. Please note that this
+ * function does not set error state. Use GetLastError() to retrieve the
+ * origin of error.
  */
 static
-void rename_file_to_trash_from_handle(HANDLE hnd)
+int rename_file_to_trash_from_handle(HANDLE hnd)
 {
 	FILE_ID_INFO id_info = {0};
 	const struct volume* vol;
@@ -542,7 +546,7 @@ void rename_file_to_trash_from_handle(HANDLE hnd)
 	if (get_file_id_info_from_handle(hnd, &id_info)
 	    || !(vol = get_volume_from_dev(id_info.VolumeSerialNumber))
 	    || (rlen = volume_get_trash_prefix_u16(vol, info->FileName)) < 0) {
-		return;
+		return -1;
 	}
 
 	// Some version of mingw64-crt defines FILE_ID_128 as 2 ULONGLONG
@@ -561,7 +565,10 @@ void rename_file_to_trash_from_handle(HANDLE hnd)
 	info->FileNameLength = wcslen(info->FileName);
 	info_sz = sizeof(*info);
 	info_sz += sizeof(info->FileName[0]) * info->FileNameLength;
-	SetFileInformationByHandle(hnd, FileRenameInfo, info, info_sz);
+	if (!SetFileInformationByHandle(hnd, FileRenameInfo, info, info_sz))
+		return -1;
+
+	return 0;
 }
 
 
