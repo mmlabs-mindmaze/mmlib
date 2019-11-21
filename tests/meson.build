@@ -98,12 +98,16 @@ testinternals = executable('testinternals',
 
 test('internal tests', testinternals)
 
+# create the binary and shared library for the rename and unlink tests
+subdir('handmaid')
+
 testapi_sources = files(
         'alloc-api-tests.c',
         'api-testcases.h',
         'argparse-api-tests.c',
         'dirtests.c',
         'dlfcn-api-tests.c',
+        'file_advanced_tests.c',
         'file-api-tests.c',
         'geometry-api-tests.c',
         'ipc-api-tests.c',

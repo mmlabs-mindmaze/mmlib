@@ -119,7 +119,7 @@ AH_TOP([#ifndef CONFIG_H
 AH_BOTTOM([#endif /*CONFIG_H*/])
 
 AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile
-                 tests/Makefile po/Makefile.in])
+                 tests/Makefile tests/handmaid/Makefile po/Makefile.in])
 AC_OUTPUT
 
 

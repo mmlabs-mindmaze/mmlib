@@ -20,5 +20,6 @@ TCase* create_dlfcn_tcase(void);
 TCase* create_process_tcase(void);
 TCase* create_argparse_tcase(void);
 TCase* create_utils_tcase(void);
+TCase* create_advanced_file_tcase(void);
 
 #endif

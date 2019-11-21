@@ -1,5 +1,7 @@
 eol=
 
+SUBDIRS = handmaid
+
 clean-local:
 	$(RM) *.gcno *.gcda
 
@@ -127,6 +129,7 @@ testapi_tap_SOURCES = \
 	process-testlib.h \
 	argparse-api-tests.c \
 	utils-api-tests.c \
+	file_advanced_tests.c \
 	$(eol)
 
 testapi_tap_LDADD = \
