@@ -27,27 +27,35 @@ typedef pthread_t mmthread_t;
 
 #include <stdint.h>
 
-typedef struct mmthr_mtx {
-	int type;
-	union {
-		void* srw_lock;
-		struct {
-			int64_t lock;
-			int64_t pshared_key;
-		};
-	};
+typedef union {
+	struct mmthr_mtx_pshared {
+		int flag;
+		int padding;
+		int64_t lock;
+		int64_t pshared_key;
+	} pshared;
+
+	struct mmthr_mtx_swr {
+		int flag;
+		int padding;
+		void * srw_lock;
+	} srw;
 } mmthr_mtx_t;
 
-typedef struct mmthr_cond {
-	int type;
-	union {
+typedef union {
+	struct mmthr_cond_pshared {
+		int flag;
+		int padding;
+		int64_t pshared_key;
+		int64_t waiter_seq;
+		int64_t wakeup_seq;
+	} pshared;
+
+	struct mmthr_cond_swr {
+		int flag;
+		int padding;
 		void* cv;
-		struct {
-			int64_t pshared_key;
-			int64_t waiter_seq;
-			int64_t wakeup_seq;
-		};
-	};
+	} srw;
 } mmthr_cond_t;
 
 typedef int mmthr_once_t;
