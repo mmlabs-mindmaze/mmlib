@@ -38,7 +38,7 @@ gcc --version
 all_included
 
 # test headers for compliance with most warnings
-for std in c11 c17 gnu99 gnu11 gnu17
+for std in c99 c11 c17 gnu99 gnu11 gnu17
 do
 	echo "Test C language standard : $std"
 	all_included | gcc -std=$std -x c - -I"$includedir" -Werror -Wall -pedantic
