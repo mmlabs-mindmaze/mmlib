@@ -12,6 +12,7 @@
 #include "clock-win32.h"
 #include "mmtime.h"
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <aclapi.h>
@@ -667,7 +668,7 @@ int lock_array_init(struct lock_array* lk_arr)
 	*lk_arr = (struct lock_array){.num_max = LOCK_LIST_INITIAL_LEN};
 
 	arrsize = lk_arr->num_max*sizeof(*lk_arr->sorted_array);
-	lk_arr->sorted_array = malloc(arrsize);
+	lk_arr->sorted_array = calloc(1, arrsize);
 	if (!lk_arr->sorted_array)
 		return -1;
 
@@ -933,7 +934,7 @@ void thread_client_handle_req_cleanup_done(struct thread_client* tc)
 
 	lock = lockref_server_get_lock(&server, key, false);
 	lock_report_cleanup_job_done(lock);
-	lock_wake_waiters(lock, 1, num_wakeup);
+	lock_wake_waiters(lock, num_wakeup, 1);
 }
 
 
@@ -1406,8 +1407,7 @@ int lockref_server_queue_connect(struct lockref_server* srv)
 		return 1;
 
 	case ERROR_PIPE_CONNECTED:
-		SetEvent(srv->connect_evt);
-		return 0;
+		return SetEvent(srv->connect_evt) ? 0 : -1;
 	}
 
 	return -1;
@@ -1573,6 +1573,7 @@ int lockref_server_init(struct lockref_server* srv)
 	srv->connect_evt = evt;
 	srv->pipe = pipe;
 	srv->conn_overlapped.hEvent = evt;
+	srv->is_init = 1;
 
 	return 0;
 

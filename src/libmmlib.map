@@ -123,6 +123,7 @@ MMLIB_1.0 {
 		mm_write;
 		mmarg_complete_path;
 		mmarg_is_completing;
+		mmarg_optv_parse;
 		mmarg_parse;
 		mmarg_parse_complete;
 		mmipc_connect;

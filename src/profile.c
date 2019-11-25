@@ -19,7 +19,8 @@
 #define MAX_LABEL_LEN       64
 #define VALUESTR_LEN         8
 #define UNITSTR_LEN          2
-#define UNIT_MASK         0x70
+#define UNIT_MASK  \
+	(PROF_FORCE_NSEC|PROF_FORCE_USEC|PROF_FORCE_MSEC|PROF_FORCE_SEC)
 #define NUM_COL_MAX          5
 
 #define MIN(a, b) ((a) <= (b) ? (a) : (b))

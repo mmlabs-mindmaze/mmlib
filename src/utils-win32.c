@@ -11,10 +11,15 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <aclapi.h>
+#include <sddl.h>
 
 #include "mmerrno.h"
 #include "mmlog.h"
 #include "mmlib.h"
+#include "mmthread.h"
+
+// https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/microsoft-windows-shell-setup-offlineuseraccounts-offlinedomainaccounts-offlinedomainaccount-sid
+#define SID_STRING_MAXLEN 256
 
 static
 int set_access_mode(struct w32_create_file_options* opts, int oflags)
@@ -140,6 +145,44 @@ HANDLE open_handle(const char* path, DWORD access, DWORD creat,
 }
 
 
+/**
+ * get_file_id_info_from_handle() - get file and volume ids
+ * @hnd:        handle of an opened file
+ * @info:       pointer to FILE_ID_INFO struct to fill
+ *
+ * This function is similar to GetFileInformationByHandleEx() called with
+ * FileIdInfo with fallback in case of buggy volume type:
+ * GetFileInformationByHandleEx() returns error when called on file on FAT32.
+ *
+ * Returns: 0 in case of success, -1 otherwise.
+ */
+LOCAL_SYMBOL
+int get_file_id_info_from_handle(HANDLE hnd, FILE_ID_INFO* id_info)
+{
+	BY_HANDLE_FILE_INFORMATION file_info;
+	DWORD id[4];
+
+	// First try with normal call
+	if (GetFileInformationByHandleEx(hnd, FileIdInfo, id_info, sizeof(*id_info)))
+		return 0;
+
+	// GetFileInformationByHandleEx() usually fail with file handle in
+	// FAT32. Let's fall back on GetFileInformationByHandle()
+	if (!GetFileInformationByHandle(hnd, &file_info))
+		return mm_raise_from_w32err("failed to get file info");
+
+	// Convert 2 DWORDs file ID into FILE_ID_128
+	id[0] = file_info.nFileIndexLow;
+	id[1] = file_info.nFileIndexHigh;
+	id[2] = 0;
+	id[3] = 0;
+	memcpy(&id_info->FileId, id, sizeof(id));
+
+	id_info->VolumeSerialNumber = file_info.dwVolumeSerialNumber;
+	return 0;
+}
+
+
 /**************************************************************************
  *                                                                        *
  *                       Access control setup                             *
@@ -205,8 +248,10 @@ DWORD get_access_from_perm_bits(mode_t mode)
 
 /**
  * get_caller_sids() - retrieve owner and primary group SIDs of caller
- * @owner:       pointer to buffer that will receive the owner SID
- * @primary_group: pointer to buffer that will receive the primary group SID
+ * @owner:       pointer to buffer that will receive the owner SID.
+ *               Ignored if NULL.
+ * @primary_group: pointer to buffer that will receive the primary group SID.
+ *                 Ignored if NULL
  *
  * Return: 0 in case of success, -1 otherwise. Please note that this
  * function does not set error state. Use GetLastError() to retrieve the
@@ -227,29 +272,73 @@ int get_caller_sids(SID* owner, SID* primary_group)
 		goto exit;
 
 	// Get Owner SID
-	len = sizeof(tmp);
-	owner_info = (TOKEN_OWNER*)tmp;
-	if (!GetTokenInformation(htoken, TokenOwner, owner_info, len, &len))
-		goto exit;
+	if (owner) {
+		len = sizeof(tmp);
+		owner_info = (TOKEN_OWNER*)tmp;
+		if (!GetTokenInformation(htoken, TokenOwner,
+		                         owner_info, len, &len))
+			goto exit;
 
-	CopySid(SECURITY_MAX_SID_SIZE, owner,
-	        owner_info->Owner);
+		CopySid(SECURITY_MAX_SID_SIZE, owner,
+		        owner_info->Owner);
+	}
 
 	// Get Primary group SID
-	len = sizeof(tmp);
-	group_info = (TOKEN_PRIMARY_GROUP*)tmp;
-	if (!GetTokenInformation(htoken, TokenPrimaryGroup,
-	                        group_info, len, &len))
-		goto exit;
+	if (primary_group) {
+		len = sizeof(tmp);
+		group_info = (TOKEN_PRIMARY_GROUP*)tmp;
+		if (!GetTokenInformation(htoken, TokenPrimaryGroup,
+		                         group_info, len, &len))
+			goto exit;
 
-	CopySid(SECURITY_MAX_SID_SIZE, primary_group,
-	        group_info->PrimaryGroup);
+		CopySid(SECURITY_MAX_SID_SIZE, primary_group,
+		        group_info->PrimaryGroup);
+	}
 
 	rv = 0;
 
 exit:
 	safe_closehandle(htoken);
 	return rv;
+}
+
+
+static int owner_sid_strlen = -1;
+static char16_t owner_sid_str[SID_STRING_MAXLEN];
+
+
+static
+void init_owner_sid_str(void)
+{
+	union local_sid owner;
+	char16_t* sidstr = NULL;
+
+	if (get_caller_sids(&owner.sid, NULL)
+	    || !ConvertSidToStringSidW(&owner.sid, &sidstr)) {
+		mm_raise_from_w32err("could not initialize owner SID string");
+		return;
+	}
+
+	owner_sid_strlen = wcslen(sidstr);
+	memcpy(owner_sid_str, sidstr, (owner_sid_strlen+1)*sizeof(*sidstr));
+
+	LocalFree(sidstr);
+}
+
+
+LOCAL_SYMBOL
+const char16_t* get_caller_string_sid_u16(void)
+{
+	static mmthr_once_t sid_init_once = MMTHR_ONCE_INIT;
+
+	// Initialize owner SID string only once: the owner SID of a process
+	// cannot be changed
+	mmthr_once(&sid_init_once, init_owner_sid_str);
+
+	if (owner_sid_strlen < 0)
+		return NULL;
+
+	return owner_sid_str;
 }
 
 

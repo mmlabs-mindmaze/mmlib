@@ -15,6 +15,7 @@
 #include "mmpredefs.h"
 #include "mmsysio.h"
 
+#include "api-testcases.h"
 #include "process-testlib.h"
 #include "tests-child-proc.h"
 

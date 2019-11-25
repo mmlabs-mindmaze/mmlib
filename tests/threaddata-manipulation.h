@@ -11,9 +11,9 @@
 #define SHARED_WRITE_INIT_VALUE 0
 
 struct shared_write_data {
-	int64_t value;
+	_Atomic int64_t value;
 	bool failed;
-	int num_runner_remaining;
+	_Atomic int num_runner_remaining;
 	int num_iteration;
 	bool sleep_in_touch;
 	mmthr_mtx_t mutex;

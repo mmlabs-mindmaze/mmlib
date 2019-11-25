@@ -1,17 +1,27 @@
 all_lib_c_sources = mmlib_sources + lock_referee_sources
-all_test_c_sources = (testlog_sources
-        + testerrno_sources
-        + testprofile_sources
-        + child_proc_sources
-        + tests_child_proc_files
-        + perflock_sources
-        + dynlib_test_sources
-        + testapi_sources
-)
-all_doc_c_sources = (pshared_parent_doc_example_sources
-        + pshared_child_doc_example_sources
-        + parse_args_doc_example
-)
+
+if get_option('tests')
+    all_test_c_sources = (testlog_sources
+            + testerrno_sources
+            + testprofile_sources
+            + child_proc_sources
+            + tests_child_proc_files
+            + perflock_sources
+            + dynlib_test_sources
+            + testapi_sources
+    )
+else
+    all_test_c_sources = []
+endif
+
+if get_option('docs')
+    all_doc_c_sources = (pshared_parent_doc_example_sources
+            + pshared_child_doc_example_sources
+            + parse_args_doc_example
+    )
+else
+    all_doc_c_sources = []
+endif
 
 all_sources = (all_lib_c_sources
         + all_test_c_sources
@@ -56,3 +66,12 @@ if uncrustify.found()
         ],
     )
 endif # uncrustify
+
+# test public headers for most warnings and C++ compatibility
+api_compat_test = run_target('api-compat-test',
+        command : [
+            'bash',
+            files('api-compat-test.sh'),
+            public_headers,
+        ]
+)

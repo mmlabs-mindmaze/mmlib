@@ -5,6 +5,7 @@
 # include <config.h>
 #endif
 
+#include "error-internal.h"
 #include "mmerrno.h"
 #include "mmlog.h"
 #include <string.h>
@@ -156,21 +157,19 @@ int mmstrerror_r(int errnum, char * buf, size_t buflen)
  *                    Error state API                             *
  *                                                                *
  ******************************************************************/
+#ifndef _WIN32
 
-struct error_info {
-	int flags;              // flags to finetune error handling
-	int errnum;             // error class (standard and mmlib errno value)
-	char extended_id[64];   // message to display to end user if has not
-	                        // been caught before
-	char module[32];        // module that has generated the error
-	char location[256];     // which function/file/line has generated the
-	                        // error
-	char desc[256];         // message intended to developer
-};
+//implementation of this function for win32 is in thread-win32.c
+LOCAL_SYMBOL
+struct error_info* get_thread_last_error(void)
+{
+	// info of the last error IN THE THREAD
+	static thread_local struct error_info last_error;
 
+	return &last_error;
+}
 
-// info of the last error IN THE THREAD
-static thread_local struct error_info last_error;
+#endif /* ifndef _WIN32 */
 
 /**
  * mm_error_set_flags() - set the error reporting behavior
@@ -212,7 +211,7 @@ static thread_local struct error_info last_error;
 API_EXPORTED
 int mm_error_set_flags(int flags, int mask)
 {
-	struct error_info* state = &last_error;
+	struct error_info* state = get_thread_last_error();
 	int previous;
 
 	previous = state->flags;
@@ -259,7 +258,7 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
 	if (!extid)
 		extid = "";
 
-	state = &last_error;
+	state = get_thread_last_error();
 
 	// Check that error should not be ignored
 	if (state->flags & MM_ERROR_IGNORE)
@@ -332,6 +331,43 @@ int mm_raise_error_full(int errnum, const char* module, const char* func,
 
 
 /**
+ * mm_raise_from_errno_full() - set and log an error (function backend)
+ * @module:     module name
+ * @func:       function name at the origin of the error
+ * @srcfile:    filename of source code at the origin of the error
+ * @srcline:    line number of file at the origin of the error
+ * @extid:      extended error id (identifier of a specific error case)
+ * @desc_fmt:   description intended for developer (printf-like extensible)
+ *
+ * This function is the actual function invoked by the mm_raise_from_errno()
+ * macro. You are advised to use the macros instead unless you want to build
+ * your own wrapper.
+ *
+ * Return: always -1.
+ */
+API_EXPORTED
+int mm_raise_from_errno_full(const char* module, const char* func,
+                             const char* srcfile, int srcline,
+                             const char* extid, const char* desc_fmt, ...)
+{
+	int ret;
+	va_list args;
+	char new_fmt[256];
+
+	snprintf(new_fmt, sizeof(new_fmt) - 1,
+	         "%s ; %s", desc_fmt, strerror(errno));
+	new_fmt[sizeof(new_fmt) - 1] = 0;
+
+	va_start(args, desc_fmt);
+	ret = mm_raise_error_vfull(errno, module, func, srcfile, srcline,
+	                           extid, new_fmt, args);
+	va_end(args);
+
+	return ret;
+}
+
+
+/**
  * mm_save_errorstate() - Save the error state on an opaque data holder
  * @state:      data holder of the error state
  *
@@ -346,9 +382,11 @@ int mm_raise_error_full(int errnum, const char* module, const char* func,
 API_EXPORTED
 int mm_save_errorstate(struct mm_error_state* state)
 {
-	assert(sizeof(*state) >= sizeof(last_error));
+	struct error_info* last_error = get_thread_last_error();
 
-	memcpy(state, &last_error, sizeof(last_error));
+	assert(sizeof(*state) >= sizeof(*last_error));
+
+	memcpy(state, last_error, sizeof(*last_error));
 	return 0;
 }
 
@@ -373,14 +411,17 @@ int mm_save_errorstate(struct mm_error_state* state)
 API_EXPORTED
 int mm_set_errorstate(const struct mm_error_state* state)
 {
-	assert(sizeof(*state) >= sizeof(last_error));
+	struct error_info* last_error = get_thread_last_error();
 
-	memcpy(&last_error, state, sizeof(last_error));
+	assert(sizeof(*state) >= sizeof(*last_error));
+
+
+	memcpy(last_error, state, sizeof(*last_error));
 
 	// Set errno for backward compatibility, ie case of module that has
 	// been updated to use mm_error* but whose client code (user of this
 	// module) is not using yet mm_error*
-	errno = last_error.errnum;
+	errno = last_error->errnum;
 
 	return 0;
 }
@@ -396,6 +437,7 @@ int mm_set_errorstate(const struct mm_error_state* state)
 API_EXPORTED
 void mm_print_lasterror(const char* info, ...)
 {
+	struct error_info* last_error = get_thread_last_error();
 	va_list args;
 
 	// Print context info if supplied
@@ -407,13 +449,13 @@ void mm_print_lasterror(const char* info, ...)
 	}
 
 	// No error state is set, not in errno
-	if (!last_error.errnum && !errno) {
+	if (!last_error->errnum && !errno) {
 		printf("No error found in the state\n");
 		return;
 	}
 
 	// No error state is set, but something is in errno
-	if (!last_error.errnum && errno) {
+	if (!last_error->errnum && errno) {
 		printf("Error only found in errno: %i, %s\n",
 		       errno, mmstrerror(errno));
 		return;
@@ -426,11 +468,11 @@ void mm_print_lasterror(const char* info, ...)
 	       "\tlocation: %s\n"
 	       "\tdescription: %s\n"
 	       "\textented_id: %s\n",
-	       last_error.errnum, mmstrerror(last_error.errnum),
-	       last_error.module,
-	       last_error.location,
-	       last_error.desc,
-	       last_error.extended_id);
+	       last_error->errnum, mmstrerror(last_error->errnum),
+	       last_error->module,
+	       last_error->location,
+	       last_error->desc,
+	       last_error->extended_id);
 }
 
 
@@ -442,7 +484,7 @@ void mm_print_lasterror(const char* info, ...)
 API_EXPORTED
 int mm_get_lasterror_number(void)
 {
-	return last_error.errnum;
+	return get_thread_last_error()->errnum;
 }
 
 
@@ -454,7 +496,7 @@ int mm_get_lasterror_number(void)
 API_EXPORTED
 const char* mm_get_lasterror_desc(void)
 {
-	return last_error.desc;
+	return get_thread_last_error()->desc;
 }
 
 
@@ -467,7 +509,7 @@ const char* mm_get_lasterror_desc(void)
 API_EXPORTED
 const char* mm_get_lasterror_location(void)
 {
-	return last_error.location;
+	return get_thread_last_error()->location;
 }
 
 
@@ -490,11 +532,13 @@ const char* mm_get_lasterror_location(void)
 API_EXPORTED
 const char* mm_get_lasterror_extid(void)
 {
+	struct error_info* last_error = get_thread_last_error();
+
 	// Don't return an empty string if extid is not set
-	if (last_error.extended_id[0] == '\0')
+	if (last_error->extended_id[0] == '\0')
 		return NULL;
 
-	return last_error.extended_id;
+	return last_error->extended_id;
 }
 
 
@@ -506,5 +550,5 @@ const char* mm_get_lasterror_extid(void)
 API_EXPORTED
 const char* mm_get_lasterror_module()
 {
-	return last_error.module;
+	return get_thread_last_error()->module;
 }

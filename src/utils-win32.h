@@ -29,8 +29,8 @@ void write_w32err_msg(DWORD w32err, size_t len, char* buff);
 int mm_raise_from_w32err_full(const char* module, const char* func,
                               const char* srcfile, int srcline,
                               const char* desc, ...);
-#define mm_raise_from_w32err(desc, ...) \
-	mm_raise_from_w32err_full(MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, desc,  ## __VA_ARGS__)
+#define mm_raise_from_w32err(...) \
+	mm_raise_from_w32err_full(MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, __VA_ARGS__)
 
 
 /**************************************************************************
@@ -69,6 +69,7 @@ int local_secdesc_init_from_handle(struct local_secdesc* lsd, HANDLE hnd);
 int local_secdesc_init_from_mode(struct local_secdesc* lsd, mode_t mode);
 void local_secdesc_deinit(struct local_secdesc* lsd);
 mode_t local_secdesc_get_mode(struct local_secdesc* lsd);
+const char16_t* get_caller_string_sid_u16(void);
 
 /**************************************************************************
  *                                                                        *
@@ -184,6 +185,9 @@ void safe_closehandle(HANDLE hnd)
 
 	CloseHandle(hnd);
 }
+
+int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf);
+int get_file_id_info_from_handle(HANDLE hnd, FILE_ID_INFO* info);
 
 /**************************************************************************
  *                                                                        *

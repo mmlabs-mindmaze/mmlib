@@ -473,7 +473,7 @@ STARTUPINFOW* startup_config_get_startup_info(struct startup_config* cfg)
  * &STARTUPINFO.cbReserved2) and setup properly the fields
  * @cfg->crt_fd_flags and @cfg->crt_fd_hnds which will point into the
  * allocated @cfg->crt_buf. It will find an appropriate value of
- * @cfg->num_crt_fd so that @cfg->crt_fd_hnds has a alignment suitable for
+ * @cfg->num_crt_fd so that @cfg->crt_fd_hnds has an alignment suitable for
  * its data type (HANDLE).
  *
  * Return: 0 in case of success, -1 otherwise with error state set.
@@ -724,7 +724,7 @@ int startup_config_init(struct startup_config* cfg,
 
 
 /**
- * concat_strv() - Concatenate a array of null-terminated strings
+ * concat_strv() - Concatenate an array of null-terminated strings
  * @strv:       NULL-terminated array of null-terminated strings (may be NULL)
  * @sep:        separator to include between the strings
  *
@@ -1039,7 +1039,7 @@ int contains_dirsep(const char* path)
  * search_bin_in_path() - search executable in folders listed in PATH
  * @base:       basename of the executable
  *
- * Return: the path of the executable found on a allocated block of memory
+ * Return: the path of the executable found on an allocated block of memory
  * in case of success. In such case the path returned must be cleanup using
  * free() when no longer needed. In case of failure, NULL is returned with
  * error state set accordingly.

@@ -11,12 +11,14 @@
 #include <stdio.h>
 #include <strings.h>
 
+#include "api-testcases.h"
 #include "mmerrno.h"
 #include "mmlib.h"
 #include "mmpredefs.h"
 #include "mmsysio.h"
 
 #define TEST_SHM "test-shm-name"
+#define TEST_FILE "test-file-name"
 
 
 static struct {
@@ -39,7 +41,12 @@ static struct {
 static
 void test_teardown(void)
 {
+	int flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
+
 	mm_shm_unlink(TEST_SHM);
+	mm_unlink(TEST_FILE);
+
+	mm_error_set_flags(flags, MM_ERROR_IGNORE);
 }
 
 
@@ -65,6 +72,66 @@ START_TEST(shm_open_test)
 	mm_close(fd);
 }
 END_TEST
+
+START_TEST(mm_mapfile_test_simple)
+{
+	int fd;
+	void * map;
+
+	fd = mm_open(TEST_FILE, O_CREAT|O_RDWR, 0666);
+	ck_assert(fd > 0);
+	mm_ftruncate(fd, 42);
+
+	map = mm_mapfile(fd, 0, 42, MM_MAP_RDWR|MM_MAP_SHARED);
+	ck_assert(map != NULL);
+
+	mm_unmap(map);
+	mm_unlink(TEST_FILE);
+	mm_close(fd);
+}
+END_TEST
+
+START_TEST(mm_mapfile_test_smaller)
+{
+	int fd;
+	void * map;
+
+	fd = mm_open(TEST_FILE, O_CREAT|O_RDWR, 0666);
+	ck_assert(fd > 0);
+	mm_ftruncate(fd, 42);
+
+	map = mm_mapfile(fd, 0, 23, MM_MAP_RDWR|MM_MAP_SHARED);
+	ck_assert(map != NULL);
+
+	mm_unmap(map);
+	mm_unlink(TEST_FILE);
+	mm_close(fd);
+}
+END_TEST
+
+START_TEST(mm_mapfile_test_larger)
+{
+	int fd;
+	void * map;
+
+	fd = mm_open(TEST_FILE, O_CREAT|O_RDWR, 0666);
+	ck_assert(fd > 0);
+	mm_ftruncate(fd, 23);
+
+	map = mm_mapfile(fd, 0, 43, MM_MAP_RDWR|MM_MAP_SHARED);
+#ifdef _WIN32
+	ck_assert(map == NULL);
+	ck_assert_int_eq(mm_get_lasterror_number(), EOVERFLOW);
+#else
+	ck_assert(map != NULL);
+	mm_unmap(map);
+#endif
+
+	mm_unlink(TEST_FILE);
+	mm_close(fd);
+}
+END_TEST
+
 
 START_TEST(shm_open_duplicate_test)
 {
@@ -164,6 +231,9 @@ TCase* create_shm_tcase(void)
 	tcase_add_checked_fixture(tc, NULL, test_teardown);
 
 	tcase_add_test(tc, shm_open_test);
+	tcase_add_test(tc, mm_mapfile_test_simple);
+	tcase_add_test(tc, mm_mapfile_test_smaller);
+	tcase_add_test(tc, mm_mapfile_test_larger);
 	tcase_add_test(tc, shm_open_duplicate_test);
 	tcase_add_loop_test(tc, mapfile_test, 0, NUM_VALID_MAP_CASES);
 	tcase_add_test(tc, mapfile_invalid_offset_test);

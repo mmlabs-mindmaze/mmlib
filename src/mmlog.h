@@ -28,69 +28,64 @@
 
 
 #if MMLOG_MAXLEVEL >= MMLOG_FATAL
-#define mmlog_fatal(msg, ...) \
+#define mmlog_fatal(...) \
 	mmlog_log(MMLOG_FATAL, \
 	          MMLOG_MODULE_NAME, \
-	          msg, \
-	          ## __VA_ARGS__)
+	          __VA_ARGS__)
 #else
-#define mmlog_fatal(msg, ...) MMLOG_VOID_CAST(0)
+#define mmlog_fatal(...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_ERROR
-#define mmlog_error(msg, ...) \
+#define mmlog_error(...) \
 	mmlog_log(MMLOG_ERROR, \
 	          MMLOG_MODULE_NAME, \
-	          msg, \
-	          ## __VA_ARGS__)
+	          __VA_ARGS__)
 #else
-#define mmlog_error(msg, ...) MMLOG_VOID_CAST(0)
+#define mmlog_error(...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_WARN
-#define mmlog_warn(msg, ...) \
+#define mmlog_warn(...) \
 	mmlog_log(MMLOG_WARN, \
 	          MMLOG_MODULE_NAME, \
-	          msg, \
-	          ## __VA_ARGS__)
+	          __VA_ARGS__)
 #else
-#define mmlog_warn(msg, ...) MMLOG_VOID_CAST(0)
+#define mmlog_warn(...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_INFO
-#define mmlog_info(msg, ...) \
+#define mmlog_info(...) \
 	mmlog_log(MMLOG_INFO, \
 	          MMLOG_MODULE_NAME, \
-	          msg, \
-	          ## __VA_ARGS__)
+	          __VA_ARGS__)
 #else
-#define mmlog_info(msg, ...) MMLOG_VOID_CAST(0)
+#define mmlog_info(...) MMLOG_VOID_CAST(0)
 #endif
 
 #if MMLOG_MAXLEVEL >= MMLOG_DEBUG
-#define mmlog_debug(msg, ...) \
+#define mmlog_debug(...) \
 	mmlog_log(MMLOG_DEBUG, \
 	          MMLOG_MODULE_NAME, \
-	          msg, \
-	          ## __VA_ARGS__)
+	          __VA_ARGS__)
 #else
-#define mmlog_debug(msg, ...) MMLOG_VOID_CAST(0)
+#define mmlog_debug(...) MMLOG_VOID_CAST(0)
 #endif
 
-#define mm_crash(fmt, ...) \
+#define mm_crash(...) \
 	do { \
 		char msg[256]; /* size of max length of log line */ \
-		snprintf(msg, sizeof(msg), fmt, ## __VA_ARGS__); \
+		snprintf(msg, sizeof(msg), __VA_ARGS__); \
 		mmlog_log(MMLOG_FATAL, MMLOG_MODULE_NAME, \
 		          "%s (%s() in %s:%i)", \
 		          msg, __func__, __FILE__, __LINE__); \
 		abort(); \
 	} while (0)
 
-#define mm_check(expr, ...) \
+#define mm_check(expr) \
 	do { \
 		if (UNLIKELY(!(expr))) { \
-			mm_crash("mm_check(" #expr ") failed. " __VA_ARGS__); \
+			mm_crash("mm_check(" #expr ") failed. "); \
 		} \
 	} while (0)
 

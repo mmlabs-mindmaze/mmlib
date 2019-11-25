@@ -14,11 +14,13 @@
 
 #include "mmerrno.h"
 #include "mmlib.h"
+#include "mmlog.h"
 #include "mmpredefs.h"
 #include "mmsysio.h"
 #include "mmthread.h"
 #include "mmtime.h"
 
+#include "api-testcases.h"
 #include "tests-child-proc.h"
 #include "ipc-api-tests-exported.h"
 
@@ -33,6 +35,8 @@ void test_teardown(void)
 	int i;
 	char filename[64];
 
+	int flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
+
 	mmipc_srv_destroy(srv);
 	srv = NULL;
 
@@ -40,13 +44,15 @@ void test_teardown(void)
 		sprintf(filename, "%s-%d", IPC_TMPFILE, i);
 		mm_unlink(filename);
 	}
+
+	mm_error_set_flags(flags, MM_ERROR_IGNORE);
 }
 
 START_TEST(ipc_create_simple)
 {
-	struct mmipc_srv * srv = mmipc_srv_create(IPC_ADDR);
-	ck_assert(srv != NULL);
-	mmipc_srv_destroy(srv);
+	struct mmipc_srv * server = mmipc_srv_create(IPC_ADDR);
+	ck_assert(server != NULL);
+	mmipc_srv_destroy(server);
 }
 END_TEST
 
@@ -57,11 +63,11 @@ START_TEST(ipc_create_invalid)
 	memset(name, 'a', sizeof(name) - 1);
 	name[sizeof(name) - 1] = '\0';
 
-	struct mmipc_srv * srv = mmipc_srv_create(name);
-	ck_assert(srv == NULL);
+	struct mmipc_srv *server = mmipc_srv_create(name);
+	ck_assert(server == NULL);
 	ck_assert(mm_get_lasterror_number() == ENAMETOOLONG);
 
-	mmipc_srv_destroy(srv);
+	mmipc_srv_destroy(server);
 }
 END_TEST
 

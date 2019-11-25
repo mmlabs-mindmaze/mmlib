@@ -299,6 +299,9 @@ int get_mmap_flags(int mflags)
  * mm_close() on that file descriptor. This reference will be removed when
  * there are no more mappings to the file.
  *
+ * On windows platforms only, when mapping a file, the requested @size MUST
+ * be lesser than or equal to the size of the file. Raise EOVERFLOW otherwise.
+ *
  * Return: The starting address of the mapping in case of success.
  * Otherwise NULL is returned and error state is set accordingly.
  */

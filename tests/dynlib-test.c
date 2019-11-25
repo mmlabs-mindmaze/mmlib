@@ -13,7 +13,7 @@
 
 static int internal_code;
 
-API_EXPORTED
+API_EXPORTED_RELOCATABLE
 struct dynlib_data libdata = DYNLIB_DATA_INITIALIZER;
 
 

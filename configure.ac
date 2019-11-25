@@ -30,8 +30,18 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
+# check for and set c11 standard
+AX_CHECK_COMPILE_FLAG([-std=c11], [AX_APPEND_FLAG([-std=c11])])
+
+# use POSIX definitions up to POSIX.1-2008 standard
+AC_DEFINE([_POSIX_C_SOURCE], [200809L], [Strive to comply to POSIX-2008])
+
+# ensure that the "default" definitions are provided
+# Note: when defined with _POSIX_C_SOURCE, POSIX sources are always preferred
+# in case of conflict
+AC_DEFINE([_DEFAULT_SOURCE], [1], [ensure that the default definitions are provided])
+
 # Check for programs
-AC_PROG_CC_C99
 AM_PROG_CC_C_O
 LT_INIT([win32-dll disable-static])
 LT_SYS_MODULE_EXT

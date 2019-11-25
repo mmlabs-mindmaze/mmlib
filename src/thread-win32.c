@@ -18,6 +18,7 @@
 #include "mmlog.h"
 #include "pshared-lock.h"
 #include "atomic-win32.h"
+#include "error-internal.h"
 #include "mutex-lockval.h"
 #include "utils-win32.h"
 
@@ -59,6 +60,7 @@ struct mmthread {
 /**
  * struct thread_local_data - thread local data handling threading in mmlib
  * @lockref:    data maintaining the communication with the lock referee.
+ * @last_error: error state of the thread
  * @thread:     pointer to the thread manipulation structure. Can be NULL if
  *              thread has been created externally and mmthr_self() has not
  *              been called for the thread.
@@ -72,6 +74,7 @@ struct mmthread {
  */
 struct thread_local_data {
 	struct lockref_connection lockref;
+	struct error_info last_error;
 	struct mmthread* thread;
 };
 
@@ -173,7 +176,7 @@ struct thread_local_data* allocate_thread_local_data(void)
 
 
 static
-void thread_local_data_on_exit()
+void thread_local_data_on_exit(void)
 {
 	struct thread_local_data* data;
 	struct mmthread* self;
@@ -244,6 +247,13 @@ static
 struct lockref_connection* get_thread_lockref_data(void)
 {
 	return &(get_thread_local_data()->lockref);
+}
+
+
+LOCAL_SYMBOL
+struct error_info* get_thread_last_error(void)
+{
+	return &(get_thread_local_data()->last_error);
 }
 
 
@@ -423,7 +433,7 @@ void finish_mtx_unlock(struct robust_data* robust_data)
  * Return: always 0
  */
 static
-int pshared_mtx_init(mmthr_mtx_t* mutex)
+int pshared_mtx_init(struct mmthr_mtx_pshared * mutex)
 {
 	struct lockref_connection* lockref = get_thread_lockref_data();
 
@@ -445,7 +455,7 @@ int pshared_mtx_init(mmthr_mtx_t* mutex)
  * unusable (ENOTRECOVERABLE).
  */
 static
-int pshared_mtx_lock(mmthr_mtx_t* mutex)
+int pshared_mtx_lock(struct mmthr_mtx_pshared * mutex)
 {
 	struct lockref_connection* lockref;
 	struct robust_data* robust_data;
@@ -513,7 +523,7 @@ int pshared_mtx_lock(mmthr_mtx_t* mutex)
  * (EOWNERDEAD) or marked permanently unusable (ENOTRECOVERABLE).
  */
 static
-int pshared_mtx_trylock(mmthr_mtx_t* mutex)
+int pshared_mtx_trylock(struct mmthr_mtx_pshared * mutex)
 {
 	struct robust_data* robust_data = NULL;
 	int64_t oldval, newval;
@@ -561,7 +571,7 @@ int pshared_mtx_trylock(mmthr_mtx_t* mutex)
  * Return: Always 0.
  */
 static
-int pshared_mtx_unlock(mmthr_mtx_t* mutex)
+int pshared_mtx_unlock(struct mmthr_mtx_pshared * mutex)
 {
 	struct lockref_connection* lockref = NULL;
 	struct robust_data* robust_data = NULL;
@@ -615,7 +625,7 @@ int pshared_mtx_unlock(mmthr_mtx_t* mutex)
  * inconsistent state.
  */
 static
-int pshared_mtx_consistent(mmthr_mtx_t* mutex)
+int pshared_mtx_consistent(struct mmthr_mtx_pshared * mutex)
 {
 	int64_t lockval;
 
@@ -648,7 +658,8 @@ int pshared_mtx_consistent(mmthr_mtx_t* mutex)
  * ETIMEDOUT if @abstime is not NULL and the wait has timedout
  */
 static
-int pshared_cond_wait(mmthr_cond_t* cond, mmthr_mtx_t* mutex,
+int pshared_cond_wait(struct mmthr_cond_pshared * cond,
+                      mmthr_mtx_t * mutex,
                       const struct timespec* abstime)
 {
 	struct lockref_connection* lockref = get_thread_lockref_data();
@@ -690,7 +701,7 @@ int pshared_cond_wait(mmthr_cond_t* cond, mmthr_mtx_t* mutex,
  * Return: always 0
  */
 static
-int pshared_cond_signal(mmthr_cond_t* cond)
+int pshared_cond_signal(struct mmthr_cond_pshared * cond)
 {
 	struct lockref_connection* lockref;
 	int64_t wakeup_val, waiter_val, num_waiter;
@@ -721,7 +732,7 @@ int pshared_cond_signal(mmthr_cond_t* cond)
  * Return: always 0
  */
 static
-int pshared_cond_broadcast(mmthr_cond_t* cond)
+int pshared_cond_broadcast(struct mmthr_cond_pshared * cond)
 {
 	struct lockref_connection* lockref;
 	int64_t wakeup_val, waiter_val, num_waiter;
@@ -752,7 +763,7 @@ int pshared_cond_broadcast(mmthr_cond_t* cond)
  * Return: always 0
  */
 static
-int pshared_cond_init(mmthr_cond_t* cond)
+int pshared_cond_init(struct mmthr_cond_pshared * cond)
 {
 	struct lockref_connection* lockref;
 
@@ -771,19 +782,19 @@ int pshared_cond_init(mmthr_cond_t* cond)
 
 /**
  * struct mmthr_mtx - mutex structure behind &typedef mmthr_mtx_t
- * @type:	flags indicating the type of mutex (0 or MMTHR_PSHARED)
- * @srw_lock:   data aliasing with SRWLOCK (used if @type is 0)
+ * @flag:	flags indicating the type of mutex (0 or MMTHR_PSHARED)
+ * @srw_lock:   data aliasing with SRWLOCK (used if @flag is 0)
  * @lock:       variable whose update indicate the owner and
  *              contended state. Must be updated only through atomic
- *              operation. This field is used if @type is MMTHR_PSHARED.
+ *              operation. This field is used if @flag is MMTHR_PSHARED.
  * @pshared_key: Identifier of the process-shared lock as known by the lock
- *              referee service process. used if @type MMTHR_PSHARED.
+ *              referee service process. used if @flag MMTHR_PSHARED.
  *
  * This structure is the container of &typedef mmthr_mtx_t on Win32.
- * Depending on @type at mutex initialization, static or with
+ * Depending on @flag at mutex initialization, static or with
  * mmthr_mtx_init(), @srw_lock or @lock/@pshared_key will be used.
  *
- * If @type is 0, the mutex is a normal one, ie, not shared across process
+ * If @flag is 0, the mutex is a normal one, ie, not shared across process
  * nor robust. In such a case @srw_lock field is used with the
  * AcquireSRWLockExclusive() and ReleaseSRWLockExclusive(). Performance will
  * be similar to using them directly.
@@ -796,20 +807,35 @@ int pshared_cond_init(mmthr_cond_t* cond)
  * (same size and alignment) since a SRWLOCK is a simple structure
  * containing only one pointer.
  *
- * If @type has MMTHR_PSHARED set, the mutex will use @lock and @pshared_key
+ * If @flag has MMTHR_PSHARED set, the mutex will use @lock and @pshared_key
  * fields. See the "process shared mutex implementation" doc for more
  * details.
  */
+
+
+static
+int mmthr_mtx_is_pshared(mmthr_mtx_t * mutex)
+{
+	/*  pshared and srw flag fields are aliased */
+	return ((mutex->pshared.flag & MMTHR_PSHARED) == MMTHR_PSHARED);
+}
+
+static
+int mmthr_cond_is_pshared(mmthr_cond_t * cond)
+{
+	/*  pshared and srw flag fields are aliased */
+	return ((cond->pshared.flag & MMTHR_PSHARED) == MMTHR_PSHARED);
+}
 
 
 /* doc in posix implementation */
 API_EXPORTED
 int mmthr_mtx_lock(mmthr_mtx_t* mutex)
 {
-	if (mutex->type & MMTHR_PSHARED)
-		return pshared_mtx_lock(mutex);
+	if (mmthr_mtx_is_pshared(mutex))
+		return pshared_mtx_lock(&mutex->pshared);
 
-	AcquireSRWLockExclusive((SRWLOCK*)(&mutex->srw_lock));
+	AcquireSRWLockExclusive((SRWLOCK*)(&mutex->srw.srw_lock));
 	return 0;
 }
 
@@ -818,10 +844,10 @@ int mmthr_mtx_lock(mmthr_mtx_t* mutex)
 API_EXPORTED
 int mmthr_mtx_trylock(mmthr_mtx_t* mutex)
 {
-	if (mutex->type & MMTHR_PSHARED)
-		return pshared_mtx_trylock(mutex);
+	if (mmthr_mtx_is_pshared(mutex))
+		return pshared_mtx_trylock(&mutex->pshared);
 
-	TryAcquireSRWLockExclusive((SRWLOCK*)(&mutex->srw_lock));
+	TryAcquireSRWLockExclusive((SRWLOCK*)(&mutex->srw.srw_lock));
 	return 0;
 }
 
@@ -830,8 +856,8 @@ int mmthr_mtx_trylock(mmthr_mtx_t* mutex)
 API_EXPORTED
 int mmthr_mtx_consistent(mmthr_mtx_t* mutex)
 {
-	if (mutex->type & MMTHR_PSHARED)
-		return pshared_mtx_consistent(mutex);
+	if (mmthr_mtx_is_pshared(mutex))
+		return pshared_mtx_consistent(&mutex->pshared);
 
 	mm_raise_error(EINVAL, "The mutex type is not process shared");
 	return EINVAL;
@@ -842,10 +868,10 @@ int mmthr_mtx_consistent(mmthr_mtx_t* mutex)
 API_EXPORTED
 int mmthr_mtx_unlock(mmthr_mtx_t* mutex)
 {
-	if (mutex->type & MMTHR_PSHARED)
-		return pshared_mtx_unlock(mutex);
+	if (mmthr_mtx_is_pshared(mutex))
+		return pshared_mtx_unlock(&mutex->pshared);
 
-	ReleaseSRWLockExclusive((SRWLOCK*)(&mutex->srw_lock));
+	ReleaseSRWLockExclusive((SRWLOCK*)(&mutex->srw.srw_lock));
 	return 0;
 }
 
@@ -863,44 +889,46 @@ int mmthr_mtx_deinit(mmthr_mtx_t* mutex)
 API_EXPORTED
 int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags)
 {
-	mutex->type = flags;
-	if (flags & MMTHR_PSHARED)
-		return pshared_mtx_init(mutex);
+	/* pshared and srw flag fields are aliased */
+	mutex->pshared.flag = flags;
 
-	InitializeSRWLock((SRWLOCK*)(&mutex->srw_lock));
+	if (mmthr_mtx_is_pshared(mutex))
+		return pshared_mtx_init(&mutex->pshared);
+
+	InitializeSRWLock((SRWLOCK*)(&mutex->srw.srw_lock));
 	return 0;
 }
 
 
 /**
  * struct mmthr_cond - structure on Win32 behind &typedef mmthr_cond_t
- * @type:       flags indicating behavior (any combination of MMTHR_PSHARED
+ * @flag:       flags indicating behavior (any combination of MMTHR_PSHARED
  *              and MMTHR_WAIT_MONOTONIC)
- * @cv:         data aliased to CONDITION_VARIABLE (used if @type has
+ * @cv:         data aliased to CONDITION_VARIABLE (used if @flag has
  *              MMTHR_PSHARED flag set)
  * @pshared_key: Identifier of the process-shared lock as known by the lock
- *              referee service process. Used MMTHR_PSHARED if set in @type.
+ *              referee service process. Used MMTHR_PSHARED if set in @flag.
  * @waiter_seq: wakeup value of the last waiter queued.  Used MMTHR_PSHARED
- *              if set in @type.
+ *              if set in @flag.
  * @wakeup_seq: wakeup value of the last wakeup operation that has been
- *              signaled. Used MMTHR_PSHARED if set in @type.
+ *              signaled. Used MMTHR_PSHARED if set in @flag.
  *
  * This structure is the container of &typedef mmthr_cond_t on Win32.
- * Depending on MMTHR_PSHARED flag is set in @type, the implementation will
+ * Depending on MMTHR_PSHARED flag is set in @flag, the implementation will
  * differ radically.
  *
- * If MMTHR_PSHARED is not set in @type, the implementation of wait, signal,
+ * If MMTHR_PSHARED is not set in @flag, the implementation of wait, signal,
  * broadcast will use the Win32 SleepConditionVariableSRW(),
  * WakeConditionVariable() and WakeAllConditionVariable() and @cv field will
  * be used. For the same reason as for &mmthr_mtx.srw, @cv is declared as
  * void* and not CONDITION_VARIABLE.
  *
- * If MMTHR_PSHARED is set in @type, the condition will be shareable across
+ * If MMTHR_PSHARED is set in @flag, the condition will be shareable across
  * processes. The wait, signal, broadcast operations will use the lock
  * referee process with the @pshared_key, @waiter_seq and @wakeup_seq
  * fields.
  *
- * The MMTHR_WAIT_MONOTONIC flag in @type will indicate whether the timeout
+ * The MMTHR_WAIT_MONOTONIC flag in @flag will indicate whether the timeout
  * in mmthr_cond_timedwait() will be based on MM_CLK_REALTIME or
  * MM_CLK_MONOTONIC clock.
  */
@@ -923,11 +951,11 @@ int sleep_win32cv(CONDITION_VARIABLE* cv, SRWLOCK* srwlock, DWORD timeout_ms)
 API_EXPORTED
 int mmthr_cond_wait(mmthr_cond_t* cond, mmthr_mtx_t* mutex)
 {
-	CONDITION_VARIABLE* cv = (CONDITION_VARIABLE*)(&cond->cv);
-	SRWLOCK* srwlock = (SRWLOCK*)(&mutex->srw_lock);
+	if (mmthr_cond_is_pshared(cond))
+		return pshared_cond_wait(&cond->pshared, mutex, NULL);
 
-	if (cond->type & MMTHR_PSHARED)
-		return pshared_cond_wait(cond, mutex, NULL);
+	CONDITION_VARIABLE* cv = (CONDITION_VARIABLE*)(&cond->srw.cv);
+	SRWLOCK* srwlock = (SRWLOCK*)(&mutex->srw.srw_lock);
 
 	return sleep_win32cv(cv, srwlock, INFINITE);
 }
@@ -935,7 +963,7 @@ int mmthr_cond_wait(mmthr_cond_t* cond, mmthr_mtx_t* mutex)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_cond_timedwait(mmthr_cond_t* cond, mmthr_mtx_t* mutex,
+int mmthr_cond_timedwait(mmthr_cond_t* _cond, mmthr_mtx_t* mutex,
                          const struct timespec* abstime)
 {
 	struct timespec now;
@@ -943,15 +971,20 @@ int mmthr_cond_timedwait(mmthr_cond_t* cond, mmthr_mtx_t* mutex,
 	int64_t delta_ns;
 	DWORD timeout_ms;
 	clockid_t clk_id;
-	CONDITION_VARIABLE* cv = (CONDITION_VARIABLE*)(&cond->cv);
-	SRWLOCK* srwlock = (SRWLOCK*)(&mutex->srw_lock);
+	CONDITION_VARIABLE* cv;
+	SRWLOCK* srwlock;
+	struct mmthr_cond_swr * cond;
 
-	if (cond->type & MMTHR_PSHARED)
-		return pshared_cond_wait(cond, mutex, abstime);
+	if (mmthr_cond_is_pshared(_cond))
+		return pshared_cond_wait(&_cond->pshared, mutex, abstime);
+
+	cond = &_cond->srw;
+	cv = (CONDITION_VARIABLE*)(&cond->cv);
+	srwlock = (SRWLOCK*)(&mutex->srw.srw_lock);
 
 	// Find the type of clock to use for timeout
 	clk_id = CLOCK_REALTIME;
-	if (cond->type & WAITCLK_FLAG_MONOTONIC)
+	if (cond->flag & WAITCLK_FLAG_MONOTONIC)
 		clk_id = CLOCK_MONOTONIC;
 
 	do {
@@ -974,10 +1007,10 @@ int mmthr_cond_timedwait(mmthr_cond_t* cond, mmthr_mtx_t* mutex,
 API_EXPORTED
 int mmthr_cond_signal(mmthr_cond_t* cond)
 {
-	if (cond->type & MMTHR_PSHARED)
-		return pshared_cond_signal(cond);
+	if (mmthr_cond_is_pshared(cond))
+		return pshared_cond_signal(&cond->pshared);
 
-	WakeConditionVariable((CONDITION_VARIABLE*)(&cond->cv));
+	WakeConditionVariable((CONDITION_VARIABLE*)(&cond->srw.cv));
 	return 0;
 }
 
@@ -986,10 +1019,10 @@ int mmthr_cond_signal(mmthr_cond_t* cond)
 API_EXPORTED
 int mmthr_cond_broadcast(mmthr_cond_t* cond)
 {
-	if (cond->type & MMTHR_PSHARED)
-		return pshared_cond_broadcast(cond);
+	if (mmthr_cond_is_pshared(cond))
+		return pshared_cond_broadcast(&cond->pshared);
 
-	WakeAllConditionVariable((CONDITION_VARIABLE*)(&cond->cv));
+	WakeAllConditionVariable((CONDITION_VARIABLE*)(&cond->srw.cv));
 	return 0;
 }
 
@@ -1005,17 +1038,20 @@ int mmthr_cond_deinit(mmthr_cond_t* cond)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_cond_init(mmthr_cond_t* cond, int flags)
+int mmthr_cond_init(mmthr_cond_t * _cond, int flags)
 {
-	cond->type = flags & ~WAITCLK_MASK;
+	struct mmthr_cond_swr * cond = &_cond->srw;
+
+	/* pshared and srw flag fields are aliased */
+	cond->flag = flags & ~WAITCLK_MASK;
 
 	if (flags & MMTHR_WAIT_MONOTONIC)
-		cond->type |= WAITCLK_FLAG_MONOTONIC;
+		cond->flag |= WAITCLK_FLAG_MONOTONIC;
 	else
-		cond->type |= WAITCLK_FLAG_REALTIME;
+		cond->flag |= WAITCLK_FLAG_REALTIME;
 
 	if (flags & MMTHR_PSHARED)
-		return pshared_cond_init(cond);
+		return pshared_cond_init(&_cond->pshared);
 
 	InitializeConditionVariable((CONDITION_VARIABLE*)(&cond->cv));
 	return 0;

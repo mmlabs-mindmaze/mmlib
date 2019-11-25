@@ -133,7 +133,7 @@ void gettimespec_qpc(struct timespec* ts)
 	QueryPerformanceCounter(&count);
 
 	sec = count.QuadPart / qpc_tick_freq;
-	nsec = (count.QuadPart - ts->tv_sec*qpc_tick_freq)*nsec_in_qpc_tick;
+	nsec = (count.QuadPart - sec*qpc_tick_freq)*nsec_in_qpc_tick;
 	ts->tv_sec = (time_t)sec;
 	ts->tv_nsec = (long)nsec;
 }
@@ -227,7 +227,10 @@ void gettimespec_wallclock_w32(struct timespec* ts)
 LOCAL_SYMBOL
 void getres_wallclock_w32(struct timespec* res)
 {
-	getres_qpc(res);
+	// GetSystemTimePreciseAsFileTime() express time in term of number of
+	// 100-nanosecond intervals
+	res->tv_sec = 0;
+	res->tv_nsec = 100;
 }
 
 

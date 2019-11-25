@@ -1,5 +1,9 @@
 project('mmlib', 'c',
-		default_options: [
+        version: '1.0.0',
+        license: 'apache2',
+        meson_version: '>= 0.49',
+        default_options: [
+            'c_std=c11',
             'warning_level=3',
         ],
 )
@@ -15,6 +19,25 @@ version = major + '.' + minor + '.' + patch
 
 cc = meson.get_compiler('c')
 config = configuration_data()
+
+# additional (optional) warnings
+flags = [
+    '-Wshadow',
+    '-Wstrict-prototypes',
+    '-Wmissing-prototypes',
+
+    # (clang) we know how C works
+    '-Wno-string-plus-int'
+]
+add_project_arguments(cc.get_supported_arguments(flags), language : 'c')
+
+# use POSIX definitions up to POSIX.1-2008 standard
+config.set('_POSIX_C_SOURCE', '200809L')
+
+# ensure that the "default" definitions are provided
+# Note: when defined with _POSIX_C_SOURCE, POSIX sources are always preferred
+# in case of conflict
+config.set('_DEFAULT_SOURCE', '1')
 
 subdir('config/api-exports')
 subdir('config/autools-compat')
@@ -44,8 +67,11 @@ check_functions = [
 	['pthread.h', 'pthread_mutex_consistent'],
 ]
 
+# Note: do not use cc.has_function() here: it uses the compiler builtins to
+# answer. BUT sometimes, the compiler lies ... for example gcc lies on
+# mingw64 and has a builtin advertising for posix_memalign().
 foreach f : check_functions
-    if cc.has_header_symbol(f[0], f[1])
+    if cc.has_header_symbol(f[0], f[1], args:'-D_POSIX_C_SOURCE=200809L')
         config.set('HAVE_' + f[1].underscorify().to_upper(), 1)
     endif
 endforeach
@@ -59,6 +85,10 @@ configure_file(output : build_cfg, configuration : config)
 # define HAVE_CONFIG_H with compiler command line to include the generated
 # config.h file (same as autotools)
 add_project_arguments('-DHAVE_CONFIG_H', language : 'c')
+
+if get_option('nls')
+    subdir('po')
+endif
 
 subdir('src')
 

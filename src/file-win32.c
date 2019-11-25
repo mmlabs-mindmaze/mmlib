@@ -10,6 +10,8 @@
 #include "mmlib.h"
 #include "file-internal.h"
 #include "utils-win32.h"
+#include "volume-win32.h"
+#include "mmlog.h"
 
 #include <windows.h>
 #include <direct.h>
@@ -511,63 +513,128 @@ int mm_isatty(int fd)
 }
 
 
+/**
+ * scrub_user_trash_path() - attempt to clean remainings of deleted files
+ * @trash_buffer:       Buffer to use to prepare full path of file to be
+ *                      deleted. It must be initialized with the trash prefix
+ *                      to use to search for file delete by mmlib. Allocated
+ *                      size must be at least MAX_PATH+1 long.
+ * @prefix_len:         length of prefix in @trash_buffer (excluding '\0')
+ *
+ * NOTE: This function assumes this is legal to write on @trash_prefix between
+ * index @prefix_len and MAX_PATH+1
+ */
 static
-const char * win32_basename(const char * path)
+void scrub_user_trash_path(char16_t* trash_buffer, int prefix_len)
 {
-	const char * c = path + strlen(path) - 1;
+	WIN32_FIND_DATAW find_data;
+	HANDLE find_hnd;
 
-	/* skip the last chars if they're not a path */
-	while (c > path && is_path_separator(*c))
-		c--;
+	// Start search file matching .mmlib*.deleted in prefix
+	wcscpy(trash_buffer + prefix_len, L".mmlib-*.deleted");
+	find_hnd = FindFirstFileW(trash_buffer, &find_data);
+	if (find_hnd == INVALID_HANDLE_VALUE)
+		return;
 
-	while (c > path) {
-		if (is_path_separator(*c))
-			return c + 1;
-		c--;
-	}
-	return path;
+	// Loop over the file matching the pattern and try delete them. We do
+	// not bother it fails.
+	do {
+		wcscpy(trash_buffer + prefix_len, find_data.cFileName);
+		DeleteFileW(trash_buffer);
+	} while (FindNextFileW(find_hnd, &find_data));
+
+	FindClose(find_hnd);
 }
 
 
 /**
- * rename_file_handle() - rename a file though handle
- * @hnd:        file handle opened with DELETE access
- * @path:       UTF-8 path to which the file must be renamed
+ * rename_file_to_trash_from_handle() - rename a file to trash volume folder
+ * @hnd:        handle of the file opened for deletion
+ *
+ * This renames the file opened through @hnd to be renamed to the recycle bin
+ * folder of its volume: the recycle bin is a folder present in each mounted
+ * volume and a writeable folder is dedicated in it for each logged user. Hence
+ * the file renaming should never failed as long as the filename used is
+ * unique. To this end, the file to removed is renamed following a pattern
+ * based on its unique file id on the volume.
  *
  * Return: 0 in case of success, -1 otherwise. Please note that this
- * function is meant to be helper for implement public operation and as such
- * does not set error state (retrieve error in caller with GetLastError())
+ * function does not set error state. Use GetLastError() to retrieve the
+ * origin of error.
  */
 static
-int rename_file_handle(HANDLE hnd, const char* path)
+int rename_file_to_trash_from_handle(HANDLE hnd)
 {
-	FILE_RENAME_INFO* info;
+	FILE_ID_INFO id_info = {0};
+	const struct volume* vol;
+	union {
+		char buffer[2*(MAX_PATH+1) + sizeof(FILE_RENAME_INFO)];
+		FILE_RENAME_INFO info;
+	} rename_buffer;
+	FILE_RENAME_INFO* info = &rename_buffer.info;
 	size_t info_sz;
-	int path_u16_len, rv = -1;
+	mm_ino_t ino;
+	int rlen;
 
-	// Get size for converted path into utf-16
-	path_u16_len = get_utf16_buffer_len_from_utf8(path);
-	if (path_u16_len < 0)
+	// Get file id and deduce volume of the handle and volume trash prefix
+	if (get_file_id_info_from_handle(hnd, &id_info)
+	    || !(vol = get_volume_from_dev(id_info.VolumeSerialNumber))
+	    || (rlen = volume_get_trash_prefix_u16(vol, info->FileName)) < 0) {
 		return -1;
+	}
 
-	// Allocate (and init) temporary rename info structure in order to
-	// rename path (UTF-16 in allocated within this structure)
-	info_sz = sizeof(*info);
-	info_sz += path_u16_len * sizeof(info->FileName[0]);
-	info = mm_malloca(info_sz);
-	if (!info)
-		return -1;
+	scrub_user_trash_path(info->FileName, rlen);
 
-	// Init rename structure (convert path to UTF-16) and try to do it
+	// Some version of mingw64-crt defines FILE_ID_128 as 2 ULONGLONG
+	// fields, some as BYTE[16]. Copy explicitly to mm_ino_t avoid
+	// us any trouble
+	memcpy(&ino, &id_info.FileId, sizeof(ino));
+
+	// append path of file renamed in trash (named after its file id)
+	swprintf(info->FileName + rlen, MAX_PATH - rlen,
+	         L".mmlib-%016llx%016llx.deleted", ino.id_high, ino.id_low);
+	info->FileName[MAX_PATH] = L'\0';  // ensure filename is terminated
+
+	// Finalize the structure of rename operation and perform it
 	info->RootDirectory = NULL;
 	info->ReplaceIfExists = FALSE;
-	info->FileNameLength = path_u16_len * sizeof(info->FileName[0]);
-	conv_utf8_to_utf16(info->FileName, path_u16_len, path);
-	if (SetFileInformationByHandle(hnd, FileRenameInfo, info, info_sz))
-		rv = 0;
+	info->FileNameLength = wcslen(info->FileName);
+	info_sz = sizeof(*info);
+	info_sz += sizeof(info->FileName[0]) * info->FileNameLength;
+	if (!SetFileInformationByHandle(hnd, FileRenameInfo, info, info_sz))
+		return -1;
 
-	mm_freea(info);
-	return rv;
+	return 0;
+}
+
+
+/**
+ * delete_file_from_handle() - delete file opened by handle
+ * @hnd:         handle of the file to be deleted opened with the appropriate
+ *               access DELETE|FILE_WRITE_ATTRIBUTES
+ *
+ * Return: 0 in case of success, -1 otherwise. Please note that this
+ * function does not set error state. Use GetLastError() to retrieve the
+ * origin of error (this is meant to be done by the caller which has more
+ * context, in particular the filename).
+ */
+static
+int delete_file_from_handle(HANDLE* hnd)
+{
+	FILE_DISPOSITION_INFO dispose = {.DeleteFile = TRUE};
+
+	// Make file path available immediately even if file object is not
+	// removed yet
+	if (rename_file_to_trash_from_handle(hnd))
+		return -1;
+
+	// Indicate kernel that file object should deleted. This will be
+	// defered to when all handle to file object will be closed. we don't
+	// mind to fail file has already been renamed: the file should be
+	// eventually deleted afterwards anyway
+	SetFileInformationByHandle(hnd, FileDispositionInfo,
+	                           &dispose, sizeof(dispose));
+	return 0;
 }
 
 
@@ -575,56 +642,23 @@ int rename_file_handle(HANDLE hnd, const char* path)
 API_EXPORTED
 int mm_unlink(const char* path)
 {
-	size_t delpath_maxlen;
-	char* delpath;
-	DWORD flags;
+	DWORD flags, access;
 	HANDLE hnd;
-	int i;
+	int rv = 0;
 
-	// Open file with DELETE_ON_CLOSE flag. If this operation has succeed,
-	// the file will be deleted when CloseHandle() is called. Also do not
-	// follow symlink (Hence FILE_FLAG_OPEN_REPARSE_POINT). Finally
+	// Do not follow symlink (Hence FILE_FLAG_OPEN_REPARSE_POINT). Also
 	// FILE_FLAG_BACKUP_SEMANTICS is added to handle symlink to folder.
-	flags = FILE_FLAG_DELETE_ON_CLOSE
-	        | FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS;
-	hnd = open_handle(path, DELETE, OPEN_EXISTING, NULL, flags);
+	flags = FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS;
+	access = DELETE | FILE_WRITE_ATTRIBUTES;
+	hnd = open_handle(path, access, OPEN_EXISTING, NULL, flags);
 	if (hnd == INVALID_HANDLE_VALUE)
 		return mm_raise_from_w32err("Can't get handle for %s", path);
 
-	// Allocate (and init) temporary rename info structure in order to rename path
-	// into TEMP_FILE/<basename>.deleted-#### or <path>.deleted-####
-	delpath_maxlen = strlen(path)+win32_temp_path_len+64;
-	delpath = mm_malloca(delpath_maxlen);
+	if (delete_file_from_handle(hnd))
+		rv = mm_raise_from_w32err("Can't delete %s", path);
 
-	// Rename before closing (hence marking file for deleting) to make the
-	// filename reusable immediately even if the file object is not deleted
-	// immediately (make different rename attempt in order to find a
-	// name that is available)
-
-	// try to move to TempPath if possible
-	if (win32_temp_path_len != 0) {
-		for (i = 0; i < NUM_ATTEMPT; i++) {
-			snprintf(delpath, delpath_maxlen, "%s/%s.deleted-%i",
-			        win32_temp_path, win32_basename(path), i);
-			if (rename_file_handle(hnd, delpath) == 0)
-				goto exit;
-
-			if (GetLastError() == ERROR_NOT_SAME_DEVICE)
-				break;
-		}
-	}
-
-	// try to rename the file and postfix is as deleted
-	for (i = 0; i < NUM_ATTEMPT; i++) {
-		snprintf(delpath, delpath_maxlen, "%s.deleted-%i", path, i);
-		if (rename_file_handle(hnd, delpath) == 0)
-			break;
-	}
-
-exit:
-	mm_freea(delpath);
 	CloseHandle(hnd);
-	return 0;
+	return rv;
 }
 
 
@@ -1259,7 +1293,7 @@ const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
 
 /**
  * reparse_data_create() - allocate and get reparse data from handle
- * HANDLE:      handle of a open reparse point
+ * HANDLE:      handle of an open reparse point
  *
  * Return: initialized REPARSE_DATA_BUFFER in case of success, NULL
  * otherwise. Must be cleanup with free() when you don't need it any longer
@@ -1318,7 +1352,7 @@ char16_t* get_target_u16_from_reparse_data(REPARSE_DATA_BUFFER* rep)
 
 /**
  * get_symlink_target_strlen() - Get size of target string of symlink
- * hnd:         handle of a open symlink
+ * hnd:         handle of an open symlink
  *
  * Return: size of the UTF-8 string of the target including null
  * terminator.
@@ -1352,7 +1386,7 @@ size_t get_symlink_target_strlen(HANDLE hnd)
  * does not set error state. Only win32 last error is set. It is expected
  * to raise the corresponding in the caller (which will have more context)
  */
-static
+LOCAL_SYMBOL
 int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 {
 	FILE_ATTRIBUTE_TAG_INFO attr_tag;
@@ -1361,13 +1395,29 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 	struct local_secdesc lsd;
 	int type;
 
-	if (!GetFileInformationByHandleEx(hnd, FileAttributeTagInfo,
-	                                    &attr_tag, sizeof(attr_tag))
-	   || !GetFileInformationByHandleEx(hnd, FileIdInfo,
-	                                    &id_info, sizeof(id_info))
-	   || !GetFileInformationByHandle(hnd, &info)
-	   || local_secdesc_init_from_handle(&lsd, hnd)) {
+	if (!GetFileInformationByHandle(hnd, &info)
+	    || local_secdesc_init_from_handle(&lsd, hnd)) {
 		return -1;
+	}
+
+	if (!GetFileInformationByHandleEx(hnd, FileAttributeTagInfo,
+	                                  &attr_tag, sizeof(attr_tag))
+	    || !GetFileInformationByHandleEx(hnd, FileIdInfo,
+				&id_info, sizeof(id_info))) {
+		DWORD id[4];
+
+		attr_tag = (FILE_ATTRIBUTE_TAG_INFO) {
+			.FileAttributes = info.dwFileAttributes,
+		};
+
+		// Convert 2 DWORDs file ID into FILE_ID_128
+		id[0] = info.nFileIndexLow;
+		id[1] = info.nFileIndexHigh;
+		id[2] = 0;
+		id[3] = 0;
+		memcpy(&id_info.FileId, id, sizeof(id));
+
+		id_info.VolumeSerialNumber = info.dwVolumeSerialNumber;
 	}
 
 	// translate_filetype() consider all reparse point as symlink. Here

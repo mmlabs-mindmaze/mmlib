@@ -22,3 +22,6 @@ fixstyle:
 
 spelling:
 	$(MAKE) -C src $@
+
+api-compat-test:
+	$(MAKE) -C src $@

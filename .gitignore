@@ -34,6 +34,7 @@ build-aux/*
 *.o
 *.la
 *.lo
+a.out
 
 # check generated objects
 *.log

@@ -79,7 +79,24 @@ shared_module('dynlib-test',
         c_args : unittest_args,
 )
 
-# TODO: testinternals
+test_internals_sources = files(
+        'internals-testcases.h',
+        'log-internals.c',
+        'testinternals.c',
+)
+if host_machine.system() == 'windows'
+    test_internals_sources += files('startup-win32-internals.c')
+endif
+
+testinternals = executable('testinternals',
+        test_internals_sources,
+        c_args : unittest_args + cflags,
+        include_directories : configuration_inc,
+        link_with : mmlib_static,
+        dependencies: libcheck,
+)
+
+test('internal tests', testinternals)
 
 testapi_sources = files(
         'alloc-api-tests.c',
@@ -106,7 +123,8 @@ testapi_sources = files(
         'utils-api-tests.c'
 )
 
-testapi_deps = [libcheck]
+libmath = cc.find_library('m', required : true)
+testapi_deps = [libcheck, libmath]
 if host_machine.system() == 'windows'
     testapi_deps += libws2_32
 endif

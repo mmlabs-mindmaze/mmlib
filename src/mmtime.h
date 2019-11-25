@@ -6,6 +6,8 @@
 
 #include <time.h>
 #include <stdint.h>
+#include <sys/types.h>
+
 #include "mmpredefs.h"
 
 /**

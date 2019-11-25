@@ -226,6 +226,11 @@ int setup_argv_utf8(char*** p_argv)
  *                                                                        *
  **************************************************************************/
 
+int __getmainargs(int * p_argc, char *** p_argv, char *** p_env,
+                  int do_wildcard,  void* startinfo);
+
+int _get_startup_argv_mode(void);
+
 /**
  * DOC: Supporting UTF-8 argument in main() in Windows
  *

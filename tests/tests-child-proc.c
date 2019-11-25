@@ -5,14 +5,16 @@
 #include <config.h>
 #endif
 
-#include "threaddata-manipulation.h"
+#include <mmdlfcn.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "mmerrno.h"
+#include "mmlog.h"
+#include "mmsysio.h"
 #include "socket-testlib.h"
 #include "tests-child-proc.h"
-#include "mmsysio.h"
-#include "mmerrno.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <mmdlfcn.h>
+#include "threaddata-manipulation.h"
 
 #define PASSED_FD 3
 
@@ -65,7 +67,7 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "Running: %s\n", argv[1]);
 		/* function should return NULL on success */
 		exitcode = symbol.fn(map);
-		printf("%s exited: %d\n", argv[1], exitcode);
+		mmlog_debug("%s exited: %d", argv[1], exitcode);
 	}
 
 exit:

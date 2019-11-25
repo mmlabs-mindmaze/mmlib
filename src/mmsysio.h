@@ -26,6 +26,7 @@
 #endif /* ifdef _WIN32 */
 
 #include "mmpredefs.h"
+#include "mmtime.h"
 
 #ifdef _WIN32
 /**
@@ -131,7 +132,9 @@ extern "C" {
 #ifndef S_IFREG
 #define S_IFREG _S_IFREG
 #endif
+#ifndef S_IFLNK
 #define S_IFLNK (_S_IFREG|_S_IFCHR)
+#endif
 
 #define S_ISTYPE(mode, mask)  (((mode) & S_IFMT) == (mask))
 #ifndef S_ISDIR
@@ -255,7 +258,11 @@ struct mm_dirent {
 	size_t reclen;  /* this record length */
 	int type;       /* file type (see above) */
 	int id;         /* reserved for later use */
-	char name[];    /* Null-terminated filename */
+#ifndef __cplusplus
+	char name[];    /* Null-terminated filename (C flexible array)*/
+#else
+	char name[1];   /* Null-terminated filename (C++ compatibility)*/
+#endif
 };
 
 MMLIB_API MMDIR* mm_opendir(const char* path);
@@ -365,8 +372,9 @@ MMLIB_API ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg);
  *                          Network communication                         *
  **************************************************************************/
 
+struct addrinfo;
 
-#if _WIN32
+#if defined (_WIN32)
 /**
  * struct msghdr - structure for socket message
  * @msg_name:       optional address

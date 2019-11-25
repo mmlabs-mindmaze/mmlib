@@ -216,6 +216,7 @@ int mmthr_mtx_consistent(mmthr_mtx_t* mutex)
 #if HAVE_PTHREAD_MUTEX_CONSISTENT
 	return pthread_mutex_consistent(mutex);
 #else
+	(void) mutex;
 	mm_raise_error(ENOTSUP, "Robust mutex not supported on this platform");
 	return ENOTSUP;
 #endif

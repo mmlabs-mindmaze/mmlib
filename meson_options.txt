@@ -2,3 +2,10 @@ option('tests', type: 'boolean', value: true,
     description: 'build unit tests')
 option('docs', type: 'boolean', value: true,
     description: 'build documentation')
+option('nls', type: 'boolean', value: true,
+    description: 'use Native Language Support (Translations)')
+
+option('lock-server-process', type: 'boolean', value: true,
+    description: '''windows-only: configure whether lockserver must be built in
+                                  the mmlib dll (false) of as an external
+                                  programm (true)''')
