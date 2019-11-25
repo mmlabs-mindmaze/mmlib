@@ -85,7 +85,7 @@ MMLIB_API int mm_thr_mutex_deinit(mm_thr_mutex_t* mutex);
 MMLIB_API int mm_thr_cond_init(mm_thr_cond_t* cond, int flags);
 MMLIB_API int mm_thr_cond_wait(mm_thr_cond_t* cond, mm_thr_mutex_t* mutex);
 MMLIB_API int mm_thr_cond_timedwait(mm_thr_cond_t* cond, mm_thr_mutex_t* mutex,
-                                    const struct timespec* abstime);
+                                    const struct mm_timespec* abstime);
 
 MMLIB_API int mm_thr_cond_signal(mm_thr_cond_t* cond);
 MMLIB_API int mm_thr_cond_broadcast(mm_thr_cond_t* cond);

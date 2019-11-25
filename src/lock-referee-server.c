@@ -62,7 +62,7 @@ struct thread_client {
 	OVERLAPPED overlapped_write;
 	struct robust_data* robust_data;
 	struct list_node timeout_node;
-	struct timespec wait_timeout;
+	struct mm_timespec wait_timeout;
 };
 #define GET_TC_FROM_OVERLAPPED_READ(lpo)	((struct thread_client*)(((char*)lpo)-offsetof(struct thread_client, overlapped_read)))
 #define GET_TC_FROM_OVERLAPPED_WRITE(lpo)	((struct thread_client*)(((char*)lpo)-offsetof(struct thread_client, overlapped_write)))
@@ -725,7 +725,7 @@ void timeout_list_add_waiter(struct list* timeout_list,
 {
 	struct list_node *node, *next;
 	struct thread_client* next_tc;
-	struct timespec* timeout = &tc->wait_timeout;
+	struct mm_timespec* timeout = &tc->wait_timeout;
 
 	node = &timeout_list->head;
 	next = node->next;
@@ -756,7 +756,7 @@ void timeout_list_add_waiter(struct list* timeout_list,
  * list is empty INT64_MAX is returned.
  */
 static
-int64_t timeout_list_update(struct list* timeout_list, struct timespec* now)
+int64_t timeout_list_update(struct list* timeout_list, struct mm_timespec* now)
 {
 	struct thread_client* tc;
 	struct list_node *node, *next;
@@ -854,7 +854,7 @@ void thread_client_handle_req_wait(struct thread_client* tc)
 {
 	int64_t key, val;
 	int clk_flags;
-	struct timespec* timeout;
+	struct mm_timespec* timeout;
 	struct lock* lock;
 	struct list* timeout_list;
 	bool is_waiting;
@@ -1454,7 +1454,7 @@ void lockref_server_garbage_collection(struct lockref_server* srv)
 static
 int64_t lockref_server_update_next_timeout_ns(struct lockref_server* srv)
 {
-	struct timespec now;
+	struct mm_timespec now;
 	int64_t diff_ns, timeout = INT64_MAX;
 
 	// Wake up timed out waits based on wallclock

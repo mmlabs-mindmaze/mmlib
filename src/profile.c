@@ -126,7 +126,7 @@ static int next_ts;     // Index of the next point of measure slot. 0 is for
 
 static int num_iter;            // Number of iteration recorded so far
 static int64_t toc_overhead;    // Overhead of a mm_tic()/mm_toc() call
-static struct timespec timestamps[NUM_TS_MAX];  // current iteration measure
+static struct mm_timespec timestamps[NUM_TS_MAX];  // current iteration measure
 static int64_t max_diff_ts[NUM_TS_MAX];         // max time difference
 static int64_t min_diff_ts[NUM_TS_MAX];         // min time difference
 static int64_t sum_diff_ts[NUM_TS_MAX];  // sum of time difference overall
@@ -267,7 +267,7 @@ void estimate_toc_overhead(void)
 static inline
 void local_toc(void)
 {
-	struct timespec ts;
+	struct mm_timespec ts;
 
 	mm_gettime(clock_id, &ts);
 

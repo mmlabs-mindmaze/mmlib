@@ -470,7 +470,7 @@ MMLIB_API int mm_send_multimsg(int sockfd, int vlen,
 
 MMLIB_API int mm_recv_multimsg(int sockfd, int vlen,
                                struct mm_sock_multimsg * msgvec, int flags,
-                               struct timespec * timeout);
+                               struct mm_timespec * timeout);
 
 MMLIB_API int mm_getaddrinfo(const char * node, const char * service,
                              const struct addrinfo * hints,

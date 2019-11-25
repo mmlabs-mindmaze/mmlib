@@ -447,7 +447,7 @@ int mm_ipc_connected_pair(int fds[2])
 	char name[MAX_PIPENAME];
 	int srv_fd, client_fd;
 	HANDLE hsrv, hclient;
-	struct timespec ts;
+	struct mm_timespec ts;
 	int attempt;
 
 	// Try and retry to create a named pipe server handle using a

@@ -642,12 +642,12 @@ int mm_send_multimsg(int sockfd, int vlen, struct mm_sock_multimsg * msgvec,
  */
 API_EXPORTED
 int mm_recv_multimsg(int sockfd, int vlen, struct mm_sock_multimsg * msgvec,
-                     int flags, struct timespec * timeout)
+                     int flags, struct mm_timespec * timeout)
 {
 	int ret;
 	struct mmsghdr* hdrvec = (struct mmsghdr*)msgvec;
 
-	ret = recvmmsg(sockfd, hdrvec, vlen, flags, timeout);
+	ret = recvmmsg(sockfd, hdrvec, vlen, flags, (struct timespec*)timeout);
 	if (ret < 0)
 		return mm_raise_from_errno("recvmmsg failed");
 

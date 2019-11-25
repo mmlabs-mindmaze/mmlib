@@ -5,10 +5,29 @@
 # include <config.h>
 #endif
 
+#include <assert.h>
+#include <stdalign.h>
+#include <stddef.h>
+#include <string.h>
+#include <time.h>
 
 #include "mmtime.h"
 #include "mmerrno.h"
-#include <string.h>
+
+// Ensure that struct mm_timespec if binary compatible with struct timespec
+// STYLE-EXCEPTION-BEGIN
+static_assert(sizeof(struct mm_timespec) == sizeof(struct timespec)
+              && alignof(struct mm_timespec) == alignof(struct timespec)
+              && offsetof(struct mm_timespec, tv_sec) == \
+                 offsetof(struct timespec, tv_sec)
+              && sizeof(((struct mm_timespec*)0)->tv_sec) == \
+                 sizeof(((struct timespec*)0)->tv_sec)
+              && offsetof(struct mm_timespec, tv_nsec) == \
+                 offsetof(struct timespec, tv_nsec)
+              && sizeof(((struct mm_timespec*)0)->tv_nsec) == \
+                 sizeof(((struct timespec*)0)->tv_nsec),
+              "mm_timespec structure is not binary compatible with timespec");
+// STYLE-EXCEPTION-END
 
 
 /**
@@ -22,11 +41,11 @@
  * indicate the error.
  */
 API_EXPORTED
-int mm_gettime(clockid_t clock_id, struct timespec * ts)
+int mm_gettime(clockid_t clock_id, struct mm_timespec * ts)
 {
 	int ret;
 
-	ret = clock_gettime(clock_id, ts);
+	ret = clock_gettime(clock_id, (struct timespec*)ts);
 	if (ret) {
 		mm_raise_from_errno("clock_gettime failed");
 		return -1;
@@ -58,11 +77,11 @@ int mm_gettime(clockid_t clock_id, struct timespec * ts)
  * accuracy much worse than its resolution.
  */
 API_EXPORTED
-int mm_getres(clockid_t clock_id, struct timespec * res)
+int mm_getres(clockid_t clock_id, struct mm_timespec * res)
 {
 	int ret;
 
-	ret = clock_getres(clock_id, res);
+	ret = clock_getres(clock_id, (struct timespec*)res);
 	if (ret) {
 		mm_raise_from_errno("clock_getres failed");
 		return -1;
@@ -88,11 +107,12 @@ int mm_getres(clockid_t clock_id, struct timespec * res)
  * indicate the error.
  */
 API_EXPORTED
-int mm_nanosleep(clockid_t clock_id, const struct timespec * ts)
+int mm_nanosleep(clockid_t clock_id, const struct mm_timespec * ts)
 {
 	int ret;
 
-	ret = clock_nanosleep(clock_id, TIMER_ABSTIME, ts, NULL);
+	ret = clock_nanosleep(clock_id, TIMER_ABSTIME,
+	                      (struct timespec*)ts, NULL);
 	if (ret) {
 		mm_raise_error(ret, "clock_nanosleep failed: %s",
 		               strerror(ret));

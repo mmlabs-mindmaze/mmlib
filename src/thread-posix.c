@@ -407,9 +407,10 @@ int mm_thr_cond_wait(mm_thr_cond_t* cond, mm_thr_mutex_t* mutex)
  */
 API_EXPORTED
 int mm_thr_cond_timedwait(mm_thr_cond_t* cond, mm_thr_mutex_t* mutex,
-                          const struct timespec* abstime)
+                          const struct mm_timespec* abstime)
 {
-	return pthread_cond_timedwait(cond, mutex, abstime);
+	return pthread_cond_timedwait(cond, mutex,
+	                              (const struct timespec*)abstime);
 }
 
 

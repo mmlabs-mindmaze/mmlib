@@ -516,7 +516,7 @@ int mm_send_multimsg(int sockfd, int vlen, struct mm_sock_multimsg *msgvec,
 /* doc in posix implementation */
 API_EXPORTED
 int mm_recv_multimsg(int sockfd, int vlen, struct mm_sock_multimsg *msgvec,
-                     int flags, struct timespec *timeout)
+                     int flags, struct mm_timespec *timeout)
 {
 	int i;
 	ssize_t ret_sz;

@@ -39,7 +39,7 @@ struct lockref_req_msg {
 			int64_t key;
 			int64_t val;
 			int clk_flags;
-			struct timespec timeout;
+			struct mm_timespec timeout;
 		} wait;
 		struct lockref_reqdata_getrobust {
 			int num_keys;

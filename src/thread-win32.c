@@ -660,7 +660,7 @@ int pshared_mtx_consistent(struct mm_thr_mutex_pshared * mutex)
 static
 int pshared_cond_wait(struct mm_thr_cond_pshared * cond,
                       mm_thr_mutex_t * mutex,
-                      const struct timespec* abstime)
+                      const struct mm_timespec* abstime)
 {
 	struct lockref_connection* lockref = get_thread_lockref_data();
 	int64_t wakeup_val;
@@ -964,9 +964,9 @@ int mm_thr_cond_wait(mm_thr_cond_t* cond, mm_thr_mutex_t* mutex)
 /* doc in posix implementation */
 API_EXPORTED
 int mm_thr_cond_timedwait(mm_thr_cond_t* _cond, mm_thr_mutex_t* mutex,
-                         const struct timespec* abstime)
+                         const struct mm_timespec* abstime)
 {
-	struct timespec now;
+	struct mm_timespec now;
 	int ret;
 	int64_t delta_ns;
 	DWORD timeout_ms;

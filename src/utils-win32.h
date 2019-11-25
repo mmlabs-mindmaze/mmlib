@@ -218,7 +218,7 @@ int unsetenv_utf8(const char* name);
 
 
 static inline
-void filetime_to_timespec(FILETIME ft, struct timespec* ts)
+void filetime_to_timespec(FILETIME ft, struct mm_timespec* ts)
 {
 	ULARGE_INTEGER time_int;
 
@@ -234,7 +234,7 @@ void filetime_to_timespec(FILETIME ft, struct timespec* ts)
 static inline
 time_t filetime_to_time(FILETIME ft)
 {
-	struct timespec ts;
+	struct mm_timespec ts;
 
 	filetime_to_timespec(ft, &ts);
 
