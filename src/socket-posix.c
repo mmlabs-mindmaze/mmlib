@@ -540,7 +540,7 @@ ssize_t mm_sendmsg(int sockfd, const struct msghdr * msg, int flags)
  * sockets because it permits the application to retrieve the source address
  * of received data.
  *
- * In the &struct mmsock_msg structure, the &msghdr.msg_name and
+ * In the &struct mm_sock_msg structure, the &msghdr.msg_name and
  * &msghdr.msg_namelen members specify the source address if the socket is
  * unconnected. If the socket is connected, those members are ignored. The
  * @msg->msg_name may be a null pointer if no names are desired or required.
@@ -585,7 +585,7 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr* msg, int flags)
  * mm_send_multimsg() - send multiple messages on a socket
  * @sockfd:     socket file descriptor.
  * @vlen:       size of @msgvec array
- * @msgvec:     pointer to an array of &struct mmsock_multimsg structures
+ * @msgvec:     pointer to an array of &struct mm_sock_multimsg structures
  * @flags:      type of message transmission
  *
  * This function is an extension of mm_sendmsg that allows the
@@ -593,9 +593,9 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr* msg, int flags)
  * call. This is equivalent to call mm_sendmsg() in a loop for each element
  * in @msgvec.
  *
- * On return from mm_sendmmsg(), the &struct mmsock_multimsg.data_len fields
+ * On return from mm_sendmmsg(), the &struct mm_sock_multimsg.data_len fields
  * of successive elements of @msgvec are updated to contain the number of
- * bytes transmitted from the corresponding &struct mmsock_multimsg.msg.
+ * bytes transmitted from the corresponding &struct mm_sock_multimsg.msg.
  *
  * Return: On success, it returns the number of messages sent from @msgvec;
  * if this is less than @vlen, the caller can retry with a further
@@ -603,7 +603,7 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr* msg, int flags)
  * returned and the error state is set accordingly.
  */
 API_EXPORTED
-int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
+int mm_send_multimsg(int sockfd, int vlen, struct mm_sock_multimsg * msgvec,
                      int flags)
 {
 	int ret;
@@ -621,7 +621,7 @@ int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
  * mm_recv_multimsg() - receive multiple messages from a socket
  * @sockfd:     socket file descriptor.
  * @vlen:       size of @msgvec array
- * @msgvec:     pointer to an array of &struct mmsock_multimsg structures
+ * @msgvec:     pointer to an array of &struct mm_sock_multimsg structures
  * @flags:      type of message reception
  * @timeout:    timeout for receive operation. If NULL, the operation blocks
  *              indefinitely
@@ -631,9 +631,9 @@ int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
  * call. This is equivalent to call mm_recvmsg() in a loop for each element
  * in @msgvec with loop break if @timeout has been reached.
  *
- * On return from mm_recvmmsg(), the &struct mmsock_multimsg.data_len fields
+ * On return from mm_recvmmsg(), the &struct mm_sock_multimsg.data_len fields
  * of successive elements of @msgvec are updated to contain the number of
- * bytes received from the corresponding &struct mmsock_multimsg.msg.
+ * bytes received from the corresponding &struct mm_sock_multimsg.msg.
  *
  * Return: On success, it returns the number of messages received from @msgvec;
  * if this is less than @vlen, the caller can retry with a further
@@ -641,7 +641,7 @@ int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
  * returned and the error state is set accordingly.
  */
 API_EXPORTED
-int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
+int mm_recv_multimsg(int sockfd, int vlen, struct mm_sock_multimsg * msgvec,
                      int flags, struct timespec * timeout)
 {
 	int ret;
@@ -714,7 +714,7 @@ int mm_getaddrinfo(const char * node, const char * service,
 	// Handle platform specific error
 	if (errnum == -1) {
 		errnum = errno;
-		mmstrerror_r(errnum, errmsg, sizeof(errmsg));
+		mm_strerror_r(errnum, errmsg, sizeof(errmsg));
 	}
 
 	mm_raise_error(errnum, "getaddrinfo(%s, %s) failed: %s",
@@ -755,7 +755,7 @@ int mm_getnameinfo(const struct sockaddr * addr, socklen_t addrlen,
 	// Handle platform specific error
 	if (errnum == -1) {
 		errnum = errno;
-		mmstrerror_r(errnum, errmsg, sizeof(errmsg));
+		mm_strerror_r(errnum, errmsg, sizeof(errmsg));
 	}
 
 	mm_raise_error(errnum, "getnameinfo() failed: %s", errmsg);

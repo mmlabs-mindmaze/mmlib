@@ -15,19 +15,19 @@
 
 
 /**
- * mmthr_mtx_init() - Initialize a mutex
+ * mm_thr_mutex_init() - Initialize a mutex
  * @mutex:      mutex to initialize
  * @flags:      OR-combination of flags indicating the type of mutex
  *
  * Use this function to initialize @mutex. The type of mutex is controlled
  * by @flags which must contains one or several of the following :
  *
- * MMTHR_PSHARED: init a mutex shareable by other processes. When a mutex
+ * MM_THR_PSHARED: init a mutex shareable by other processes. When a mutex
  * is process shared, it is also a robust mutex.
  *
  * If no flags is provided, the type of initialized mutex just a normal
  * mutex and a call to this function could be avoided if the data pointed by
- * @mutex has been statically initialized with MMTHR_MTX_INITIALIZER.
+ * @mutex has been statically initialized with MM_MTX_INITIALIZER.
  *
  * Currently, a robust mutex can only be initialized if is a process shared
  * mutex.
@@ -45,7 +45,7 @@
  *   attribute.
  */
 API_EXPORTED
-int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags)
+int mm_thr_mutex_init(mm_thr_mutex_t* mutex, int flags)
 {
 	int ret;
 	pthread_mutexattr_t attr;
@@ -53,7 +53,7 @@ int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags)
 	if (flags) {
 		pthread_mutexattr_init(&attr);
 
-		if (flags & MMTHR_PSHARED) {
+		if (flags & MM_THR_PSHARED) {
 			pthread_mutexattr_setpshared(&attr,
 			                             PTHREAD_PROCESS_SHARED);
 
@@ -61,9 +61,9 @@ int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags)
 			pthread_mutexattr_setrobust(&attr,
 			                            PTHREAD_MUTEX_ROBUST);
 #else
-			mmlog_warn("Process shared mutex are supposed to be "
-			           "robust as well. But I do not how to have "
-			           "a robust mutex on this platform");
+			mm_log_warn("Process shared mutex are supposed to be "
+			            "robust as well. But I do not how to have "
+			            "a robust mutex on this platform");
 #endif
 		}
 	}
@@ -81,11 +81,11 @@ int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags)
 
 
 /**
- * mmthr_mtx_lock() - lock a mutex
+ * mm_thr_mutex_lock() - lock a mutex
  * @mutex:      initialized mutex
  *
  * The mutex object referenced by @mutex is locked by a successful
- * call to mmthr_mtx_lock(). If the mutex is already locked by another
+ * call to mm_thr_mutex_lock(). If the mutex is already locked by another
  * thread, the calling thread blocks until the mutex becomes available. If
  * the mutex is already locked by the calling thread, the function will
  * never return.
@@ -95,9 +95,9 @@ int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags)
  * thread of this situation. In this case, the mutex is locked by the
  * calling thread but the state it protects is marked as inconsistent. The
  * application should ensure that the state is made consistent for reuse and
- * when that is complete call mmthr_mtx_consistent(). If the application is
+ * when that is complete call mm_thr_mutex_consistent(). If the application is
  * unable to recover the state, it should unlock the mutex without a prior
- * call to mmthr_mtx_consistent(), after which the mutex is marked
+ * call to mm_thr_mutex_consistent(), after which the mutex is marked
  * permanently unusable.
  *
  * NOTE: If @mutex is a robust mutex and actually used across different
@@ -112,24 +112,24 @@ int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags)
  *   The mutex is a robust mutex and the previous owning thread terminated
  *   while holding the mutex lock. The mutex lock is acquired by the calling
  *   thread and it is up to the new owner to make the state consistent (see
- *   mmthr_mtx_consistent()).
+ *   mm_thr_mutex_consistent()).
  *
  * ENOTRECOVERABLE
  *   The mutex is a robust mutex and the state protected by it is not
  *   recoverable.
  */
 API_EXPORTED
-int mmthr_mtx_lock(mmthr_mtx_t* mutex)
+int mm_thr_mutex_lock(mm_thr_mutex_t* mutex)
 {
 	return pthread_mutex_lock(mutex);
 }
 
 
 /**
- * mmthr_mtx_trylock() - try to lock a mutex
+ * mm_thr_mutex_trylock() - try to lock a mutex
  * @mutex:      initialized mutex
  *
- * This function is equivalent to mmthr_mtx_lock(), except that if the
+ * This function is equivalent to mm_thr_mutex_lock(), except that if the
  * mutex object referenced by @mutex is currently locked (by any thread,
  * including the current thread), the call returns immediately.
  *
@@ -138,9 +138,9 @@ int mmthr_mtx_lock(mmthr_mtx_t* mutex)
  * thread of this situation. In this case, the mutex is locked by the
  * calling thread but the state it protects is marked as inconsistent. The
  * application should ensure that the state is made consistent for reuse and
- * when that is complete call mmthr_mtx_consistent(). If the application is
+ * when that is complete call mm_thr_mutex_consistent(). If the application is
  * unable to recover the state, it should unlock the mutex without a prior
- * call to mmthr_mtx_consistent(), after which the mutex is marked
+ * call to mm_thr_mutex_consistent(), after which the mutex is marked
  * permanently unusable.
  *
  * NOTE: If @mutex is a robust mutex and actually used across different
@@ -155,7 +155,7 @@ int mmthr_mtx_lock(mmthr_mtx_t* mutex)
  *   The mutex is a robust mutex and the previous owning thread terminated
  *   while holding the mutex lock. The mutex lock is acquired by the calling
  *   thread and it is up to the new owner to make the state consistent (see
- *   mmthr_mtx_consistent()).
+ *   mm_thr_mutex_consistent()).
  *
  * ENOTRECOVERABLE
  *   The mutex is a robust mutex and the state protected by it is not
@@ -166,14 +166,14 @@ int mmthr_mtx_lock(mmthr_mtx_t* mutex)
  *   thread.
  */
 API_EXPORTED
-int mmthr_mtx_trylock(mmthr_mtx_t* mutex)
+int mm_thr_mutex_trylock(mm_thr_mutex_t* mutex)
 {
 	return pthread_mutex_trylock(mutex);
 }
 
 
 /**
- * mmthr_mtx_consistent() - mark state protected by mutex as consistent
+ * mm_thr_mutex_consistent() - mark state protected by mutex as consistent
  * @mutex:      initialized robust mutex
  *
  * If mutex is a robust mutex in an inconsistent state, this function can be
@@ -187,14 +187,14 @@ int mmthr_mtx_trylock(mmthr_mtx_t* mutex)
  * marked consistent.
  *
  * If the new owner is not able to make the state consistent, do not call
- * mmthr_mtx_consistent() for the mutex, but simply unlock the mutex. All
+ * mm_thr_mutex_consistent() for the mutex, but simply unlock the mutex. All
  * waiters will then be woken up and all subsequent calls to
- * mmthr_mtx_lock() will fail to acquire the mutex by returning
+ * mm_thr_mutex_lock() will fail to acquire the mutex by returning
  * ENOTRECOVERABLE error code.
  *
  * If the thread which acquired the mutex lock with the return value
- * EOWNERDEAD terminates before calling either mmthr_mtx_consistent() or
- * mmthr_mtx_unlock(), the next thread that acquires the mutex lock shall be
+ * EOWNERDEAD terminates before calling either mm_thr_mutex_consistent() or
+ * mm_thr_mutex_unlock(), the next thread that acquires the mutex lock shall be
  * notified about the state of the mutex by the return value EOWNERDEAD.
  *
  * Return:
@@ -211,7 +211,7 @@ int mmthr_mtx_trylock(mmthr_mtx_t* mutex)
  *   mutex.
  */
 API_EXPORTED
-int mmthr_mtx_consistent(mmthr_mtx_t* mutex)
+int mm_thr_mutex_consistent(mm_thr_mutex_t* mutex)
 {
 #if HAVE_PTHREAD_MUTEX_CONSISTENT
 	return pthread_mutex_consistent(mutex);
@@ -224,11 +224,11 @@ int mmthr_mtx_consistent(mmthr_mtx_t* mutex)
 
 
 /**
- * mmthr_mtx_unlock() - Unlock a mutex
+ * mm_thr_mutex_unlock() - Unlock a mutex
  * @mutex:      mutex owned by the calling thread
  *
  * This releases the mutex object referenced by @mutex. If there are threads
- * blocked on the mutex object referenced by @mutex when mmthr_mtx_unlock()
+ * blocked on the mutex object referenced by @mutex when mm_thr_mutex_unlock()
  * is called, one of these thread will be unblocked.
  *
  * Unlocking a mutex not owned by the calling thread, or not initialized
@@ -244,50 +244,50 @@ int mmthr_mtx_consistent(mmthr_mtx_t* mutex)
  *   mutex.
  */
 API_EXPORTED
-int mmthr_mtx_unlock(mmthr_mtx_t* mutex)
+int mm_thr_mutex_unlock(mm_thr_mutex_t* mutex)
 {
 	return pthread_mutex_unlock(mutex);
 }
 
 
 /**
- * mmthr_mtx_deinit() - cleanup an initialized mutex
+ * mm_thr_mutex_deinit() - cleanup an initialized mutex
  * @mutex:      initialized mutex to destroy
  *
  * This destroys the mutex object referenced by @mutex; the mutex object
  * becomes, in effect, uninitialized. A destroyed mutex object can be
- * reinitialized using mmthr_mtx_init(); the results of otherwise
+ * reinitialized using mm_thr_mutex_init(); the results of otherwise
  * referencing the object after it has been destroyed are undefined.
  *
  * It is safe to destroy an initialized mutex that is unlocked. Attempting
  * to destroy a locked mutex, or a mutex that another thread is attempting
- * to lock, or a mutex that is being used in a mmthr_cond_timedwait() or
- * mmthr_cond_wait() call by another thread, results in undefined behavior.
+ * to lock, or a mutex that is being used in a mm_thr_cond_timedwait() or
+ * mm_thr_cond_wait() call by another thread, results in undefined behavior.
  *
  * Return: 0
  */
 API_EXPORTED
-int mmthr_mtx_deinit(mmthr_mtx_t* mutex)
+int mm_thr_mutex_deinit(mm_thr_mutex_t* mutex)
 {
 	return pthread_mutex_destroy(mutex);
 }
 
 
 /**
- * mmthr_cond_init() - Initialize a condition variable
+ * mm_thr_cond_init() - Initialize a condition variable
  * @cond:       condition variable to initialize
  * @flags:      OR-combination of flags indicating the type of @cond
  *
  * Use this function to initialize @cond. The type of condition is
  * controlled by @flags which must contains one or several of the following:
  *
- * - MMTHR_PSHARED: init a condition shareable by other processes
- * - MMTHR_WAIT_MONOTONIC: the clock base used in mmthr_cond_timedwait() is
+ * - MM_THR_PSHARED: init a condition shareable by other processes
+ * - MM_THR_WAIT_MONOTONIC: the clock base used in mm_thr_cond_timedwait() is
  *   MM_CLK_MONOTONIC instead of the default MM_CLK_REALTIME.
  *
  * If 0 is passed, a call to this function could have be avoided if the data
  * pointed by @cond had been statically initialized with
- * MMTHR_COND_INITIALIZER.
+ * MM_COND_INITIALIZER.
  *
  * It is undefined behavior if a condition variable is reinitialized before
  * getting destroyed first.
@@ -295,7 +295,7 @@ int mmthr_mtx_deinit(mmthr_mtx_t* mutex)
  * Return: 0
  */
 API_EXPORTED
-int mmthr_cond_init(mmthr_cond_t* cond, int flags)
+int mm_thr_cond_init(mm_thr_cond_t* cond, int flags)
 {
 	int ret;
 	pthread_condattr_t attr;
@@ -303,11 +303,11 @@ int mmthr_cond_init(mmthr_cond_t* cond, int flags)
 	if (flags) {
 		pthread_condattr_init(&attr);
 
-		if (flags & MMTHR_PSHARED)
+		if (flags & MM_THR_PSHARED)
 			pthread_condattr_setpshared(&attr,
 			                            PTHREAD_PROCESS_SHARED);
 
-		if (flags & MMTHR_WAIT_MONOTONIC)
+		if (flags & MM_THR_WAIT_MONOTONIC)
 			pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
 	}
 
@@ -324,7 +324,7 @@ int mmthr_cond_init(mmthr_cond_t* cond, int flags)
 
 
 /**
- * mmthr_cond_wait() - wait on a condition
+ * mm_thr_cond_wait() - wait on a condition
  * @cond:       Condition to wait
  * @mutex:      mutex protecting the condition wait update
  *
@@ -340,7 +340,7 @@ int mmthr_cond_init(mmthr_cond_t* cond, int flags)
  * function returns an error code.
  *
  * When a thread waits on a condition variable, having specified a
- * particular mutex to either the mmthr_cond_wait(), a dynamic binding is
+ * particular mutex to either the mm_thr_cond_wait(), a dynamic binding is
  * formed between that mutex and condition variable that remains in effect
  * as long as at least one thread is blocked on the condition variable.
  * During this time, the effect of an attempt by any thread to wait on that
@@ -359,33 +359,33 @@ int mmthr_cond_init(mmthr_cond_t* cond, int flags)
  *   in case success
  *
  * Other errors
- *   Any error that mmthr_mtx_unlock() and mmthr_mtx_lock() can return.
+ *   Any error that mm_thr_mutex_unlock() and mm_thr_mutex_lock() can return.
  */
 API_EXPORTED
-int mmthr_cond_wait(mmthr_cond_t* cond, mmthr_mtx_t* mutex)
+int mm_thr_cond_wait(mm_thr_cond_t* cond, mm_thr_mutex_t* mutex)
 {
 	return pthread_cond_wait(cond, mutex);
 }
 
 
 /**
- * mmthr_cond_timedwait() - wait on a condition with timeout
+ * mm_thr_cond_timedwait() - wait on a condition with timeout
  * @cond:       Condition to wait
  * @mutex:      mutex protecting the condition wait update
  * @abstime:    absolute time indicating the timeout
  *
- * This function is the equivalent to mmthr_cond_wait(), except that an
+ * This function is the equivalent to mm_thr_cond_wait(), except that an
  * error is returned if the absolute time specified by @time passes (that
  * is, clock time equals or exceeds @time) before the condition cond is
  * signaled or broadcasted, or if the absolute time specified by @time has
  * already been passed at the time of the call. When such timeouts occur,
- * mmthr_cond_timedwait() will nonetheless release and re-acquire the mutex
+ * mm_thr_cond_timedwait() will nonetheless release and re-acquire the mutex
  * referenced by mutex, and may consume a condition signal directed
  * concurrently at the condition variable.
  *
  * The clock ID to measure timeout is determined at the initialization of
  * the condition with pthread_cond_init(). If @cond has been initialized
- * statically with MMTHR_MTX_INITIALIZER, the clock used is MM_CLK_REALTIME.
+ * statically with MM_MTX_INITIALIZER, the clock used is MM_CLK_REALTIME.
  *
  * NOTE: If @mutex is a robust mutex and actually used across different
  * processes, the return value must not be ignored.
@@ -403,30 +403,30 @@ int mmthr_cond_wait(mmthr_cond_t* cond, mmthr_mtx_t* mutex)
  *   than or equal to 1000 million.
  *
  * Other errors
- *   Any error that mmthr_mtx_unlock() and mmthr_mtx_lock() can return.
+ *   Any error that mm_thr_mutex_unlock() and mm_thr_mutex_lock() can return.
  */
 API_EXPORTED
-int mmthr_cond_timedwait(mmthr_cond_t* cond, mmthr_mtx_t* mutex,
-                         const struct timespec* abstime)
+int mm_thr_cond_timedwait(mm_thr_cond_t* cond, mm_thr_mutex_t* mutex,
+                          const struct timespec* abstime)
 {
 	return pthread_cond_timedwait(cond, mutex, abstime);
 }
 
 
 /**
- * mmthr_cond_signal() - signal a condition
+ * mm_thr_cond_signal() - signal a condition
  * @cond:       condition variable to signal
  *
  * This function unblocks at least one of the threads that are blocked on
  * the specified condition variable @cond (if any threads are blocked on
  * @cond).
  *
- * mmthr_cond_signal() functions may be called by a thread whether or not it
+ * mm_thr_cond_signal() functions may be called by a thread whether or not it
  * currently owns the mutex associated to the condition variable
  * (association made by threads calling mth_cond_wait() or
- * mmthr_cond_timedwait() with the condition variable); however, if
+ * mm_thr_cond_timedwait() with the condition variable); however, if
  * predictable scheduling behavior is required, then that mutex shall be
- * locked by the thread calling mmthr_cond_signal().
+ * locked by the thread calling mm_thr_cond_signal().
  *
  * The behavior is undefined if the value specified by the @cond argument
  * does not refer to an initialized condition variable.
@@ -434,25 +434,25 @@ int mmthr_cond_timedwait(mmthr_cond_t* cond, mmthr_mtx_t* mutex,
  * Return: 0
  */
 API_EXPORTED
-int mmthr_cond_signal(mmthr_cond_t* cond)
+int mm_thr_cond_signal(mm_thr_cond_t* cond)
 {
 	return pthread_cond_signal(cond);
 }
 
 
 /**
- * mmthr_cond_broadcast() - broadcast a condition
+ * mm_thr_cond_broadcast() - broadcast a condition
  * @cond:       condition variable to broadcast
  *
  * This function unblocks all threads currently blocked on the specified
  * condition variable @cond (if any threads are blocked on @cond).
  *
- * mmthr_cond_broadcast() functions may be called by a thread whether or not
+ * mm_thr_cond_broadcast() functions may be called by a thread whether or not
  * it currently owns the mutex associated to the condition variable
  * (association made by threads calling mth_cond_wait() or
- * mmthr_cond_timedwait() with the condition variable); however, if
+ * mm_thr_cond_timedwait() with the condition variable); however, if
  * predictable scheduling behavior is required, then that mutex shall be
- * locked by the thread calling mmthr_cond_broadcast().
+ * locked by the thread calling mm_thr_cond_broadcast().
  *
  * The behavior is undefined if the value specified by the @cond argument
  * does not refer to an initialized condition variable.
@@ -460,19 +460,19 @@ int mmthr_cond_signal(mmthr_cond_t* cond)
  * Return: 0
  */
 API_EXPORTED
-int mmthr_cond_broadcast(mmthr_cond_t* cond)
+int mm_thr_cond_broadcast(mm_thr_cond_t* cond)
 {
 	return pthread_cond_broadcast(cond);
 }
 
 
 /**
- * mmthr_cond_deinit() - cleanup an initialized condition variable
+ * mm_thr_cond_deinit() - cleanup an initialized condition variable
  * @cond:       initialized condition variable to destroy
  *
  * This destroys the condition variable object referenced by @cond which
  * becomes, in effect, uninitialized. A destroyed condition variable object
- * can be reinitialized using mmthr_cond_init(); the results of otherwise
+ * can be reinitialized using mm_thr_cond_init(); the results of otherwise
  * referencing the object after it has been destroyed are undefined.
  *
  * It is safe to destroy an initialized condition variable that is not
@@ -482,53 +482,53 @@ int mmthr_cond_broadcast(mmthr_cond_t* cond)
  * Return: 0
  */
 API_EXPORTED
-int mmthr_cond_deinit(mmthr_cond_t* cond)
+int mm_thr_cond_deinit(mm_thr_cond_t* cond)
 {
 	return pthread_cond_destroy(cond);
 }
 
 
 /**
- * mmthr_once() - One-time initialization
+ * mm_thr_once() - One-time initialization
  * @once:               control data of the one-time call
  * @once_routine:       routine to call only once
  *
- * The first call to mmthr_once() by any thread in a process, with a given
+ * The first call to mm_thr_once() by any thread in a process, with a given
  * once_control, shall call @once_routine with no arguments. Subsequent
- * calls of mmthr_once() with the same once_control shall not call
- * @once_routine. On return from mmthr_once(), init_routine shall have
+ * calls of mm_thr_once() with the same once_control shall not call
+ * @once_routine. On return from mm_thr_once(), init_routine shall have
  * completed. The once_control parameter shall determine whether the
  * associated initialization routine has been called.
  *
  * Return: 0
  */
 API_EXPORTED
-int mmthr_once(mmthr_once_t* once, void (* once_routine)(void))
+int mm_thr_once(mm_thr_once_t* once, void (* once_routine)(void))
 {
 	return pthread_once(once, once_routine);
 }
 
 
 /**
- * mmthr_create() - thread creation
+ * mm_thr_create() - thread creation
  * @thread:      location to store the ID of the new thread
  * @proc:        routine to execute in the thread
  * @arg:         argument passed to @proc
  *
  * This functions create a new thread. The thread is created executing
  * start_routine with arg as its sole argument. Upon successful creation,
- * mmthr_create() shall store the ID of the created thread in the location
+ * mm_thr_create() shall store the ID of the created thread in the location
  * referenced by thread.
  *
  * Once a thread has been successfully created, its resources will have
  * eventually to be reclaimed. This is achieved by calling
- * mmthr_join() or mmthr_detach() later.
+ * mm_thr_join() or mm_thr_detach() later.
  *
  * Return: 0 in case of success, otherwise the associated error code with
  * error state set accordingly.
  */
 API_EXPORTED
-int mmthr_create(mmthread_t* thread, void* (*proc)(void*), void* arg)
+int mm_thr_create(mm_thread_t* thread, void* (*proc)(void*), void* arg)
 {
 	int ret;
 
@@ -542,24 +542,24 @@ int mmthr_create(mmthread_t* thread, void* (*proc)(void*), void* arg)
 
 
 /**
- * mmthr_join() - wait for thread termination
+ * mm_thr_join() - wait for thread termination
  * @thread:     ID of the thread to wait
  * @value_ptr:  location receiving the return value
  *
- * The mmthr_join() function suspends execution of the calling thread until
+ * The mm_thr_join() function suspends execution of the calling thread until
  * the target thread terminates, unless the target thread has already
- * terminated. On return from a successful mmthr_join() call with a
+ * terminated. On return from a successful mm_thr_join() call with a
  * non-NULL @value_ptr argument, the value returned by the terminating
  * thread shall be made available in the location referenced by @value_ptr.
  *
  * The behavior is undefined if the value specified by the thread argument
- * to mmthr_join() does not refer to a joinable thread as well if the
+ * to mm_thr_join() does not refer to a joinable thread as well if the
  * @thread argument refers to the calling thread.
  *
  * Return: 0
  */
 API_EXPORTED
-int mmthr_join(mmthread_t thread, void** value_ptr)
+int mm_thr_join(mm_thread_t thread, void** value_ptr)
 {
 	int ret;
 
@@ -572,7 +572,7 @@ int mmthr_join(mmthread_t thread, void** value_ptr)
 
 
 /**
- * mmthr_detach() - Detach a thread
+ * mm_thr_detach() - Detach a thread
  * @thread:     ID of the thread to detach
  *
  * This function indicates that thread storage for the thread @thread can be
@@ -580,13 +580,13 @@ int mmthr_join(mmthread_t thread, void** value_ptr)
  * detached or not joinable.
  *
  * The behavior is undefined if the value specified by the thread argument
- * to mmthr_detach() does not refer to a joinable thread.
+ * to mm_thr_detach() does not refer to a joinable thread.
  *
  * Return: 0 in case of success, otherwise the associated error code with
  * error state set accordingly.
  */
 API_EXPORTED
-int mmthr_detach(mmthread_t thread)
+int mm_thr_detach(mm_thread_t thread)
 {
 	int ret;
 
@@ -600,12 +600,12 @@ int mmthr_detach(mmthread_t thread)
 
 
 /**
- * mmthr_self() - get the calling thread ID
+ * mm_thr_self() - get the calling thread ID
  *
  * Return: thread ID of the calling thread.
  */
 API_EXPORTED
-mmthread_t mmthr_self(void)
+mm_thread_t mm_thr_self(void)
 {
 	return pthread_self();
 }

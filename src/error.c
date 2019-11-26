@@ -79,22 +79,22 @@ const char* get_mm_errmsg(int errnum)
 
 
 /**
- * mmstrerror() - Get description for error code
+ * mm_strerror() - Get description for error code
  * @errnum:     error to describe
  *
  * This function maps the error number in @errnum to a locale-dependent
  * error message string and return a pointer to it.
  *
- * mmstrerror() function is not be thread-safe. The application must not
+ * mm_strerror() function is not be thread-safe. The application must not
  * modify the string returned. The returned string pointer might be
  * invalidated or the string content might be overwritten by a subsequent
- * call to mmstrerror(), strerror(), or by subsequent call to strerror_l()
+ * call to mm_strerror(), strerror(), or by subsequent call to strerror_l()
  * in the same thread.
  *
  * Return: pointer to the generated message string.
  */
 API_EXPORTED
-const char* mmstrerror(int errnum)
+const char* mm_strerror(int errnum)
 {
 	if ((errnum < error_tab[0].errnum)
 	    || (errnum > error_tab[NUM_ERROR_ENTRY-1].errnum))
@@ -114,7 +114,7 @@ int strerror_r(int errnum, char * strerrbuf, size_t buflen)
 
 
 /**
- * mmstrerror_r() - Get description for error code (reentrant)
+ * mm_strerror_r() - Get description for error code (reentrant)
  * @errnum:     error to describe
  * @buf:        buffer to which the description should be written
  * @buflen:     buffer size of @buf
@@ -122,7 +122,7 @@ int strerror_r(int errnum, char * strerrbuf, size_t buflen)
  * Return: 0 is in case of success, -1 otherwise.
  */
 API_EXPORTED
-int mmstrerror_r(int errnum, char * buf, size_t buflen)
+int mm_strerror_r(int errnum, char * buf, size_t buflen)
 {
 	const char* msg;
 	size_t msglen, trunclen;
@@ -290,7 +290,7 @@ int mm_raise_error_vfull(int errnum, const char* module, const char* func,
 	// more importantly we do not want to overwrite the error being set
 	// by the user.
 	flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
-	mmlog_log(MMLOG_ERROR, module, "%s (%s)", state->desc, state->location);
+	mm_log(MM_LOG_ERROR, module, "%s (%s)", state->desc, state->location);
 	mm_error_set_flags(flags, MM_ERROR_IGNORE);
 
 	return -1;
@@ -457,7 +457,7 @@ void mm_print_lasterror(const char* info, ...)
 	// No error state is set, but something is in errno
 	if (!last_error->errnum && errno) {
 		printf("Error only found in errno: %i, %s\n",
-		       errno, mmstrerror(errno));
+		       errno, mm_strerror(errno));
 		return;
 	}
 
@@ -468,7 +468,7 @@ void mm_print_lasterror(const char* info, ...)
 	       "\tlocation: %s\n"
 	       "\tdescription: %s\n"
 	       "\textented_id: %s\n",
-	       last_error->errnum, mmstrerror(last_error->errnum),
+	       last_error->errnum, mm_strerror(last_error->errnum),
 	       last_error->module,
 	       last_error->location,
 	       last_error->desc,

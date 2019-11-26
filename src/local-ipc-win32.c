@@ -41,7 +41,7 @@ struct ancillary_data {
 	struct fd_data array[];
 };
 
-struct mmipc_srv {
+struct mm_ipc_srv {
 	HANDLE hpipe;
 	char pipe_name[MAX_PIPENAME];
 };
@@ -49,13 +49,13 @@ struct mmipc_srv {
 
 /* doc in posix implementation */
 API_EXPORTED
-struct mmipc_srv* mmipc_srv_create(const char* addr)
+struct mm_ipc_srv* mm_ipc_srv_create(const char* addr)
 {
 	HANDLE hpipe;
 	DWORD open_mode = PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE;
 	DWORD pipe_mode = PIPE_TYPE_MESSAGE | PIPE_REJECT_REMOTE_CLIENTS;
 	char pipe_name[MAX_PIPENAME];
-	struct mmipc_srv* srv;
+	struct mm_ipc_srv* srv;
 
 	if (strlen(addr) > (MAX_PIPENAME - strlen(PIPE_PREFIX))) {
 		mm_raise_error(ENAMETOOLONG, "server name too long");
@@ -94,7 +94,7 @@ struct mmipc_srv* mmipc_srv_create(const char* addr)
 
 /* doc in posix implementation */
 API_EXPORTED
-void mmipc_srv_destroy(struct mmipc_srv* srv)
+void mm_ipc_srv_destroy(struct mm_ipc_srv* srv)
 {
 	if (!srv)
 		return;
@@ -106,7 +106,7 @@ void mmipc_srv_destroy(struct mmipc_srv* srv)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmipc_srv_accept(struct mmipc_srv* srv)
+int mm_ipc_srv_accept(struct mm_ipc_srv* srv)
 {
 	DWORD open_mode = PIPE_ACCESS_DUPLEX;
 	DWORD pipe_mode = PIPE_TYPE_MESSAGE | PIPE_REJECT_REMOTE_CLIENTS;
@@ -141,7 +141,7 @@ int mmipc_srv_accept(struct mmipc_srv* srv)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmipc_connect(const char* addr)
+int mm_ipc_connect(const char* addr)
 {
 	HANDLE hpipe = INVALID_HANDLE_VALUE;
 	char pipe_name[MAX_PIPENAME];
@@ -229,7 +229,7 @@ HANDLE open_peer_process_handle(HANDLE hpipe)
  */
 static
 ssize_t write_ancillary_data(struct ancillary_data* data,
-                             const struct mmipc_msg* msg, HANDLE hpipe)
+                             const struct mm_ipc_msg* msg, HANDLE hpipe)
 {
 	HANDLE dst_proc, src_proc;
 	HANDLE hnd, dst_hnd;
@@ -283,7 +283,7 @@ ssize_t write_ancillary_data(struct ancillary_data* data,
  * otheriwse with error state set accordingly
  */
 static
-ssize_t serialize_msg(HANDLE hpipe, const struct mmipc_msg* msg,
+ssize_t serialize_msg(HANDLE hpipe, const struct mm_ipc_msg* msg,
                       void* msg_data, size_t* p_hdr_sz)
 {
 	char* buff = msg_data;
@@ -325,7 +325,8 @@ ssize_t serialize_msg(HANDLE hpipe, const struct mmipc_msg* msg,
  * error state set accordingly
  */
 static
-size_t read_ancillary_data(const struct ancillary_data* data, struct mmipc_msg* msg)
+size_t read_ancillary_data(const struct ancillary_data* data,
+                           struct mm_ipc_msg* msg)
 {
 	int i;
 	HANDLE hnd;
@@ -361,7 +362,9 @@ size_t read_ancillary_data(const struct ancillary_data* data, struct mmipc_msg* 
  * Return: size of the data excluding the ancillary data
  */
 static
-ssize_t deserialize_msg(size_t buff_sz, const void* msg_data, struct mmipc_msg* msg)
+ssize_t deserialize_msg(size_t buff_sz,
+                        const void* msg_data,
+                        struct mm_ipc_msg* msg)
 {
 	const char* buff;
 	size_t len, msg_sz;
@@ -398,7 +401,7 @@ ssize_t deserialize_msg(size_t buff_sz, const void* msg_data, struct mmipc_msg* 
 
 /* doc in posix implementation */
 API_EXPORTED
-ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg)
+ssize_t mm_ipc_sendmsg(int fd, const struct mm_ipc_msg* msg)
 {
 	HANDLE hpipe;
 	DWORD send_sz;
@@ -419,7 +422,7 @@ ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg)
 
 /* doc in posix implementation */
 API_EXPORTED
-ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
+ssize_t mm_ipc_recvmsg(int fd, struct mm_ipc_msg* msg)
 {
 	HANDLE hpipe;
 	DWORD recv_sz;
@@ -437,7 +440,7 @@ ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmipc_connected_pair(int fds[2])
+int mm_ipc_connected_pair(int fds[2])
 {
 	DWORD open_mode = PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE;
 	DWORD pipe_mode = PIPE_TYPE_MESSAGE | PIPE_REJECT_REMOTE_CLIENTS;

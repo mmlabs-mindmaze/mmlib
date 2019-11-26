@@ -99,8 +99,8 @@ void set_cloexec_all_fds(int min_fd)
 
 	if (!(dir = opendir("/proc/self/fd"))
 	    && !(dir = opendir("/dev/fd"))) {
-		mmlog_warn("Cannot find list of open file descriptors. "
-		           "Leaving maybe some fd opened in the child...");
+		mm_log_warn("Cannot find list of open file descriptors. "
+		            "Leaving maybe some fd opened in the child...");
 		return;
 	}
 

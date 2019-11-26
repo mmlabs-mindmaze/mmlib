@@ -44,7 +44,7 @@ static void test_init(void)
 START_TEST(test_dir_open_close)
 {
 	int rv;
-	MMDIR * d;
+	MM_DIR * d;
 
 	rv = mm_mkdir("1/2/3", 0777, MM_RECURSIVE);
 	ck_assert(rv == 0);
@@ -101,7 +101,7 @@ char const* filtype_str(char const type)
 
 START_TEST(test_dir_read)
 {
-	MMDIR * dir;
+	MM_DIR * dir;
 	struct mm_dirent const * dp;
 	int fd;
 	bool found_file, found_dir;
@@ -204,7 +204,7 @@ static
 char* tree_rec(const char * path, int lvl, char ** buffer, size_t * buffer_len)
 {
 	int i, rv, status;
-	MMDIR * dir;
+	MM_DIR * dir;
 	struct mm_dirent const * dp;
 	char tmp[256];
 	size_t len;
@@ -321,7 +321,7 @@ START_TEST(test_remove_rec)
 	 *   - check tree unchanged
 	 */
 	tree_ref = tree(".");
-	mmlog_debug("Initial tree:\n%s", tree_ref);
+	mm_log_debug("Initial tree:\n%s", tree_ref);
 	ck_assert(strcmp(tree_ref, TREE_REF_ALPHA) == 0
 			|| strcmp(tree_ref, TREE_REF_INODE) == 0);
 
@@ -332,7 +332,7 @@ START_TEST(test_remove_rec)
 	 *   - check file1.dat still open and usable */
 	ck_assert(mm_remove(".", MM_DT_REG|MM_DT_DIR|MM_RECURSIVE) == 0);
 	tree1 = tree(".");
-	mmlog_debug("Tree1:\n%s", tree1);
+	mm_log_debug("Tree1:\n%s", tree1);
 	ck_assert(strcmp(tree1, TREE_1) == 0);
 	rsz = mm_write(file1_fd, "Hello world!", sizeof("Hello world!"));
 	ck_assert(rsz == sizeof("Hello world!"));
@@ -346,7 +346,7 @@ START_TEST(test_remove_rec)
 	mm_close(file1_fd);
 	ck_assert(mm_remove(".", MM_DT_REG|MM_DT_DIR|MM_RECURSIVE) == 0);
 	tree2 = tree(".");
-	mmlog_debug("Tree2:\n%s", tree2);
+	mm_log_debug("Tree2:\n%s", tree2);
 	ck_assert(strcmp(tree1, tree2) == 0);
 
 	/* cleaning */

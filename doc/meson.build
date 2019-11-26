@@ -1,14 +1,14 @@
 install_subdir('examples',
         install_dir :  get_option('datadir') / 'doc' / 'mmlib')
 
-install_man(files('mmlog_debug.3',
-    'mmlog_error.3',
-    'mmlog_fatal.3',
-    'mmlog_info.3',
-    'mmlog_warn.3',
-    'mmtic.3',
-    'mmtoc.3',
-    'mmtoc_label.3',
+install_man(files('mm_log_debug.3',
+    'mm_log_error.3',
+    'mm_log_fatal.3',
+    'mm_log_info.3',
+    'mm_log_warn.3',
+    'mm_tic.3',
+    'mm_toc.3',
+    'mm_toc_label.3',
 ))
 
 pshared_parent_doc_example_sources = files(

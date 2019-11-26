@@ -27,7 +27,7 @@
 #define MAX_NCLIENTS 32
 static int nclients = 0;
 
-static struct mmipc_srv * srv;
+static struct mm_ipc_srv * srv;
 
 static
 void test_teardown(void)
@@ -37,7 +37,7 @@ void test_teardown(void)
 
 	int flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
 
-	mmipc_srv_destroy(srv);
+	mm_ipc_srv_destroy(srv);
 	srv = NULL;
 
 	for (i = 0 ; i < 5 ; i ++) {
@@ -50,9 +50,9 @@ void test_teardown(void)
 
 START_TEST(ipc_create_simple)
 {
-	struct mmipc_srv * server = mmipc_srv_create(IPC_ADDR);
+	struct mm_ipc_srv * server = mm_ipc_srv_create(IPC_ADDR);
 	ck_assert(server != NULL);
-	mmipc_srv_destroy(server);
+	mm_ipc_srv_destroy(server);
 }
 END_TEST
 
@@ -63,28 +63,28 @@ START_TEST(ipc_create_invalid)
 	memset(name, 'a', sizeof(name) - 1);
 	name[sizeof(name) - 1] = '\0';
 
-	struct mmipc_srv *server = mmipc_srv_create(name);
+	struct mm_ipc_srv *server = mm_ipc_srv_create(name);
 	ck_assert(server == NULL);
 	ck_assert(mm_get_lasterror_number() == ENAMETOOLONG);
 
-	mmipc_srv_destroy(server);
+	mm_ipc_srv_destroy(server);
 }
 END_TEST
 
 
 START_TEST(ipc_create_double)
 {
-	struct mmipc_srv * srv1, * srv2;
+	struct mm_ipc_srv * srv1, * srv2;
 
-	srv1 = mmipc_srv_create(IPC_ADDR);
+	srv1 = mm_ipc_srv_create(IPC_ADDR);
 	ck_assert(srv1 != NULL);
 
-	srv2 = mmipc_srv_create(IPC_ADDR);
+	srv2 = mm_ipc_srv_create(IPC_ADDR);
 	ck_assert(srv2 == NULL);
 	ck_assert(mm_get_lasterror_number() == EADDRINUSE);
 
-	mmipc_srv_destroy(srv1);
-	mmipc_srv_destroy(srv2);
+	mm_ipc_srv_destroy(srv1);
+	mm_ipc_srv_destroy(srv2);
 }
 END_TEST
 
@@ -108,7 +108,7 @@ void* test_handle_client(void * arg)
 	if (tmpfd < 0)
 		goto cleanup;
 
-	if (mmipc_build_send_msg(ctx->fd, data, sizeof(data), tmpfd) < 0)
+	if (mm_ipc_build_send_msg(ctx->fd, data, sizeof(data), tmpfd) < 0)
 		goto cleanup;
 
 	tmpfd = pipe[0];
@@ -158,7 +158,7 @@ void* test_server_process(void * arg)
 	int i;
 	struct ipc_test_ctx * global_ctx = arg;
 	struct ipc_test_ctx ctx[MAX_NCLIENTS];
-	mmthread_t thid[MAX_NCLIENTS];
+	mm_thread_t thid[MAX_NCLIENTS];
 
 	for (i = 0; i < global_ctx->nclients; i++)
 		ctx[i] = *global_ctx;
@@ -166,16 +166,16 @@ void* test_server_process(void * arg)
 	for (i = 0; i < global_ctx->nclients; i++) {
 
 		ctx[i].index = i;
-		ctx[i].fd = mmipc_srv_accept(srv);
+		ctx[i].fd = mm_ipc_srv_accept(srv);
 		if (ctx[i].fd == -1)
 			goto cleanup;
 
-		mmthr_create(&thid[i], test_handle_client, &ctx[i]);
+		mm_thr_create(&thid[i], test_handle_client, &ctx[i]);
 	}
 
 	for (i = 0; i < global_ctx->nclients; i++) {
 		intptr_t rv = 0;
-		mmthr_join(thid[i], (void**)rv);
+		mm_thr_join(thid[i], (void**)rv);
 		mm_close(ctx[i].fd);
 		ctx[i].fd = 0;
 	}
@@ -188,7 +188,7 @@ cleanup:
 		mm_print_lasterror("%s() failed", __func__);
 
 	while (--i > 0) {
-		mmthr_join(thid[i], NULL);
+		mm_thr_join(thid[i], NULL);
 		mm_close(ctx[i].fd);
 		ctx[i].fd = 0;
 	}
@@ -203,24 +203,24 @@ intptr_t test_server_process_pending(void * arg)
 	int i;
 	struct ipc_test_ctx * global_ctx = arg;
 	struct ipc_test_ctx ctx[MAX_NCLIENTS];
-	mmthread_t thid[MAX_NCLIENTS];
+	mm_thread_t thid[MAX_NCLIENTS];
 
-	srv = mmipc_srv_create(IPC_ADDR);
+	srv = mm_ipc_srv_create(IPC_ADDR);
 	if (srv == NULL)
 		return -1;
 
 	for (i = 0; i < global_ctx->nclients; i++) {
 		ctx[i] = *global_ctx;
 		ctx[i].index = i;
-		ctx[i].fd = mmipc_srv_accept(srv);
+		ctx[i].fd = mm_ipc_srv_accept(srv);
 		if (ctx[i].fd == -1)
 			goto cleanup;
 
-		mmthr_create(&thid[i], test_handle_client, &ctx[i]);
+		mm_thr_create(&thid[i], test_handle_client, &ctx[i]);
 	}
 
 	for (i = 0; i < global_ctx->nclients; i++) {
-		mmthr_join(thid[i], NULL);
+		mm_thr_join(thid[i], NULL);
 		mm_close(ctx[i].fd);
 		ctx[i].fd = 0;
 	}
@@ -233,7 +233,7 @@ cleanup:
 		mm_print_lasterror("%s() failed", __func__);
 
 	while (--i > 0) {
-		mmthr_join(thid[i], NULL);
+		mm_thr_join(thid[i], NULL);
 		mm_close(ctx[i].fd);
 		ctx[i].fd = 0;
 	}
@@ -258,7 +258,7 @@ run_test_core_connected_file(struct ipc_test_ctx * ctx)
 	int i;
 	thread_proc_id clt_id[MAX_NCLIENTS];
 
-	srv = mmipc_srv_create(IPC_ADDR);
+	srv = mm_ipc_srv_create(IPC_ADDR);
 	ck_assert_msg(srv != NULL, "failed to create ipc server");
 
 	/* prepare N clients waiting for the server to launch */
@@ -335,7 +335,7 @@ START_TEST(full_duplex)
 	ssize_t rsz;
 	char buffer[42];
 
-	ck_assert(mmipc_connected_pair(fds) == 0);
+	ck_assert(mm_ipc_connected_pair(fds) == 0);
 
 	rsz = mm_write(fds[0], TEST_STR1, sizeof(TEST_STR1));
 	ck_assert_int_eq(rsz, sizeof(TEST_STR1));
@@ -361,7 +361,7 @@ START_TEST(broken_pipe)
 	ssize_t rsz;
 	char buffer[42];
 
-	ck_assert(mmipc_connected_pair(fds) == 0);
+	ck_assert(mm_ipc_connected_pair(fds) == 0);
 
 	rsz = mm_write(fds[0], TEST_STR1, sizeof(TEST_STR1));
 	ck_assert_int_eq(rsz, sizeof(TEST_STR1));

@@ -329,11 +329,11 @@ void init_owner_sid_str(void)
 LOCAL_SYMBOL
 const char16_t* get_caller_string_sid_u16(void)
 {
-	static mmthr_once_t sid_init_once = MMTHR_ONCE_INIT;
+	static mm_thr_once_t sid_init_once = MM_THR_ONCE_INIT;
 
 	// Initialize owner SID string only once: the owner SID of a process
 	// cannot be changed
-	mmthr_once(&sid_init_once, init_owner_sid_str);
+	mm_thr_once(&sid_init_once, init_owner_sid_str);
 
 	if (owner_sid_strlen < 0)
 		return NULL;

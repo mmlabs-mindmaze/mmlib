@@ -1,8 +1,8 @@
 /*
    @mindmaze_header@
 */
-#ifndef MM_PREDEFS_H
-#define MM_PREDEFS_H
+#ifndef MMPREDEFS_H
+#define MMPREDEFS_H
 
 /*
  Attributes of imported symbols from mmlib
@@ -23,16 +23,16 @@
 #define MM_STRINGIFY(arg)	MM_XSTRINGIFY(arg)
 
 /*
- Setup the module name (MMLOG_MODULE_NAME) as it appears in the log.
+ Setup the module name (MM_LOG_MODULE_NAME) as it appears in the log.
  If it is unset, it set it to a reasonable default.
- It is allowed to reset MMLOG_MODULE_NAME in the source code: this will
- change the module name used for the next invocation of any  mmlog_* macro.
+ It is allowed to reset MM_LOG_MODULE_NAME in the source code: this will
+ change the module name used for the next invocation of any  mm_log_* macro.
 */
-#ifndef MMLOG_MODULE_NAME
+#ifndef MM_LOG_MODULE_NAME
 # ifdef PACKAGE_NAME
-#  define MMLOG_MODULE_NAME PACKAGE_NAME
+#  define MM_LOG_MODULE_NAME PACKAGE_NAME
 # else
-#  define MMLOG_MODULE_NAME "unknown"
+#  define MM_LOG_MODULE_NAME "unknown"
 # endif
 #endif
 

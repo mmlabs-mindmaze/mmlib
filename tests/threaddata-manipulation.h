@@ -16,7 +16,7 @@ struct shared_write_data {
 	_Atomic int num_runner_remaining;
 	int num_iteration;
 	bool sleep_in_touch;
-	mmthr_mtx_t mutex;
+	mm_thr_mutex_t mutex;
 };
 
 struct robust_mutex_write_data {
@@ -25,7 +25,7 @@ struct robust_mutex_write_data {
 	bool sleep_after_first_lock;
 	int crash_at_iter;
 	int detected_iter_after_crash;
-	mmthr_mtx_t mutex;
+	mm_thr_mutex_t mutex;
 };
 
 struct notif_data {
@@ -34,9 +34,9 @@ struct notif_data {
 	bool quit;
 	int nwaiter;
 	int numquit;
-	mmthr_mtx_t mutex;
-	mmthr_cond_t cv1;
-	mmthr_cond_t cv2;
+	mm_thr_mutex_t mutex;
+	mm_thr_cond_t cv1;
+	mm_thr_cond_t cv2;
 };
 
 intptr_t run_write_shared_data(struct shared_write_data* shdata);

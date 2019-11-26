@@ -769,8 +769,8 @@ START_TEST(recv_multimsg_on_localhost)
 	struct iovec iov[MULTIMSG_LEN*IOV_MAXLEN];
 	struct iovec iov_ref[MULTIMSG_LEN*IOV_MAXLEN];
 	struct msghdr *msg_test, *msg_ref;
-	struct mmsock_multimsg msgvec_ref[MULTIMSG_LEN] = {{.datalen = 0}};
-	struct mmsock_multimsg msgvec_test[MULTIMSG_LEN] = {{.datalen = 0}};
+	struct mm_sock_multimsg msgvec_ref[MULTIMSG_LEN] = {{.datalen = 0}};
+	struct mm_sock_multimsg msgvec_test[MULTIMSG_LEN] = {{.datalen = 0}};
 	int domain = test_cases[_i].domain;
 	int socktype = test_cases[_i].socktype;
 
@@ -829,7 +829,7 @@ START_TEST(send_multimsg_on_localhost)
 	int socktype = test_cases[_i].socktype;
 	struct iovec iov[DGRAM_MAXSIZE * IOV_MAXLEN];
 	struct msghdr* msg;
-	struct mmsock_multimsg msgvec[MULTIMSG_LEN] = {{.datalen = 0}};
+	struct mm_sock_multimsg msgvec[MULTIMSG_LEN] = {{.datalen = 0}};
 
 	// Create connected socket and child process (the created child and
 	// socket are cleaned up in teardown)

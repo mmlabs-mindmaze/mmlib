@@ -28,7 +28,7 @@
  *  - use process shared mutex
  */
 
-#define MMLOG_MODULE_NAME "pshared-child"
+#define MM_LOG_MODULE_NAME "pshared-child"
 
 #include <stdlib.h>
 #include <string.h>
@@ -55,7 +55,7 @@ void handle_notif_lock_retval(int lockret, struct pshared_data* psh_data)
 	// Contrary to psh_data->mutex, there is no shared state to recover
 	// with psh_data->notif_mtx. Simply mark it consistent
 	if (lockret == EOWNERDEAD)
-		mmthr_mtx_consistent(&psh_data->notif_mtx);
+		mm_thr_mutex_consistent(&psh_data->notif_mtx);
 
 	if (lockret == ENOTRECOVERABLE)
 		exit(EXIT_FAILURE);
@@ -71,16 +71,16 @@ void wait_start_notification(struct pshared_data* psh_data)
 {
 	int lockret;
 
-	lockret = mmthr_mtx_lock(&psh_data->notif_mtx);
+	lockret = mm_thr_mutex_lock(&psh_data->notif_mtx);
 	handle_notif_lock_retval(lockret, psh_data);
 
 	while (!psh_data->start) {
-		lockret = mmthr_cond_wait(&psh_data->notif_cond,
+		lockret = mm_thr_cond_wait(&psh_data->notif_cond,
 		                          &psh_data->notif_mtx);
 		handle_notif_lock_retval(lockret, psh_data);
 	}
 
-	mmthr_mtx_unlock(&psh_data->notif_mtx);
+	mm_thr_mutex_unlock(&psh_data->notif_mtx);
 }
 
 
@@ -155,7 +155,7 @@ void write_shared_data(struct pshared_data* psh_data, const char* id_str,
 	// we must check return value of the lock operation: If the previous
 	// owner has died while owning it, it will be only occasion to know
 	// about it and recover from this if we want to continue using it.
-	r = mmthr_mtx_lock(&psh_data->mutex);
+	r = mm_thr_mutex_lock(&psh_data->mutex);
 	if (r == EOWNERDEAD) {
 		// We have the lock, but it is time to recover state since
 		// previous owner died while holding the lock
@@ -163,7 +163,7 @@ void write_shared_data(struct pshared_data* psh_data, const char* id_str,
 
 		// We have recovered the shared state, so we can mark lock as
 		// consistent. After this, we will be back to normal operation
-		mmthr_mtx_consistent(&psh_data->mutex);
+		mm_thr_mutex_consistent(&psh_data->mutex);
 	} else if (r == ENOTRECOVERABLE) {
 		// There has been an lock owner that has died and the next
 		// owner failed (or refused) to mark lock as consistent,
@@ -178,7 +178,7 @@ void write_shared_data(struct pshared_data* psh_data, const char* id_str,
 
 	write_shared_text_locked(psh_data, id_str, provoke_segfault);
 
-	mmthr_mtx_unlock(&psh_data->mutex);
+	mm_thr_mutex_unlock(&psh_data->mutex);
 }
 
 

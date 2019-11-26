@@ -142,9 +142,9 @@ struct mm_error_state {
 extern "C" {
 #endif
 
-MMLIB_API const char* mmstrerror(int errnum);
+MMLIB_API const char* mm_strerror(int errnum);
 
-MMLIB_API int mmstrerror_r(int errnum, char * buf, size_t buflen);
+MMLIB_API int mm_strerror_r(int errnum, char * buf, size_t buflen);
 
 /**
  * mm_raise_error() - set and log an error
@@ -172,11 +172,11 @@ MMLIB_API int mmstrerror_r(int errnum, char * buf, size_t buflen);
  * Return: always -1.
  */
 #define mm_raise_error(errnum, ...) \
-	mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, \
+	mm_raise_error_full(errnum, MM_LOG_MODULE_NAME, __func__, __FILE__, \
 	                    __LINE__, NULL, __VA_ARGS__)
 
 #define mm_raise_from_errno(...) \
-	mm_raise_from_errno_full(MMLOG_MODULE_NAME, __func__, __FILE__, \
+	mm_raise_from_errno_full(MM_LOG_MODULE_NAME, __func__, __FILE__, \
 	                         __LINE__, NULL, __VA_ARGS__)
 
 
@@ -205,7 +205,7 @@ MMLIB_API int mmstrerror_r(int errnum, char * buf, size_t buflen);
  * Return: always -1.
  */
 #define mm_raise_error_with_extid(errnum, extid, ...) \
-	mm_raise_error_full(errnum, MMLOG_MODULE_NAME, __func__, __FILE__, \
+	mm_raise_error_full(errnum, MM_LOG_MODULE_NAME, __func__, __FILE__, \
 	                    __LINE__, extid, __VA_ARGS__)
 
 

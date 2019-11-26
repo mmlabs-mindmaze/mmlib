@@ -20,7 +20,7 @@
 #define RD_PIPE_FD 4
 
 typedef union {
-	mmthread_t thread_id;
+	mm_thread_t thread_id;
 	mm_pid_t proc_id;
 } thread_proc_id;
 

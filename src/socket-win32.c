@@ -55,9 +55,9 @@ void winsock_init(void)
 static
 int check_wsa_init(void)
 {
-	static mmthr_once_t wsa_ini_once = MMTHR_ONCE_INIT;
+	static mm_thr_once_t wsa_ini_once = MM_THR_ONCE_INIT;
 
-	mmthr_once(&wsa_ini_once, winsock_init);
+	mm_thr_once(&wsa_ini_once, winsock_init);
 
 	return 0;
 }
@@ -494,7 +494,7 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr *msg, int flags)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
+int mm_send_multimsg(int sockfd, int vlen, struct mm_sock_multimsg *msgvec,
                      int flags)
 {
 	int i;
@@ -515,7 +515,7 @@ int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
+int mm_recv_multimsg(int sockfd, int vlen, struct mm_sock_multimsg *msgvec,
                      int flags, struct timespec *timeout)
 {
 	int i;

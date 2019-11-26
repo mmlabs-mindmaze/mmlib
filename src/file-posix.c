@@ -821,10 +821,10 @@ int mm_remove(const char* path, int flags)
  * set accordingly.
  */
 API_EXPORTED
-MMDIR* mm_opendir(const char* path)
+MM_DIR* mm_opendir(const char* path)
 {
 	DIR * dir;
-	MMDIR * d;
+	MM_DIR * d;
 	d = malloc(sizeof(*d));
 	if (d == NULL) {
 		mm_raise_from_errno("opendir(%s) failed", path);
@@ -851,10 +851,10 @@ MMDIR* mm_opendir(const char* path)
  *
  * The mm_closedir() function closes the directory stream referred to by the
  * argument @dir. Upon return, the value of @dir may no longer point to an
- * accessible object of the type MMDIR.
+ * accessible object of the type MM_DIR.
  */
 API_EXPORTED
-void mm_closedir(MMDIR* dir)
+void mm_closedir(MM_DIR* dir)
 {
 	if (dir == NULL)
 		return;
@@ -875,7 +875,7 @@ void mm_closedir(MMDIR* dir)
  * call to mm_opendir() would have done.
  */
 API_EXPORTED
-void mm_rewinddir(MMDIR* dir)
+void mm_rewinddir(MM_DIR* dir)
 {
 	if (dir == NULL) {
 		mm_raise_error(EINVAL,
@@ -893,7 +893,7 @@ void mm_rewinddir(MMDIR* dir)
  * @status:     if not NULL, will contain whether readdir returned on error or
  *              end of dir
  *
- * The type MMDIR represents a directory stream, which is an ordered sequence
+ * The type MM_DIR represents a directory stream, which is an ordered sequence
  * of all the directory entries in a particular directory. Directory entries
  * present the files they contain, which may be added or removed from it
  * asynchronously to the operation of mm_readdir().
@@ -917,7 +917,7 @@ void mm_rewinddir(MMDIR* dir)
  * will be set to -1.
  */
 API_EXPORTED
-const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
+const struct mm_dirent* mm_readdir(MM_DIR* d, int * status)
 {
 	size_t reclen, namelen;
 	struct dirent* rd;

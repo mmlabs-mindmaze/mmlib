@@ -195,7 +195,7 @@ int handle_write_data(int sockfd, int rd_pipe_fd)
 		return -1;
 
 	if (rsz < (ssize_t)data.len) {
-		mmlog_error("data sent too short");
+		mm_log_error("data sent too short");
 		return -1;
 	}
 

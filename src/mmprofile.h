@@ -26,12 +26,12 @@
 extern "C" {
 #endif
 
-MMLIB_API void mmtic(void);
-MMLIB_API void mmtoc(void);
-MMLIB_API void mmtoc_label(const char* label);
-MMLIB_API int mmprofile_print(int mask, int fd);
-MMLIB_API void mmprofile_reset(int reset_flags);
-MMLIB_API int64_t mmprofile_get_data(int measure_point, int type);
+MMLIB_API void mm_tic(void);
+MMLIB_API void mm_toc(void);
+MMLIB_API void mm_toc_label(const char* label);
+MMLIB_API int mm_profile_print(int mask, int fd);
+MMLIB_API void mm_profile_reset(int reset_flags);
+MMLIB_API int64_t mm_profile_get_data(int measure_point, int type);
 
 #ifdef __cplusplus
 }
