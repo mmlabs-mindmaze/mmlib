@@ -140,6 +140,30 @@
 
 
 /*
+ * Define macro to deprecate symbol
+ * Usage:
+ *   // Use of struct old_data is warned
+ *   struct MM_DEPRECATED old_data {
+ *     ...
+ *   };
+ *
+ *   // call to old_func() is warned
+ *   MM_DEPRECATED int old_func(int a, void* b);
+ *
+ *   // use of old_variable is warned
+ *   MM_DEPRECATED int old_variable;
+ */
+#if defined(__GNUC__)
+#  define MM_DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#  define MM_DEPRECATED __declspec(deprecated)
+#else
+#  define MM_DEPRECATED
+#endif
+
+
+
+/*
  Macros to get the number of element in a C array.
  */
 #define MM_NELEM(arr)	((int)(sizeof(arr)/sizeof(arr[0])))
