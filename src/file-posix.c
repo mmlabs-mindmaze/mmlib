@@ -699,7 +699,7 @@ int mm_remove_rec(int dirfd, int flags, int rec_lvl)
 	if ((dir = fdopendir(dirfd)) == NULL) {
 		close(dirfd);
 		if (flags & MM_FAILONERROR)
-			goto exit;
+			return exit_value;
 		else
 			return 0;
 	}
