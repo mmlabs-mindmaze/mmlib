@@ -222,6 +222,7 @@ struct mm_stat {
 };
 
 MMLIB_API int mm_open(const char* path, int oflag, int mode);
+MMLIB_API int mm_rename(const char* oldpath, const char * newpath);
 MMLIB_API int mm_close(int fd);
 MMLIB_API int mm_fsync(int fd);
 MMLIB_API ssize_t mm_read(int fd, void* buf, size_t nbyte);

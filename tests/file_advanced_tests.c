@@ -24,6 +24,7 @@
 
 #define BINARY_PATH	SRC_DIR"/handmaid"EXEEXT
 #define CPY_BINARY_PATH	"/handmaid"EXEEXT
+#define RENAMED_BINARY_PATH	"/renamed_handmaid"EXEEXT
 #if defined(_WIN32)
 # define SHARED_LIB_PATH SRC_DIR"/libhandmaid-1"LT_MODULE_EXT
 # define CPY_SHARED_LIB_PATH "/libhandmaid-1"LT_MODULE_EXT
@@ -31,10 +32,15 @@
 # define SHARED_LIB_PATH SRC_DIR"/libhandmaid"LT_MODULE_EXT".1.0.0"
 # define CPY_SHARED_LIB_PATH "/libhandmaid"LT_MODULE_EXT".1"
 #endif
+#define RENAMED_SHARED_LIB_PATH "/renamed_libhandmaid"LT_MODULE_EXT
 
 #define DEST_DIR_SIZE sizeof(DEST_DIR) + 11
 #define BINARY_NAME_SIZE sizeof(DEST_DIR) + 11 + sizeof(CPY_BINARY_PATH)
+#define RENAMED_BINARY_NAME_SIZE \
+	sizeof(DEST_DIR) + 11 + sizeof(RENAMED_BINARY_PATH)
 #define SHARED_LIB_NAME_SIZE sizeof(DEST_DIR) + 11 + sizeof(CPY_SHARED_LIB_PATH)
+#define RENAMED_SHARED_LIB_NAME_SIZE \
+	sizeof(DEST_DIR) + 11 + sizeof(RENAMED_SHARED_LIB_PATH)
 
 struct context {
 	mm_pid_t pid;
@@ -43,7 +49,9 @@ struct context {
 	int son_to_father;
 	char dir_name[DEST_DIR_SIZE];
 	char binary_name[BINARY_NAME_SIZE];
+	char renamed_binary_name[RENAMED_BINARY_NAME_SIZE];
 	char shared_lib_name[SHARED_LIB_NAME_SIZE];
+	char renamed_shared_lib_name[RENAMED_SHARED_LIB_NAME_SIZE];
 	char * env;
 	int is_init;
 };
@@ -126,8 +134,12 @@ int context_init(struct context * c)
 	mm_mkdir(c->dir_name, 0777, O_CREAT);
 
 	sprintf(c->binary_name, "%s%d%s", DEST_DIR, c->r, CPY_BINARY_PATH);
+	sprintf(c->renamed_binary_name, "%s%d%s", DEST_DIR, c->r,
+	        RENAMED_BINARY_PATH);
 	sprintf(c->shared_lib_name, "%s%d%s", DEST_DIR, c->r,
 	        CPY_SHARED_LIB_PATH);
+	sprintf(c->renamed_shared_lib_name, "%s%d%s", DEST_DIR, c->r,
+	        RENAMED_SHARED_LIB_PATH);
 
 	// copy the executable and shared library
 	cpy_file(BINARY_PATH, c->binary_name);
@@ -199,6 +211,48 @@ void setup_tests(void)
 }
 
 
+START_TEST(rename_exec_linked_with_shared_lib)
+{
+	// rename the file while the son is executing its code
+	ck_assert(mm_rename(context.binary_name,
+	                    context.renamed_binary_name) == 0);
+
+	//check that the rename really works
+	ck_assert(mm_check_access(context.renamed_binary_name, F_OK) == 0);
+}
+END_TEST
+
+
+START_TEST(rename_shared_lib_while_used_by_exec)
+{
+	// rename the file while the son is executing its code
+	ck_assert(mm_rename(context.shared_lib_name,
+	                    context.renamed_shared_lib_name) == 0);
+
+	//check that the rename really works
+	ck_assert(mm_check_access(context.renamed_shared_lib_name, F_OK) == 0);
+}
+END_TEST
+
+
+START_TEST(rename_opened_shared_lib)
+{
+	mmdynlib_t * shared_lib;
+
+	shared_lib = mm_dlopen(context.shared_lib_name, MMLD_NOW);
+
+	// rename the file while the shared library is opened
+	ck_assert(mm_rename(context.shared_lib_name,
+	                    context.renamed_shared_lib_name) == 0);
+
+	//check that the rename really works
+	ck_assert(mm_check_access(context.renamed_shared_lib_name, F_OK) == 0);
+
+	mm_dlclose(shared_lib);
+}
+END_TEST
+
+
 START_TEST(unlink_exec_linked_with_shared_lib)
 {
 	// unlink the file while the son is executing its code
@@ -245,6 +299,9 @@ TCase* create_advanced_file_tcase(void)
 
 	tcase_add_checked_fixture(tc, setup_tests, teardown_tests);
 
+	tcase_add_test(tc, rename_exec_linked_with_shared_lib);
+	tcase_add_test(tc, rename_shared_lib_while_used_by_exec);
+	tcase_add_test(tc, rename_opened_shared_lib);
 	tcase_add_test(tc, unlink_exec_linked_with_shared_lib);
 	tcase_add_test(tc, unlink_shared_lib_while_used_by_exec);
 	tcase_add_test(tc, unlink_opened_shared_lib);

@@ -11,6 +11,7 @@
 #include "mmsysio.h"
 #include "file-internal.h"
 
+#include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -89,6 +90,47 @@ int mm_open(const char* path, int oflag, int mode)
 		                           oflag);
 
 	return fd;
+}
+
+
+/**
+ * mm_rename() - rename a file
+ * @oldpath: old pathname of the file
+ * @newpath: new pathname of the file
+ *
+ * The mm_rename() function changes the name of a file. @oldpath is the path of
+ * the file to be renamed, and @newpath is the new pathname of the file.
+ *
+ * If @newpath corresponds to the path of an existing file/directory, then it is
+ * removed and @oldpath is renamed to @newpath. Therefore, write access
+ * permission is required for both the directory containing @oldpath and the
+ * directory containing @newpath. Note that, in case @newpath corresponds to the
+ * path of an existing directory, this directory is required to be empty.
+ *
+ * If either @oldpath or @newpath is a path of a symbolic link, mm_rename()
+ * operates on the symbolic link itself.
+ *
+ * If @oldpath and @newpath are identical paths mm_rename() returns successfully
+ * and performs no other action.
+ *
+ * mm_rename() will non-trivially fail if:
+ *   - Either @oldpath or @newpath refers to a path whose final component is
+ *     either dot or dot-dot.
+ *   - @newpath is a path toward a non empty directory.
+ *   - @newpath contains a subpath (different from the path) toward a non
+ *     existing directory.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set
+ * accordingly.
+ */
+API_EXPORTED
+int mm_rename(const char * oldpath, const char * newpath)
+{
+	if (rename(oldpath, newpath) != 0)
+		return mm_raise_from_errno("rename %s into %s failed", oldpath,
+		                           newpath);
+
+	return 0;
 }
 
 

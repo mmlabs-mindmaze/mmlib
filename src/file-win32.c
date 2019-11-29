@@ -607,6 +607,67 @@ int rename_file_to_trash_from_handle(HANDLE hnd)
 	return 0;
 }
 
+/* doc in posix implementation */
+API_EXPORTED
+int mm_rename(const char *oldpath, const char *newpath)
+{
+
+	/* TODO: make the verifications for the directories (returns an error
+	 *       in case the directory is not empty).
+	 */
+
+	int newpath_u16_len;
+	FILE_RENAME_INFO * info;
+	size_t info_sz;
+	HANDLE hndold = INVALID_HANDLE_VALUE;
+	HANDLE hndnew = INVALID_HANDLE_VALUE;
+	int rv = -1;
+	DWORD flags, access;
+
+	newpath_u16_len = get_utf16_buffer_len_from_utf8(newpath);
+	if (newpath_u16_len < 0)
+		return mm_raise_from_w32err("invalid UTF-8 sequence");
+
+	info_sz = newpath_u16_len * sizeof(char16_t) + sizeof(*info);
+	info = mm_malloca(info_sz);
+	if (!info)
+		return -1;
+
+	// FILE_FLAG_BACKUP_SEMANTICS is needed to open directories
+	flags = FILE_FLAG_BACKUP_SEMANTICS;
+	access = DELETE | FILE_WRITE_ATTRIBUTES;
+	hndold = open_handle(oldpath, access, OPEN_EXISTING, NULL, flags);
+	if (hndold == INVALID_HANDLE_VALUE)
+        	goto exit;
+
+	conv_utf8_to_utf16(info->FileName, newpath_u16_len, newpath);
+	info->RootDirectory = NULL;
+	info->ReplaceIfExists = FALSE;
+	info->FileNameLength = newpath_u16_len;
+
+	// Try to rename the file oldpath to newpath. In case the renaming did
+	// not work because a file named newpath was already used, then put it
+	// in the trash and retry
+	if (!SetFileInformationByHandle(hndold, FileRenameInfo, info, info_sz)){
+		hndnew = CreateFileW(info->FileName, access, FILE_SHARE_ALL,
+		                     NULL, OPEN_EXISTING, flags, NULL);
+
+		if ((hndnew == INVALID_HANDLE_VALUE)
+		    || (rename_file_to_trash_from_handle(hndnew) == -1)
+		    || !SetFileInformationByHandle(hndold, FileRenameInfo,
+		                                info, info_sz)) {
+			goto exit;
+		}
+	}
+	rv = 0;
+
+exit:
+	mm_freea(info);
+	safe_closehandle(hndold);
+	safe_closehandle(hndnew);
+	return rv;
+}
+
 
 /**
  * delete_file_from_handle() - delete file opened by handle
