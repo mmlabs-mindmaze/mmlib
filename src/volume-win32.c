@@ -43,9 +43,9 @@ HANDLE open_volume_path(char16_t* volume_path)
 	DWORD access = READ_CONTROL;
 	DWORD create = OPEN_EXISTING;
 	DWORD flags = FILE_FLAG_BACKUP_SEMANTICS;
-	DWORD share = FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE;
 
-	return CreateFileW(volume_path, access, share, NULL, create, flags, NULL);
+	return CreateFileW(volume_path, access, FILE_SHARE_ALL, NULL, create,
+	                   flags, NULL);
 }
 
 
