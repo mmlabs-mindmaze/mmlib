@@ -202,6 +202,8 @@ void thread_local_data_on_exit(void)
 	safe_free(data);
 }
 
+/* ... to silence some dumb warning about DllMain being undefined */
+BOOL WINAPI DllMain(HINSTANCE hdll, DWORD reason, LPVOID reserved);
 
 LOCAL_SYMBOL
 BOOL WINAPI DllMain(HINSTANCE hdll, DWORD reason, LPVOID reserved)
