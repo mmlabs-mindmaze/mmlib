@@ -1104,6 +1104,12 @@ START_TEST(create_sockclient)
 	}
 
 	fd = mm_create_sockclient(uri);
+	if (fd == -1) {
+		fprintf(stderr, "Failed to create server socker with uri: %s, port %d\n"
+		        "If you do not support this protocol, or if this port is closed "
+		        "you can ignore this failure\n",
+		        uri, exp_port);
+	}
 	ck_assert(fd != -1);
 
 	socktype = get_socktype(fd);
