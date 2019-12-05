@@ -1077,7 +1077,7 @@ static const struct {
 	int exp_port;
 } sockclient_cases[] = {
 	{"msnp://localhost", SOCK_STREAM, 1863},
-	{"rlp://localhost", SOCK_DGRAM, 39},
+	{"ntp://localhost", SOCK_DGRAM, 123},
 	{"tcp://localhost:" MM_STRINGIFY(PORT), SOCK_STREAM, PORT},
 	{"udp://localhost:" MM_STRINGIFY(PORT), SOCK_DGRAM, PORT},
 };
