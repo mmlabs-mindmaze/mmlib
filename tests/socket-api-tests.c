@@ -1151,8 +1151,10 @@ END_TEST
 static
 void socket_test_teardown(void)
 {
+	int flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
 	clean_childproc(&child);
 	clean_helper_test_data();
+	mm_error_set_flags(flags, MM_ERROR_IGNORE);
 }
 
 

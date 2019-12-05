@@ -582,8 +582,10 @@ END_TEST
 static
 void cleanup_testdir(void)
 {
+	int flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
 	mm_chdir(BUILDDIR);
 	mm_remove(TEST_DIR, MM_DT_ANY|MM_RECURSIVE);
+	mm_error_set_flags(flags, MM_ERROR_IGNORE);
 }
 
 
