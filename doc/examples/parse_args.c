@@ -38,7 +38,8 @@ struct mm_arg_opt cmdline_optv[] = {
 	{"l|use-local-storage", MM_OPT_OPTSTR, DEFAULT_PATH, {NULL},
 	 "Use local storage located at @PATH which must exist. "
 	 "If unspecified @PATH is assumed "DEFAULT_PATH "."},
-	{.name = "i", .flags = MM_OPT_NEEDSTR, .defval = NULL, {.sptr = &cfg.ip},
+	{.name = "i", .flags = MM_OPT_NEEDSTR, .defval = NULL,
+	 {.sptr = &cfg.ip},
 	 .desc = "IP address of remote server. @ADDR must have dotted form."},
 };
 

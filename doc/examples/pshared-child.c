@@ -76,7 +76,7 @@ void wait_start_notification(struct pshared_data* psh_data)
 
 	while (!psh_data->start) {
 		lockret = mm_thr_cond_wait(&psh_data->notif_cond,
-		                          &psh_data->notif_mtx);
+		                           &psh_data->notif_mtx);
 		handle_notif_lock_retval(lockret, psh_data);
 	}
 
