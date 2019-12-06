@@ -38,6 +38,7 @@ config.set('_POSIX_C_SOURCE', '200809L')
 # Note: when defined with _POSIX_C_SOURCE, POSIX sources are always preferred
 # in case of conflict
 config.set('_DEFAULT_SOURCE', '1')
+config.set('_BSD_SOURCE', '1')  # for compatibility with old OS
 
 subdir('config/api-exports')
 subdir('config/autools-compat')

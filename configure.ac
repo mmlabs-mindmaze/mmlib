@@ -41,6 +41,9 @@ AC_DEFINE([_POSIX_C_SOURCE], [200809L], [Strive to comply to POSIX-2008])
 # in case of conflict
 AC_DEFINE([_DEFAULT_SOURCE], [1], [ensure that the default definitions are provided])
 
+# for compatibility with old OS
+AC_DEFINE([_BSD_SOURCE], [1], [ensure that the default definitions are provided])
+
 # Check for programs
 AM_PROG_CC_C_O
 LT_INIT([win32-dll disable-static])
