@@ -6,9 +6,11 @@ libhandmaid_la_SOURCES = \
 	lib_handmaid.c \
 	lib_handmaid.h \
 	$(eol)
+
+# -rpath /nowhere permits to create the .so
 libhandmaid_la_LDFLAGS = \
 	-version-info 1:0:0 \
-	-rpath /nowhere \ # this permits to create the .so
+	-rpath /nowhere \
 	-no-undefined \
 	$(AM_LDFLAGS) \
 	$(eol)
