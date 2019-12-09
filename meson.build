@@ -87,18 +87,50 @@ configure_file(output : build_cfg, configuration : config)
 # config.h file (same as autotools)
 add_project_arguments('-DHAVE_CONFIG_H', language : 'c')
 
-if get_option('nls')
+nls_state = 'disabled'
+gettext = find_program('gettext', required: get_option('nls'))
+if gettext.found() and not get_option('nls').disabled()
+    nls_state = 'enabled'
     subdir('po')
 endif
 
 subdir('src')
 
-if get_option('tests')
+tests_state = 'disabled'
+libcheck = dependency('check', required : get_option('tests'))
+if libcheck.found() and not get_option('tests').disabled()
+    tests_state = 'enabled'
+
+    cc.check_header('check.h')
     subdir('tests')
 endif
 
-if get_option('docs')
+docs_state = 'disabled'
+sphinxbuild = find_program('sphinx-build', required : get_option('docs'))
+if sphinxbuild.found() and not get_option('docs').disabled()
+    # TODO
+    # meson does not yet know how to check for a python module presence
+    # (introduced in 0.51.0)
+    # change this when possible
+    python3 = import('python').find_installation('python3', required : true)
+    check_linuxdoc = run_command(python3, '-c', '"import linuxdoc"')
+
+    if check_linuxdoc.returncode() != 0 and get_option('docs') == 'enabled'
+        error('python3 module "linuxdoc" is required to build documentation')
+    elif check_linuxdoc.returncode() == 0
+        docs_state = 'enabled'
+    endif
+endif
+
+if docs_state == 'enabled'
     subdir('doc')
 endif
 
 subdir('tools')
+
+# print the status of the auto-detect features
+message('Configuration summary')
+message('=====================')
+message('* Tests : @0@'.format(tests_state))
+message('* Doc building : @0@'.format(docs_state))
+message('* NLS usage : @0@'.format(nls_state))

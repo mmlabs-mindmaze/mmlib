@@ -35,9 +35,8 @@ executable('parse-args-doc-example',
         link_with : mmlib,
 )
 
-if get_option('docs')
-    sphinxbuild = find_program('sphinx-build', required : true)
-
+sphinxbuild = find_program('sphinx-build', required : get_option('docs'))
+if sphinxbuild.found()
     # TODO
     # meson does not yet know how to check for a python module presence
     # (introduced in 0.51.0)
@@ -106,4 +105,4 @@ if get_option('docs')
             install_dir : get_option('datadir') / 'doc/mmlib',
     )
 
-endif # docs
+endif # sphinxbuild

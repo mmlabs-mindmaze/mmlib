@@ -1,5 +1,3 @@
-cc.check_header('check.h')
-libcheck = dependency('check', required : true)
 # '-DCHECK_SUPPORT_TAP=1',
 unittest_args = [
     '-DSRCDIR="' + meson.source_root() + '"',
