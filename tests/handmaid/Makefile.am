@@ -1,4 +1,5 @@
 MMLIB = $(top_builddir)/src/libmmlib.la
+AM_CPPFLAGS = -I$(top_srcdir)/src
 
 # shared library needed for the tests of rename and unlink
 check_LTLIBRARIES = libhandmaid.la
