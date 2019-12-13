@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c384846_5ef5325c",
+        "filename": "src/lock-referee-proto.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2019-12-13T16:08:14Z",
+      "side": 1,
+      "message": "tab -\u003e spaces",
+      "range": {
+        "startLine": 95,
+        "startChar": 1,
+        "endLine": 95,
+        "endChar": 2
+      },
+      "revId": "93bd8b934fdbcd8de914ef40e800fb6098a959ff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "149dad06_c28bab00",
+        "filename": "src/lock-referee-proto.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2019-12-13T16:08:14Z",
+      "side": 1,
+      "message": "tab -\u003e spaces",
+      "range": {
+        "startLine": 102,
+        "startChar": 1,
+        "endLine": 102,
+        "endChar": 3
+      },
+      "revId": "93bd8b934fdbcd8de914ef40e800fb6098a959ff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4de946cc_3c8289fe",
+        "filename": "src/lock-referee-server.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 1641,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2019-12-13T16:08:14Z",
+      "side": 1,
+      "message": "If it\u0027s normal for the pipe creation to fail, and if the process will be able to take a lock (on failure, since someone else has succeeded in creating the server) why return with a failure code ?",
+      "revId": "93bd8b934fdbcd8de914ef40e800fb6098a959ff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
