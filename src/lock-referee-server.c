@@ -19,7 +19,6 @@
 #include <accctrl.h>
 #include <stdbool.h>
 
-#define SRV_TIMEOUT_MS          200
 #define LOCK_LIST_INITIAL_LEN   128
 
 #define NSEC_IN_MSEC (NS_IN_SEC / MS_IN_SEC)
@@ -1355,15 +1354,12 @@ int init_pipe_security_attrs(SECURITY_ATTRIBUTES* sec_attr)
 
 
 static
-HANDLE create_srv_pipe(bool first_instance, SECURITY_ATTRIBUTES* sec_attr)
+HANDLE create_srv_new_pipe(SECURITY_ATTRIBUTES* sec_attr)
 {
 	HANDLE hnd;
 	DWORD open_mode, pipe_mode;
 
 	open_mode = PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED;
-	if (first_instance)
-		open_mode |= FILE_FLAG_FIRST_PIPE_INSTANCE;
-
 	pipe_mode = PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE
 	          | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS;
 
@@ -1372,6 +1368,23 @@ HANDLE create_srv_pipe(bool first_instance, SECURITY_ATTRIBUTES* sec_attr)
 			      SRV_TIMEOUT_MS, sec_attr);
 
 	return hnd;
+}
+
+
+static
+int setup_initial_pipe(HANDLE pipe, SECURITY_ATTRIBUTES* sec_attr)
+{
+	PACL dacl;
+	BOOL is_dacl_present, is_dacl_default;
+	if ( !GetSecurityDescriptorDacl(sec_attr->lpSecurityDescriptor,
+	                                &is_dacl_present, &dacl,
+	                                &is_dacl_default)
+	     || !SetSecurityInfo(pipe, SE_KERNEL_OBJECT,
+	                        DACL_SECURITY_INFORMATION,
+	                        NULL, NULL, dacl, NULL))
+		return -1;
+
+	return 0;
 }
 
 
@@ -1388,7 +1401,7 @@ int lockref_server_handle_new_connection(struct lockref_server* srv)
 
 	// Create a new server pipe to replace the one that just has been
 	// connected
-	srv->pipe = create_srv_pipe(0, &srv->sec_attr);
+	srv->pipe = create_srv_new_pipe(&srv->sec_attr);
 	if (srv->pipe == INVALID_HANDLE_VALUE)
 		return -1;
 
@@ -1553,21 +1566,17 @@ void lockref_server_deinit(struct lockref_server* srv)
 
 
 static
-int lockref_server_init(struct lockref_server* srv)
+int lockref_server_init(struct lockref_server* srv, HANDLE pipe)
 {
 	HANDLE evt = NULL;
-	HANDLE pipe = INVALID_HANDLE_VALUE;
 
 	evt = CreateEvent(NULL, TRUE, TRUE, NULL);
 	if (evt == NULL)
 		goto failure;
 
 	if (init_pipe_security_attrs(&srv->sec_attr)
-	  || lock_array_init(&srv->watched_locks))
-		goto failure;
-
-	pipe = create_srv_pipe(1, &srv->sec_attr);
-	if (pipe == INVALID_HANDLE_VALUE)
+	  || lock_array_init(&srv->watched_locks)
+	  || setup_initial_pipe(pipe, &srv->sec_attr))
 		goto failure;
 
 	srv->connect_evt = evt;
@@ -1591,11 +1600,11 @@ failure:
 
 
 static
-int run_lockserver(void)
+int run_lockserver(HANDLE pipehnd)
 {
 	setbuf(stderr, NULL);
 
-	if (lockref_server_init(&server))
+	if (lockref_server_init(&server, pipehnd))
 		return -1;
 
 	lockref_server_mainloop(&server);
@@ -1606,9 +1615,32 @@ int run_lockserver(void)
 
 #ifndef LOCKSERVER_IN_MMLIB_DLL
 
-int main(void)
+int main(int argc, char* argv[])
 {
-	if (run_lockserver())
+	HANDLE pipehnd;
+	unsigned long long ull;
+	char *hnd_str, *endptr;
+
+	if (argc > 1) {
+		hnd_str = argv[1];
+		ull = strtoull(hnd_str, &endptr, 16);
+		// Check the whole string has been used for conversion
+		if (*endptr != '\0') {
+			fprintf(stderr,
+			        "pipe arg badly formatted: %s\n", hnd_str);
+			return EXIT_FAILURE;
+		}
+		pipehnd = (HANDLE) ull;
+	} else {
+		pipehnd = create_srv_first_pipe();
+		if (pipehnd == INVALID_HANDLE_VALUE) {
+			fprintf(stderr, "Failed to create server pipe: %lu\n",
+			        GetLastError());
+			return EXIT_FAILURE;
+		}
+	}
+
+	if (run_lockserver(pipehnd))
 		return EXIT_FAILURE;
 
 	return EXIT_SUCCESS;
@@ -1619,9 +1651,15 @@ int main(void)
 LOCAL_SYMBOL
 void* lockserver_thread_routine(void* arg)
 {
+	HANDLE pipehnd;
+
 	(void)arg;
 
-	run_lockserver();
+	pipehnd = create_srv_first_pipe();
+	if (pipehnd == INVALID_HANDLE_VALUE)
+		return NULL;
+
+	run_lockserver(pipehnd);
 
 	return NULL;
 }
