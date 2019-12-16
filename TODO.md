@@ -18,5 +18,3 @@ changes that would break ABI
 * remove image related types
 * remove geometry APIs
 * Add protocol parameter to mm_socket()
-
-Test
