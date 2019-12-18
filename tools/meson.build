@@ -75,3 +75,5 @@ api_compat_test = run_target('api-compat-test',
             public_headers,
         ]
 )
+
+meson.add_dist_script('copyright_autoheader')
