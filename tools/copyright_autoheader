@@ -1,0 +1,197 @@
+#!/usr/bin/env python3
+
+# Copyright © 2019 MindMaze Holding SA
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#        http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# 
+
+import re
+from os import replace, popen, chdir
+from os.path import islink, isfile
+from shutil import copymode
+from subprocess import PIPE, Popen
+from sys import exit
+
+from typing import List, Dict
+import yaml
+
+
+def multiline_expand(re_obj, line: str, content: List[str]) -> List[str]:
+    lines = list()
+    for cline in content:
+        lines.append(re_obj.sub(cline, line))
+    return lines
+
+
+def gen_year_range(start: int, end: int) -> str:
+    if start == end:
+        return str(start)
+    return '{}-{}'.format(start, end)
+
+
+class CopyrightOwner:
+    def __init__(self, name: str):
+        self.name = name
+        self.years = set()
+        self.firstyear = 9999
+
+    def gen_copyright(self):
+        yearlist = list(self.years)
+        yearlist.sort()
+
+        # Generate list of years. If two or more year are consecutive, merge
+        # them into a range of year
+        strlist = []
+        start = yearlist[0]
+        end = yearlist[0]
+        for i in range(1, len(yearlist)):
+            # If year are not consecutive, the year range must be finished
+            if yearlist[i]-1 != yearlist[i-1]:
+                strlist.append(gen_year_range(start, end))
+                start = yearlist[i]
+            end = yearlist[i]
+        strlist.append(gen_year_range(start, end))
+        years_str = ', '.join(strlist)
+
+        copyright = 'Copyright © {} {}'.format(years_str, self.name)
+        return bytes(copyright, 'utf-8')
+
+    def add(self, year: int):
+        self.years.add(year)
+        if year < self.firstyear:
+            self.firstyear = year
+
+    def __gt__(self, other):
+        return self.firstyear > other.firstyear
+
+
+def get_copyrights_from_owners(owners: Dict[str, CopyrightOwner]) -> List[str]:
+    owner_list = list(owners.values())
+    owner_list.sort()
+    return [owner.gen_copyright() for owner in owner_list]
+
+
+class Header:
+    def __init__(self, token: str, content: str):
+        self.regex = re.compile(bytes('@{}@'.format(token), 'utf-8'))
+        self.lines = bytes(content, 'utf-8').split(b'\n')
+
+    def subst(self, line: bytes):
+        return multiline_expand(self.regex, line, self.lines)
+
+    def match(self, line: bytes) -> bool:
+        return self.regex.search(line) is not None
+
+
+class HeaderFormatter:
+    def __init__(self):
+        self.hdrs = dict()
+        self.owner_remap_list = []
+        self.copyright_re = re.compile(b'<copyrights>')
+
+        try:
+            cfg = yaml.load(open('autoheader.yml', 'rb').read())
+        except FileNotFoundError:
+            return
+
+        try:
+            for token, content in cfg['headers'].items():
+                self.hdrs[token] = Header(token, content)
+        except KeyError:
+            pass
+
+        try:
+            for entry in cfg['owner_remap']:
+                regex = re.compile(entry['pattern'])
+                self.owner_remap_list.append([regex, entry['name']])
+        except KeyError:
+            pass
+
+    def _remap_owner(self, email: str, name: str) -> [str, str]:
+        for pattern, remap_name in self.owner_remap_list:
+            if pattern.fullmatch(email):
+                return [remap_name, remap_name]
+        return [email, name]
+
+    def get_copyright_owners(self, filename: str) -> Dict[str, CopyrightOwner]:
+        cmd = ['git', 'log', '--date=format:%Y', '--format=%ae|%ad|%an',
+               '--', filename]
+        proc = Popen(cmd, stdout=PIPE, universal_newlines=True)
+    
+        owners = dict()
+        for entry in proc.stdout:
+            email, year, name = entry.strip().split('|')
+            key, name = self._remap_owner(email, name)
+            owner = owners.get(key, CopyrightOwner(name))
+            owner.add(int(year))
+            owners[key] = owner
+    
+        proc.wait()
+        return owners
+
+    def _format_copyrights(self, filename, lines: List[bytes]) -> List[bytes]:
+        owners = self.get_copyright_owners(filename)
+        copyrights = get_copyrights_from_owners(owners)
+
+        out_lines = list()
+        for line in lines:
+            if self.copyright_re.search(line) is not None:
+                res = multiline_expand(self.copyright_re, line, copyrights)
+                out_lines.extend(res)
+                continue
+            else:
+                out_lines.append(line)
+
+        return out_lines
+
+    def format(self, filename):
+        tmpoutname = filename + '.licfmt'
+        filein = open(filename, 'rb')
+        fileout = open(tmpoutname, 'wb')
+
+        for line in filein:
+            lines = [line]
+            for hdr in self.hdrs.values():
+                if hdr.match(line):
+                    lines = hdr.subst(line)
+                    lines = self._format_copyrights(filename, lines)
+                    break
+
+            for outline in lines:
+                fileout.write(outline)
+
+        filein.close()
+        fileout.close()
+        copymode(filename, tmpoutname)
+        replace(tmpoutname, filename)
+
+
+def main():
+    # Determine the root dir of the git project
+    prj_topdir = popen('git rev-parse --show-toplevel').read().strip()
+    if not prj_topdir:
+        exit(1)
+
+    chdir(prj_topdir)
+    formatter = HeaderFormatter()
+
+    proc = Popen(['git', 'ls-files'], stdout=PIPE, universal_newlines=True)
+    for entry in proc.stdout:
+        tracked_file = entry.strip()
+        if not islink(tracked_file) and isfile(tracked_file):
+            formatter.format(tracked_file.strip())
+    proc.wait()
+
+
+if __name__ == '__main__':
+    main()
