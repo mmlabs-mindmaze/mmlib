@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1096cb57_922ab1c8",
+        "filename": "autoheader.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2019-12-19T07:53:21Z",
+      "side": 1,
+      "message": "trailing whitespaces",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 4
+      },
+      "revId": "2223c97addd82edd02a6285cdcea24d6846cdd28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f84395e3_65b863c8",
+        "filename": "autoheader.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2019-12-19T07:53:21Z",
+      "side": 1,
+      "message": "you may add a trailing @",
+      "range": {
+        "startLine": 17,
+        "startChar": 30,
+        "endLine": 17,
+        "endChar": 33
+      },
+      "revId": "2223c97addd82edd02a6285cdcea24d6846cdd28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
