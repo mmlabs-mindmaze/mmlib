@@ -70,6 +70,30 @@
       "revId": "2223c97addd82edd02a6285cdcea24d6846cdd28",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "141947b6_83b2614a",
+        "filename": "autoheader.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2019-12-20T08:40:57Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2a1e9376_ba95aec6",
+      "range": {
+        "startLine": 17,
+        "startChar": 30,
+        "endLine": 17,
+        "endChar": 33
+      },
+      "revId": "2223c97addd82edd02a6285cdcea24d6846cdd28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
