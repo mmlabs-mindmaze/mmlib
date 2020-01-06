@@ -14,7 +14,7 @@ m4_define([lib_revision],0)
 m4_define([lib_age],4)
 
 # Setup autoconf
-AC_INIT(mmlib,[1.0.0],[nicolas.bourdaud@mindmaze.ch])
+AC_INIT(mmlib,[1.0.0],[nicolas.bourdaud@mindmaze.com])
 AC_CONFIG_SRCDIR([src/mmlog.h])
 #AC_CONFIG_LIBOBJ_DIR([lib])
 AC_CONFIG_MACRO_DIR([m4])
