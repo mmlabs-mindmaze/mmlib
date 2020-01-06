@@ -1,8 +1,8 @@
 general:
   name: mmlib
   version: 1.0.0+next3
-  maintainer: nicolas.bourdaud@mindmaze.ch
-  url: ssh://intranet.mindmaze.ch:29418/mmlib
+  maintainer: nicolas.bourdaud@mindmaze.com
+  url: https://github.com/mmlabs-mindmaze/mmlib.git
   description: |
     mmlib is the general purpose library providing helper functions to other
     module. It provides facilities for logging, error reporting and basic
