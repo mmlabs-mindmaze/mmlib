@@ -1,5 +1,5 @@
 project('mmlib', 'c',
-        version: '1.0.0',
+        version: '1.1.0',
         license: 'apache2',
         meson_version: '>= 0.49',
         default_options: [

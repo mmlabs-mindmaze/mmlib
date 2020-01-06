@@ -9,12 +9,12 @@
 # - If any interfaces have been removed since the last public release, then
 # set age to 0.
 
-m4_define([lib_current],4)
+m4_define([lib_current],5)
 m4_define([lib_revision],0)
-m4_define([lib_age],4)
+m4_define([lib_age],5)
 
 # Setup autoconf
-AC_INIT(mmlib,[1.0.0],[nicolas.bourdaud@mindmaze.ch])
+AC_INIT(mmlib,[1.1.0],[nicolas.bourdaud@mindmaze.com])
 AC_CONFIG_SRCDIR([src/mmlog.h])
 #AC_CONFIG_LIBOBJ_DIR([lib])
 AC_CONFIG_MACRO_DIR([m4])
