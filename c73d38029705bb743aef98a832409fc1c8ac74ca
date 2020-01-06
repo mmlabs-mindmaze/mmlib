@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5b147576_f5de2292",
+        "filename": "debian/copyright",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2020-01-06T12:40:33Z",
+      "side": 1,
+      "message": "those two changes are not really related.\nWe should have done them when changing repositories",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 52
+      },
+      "revId": "c73d38029705bb743aef98a832409fc1c8ac74ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f47c5ca3_4c6c540e",
+        "filename": "meson.build",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2020-01-06T12:40:33Z",
+      "side": 1,
+      "message": "you\u0027re missing the mmlib version bump in meson",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 43
+      },
+      "revId": "c73d38029705bb743aef98a832409fc1c8ac74ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95944911_e3337b51",
+        "filename": "mmpack/libmmlib0.provides",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2020-01-06T12:40:33Z",
+      "side": 1,
+      "message": "this order mix is unfortunate\n\n...\nmm_*\nmmarg_*\nmm_*\n...",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 11
+      },
+      "revId": "c73d38029705bb743aef98a832409fc1c8ac74ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a88a5ea4_fad1a8ae",
+        "filename": "mmpack/specs",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2020-01-06T12:40:33Z",
+      "side": 1,
+      "message": "those two are not really related",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 51
+      },
+      "revId": "c73d38029705bb743aef98a832409fc1c8ac74ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
