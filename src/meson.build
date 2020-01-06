@@ -140,7 +140,7 @@ endif # windows
 # * PATCH version when you make backwards-compatible bug fixes.
 
 major = '0'
-minor = '4'
+minor = '5'
 patch = '0'
 version = major + '.' + minor + '.' + patch
 

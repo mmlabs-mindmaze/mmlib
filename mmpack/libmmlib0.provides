@@ -6,7 +6,12 @@ sharedlib:
   mm_aligned_alloc: 1.0.0
   mm_aligned_free: 1.0.0
   mm_anon_shm: 1.0.0
+  mmarg_complete_path: 1.1.0
+  mmarg_is_completing: 1.1.0
+  mmarg_optv_parse: 1.1.0
   mmarg_parse: 1.0.0
+  mmarg_parse_complete: 1.1.0
+  mm_basename: 1.1.0
   mm_bind: 1.0.0
   mm_chdir: 1.0.0
   mm_check_access: 1.0.0
@@ -15,12 +20,14 @@ sharedlib:
   mm_connect: 1.0.0
   mm_create_sockclient: 1.0.0
   mm_cross: 0.0.0
+  mm_dirname: 1.1.0
   mm_dlclose: 1.0.0
   mm_dl_fileext: 1.0.0
   mm_dlopen: 1.0.0
   mm_dlsym: 1.0.0
   mm_dup: 1.0.0
   mm_dup2: 1.0.0
+  mm_error_set_flags: 1.1.0
   mm_execv: 1.0.0
   mm_freeaddrinfo: 1.0.0
   _mm_freea_on_heap: 1.0.0
@@ -31,12 +38,14 @@ sharedlib:
   mm_get_basedir: 1.0.0
   mm_getcwd: 1.0.0
   mm_getenv: 1.0.0
+  mm_get_environ: 1.1.0
   mm_get_lasterror_desc: 1.0.0
   mm_get_lasterror_extid: 1.0.0
   mm_get_lasterror_location: 1.0.0
   mm_get_lasterror_module: 1.0.0
   mm_get_lasterror_number: 1.0.0
   mm_getnameinfo: 1.0.0
+  mm_getpeername: 1.1.0
   mm_getres: 1.0.0
   mm_getsockname: 1.0.0
   mm_getsockopt: 1.0.0
@@ -61,6 +70,7 @@ sharedlib:
   mm_link: 1.0.0
   mm_listen: 1.0.0
   mmlog_log: 0.0.0
+  mmlog_set_maxlvl: 1.1.0
   _mm_malloca_on_heap: 1.0.0
   mm_mapfile: 1.0.0
   mm_mat3_from_quat: 0.0.0
@@ -80,6 +90,7 @@ sharedlib:
   mm_quat_from_mat3: 0.0.0
   mm_raise_error_full: 1.0.0
   mm_raise_error_vfull: 1.0.0
+  mm_raise_from_errno_full: 1.1.0
   mm_read: 1.0.0
   mm_readdir: 1.0.0
   mm_readlink: 1.0.0
@@ -90,6 +101,7 @@ sharedlib:
   mm_relative_sleep_ns: 1.0.0
   mm_relative_sleep_us: 1.0.0
   mm_remove: 1.0.0
+  mm_rename: 1.1.0
   mm_rewinddir: 1.0.0
   mm_rmdir: 1.0.0
   mm_rotate: 0.0.0
