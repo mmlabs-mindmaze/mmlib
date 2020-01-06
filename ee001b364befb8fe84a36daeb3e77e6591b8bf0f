@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "58fb0ae7_fe90a4ed",
+        "filename": "debian/copyright",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2020-01-06T13:02:35Z",
+      "side": 1,
+      "message": "the .git is not necessary",
+      "range": {
+        "startLine": 4,
+        "startChar": 48,
+        "endLine": 4,
+        "endChar": 52
+      },
+      "revId": "ee001b364befb8fe84a36daeb3e77e6591b8bf0f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b669a47_1c1adb65",
+        "filename": "mmpack/specs",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2020-01-06T13:02:35Z",
+      "side": 1,
+      "message": "same here",
+      "range": {
+        "startLine": 5,
+        "startChar": 47,
+        "endLine": 5,
+        "endChar": 51
+      },
+      "revId": "ee001b364befb8fe84a36daeb3e77e6591b8bf0f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
