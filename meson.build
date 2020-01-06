@@ -1,5 +1,5 @@
 project('mmlib', 'c',
-        version: '1.0.0',
+        version: '1.1.0',
         license: 'apache2',
         meson_version: '>= 0.49',
         default_options: [
@@ -7,14 +7,6 @@ project('mmlib', 'c',
             'warning_level=3',
         ],
 )
-# follow semantic versionning (https://semver.org)
-# * MAJOR version when you make incompatible API changes,
-# * MINOR version when you add functionality in a backwards-compatible manner
-# * PATCH version when you make backwards-compatible bug fixes.
-major = '0'
-minor = '3'
-patch = '4'
-version = major + '.' + minor + '.' + patch
 
 
 cc = meson.get_compiler('c')

@@ -1,6 +1,6 @@
 general:
   name: mmlib
-  version: 1.0.0+next3
+  version: 1.1.0
   maintainer: nicolas.bourdaud@mindmaze.com
   url: https://github.com/mmlabs-mindmaze/mmlib.git
   description: |
