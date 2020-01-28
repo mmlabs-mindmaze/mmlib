@@ -1,3 +1,18 @@
+mmlib (2.0.0+next) UNRELEASED; urgency=medium
+
+ -- Gabriel Ganne <gabriel.ganne@mindmaze.com>  Mon, 28 Jan 2020 13:07:46 +0100
+
+mmlib (2.0.0) unstable; urgency=medium
+
+  * Remove skeleton type
+  * Remove calibration related types
+  * Remove geometry APIs
+  * Add protocol parameter to mm_socket()
+  * Replace struct timespec with own struct mm_timespec
+  * mm_poll() - ignore negative file descriptors
+
+ -- Gabriel Ganne <gabriel.ganne@mindmaze.com>  Mon, 28 Jan 2020 13:07:46 +0100
+
 mmlib (1.1.0) unstable; urgency=medium
 
   * Add mm_error_set_flags() API

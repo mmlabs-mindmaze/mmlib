@@ -1,16 +1,15 @@
 # vi: syntax=yaml
 
 sharedlib:
-  mm_aaxis_from_mat3: 0.0.0
   mm_accept: 1.0.0
   mm_aligned_alloc: 1.0.0
   mm_aligned_free: 1.0.0
   mm_anon_shm: 1.0.0
-  mmarg_complete_path: 1.1.0
-  mmarg_is_completing: 1.1.0
-  mmarg_optv_parse: 1.1.0
-  mmarg_parse: 1.0.0
-  mmarg_parse_complete: 1.1.0
+  mm_arg_complete_path: 2.0.0
+  mm_arg_is_completing: 2.0.0
+  mm_arg_optv_parse: 2.0.0
+  mm_arg_parse: 2.0.0
+  mm_arg_parse_complete: 2.0.0
   mm_basename: 1.1.0
   mm_bind: 1.0.0
   mm_chdir: 1.0.0
@@ -19,7 +18,6 @@ sharedlib:
   mm_closedir: 1.0.0
   mm_connect: 1.0.0
   mm_create_sockclient: 1.0.0
-  mm_cross: 0.0.0
   mm_dirname: 1.1.0
   mm_dlclose: 1.0.0
   mm_dl_fileext: 1.0.0
@@ -50,44 +48,31 @@ sharedlib:
   mm_getsockname: 1.0.0
   mm_getsockopt: 1.0.0
   mm_gettime: 1.0.0
-  mmimage_buffer_size: 0.0.0
-  mmimage_buffer_size: 1.0.0
-  mmimg_alloc_buffer: 0.2.0
-  mmimg_alloc_buffer: 1.0.0
-  mmimg_free_buffer: 1.0.0
-  mmimg_pixel_size: 0.2.0
-  mmimg_pixel_size: 1.0.0
-  mmimg_set_stride: 0.2.0
-  mmimg_set_stride: 1.0.0
-  mmipc_connect: 1.0.0
-  mmipc_connected_pair: 1.0.0
-  mmipc_recvmsg: 1.0.0
-  mmipc_sendmsg: 1.0.0
-  mmipc_srv_accept: 1.0.0
-  mmipc_srv_create: 1.0.0
-  mmipc_srv_destroy: 1.0.0
+  mm_ipc_connect: 2.0.0
+  mm_ipc_connected_pair: 2.0.0
+  mm_ipc_recvmsg: 2.0.0
+  mm_ipc_sendmsg: 2.0.0
+  mm_ipc_srv_accept: 2.0.0
+  mm_ipc_srv_create: 2.0.0
+  mm_ipc_srv_destroy: 2.0.0
   mm_isatty: 1.0.0
   mm_link: 1.0.0
   mm_listen: 1.0.0
-  mmlog_log: 0.0.0
-  mmlog_set_maxlvl: 1.1.0
+  mm_log: 2.0.0
+  mm_log_set_maxlvl: 2.0.0
   _mm_malloca_on_heap: 1.0.0
   mm_mapfile: 1.0.0
-  mm_mat3_from_quat: 0.0.0
-  mm_mat_from_quat: 0.0.0
   mm_mkdir: 1.0.0
   mm_nanosleep: 1.0.0
   mm_open: 1.0.0
   mm_opendir: 1.0.0
   mm_path_from_basedir: 1.0.0
   mm_pipe: 1.0.0
-  mm_poll: 1.0.0
+  mm_poll: 2.0.0
   mm_print_lasterror: 1.0.0
-  mmprofile_get_data: 1.0.0
-  mmprofile_print: 0.1.0
-  mmprofile_reset: 0.1.0
-  mm_quat_from_mat: 0.0.0
-  mm_quat_from_mat3: 0.0.0
+  mm_profile_get_data: 2.0.0
+  mm_profile_print: 1.0.0
+  mm_profile_reset: 1.0.0
   mm_raise_error_full: 1.0.0
   mm_raise_error_vfull: 1.0.0
   mm_raise_from_errno_full: 1.1.0
@@ -104,7 +89,6 @@ sharedlib:
   mm_rename: 1.1.0
   mm_rewinddir: 1.0.0
   mm_rmdir: 1.0.0
-  mm_rotate: 0.0.0
   mm_save_errorstate: 1.0.0
   mm_seek: 1.0.0
   mm_send: 1.0.0
@@ -116,47 +100,34 @@ sharedlib:
   mm_shm_open: 1.0.0
   mm_shm_unlink: 1.0.0
   mm_shutdown: 1.0.0
-  mm_socket: 1.0.0
+  mm_socket: 2.0.0
   mm_spawn: 1.0.0
   mm_stat: 1.0.0
-  mmstrerror: 0.0.0
-  mmstrerror_r: 0.0.0
+  mm_strerror: 2.0.0
+  mm_strerror_r: 2.0.0
   mm_symlink: 1.0.0
-  mmthr_cond_broadcast: 1.0.0
-  mmthr_cond_deinit: 1.0.0
-  mmthr_cond_init: 1.0.0
-  mmthr_cond_signal: 1.0.0
-  mmthr_cond_timedwait: 1.0.0
-  mmthr_cond_wait: 1.0.0
-  mmthr_create: 1.0.0
-  mmthr_detach: 1.0.0
-  mmthr_join: 1.0.0
-  mmthr_mtx_consistent: 1.0.0
-  mmthr_mtx_deinit: 1.0.0
-  mmthr_mtx_init: 1.0.0
-  mmthr_mtx_lock: 1.0.0
-  mmthr_mtx_trylock: 1.0.0
-  mmthr_mtx_unlock: 1.0.0
-  mmthr_once: 1.0.0
-  mmthr_self: 1.0.0
-  mmtic: 0.1.0
-  mmtoc: 0.1.0
-  mmtoc_label: 0.3.0
+  mm_thr_cond_broadcast: 2.0.0
+  mm_thr_cond_deinit: 2.0.0
+  mm_thr_cond_init: 2.0.0
+  mm_thr_cond_signal: 2.0.0
+  mm_thr_cond_timedwait: 2.0.0
+  mm_thr_cond_wait: 2.0.0
+  mm_thr_create: 2.0.0
+  mm_thr_detach: 2.0.0
+  mm_thr_join: 2.0.0
+  mm_thr_mutex_consistent: 2.0.0
+  mm_thr_mutex_deinit: 2.0.0
+  mm_thr_mutex_init: 2.0.0
+  mm_thr_mutex_lock: 2.0.0
+  mm_thr_mutex_trylock: 2.0.0
+  mm_thr_mutex_unlock: 2.0.0
+  mm_thr_once: 2.0.0
+  mm_thr_self: 2.0.0
+  mm_tic: 0.1.0
+  mm_toc: 0.1.0
+  mm_toc_label: 0.3.0
   mm_unlink: 1.0.0
   mm_unmap: 1.0.0
   mm_unsetenv: 1.0.0
   mm_wait_process: 1.0.0
   mm_write: 1.0.0
-  plane_distance: 0.0.0
-  plane_from_point: 0.0.0
-  plane_intersect: 0.0.0
-  plane_projection: 0.0.0
-  quat_mul: 0.0.0
-  skl_add: 0.0.0
-  skl_add_to: 0.0.0
-  skl_deinit: 0.0.0
-  skl_find: 0.0.0
-  skl_init: 0.0.0
-  skl_load_data: 0.0.0
-  skl_parentlist: 0.0.0
-  skl_save_data: 0.0.0
