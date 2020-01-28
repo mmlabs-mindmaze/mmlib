@@ -89,6 +89,7 @@ MMLIB_1.0 {
 		mm_print_lasterror;
 		mm_raise_error_full;
 		mm_raise_error_vfull;
+		mm_raise_from_errno_full;
 		mm_read;
 		mm_readdir;
 		mm_readlink;
