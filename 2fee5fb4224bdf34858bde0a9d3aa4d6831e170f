@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4bf66396_b7b2bd9e",
+        "filename": "src/mmsysio.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1017476
+      },
+      "writtenOn": "2020-01-28T16:00:26Z",
+      "side": 1,
+      "message": "\"Windows enforces the inclusion of \u003cwinsock2.h\u003e after \u003cwindodws.h\u003e.\"\nI think it clarifies a bit more specifically",
+      "range": {
+        "startLine": 16,
+        "startChar": 3,
+        "endLine": 16,
+        "endChar": 65
+      },
+      "revId": "2fee5fb4224bdf34858bde0a9d3aa4d6831e170f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
