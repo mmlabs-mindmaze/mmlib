@@ -16,7 +16,7 @@
 #define MM_LOG_DEBUG 4
 
 #ifndef MM_LOG_MAXLEVEL
-#  define MML_OG_MAXLEVEL MM_LOG_DEBUG
+#  define MM_LOG_MAXLEVEL MM_LOG_DEBUG
 #endif
 
 
