@@ -11,6 +11,21 @@
 #include <stdlib.h>
 
 #ifdef _WIN32
+/*
+ * WARNING
+ * Windows enforces include order of <windows.h> and <winsock2.h>
+ * However, what gets included when you do the actual include of <windows.h>
+ * depends on some macros of your project (eg. WIN32_LEAN_AND_MEAN), so
+ * mmsysio.h cannot do this for you.
+ * Should you stumble on warning such as this one:
+ *   #warning Please include winsock2.h before windows.h
+ * The easiest way around is probably for you to re-order your includes.
+ * Other platforms NEVER enforce include order, so this will not have an
+ * impact there.
+ *
+ * More info here:
+ * https://docs.microsoft.com/en-us/windows/win32/winsock/creating-a-basic-winsock-application
+ */
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <mswsock.h>
