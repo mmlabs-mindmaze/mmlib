@@ -1,5 +1,5 @@
 project('mmlib', 'c',
-        version: '1.1.0',
+        version: '2.0.0',
         license: 'apache2',
         meson_version: '>= 0.49',
         default_options: [
@@ -7,7 +7,6 @@ project('mmlib', 'c',
             'warning_level=3',
         ],
 )
-
 
 cc = meson.get_compiler('c')
 config = configuration_data()
