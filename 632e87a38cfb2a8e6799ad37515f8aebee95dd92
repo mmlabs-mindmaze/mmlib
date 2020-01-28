@@ -1,0 +1,8 @@
+Code-Review+2: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>
+Code-Review+1: Luca Baldesi <luca.baldesi@mindmaze.com>
+Verified+1: MMLabs FOSS CI <58530837+mmlabs-foss-ci@users.noreply.github.com>
+Submitted-by: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>
+Submitted-at: Tue, 28 Jan 2020 16:00:13 +0000
+Reviewed-on: https://review.gerrithub.io/c/mmlabs-mindmaze/mmlib/+/483089
+Project: mmlabs-mindmaze/mmlib
+Branch: refs/heads/abi-break
