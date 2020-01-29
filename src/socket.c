@@ -269,7 +269,7 @@ int create_connected_socket(const char* service, const char * host, int port,
 		}
 
 		// Try create the socket and connect
-		if ((fd = mm_socket(family, socktype)) < 0
+		if ((fd = mm_socket(family, socktype, 0)) < 0
 		    || mm_connect(fd, ai->ai_addr, ai->ai_addrlen)) {
 			mm_close(fd);
 			fd = -1;

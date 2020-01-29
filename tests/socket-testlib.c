@@ -9,7 +9,6 @@
 #include "mmsysio.h"
 #include "mmerrno.h"
 #include "mmlog.h"
-#include "mmtype.h"
 
 #include <stdio.h>
 
@@ -82,7 +81,7 @@ int create_server_socket(int domain, int type, int port)
 		goto error;
 
 	// Create bound socket
-	if ((fd = mm_socket(domain, type)) < 0
+	if ((fd = mm_socket(domain, type, 0)) < 0
 	  || mm_setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse))
 	  || mm_bind(fd, res->ai_addr, res->ai_addrlen) )
 		goto error;
@@ -114,7 +113,7 @@ int create_client_socket(int domain, int type, const char* host, int port)
 		goto error;
 
 	// Create connected socket
-	if ((fd = mm_socket(domain, type)) < 0
+	if ((fd = mm_socket(domain, type, 0)) < 0
 	  || mm_connect(fd, res->ai_addr, res->ai_addrlen)
 	  || mm_setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) )
 		goto error;
@@ -196,7 +195,7 @@ int handle_write_data(int sockfd, int rd_pipe_fd)
 		return -1;
 
 	if (rsz < (ssize_t)data.len) {
-		mmlog_error("data sent too short");
+		mm_log_error("data sent too short");
 		return -1;
 	}
 

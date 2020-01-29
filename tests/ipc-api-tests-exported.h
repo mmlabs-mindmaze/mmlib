@@ -39,12 +39,12 @@ dump_ipc_test_ctx(const struct ipc_test_ctx * c)
 #define IPC_ADDR "mmlib-test-ipc-addr"
 #define IPC_TMPFILE "ipc-test-tmp-file"
 
-/* small helper to send a mmipc msg with a file descriptor in the metadatas */
+/* small helper to send a mm_ipc msg with a file descriptor in the metadatas */
 static inline
-ssize_t mmipc_build_send_msg(int fd, const void * data, size_t len, int sentfd)
+ssize_t mm_ipc_build_send_msg(int fd, const void * data, size_t len, int sentfd)
 {
 	struct iovec vec = {.iov_len = len, .iov_base = (void*) data};
-	struct mmipc_msg msg = {
+	struct mm_ipc_msg msg = {
 		.iov = &vec,
 		.num_iov = 1,
 	};
@@ -53,22 +53,22 @@ ssize_t mmipc_build_send_msg(int fd, const void * data, size_t len, int sentfd)
 		msg.num_fds = 1;
 	}
 
-	return mmipc_sendmsg(fd, &msg);
+	return mm_ipc_sendmsg(fd, &msg);
 }
 
-/* small helper to receive a mmipc msg with a file descriptor in the metadatas */
+/* small helper to receive a mm_ipc msg with a file descriptor in the metadatas */
 static inline
 ssize_t recv_msg_and_fd(int fd, void* data, size_t len, int* recvfd)
 {
 	struct iovec vec = {.iov_len = len, .iov_base = data};
-	struct mmipc_msg msg = {
+	struct mm_ipc_msg msg = {
 		.iov = &vec,
 		.num_iov = 1,
 		.fds = recvfd,
 		.num_fds_max = 1,
 	};
 
-	return mmipc_recvmsg(fd, &msg);
+	return mm_ipc_recvmsg(fd, &msg);
 }
 
 /* Can open 1 OR 2 file descriptors.
@@ -95,7 +95,7 @@ int open_shared_object_of_type(const struct ipc_test_ctx * ctx,
 		return rvfd[1];
 
 	case SHARED_IPC:
-		mmipc_connected_pair(rvfd);
+		mm_ipc_connected_pair(rvfd);
 		return rvfd[1];
 
 	default:

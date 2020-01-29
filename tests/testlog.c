@@ -13,11 +13,11 @@
 static
 void logged_func(void)
 {
-	mmlog_warn("logged_func");
+	mm_log_warn("logged_func");
 }
 
-#undef MMLOG_MODULE_NAME
-#define MMLOG_MODULE_NAME "testlog"
+#undef MM_LOG_MODULE_NAME
+#define MM_LOG_MODULE_NAME "testlog"
 
 // Stolen from here:
 // https://stackoverflow.com/questions/8934879/how-to-handle-sigabrt-signal
@@ -52,7 +52,7 @@ void provoke_a_crash(void)
 static
 void do_not_provoke_a_crash(void)
 {
-	mmlog_info("This should not crash");
+	mm_log_info("This should not crash");
 }
 
 static
@@ -86,17 +86,17 @@ int test_basic_logging(void)
 {
 	int i;
 
-	mmlog_info("Starting logging...");
+	mm_log_info("Starting logging...");
 
 	for (i = -5; i<5; i++) {
 		logged_func();
 		if (i != 0)
-			mmlog_warn("Everything is fine (%i)", i);
+			mm_log_warn("Everything is fine (%i)", i);
 		else
-			mmlog_error("Null value (i == %i)", i);
+			mm_log_error("Null value (i == %i)", i);
 	}
 
-	mmlog_info("Stop logging.");
+	mm_log_info("Stop logging.");
 	return 1;
 }
 

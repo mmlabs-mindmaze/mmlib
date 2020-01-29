@@ -20,12 +20,12 @@
  *                       timespec manipulation tests                      *
  *                                                                        *
  **************************************************************************/
-struct timespec_case {
-	struct timespec t1;
-	struct timespec t2;
+struct mm_timespec_case {
+	struct mm_timespec t1;
+	struct mm_timespec t2;
 	int64_t ns, us, ms;
 };
-static const struct timespec_case ts_cases[] = {
+static const struct mm_timespec_case ts_cases[] = {
 	{
 		.t1 = {.tv_sec = 1, .tv_nsec = 0},
 		.t2 = {.tv_sec = 0, .tv_nsec = 0},
@@ -53,8 +53,8 @@ static const struct timespec_case ts_cases[] = {
  */
 START_TEST(diff_time_ns)
 {
-	struct timespec t1 = ts_cases[_i].t1;
-	struct timespec t2 = ts_cases[_i].t2;
+	struct mm_timespec t1 = ts_cases[_i].t1;
+	struct mm_timespec t2 = ts_cases[_i].t2;
 	int64_t diff = ts_cases[_i].ns;
 
 	ck_assert_int_eq(mm_timediff_ns(&t1, &t2), diff);
@@ -65,8 +65,8 @@ END_TEST
 
 START_TEST(diff_time_us)
 {
-	struct timespec t1 = ts_cases[_i].t1;
-	struct timespec t2 = ts_cases[_i].t2;
+	struct mm_timespec t1 = ts_cases[_i].t1;
+	struct mm_timespec t2 = ts_cases[_i].t2;
 	int64_t diff = ts_cases[_i].us;
 
 	ck_assert_int_eq(mm_timediff_us(&t1, &t2), diff);
@@ -77,8 +77,8 @@ END_TEST
 
 START_TEST(diff_time_ms)
 {
-	struct timespec t1 = ts_cases[_i].t1;
-	struct timespec t2 = ts_cases[_i].t2;
+	struct mm_timespec t1 = ts_cases[_i].t1;
+	struct mm_timespec t2 = ts_cases[_i].t2;
 	int64_t diff = ts_cases[_i].ms;
 
 	ck_assert_int_eq(mm_timediff_ms(&t1, &t2), diff);
@@ -89,8 +89,8 @@ END_TEST
 
 START_TEST(add_time_ns)
 {
-	struct timespec t1;
-	struct timespec t2;
+	struct mm_timespec t1;
+	struct mm_timespec t2;
 	int64_t diff = ts_cases[_i].ns;
 
 	t1 = ts_cases[_i].t1;
@@ -108,8 +108,8 @@ END_TEST
 
 START_TEST(add_time_us)
 {
-	struct timespec t1;
-	struct timespec t2;
+	struct mm_timespec t1;
+	struct mm_timespec t2;
 	int64_t diff = ts_cases[_i].us;
 
 	t1 = ts_cases[_i].t1;
@@ -127,8 +127,8 @@ END_TEST
 
 START_TEST(add_time_ms)
 {
-	struct timespec t1;
-	struct timespec t2;
+	struct mm_timespec t1;
+	struct mm_timespec t2;
 	int64_t diff = ts_cases[_i].ms;
 
 	t1 = ts_cases[_i].t1;
@@ -166,7 +166,7 @@ static const int all_clks[] = {
 
 START_TEST(clock_resolution)
 {
-	struct timespec res, ts, prev_ts, start;
+	struct mm_timespec res, ts, prev_ts, start;
 	int64_t diff, res_increment;
 	clockid_t id = all_clks[_i];
 
@@ -216,7 +216,7 @@ START_TEST(wallclock_time)
 {
 	int i;
 	int64_t diff_ns;
-	struct timespec ts_realtime, ts_utc = {.tv_nsec = 0};
+	struct mm_timespec ts_realtime, ts_utc = {.tv_nsec = 0};
 
 	for (i = 0; i < 100000; i++) {
 		if (mm_gettime(MM_CLK_REALTIME, &ts_realtime) != 0)
@@ -238,7 +238,7 @@ END_TEST
 START_TEST(monotonic_update)
 {
 	int i;
-	struct timespec ts, prev_ts;
+	struct mm_timespec ts, prev_ts;
 	int64_t diff_ns;
 	clockid_t id = monotonic_clks[_i];
 
@@ -261,7 +261,7 @@ END_TEST
 
 START_TEST(invalid_clock_id)
 {
-	struct timespec ts;
+	struct mm_timespec ts;
 	clockid_t inval_clkid = 42; // No platform has this clock id
 
 	ck_assert(mm_gettime(inval_clkid, &ts) == -1);
@@ -292,7 +292,7 @@ static const int waitable_clks[] = {
 
 START_TEST(absolute_sleep)
 {
-	struct timespec ts, now;
+	struct mm_timespec ts, now;
 	clockid_t id = waitable_clks[_i];
 	int64_t delay;
 
@@ -311,7 +311,7 @@ END_TEST
 
 START_TEST(relative_sleep_ns)
 {
-	struct timespec ts, start;
+	struct mm_timespec ts, start;
 	int i;
 	int64_t delays[] = {50, 500, 10000, 1000000};
 
@@ -327,7 +327,7 @@ END_TEST
 
 START_TEST(relative_sleep_us)
 {
-	struct timespec ts, start;
+	struct mm_timespec ts, start;
 	int i;
 	int64_t delays[] = {50, 500, 10000};
 
@@ -343,7 +343,7 @@ END_TEST
 
 START_TEST(relative_sleep_ms)
 {
-	struct timespec ts, start;
+	struct mm_timespec ts, start;
 	int i;
 	int64_t delays[] = {1, 5, 20, 100, 300};
 

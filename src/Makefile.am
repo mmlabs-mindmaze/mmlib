@@ -11,9 +11,6 @@ AM_CFLAGS = $(MM_WARNFLAGS)
 include_HEADERS = \
 	mmlog.h \
 	mmerrno.h \
-	mmtype.h \
-	mmgeometry.h \
-	mmskeleton.h \
 	mmprofile.h \
 	mmpredefs.h \
 	mmlib.h \
@@ -36,15 +33,14 @@ libmmlib_la_LDFLAGS = \
 	-version-info $(CURRENT):$(REVISION):$(AGE) \
 	$(eol)
 
+libmmlib_la_LDFLAGS += \
+	-Wl,--version-script -Wl,$(srcdir)/libmmlib.map \
+	$(eol)
 
 libmmlib_internal_wrapper_la_SOURCES = \
 	mmlog.h log.c \
 	nls-internals.h    \
 	mmerrno.h error.c \
-	error-internal.h \
-	mmtype.h type.c    \
-	mmskeleton.h skeleton.c	\
-	mmgeometry.h geometry.c   \
 	mmprofile.h profile.c \
 	mmlib.h \
 	alloc.c \
@@ -61,7 +57,6 @@ libmmlib_internal_wrapper_la_SOURCES = \
 
 libmmlib_internal_wrapper_la_LIBADD = \
 	@LTLIBINTL@ \
-	$(MATH_LIB) \
 	$(DL_LIB) \
 	$(eol)
 

@@ -27,11 +27,11 @@
 #define MAX_ID_LEN	16
 
 struct shared_data {
-	mmthr_mtx_t mutex;
+	mm_thr_mutex_t mutex;
 	int len;
 	char text[1024];
-	mmthr_mtx_t notif_mtx;
-	mmthr_cond_t notif_cond;
+	mm_thr_mutex_t notif_mtx;
+	mm_thr_cond_t notif_cond;
 	int start;
 };
 
@@ -52,7 +52,7 @@ void write_shared_data(struct shared_data* shdata, const char* id_str)
 
 	// Get the shared lock. Since we are using a normal mutex, we do not
 	// have to check the return value
-	mmthr_mtx_lock(&shdata->mutex);
+	mm_thr_mutex_lock(&shdata->mutex);
 
 	// Add "|+" in the text
 	shdata->text[shdata->len++] = '|';
@@ -66,21 +66,21 @@ void write_shared_data(struct shared_data* shdata, const char* id_str)
 	shdata->text[shdata->len++] = '+';
 	shdata->text[shdata->len++] = '|';
 
-	mmthr_mtx_unlock(&shdata->mutex);
+	mm_thr_mutex_unlock(&shdata->mutex);
 }
 
 
 static
 void wait_start_notification(struct shared_data* shdata)
 {
-	mmthr_mtx_lock(&shdata->notif_mtx);
+	mm_thr_mutex_lock(&shdata->notif_mtx);
 
 	// A while loop is necessary, because a spurious wakeup is always
 	// possible
 	while (!shdata->start)
-		mmthr_cond_wait(&shdata->notif_cond, &shdata->notif_mtx);
+		mm_thr_cond_wait(&shdata->notif_cond, &shdata->notif_mtx);
 
-	mmthr_mtx_unlock(&shdata->notif_mtx);
+	mm_thr_mutex_unlock(&shdata->notif_mtx);
 }
 
 
@@ -89,13 +89,13 @@ void broadcast_start_notification(struct shared_data* shdata)
 {
 	// We want a worker thread to be be scheduled in a predictable way,
 	// so we must own shdata->notif_mtx when calling
-	// mmthr_cond_broadcast()
-	mmthr_mtx_lock(&shdata->notif_mtx);
+	// mm_thr_cond_broadcast()
+	mm_thr_mutex_lock(&shdata->notif_mtx);
 
 	shdata->start = 1;
-	mmthr_cond_broadcast(&shdata->notif_cond);
+	mm_thr_cond_broadcast(&shdata->notif_cond);
 
-	mmthr_mtx_unlock(&shdata->notif_mtx);
+	mm_thr_mutex_unlock(&shdata->notif_mtx);
 }
 
 
@@ -121,12 +121,12 @@ void* thread_func(void* data)
 int main(void)
 {
 	int i;
-	mmthread_t thid[NUM_THREAD];
+	mm_thread_t thid[NUM_THREAD];
 	struct thread_data thdata[NUM_THREAD];
 	struct shared_data shared = {
-		.mutex = MMTHR_MTX_INITIALIZER,
-		.notif_mtx = MMTHR_MTX_INITIALIZER,
-		.notif_cond = MMTHR_COND_INITIALIZER,
+		.mutex = MM_THR_MTX_INITIALIZER,
+		.notif_mtx = MM_THR_MTX_INITIALIZER,
+		.notif_cond = MM_THR_COND_INITIALIZER,
 		.start = 0,
 	};
 
@@ -134,14 +134,14 @@ int main(void)
 	for (i = 0; i < NUM_THREAD; i++) {
 		thdata[i].shdata = &shared;
 		sprintf(thdata[i].id_str, "thread-%i", i);
-		mmthr_create(&thid[i], thread_func, &thdata[i]);
+		mm_thr_create(&thid[i], thread_func, &thdata[i]);
 	}
 
 	// Now that all thread are created, we can signal them to start
 	broadcast_start_notification(&shared);
 
 	for (i = 0; i < NUM_THREAD; i++)
-		mmthr_join(thid[i], NULL);
+		mm_thr_join(thid[i], NULL);
 
 	printf("result string:%s\n", shared.text);
 	return EXIT_SUCCESS;

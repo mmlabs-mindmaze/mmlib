@@ -32,7 +32,7 @@
 #define NS_IN_MS    (NS_IN_SEC / MS_IN_SEC)
 
 /**
- * struct mmthread - data structure to manipulate thread
+ * struct mm_thread - data structure to manipulate thread
  * @hnd:        WIN32 thread object handle
  * @routine:    pointer to routine to execute in the thread (NULL if thread not
  *              created by mmlib)
@@ -41,14 +41,14 @@
  * @state:      state of the thread indicating if it is stopped or detached
  *
  * This structure represents the data necessary to manipulate thread through
- * the API of mmlib. The &typedef mmthread_t type corresponds to a pointer to this
+ * the API of mmlib. The &typedef mm_thread_t type corresponds to a pointer to this
  * structure layout.
  *
  * This structure should be freed when:
  * - the thread terminates in the case of a detached thread
- * - mmthr_join() is called in case of joinable thread
+ * - mm_thr_join() is called in case of joinable thread
  */
-struct mmthread {
+struct mm_thread {
 	HANDLE hnd;
 	void* (*routine)(void*);
 	void* arg;
@@ -62,20 +62,20 @@ struct mmthread {
  * @lockref:    data maintaining the communication with the lock referee.
  * @last_error: error state of the thread
  * @thread:     pointer to the thread manipulation structure. Can be NULL if
- *              thread has been created externally and mmthr_self() has not
+ *              thread has been created externally and mm_thr_self() has not
  *              been called for the thread.
  *
  * This structure represents the actual thread local data used in mmlib with
  * respect with thread manipulation and thread synchronization.
  *
  * The lifetime of this structure must not be confused with the one of struct
- * mmthread. This structure is destroyed (if allocated) always when the thread
+ * mm_thread. This structure is destroyed (if allocated) always when the thread
  * terminates.
  */
 struct thread_local_data {
 	struct lockref_connection lockref;
 	struct error_info last_error;
-	struct mmthread* thread;
+	struct mm_thread* thread;
 };
 
 
@@ -126,9 +126,9 @@ void safe_free(void* ptr)
 
 
 static
-struct mmthread* create_mmthread_data(void)
+struct mm_thread* create_mm_thread_data(void)
 {
-	struct mmthread* th;
+	struct mm_thread* th;
 
 	th = safe_alloc(sizeof(*th));
 	if (!th) {
@@ -144,7 +144,7 @@ struct mmthread* create_mmthread_data(void)
 
 
 static
-void destroy_mmthread_data(struct mmthread* th)
+void destroy_mm_thread_data(struct mm_thread* th)
 {
 	if (!th)
 		return;
@@ -164,7 +164,7 @@ struct thread_local_data* allocate_thread_local_data(void)
 
 	data = safe_alloc(sizeof(*data));
 	if (!data) {
-		mmlog_fatal("Cannot allocate thread private data");
+		mm_log_fatal("Cannot allocate thread private data");
 		abort();
 	}
 
@@ -179,7 +179,7 @@ static
 void thread_local_data_on_exit(void)
 {
 	struct thread_local_data* data;
-	struct mmthread* self;
+	struct mm_thread* self;
 	int64_t prev_state;
 
 	// Retrieve currently currently set thread local data
@@ -193,7 +193,7 @@ void thread_local_data_on_exit(void)
 	if (self) {
 		prev_state = atomic_fetch_add(&self->state, STATE_STOPPED);
 		if (prev_state & STATE_DETACHED)
-			destroy_mmthread_data(self);
+			destroy_mm_thread_data(self);
 	}
 
 	// Close connection of the thread with lock server if any.
@@ -427,15 +427,15 @@ void finish_mtx_unlock(struct robust_data* robust_data)
 
 
 /**
- * pshared_mtx_init() - Mutex init in case of MMTHR_PSHARED
+ * pshared_mtx_init() - Mutex init in case of MM_THR_PSHARED
  * @mutex:      mutex to initialize
  *
- * Implementation of mmthr_mtx_init() in the case of process shared mutex.
+ * Implementation of mm_thr_mutex_init() in the case of process shared mutex.
  *
  * Return: always 0
  */
 static
-int pshared_mtx_init(struct mmthr_mtx_pshared * mutex)
+int pshared_mtx_init(struct mm_thr_mutex_pshared * mutex)
 {
 	struct lockref_connection* lockref = get_thread_lockref_data();
 
@@ -447,17 +447,17 @@ int pshared_mtx_init(struct mmthr_mtx_pshared * mutex)
 
 
 /**
- * pshared_mtx_lock() - Mutex lock in case of MMTHR_PSHARED
+ * pshared_mtx_lock() - Mutex lock in case of MM_THR_PSHARED
  * @mutex:      mutex to lock
  *
- * Implementation of mmthr_mtx_lock() in the case of process shared mutex.
+ * Implementation of mm_thr_mutex_lock() in the case of process shared mutex.
  *
  * Return: Always 0 excepting if @mutex refers to a robust mutex in
  * inconsistent state (EOWNERDEAD) or a robust mutex marked permanently
  * unusable (ENOTRECOVERABLE).
  */
 static
-int pshared_mtx_lock(struct mmthr_mtx_pshared * mutex)
+int pshared_mtx_lock(struct mm_thr_mutex_pshared* mutex)
 {
 	struct lockref_connection* lockref;
 	struct robust_data* robust_data;
@@ -516,16 +516,16 @@ int pshared_mtx_lock(struct mmthr_mtx_pshared * mutex)
 
 
 /**
- * pshared_mtx_trylock() - Mutex try lock in case of MMTHR_PSHARED
+ * pshared_mtx_trylock() - Mutex try lock in case of MM_THR_PSHARED
  * @mutex:      mutex to lock
  *
- * Implementation of mmthr_mtx_trylock() in the case of process shared mutex.
+ * Implementation of mm_thr_mutex_trylock() in the case of process shared mutex.
  *
  * Return: Always 0 excepting if @mutex is in inconsistent state
  * (EOWNERDEAD) or marked permanently unusable (ENOTRECOVERABLE).
  */
 static
-int pshared_mtx_trylock(struct mmthr_mtx_pshared * mutex)
+int pshared_mtx_trylock(struct mm_thr_mutex_pshared * mutex)
 {
 	struct robust_data* robust_data = NULL;
 	int64_t oldval, newval;
@@ -565,15 +565,15 @@ int pshared_mtx_trylock(struct mmthr_mtx_pshared * mutex)
 
 
 /**
- * pshared_mtx_unlock() - Mutex try unlock in case of MMTHR_PSHARED
+ * pshared_mtx_unlock() - Mutex try unlock in case of MM_THR_PSHARED
  * @mutex:      mutex to unlock
  *
- * Implementation of mmthr_mtx_unlock() in the case of process shared mutex.
+ * Implementation of mm_thr_mutex_unlock() in the case of process shared mutex.
  *
  * Return: Always 0.
  */
 static
-int pshared_mtx_unlock(struct mmthr_mtx_pshared * mutex)
+int pshared_mtx_unlock(struct mm_thr_mutex_pshared * mutex)
 {
 	struct lockref_connection* lockref = NULL;
 	struct robust_data* robust_data = NULL;
@@ -620,14 +620,14 @@ int pshared_mtx_unlock(struct mmthr_mtx_pshared * mutex)
  * pshared_mtx_consistent() - recover mutex from inconsistent state
  * @mutex:      robust mutex to recover
  *
- * Implementation of mmthr_mtx_consistent() in the case of process shared
+ * Implementation of mm_thr_mutex_consistent() in the case of process shared
  * robust mutex.
  *
  * Return: 0 in case of success. EINVAL if @mutex does not protect an
  * inconsistent state.
  */
 static
-int pshared_mtx_consistent(struct mmthr_mtx_pshared * mutex)
+int pshared_mtx_consistent(struct mm_thr_mutex_pshared * mutex)
 {
 	int64_t lockval;
 
@@ -648,21 +648,21 @@ int pshared_mtx_consistent(struct mmthr_mtx_pshared * mutex)
 
 /**
  * pshared_cond_wait() - process shared condition variable wait
- * @cond:       condition variable initialized with MMTHR_PSHARED
+ * @cond:       condition variable initialized with MM_THR_PSHARED
  * @mutex:      mutex protecting the condition wait update
  * @abstime:    absolute time indicating the timeout or NULL in case of
                 infinite wait.
  *
- * Implementation of mmthr_cond_wait() and mmthr_cond_timedwait() in the case
+ * Implementation of mm_thr_cond_wait() and mm_thr_cond_timedwait() in the case
  * of process shared condition.
  *
- * Return: 0 in case of success, any error that mmthr_mtx_lock() can return, or
+ * Return: 0 in case of success, any error that mm_thr_mutex_lock() can return, or
  * ETIMEDOUT if @abstime is not NULL and the wait has timedout
  */
 static
-int pshared_cond_wait(struct mmthr_cond_pshared * cond,
-                      mmthr_mtx_t * mutex,
-                      const struct timespec* abstime)
+int pshared_cond_wait(struct mm_thr_cond_pshared * cond,
+                      mm_thr_mutex_t * mutex,
+                      const struct mm_timespec* abstime)
 {
 	struct lockref_connection* lockref = get_thread_lockref_data();
 	int64_t wakeup_val;
@@ -679,13 +679,13 @@ int pshared_cond_wait(struct mmthr_cond_pshared * cond,
 
 	wakeup_val = atomic_fetch_add(&cond->waiter_seq, 1);
 
-	mmthr_mtx_unlock(mutex);
+	mm_thr_mutex_unlock(mutex);
 	wait_ret = pshared_wait_on_lock(lockref, shlock, wakeup_val, timeout_ptr);
-	ret = mmthr_mtx_lock(mutex);
+	ret = mm_thr_mutex_lock(mutex);
 
 	// Report return value of timed wait operation only if there is nothing
 	// to report from mutex lock. This way, we cannot miss EOWNERDEAD or
-	// ENOTRECOVERABLE that might be returned by mmthr_mtx_lock().
+	// ENOTRECOVERABLE that might be returned by mm_thr_mutex_lock().
 	if (abstime && !ret)
 		ret = wait_ret;
 
@@ -695,15 +695,15 @@ int pshared_cond_wait(struct mmthr_cond_pshared * cond,
 
 /**
  * pshared_cond_signal() - signal process shared condition variable
- * @cond:       condition variable initialized with MMTHR_PSHARED
+ * @cond:       condition variable initialized with MM_THR_PSHARED
  *
- * Implementation of mmthr_cond_signal() in the case of process shared
+ * Implementation of mm_thr_cond_signal() in the case of process shared
  * condition.
  *
  * Return: always 0
  */
 static
-int pshared_cond_signal(struct mmthr_cond_pshared * cond)
+int pshared_cond_signal(struct mm_thr_cond_pshared * cond)
 {
 	struct lockref_connection* lockref;
 	int64_t wakeup_val, waiter_val, num_waiter;
@@ -726,15 +726,15 @@ int pshared_cond_signal(struct mmthr_cond_pshared * cond)
 
 /**
  * pshared_cond_broadcast() - broadcast process shared condition variable
- * @cond:       condition variable initialized with MMTHR_PSHARED
+ * @cond:       condition variable initialized with MM_THR_PSHARED
  *
- * Implementation of mmthr_cond_broadcast() in the case of process shared
+ * Implementation of mm_thr_cond_broadcast() in the case of process shared
  * condition.
  *
  * Return: always 0
  */
 static
-int pshared_cond_broadcast(struct mmthr_cond_pshared * cond)
+int pshared_cond_broadcast(struct mm_thr_cond_pshared * cond)
 {
 	struct lockref_connection* lockref;
 	int64_t wakeup_val, waiter_val, num_waiter;
@@ -760,12 +760,12 @@ int pshared_cond_broadcast(struct mmthr_cond_pshared * cond)
  * pshared_cond_init() - initialize process shared condition variable
  * @cond:       condition variable to init
  *
- * Implementation of mmthr_cond_init() in the case of process shared condition.
+ * Implementation of mm_thr_cond_init() in the case of process shared condition.
  *
  * Return: always 0
  */
 static
-int pshared_cond_init(struct mmthr_cond_pshared * cond)
+int pshared_cond_init(struct mm_thr_cond_pshared * cond)
 {
 	struct lockref_connection* lockref;
 
@@ -783,18 +783,18 @@ int pshared_cond_init(struct mmthr_cond_pshared * cond)
  **************************************************************************/
 
 /**
- * struct mmthr_mtx - mutex structure behind &typedef mmthr_mtx_t
- * @flag:	flags indicating the type of mutex (0 or MMTHR_PSHARED)
- * @srw_lock:   data aliasing with SRWLOCK (used if @flag is 0)
+ * struct mm_thr_mutex - mutex structure behind &typedef mm_thr_mutex_t
+ * @type:	flags indicating the type of mutex (0 or MM_THR_PSHARED)
+ * @srw_lock:   data aliasing with SRWLOCK (used if @type is 0)
  * @lock:       variable whose update indicate the owner and
  *              contended state. Must be updated only through atomic
- *              operation. This field is used if @flag is MMTHR_PSHARED.
+ *              operation. This field is used if @flag is MM_THR_PSHARED.
  * @pshared_key: Identifier of the process-shared lock as known by the lock
- *              referee service process. used if @flag MMTHR_PSHARED.
+ *              referee service process. used if @flag MM_THR_PSHARED.
  *
- * This structure is the container of &typedef mmthr_mtx_t on Win32.
+ * This structure is the container of &typedef mm_thr_mutex_t on Win32.
  * Depending on @flag at mutex initialization, static or with
- * mmthr_mtx_init(), @srw_lock or @lock/@pshared_key will be used.
+ * mm_thr_mutex_init(), @srw_lock or @lock/@pshared_key will be used.
  *
  * If @flag is 0, the mutex is a normal one, ie, not shared across process
  * nor robust. In such a case @srw_lock field is used with the
@@ -809,32 +809,32 @@ int pshared_cond_init(struct mmthr_cond_pshared * cond)
  * (same size and alignment) since a SRWLOCK is a simple structure
  * containing only one pointer.
  *
- * If @flag has MMTHR_PSHARED set, the mutex will use @lock and @pshared_key
+ * If @flag has MM_THR_PSHARED set, the mutex will use @lock and @pshared_key
  * fields. See the "process shared mutex implementation" doc for more
  * details.
  */
 
 
 static
-int mmthr_mtx_is_pshared(mmthr_mtx_t * mutex)
+int mm_thr_mutex_is_pshared(mm_thr_mutex_t * mutex)
 {
 	/*  pshared and srw flag fields are aliased */
-	return ((mutex->pshared.flag & MMTHR_PSHARED) == MMTHR_PSHARED);
+	return ((mutex->pshared.flag & MM_THR_PSHARED) == MM_THR_PSHARED);
 }
 
 static
-int mmthr_cond_is_pshared(mmthr_cond_t * cond)
+int mm_thr_cond_is_pshared(mm_thr_cond_t * cond)
 {
 	/*  pshared and srw flag fields are aliased */
-	return ((cond->pshared.flag & MMTHR_PSHARED) == MMTHR_PSHARED);
+	return ((cond->pshared.flag & MM_THR_PSHARED) == MM_THR_PSHARED);
 }
 
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_mtx_lock(mmthr_mtx_t* mutex)
+int mm_thr_mutex_lock(mm_thr_mutex_t* mutex)
 {
-	if (mmthr_mtx_is_pshared(mutex))
+	if (mm_thr_mutex_is_pshared(mutex))
 		return pshared_mtx_lock(&mutex->pshared);
 
 	AcquireSRWLockExclusive((SRWLOCK*)(&mutex->srw.srw_lock));
@@ -844,9 +844,9 @@ int mmthr_mtx_lock(mmthr_mtx_t* mutex)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_mtx_trylock(mmthr_mtx_t* mutex)
+int mm_thr_mutex_trylock(mm_thr_mutex_t* mutex)
 {
-	if (mmthr_mtx_is_pshared(mutex))
+	if (mm_thr_mutex_is_pshared(mutex))
 		return pshared_mtx_trylock(&mutex->pshared);
 
 	TryAcquireSRWLockExclusive((SRWLOCK*)(&mutex->srw.srw_lock));
@@ -856,9 +856,9 @@ int mmthr_mtx_trylock(mmthr_mtx_t* mutex)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_mtx_consistent(mmthr_mtx_t* mutex)
+int mm_thr_mutex_consistent(mm_thr_mutex_t* mutex)
 {
-	if (mmthr_mtx_is_pshared(mutex))
+	if (mm_thr_mutex_is_pshared(mutex))
 		return pshared_mtx_consistent(&mutex->pshared);
 
 	mm_raise_error(EINVAL, "The mutex type is not process shared");
@@ -868,9 +868,9 @@ int mmthr_mtx_consistent(mmthr_mtx_t* mutex)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_mtx_unlock(mmthr_mtx_t* mutex)
+int mm_thr_mutex_unlock(mm_thr_mutex_t* mutex)
 {
-	if (mmthr_mtx_is_pshared(mutex))
+	if (mm_thr_mutex_is_pshared(mutex))
 		return pshared_mtx_unlock(&mutex->pshared);
 
 	ReleaseSRWLockExclusive((SRWLOCK*)(&mutex->srw.srw_lock));
@@ -880,7 +880,7 @@ int mmthr_mtx_unlock(mmthr_mtx_t* mutex)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_mtx_deinit(mmthr_mtx_t* mutex)
+int mm_thr_mutex_deinit(mm_thr_mutex_t* mutex)
 {
 	(void)mutex;
 	return 0;
@@ -889,12 +889,12 @@ int mmthr_mtx_deinit(mmthr_mtx_t* mutex)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags)
+int mm_thr_mutex_init(mm_thr_mutex_t* mutex, int flags)
 {
 	/* pshared and srw flag fields are aliased */
 	mutex->pshared.flag = flags;
 
-	if (mmthr_mtx_is_pshared(mutex))
+	if (mm_thr_mutex_is_pshared(mutex))
 		return pshared_mtx_init(&mutex->pshared);
 
 	InitializeSRWLock((SRWLOCK*)(&mutex->srw.srw_lock));
@@ -903,35 +903,35 @@ int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags)
 
 
 /**
- * struct mmthr_cond - structure on Win32 behind &typedef mmthr_cond_t
- * @flag:       flags indicating behavior (any combination of MMTHR_PSHARED
- *              and MMTHR_WAIT_MONOTONIC)
+ * struct mm_thr_cond - structure on Win32 behind &typedef mm_thr_cond_t
+ * @flag:       flags indicating behavior (any combination of MM_THR_PSHARED
+ *              and MM_THR_WAIT_MONOTONIC)
  * @cv:         data aliased to CONDITION_VARIABLE (used if @flag has
- *              MMTHR_PSHARED flag set)
+ *              MM_THR_PSHARED flag set)
  * @pshared_key: Identifier of the process-shared lock as known by the lock
- *              referee service process. Used MMTHR_PSHARED if set in @flag.
- * @waiter_seq: wakeup value of the last waiter queued.  Used MMTHR_PSHARED
+ *              referee service process. Used MM_THR_PSHARED if set in @flag.
+ * @waiter_seq: wakeup value of the last waiter queued.  Used MM_THR_PSHARED
  *              if set in @flag.
  * @wakeup_seq: wakeup value of the last wakeup operation that has been
- *              signaled. Used MMTHR_PSHARED if set in @flag.
+ *              signaled. Used MM_THR_PSHARED if set in @flag.
  *
- * This structure is the container of &typedef mmthr_cond_t on Win32.
- * Depending on MMTHR_PSHARED flag is set in @flag, the implementation will
+ * This structure is the container of &typedef mm_thr_cond_t on Win32.
+ * Depending on MM_THR_PSHARED flag is set in @flag, the implementation will
  * differ radically.
  *
- * If MMTHR_PSHARED is not set in @flag, the implementation of wait, signal,
+ * If MM_THR_PSHARED is not set in @type, the implementation of wait, signal,
  * broadcast will use the Win32 SleepConditionVariableSRW(),
  * WakeConditionVariable() and WakeAllConditionVariable() and @cv field will
- * be used. For the same reason as for &mmthr_mtx.srw, @cv is declared as
+ * be used. For the same reason as for &mm_thr_mutex.srw, @cv is declared as
  * void* and not CONDITION_VARIABLE.
  *
- * If MMTHR_PSHARED is set in @flag, the condition will be shareable across
+ * If MM_THR_PSHARED is set in @flag, the condition will be shareable across
  * processes. The wait, signal, broadcast operations will use the lock
  * referee process with the @pshared_key, @waiter_seq and @wakeup_seq
  * fields.
  *
- * The MMTHR_WAIT_MONOTONIC flag in @flag will indicate whether the timeout
- * in mmthr_cond_timedwait() will be based on MM_CLK_REALTIME or
+ * The MM_THR_WAIT_MONOTONIC flag in @flag will indicate whether the timeout
+ * in mm_thr_cond_timedwait() will be based on MM_CLK_REALTIME or
  * MM_CLK_MONOTONIC clock.
  */
 
@@ -951,9 +951,9 @@ int sleep_win32cv(CONDITION_VARIABLE* cv, SRWLOCK* srwlock, DWORD timeout_ms)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_cond_wait(mmthr_cond_t* cond, mmthr_mtx_t* mutex)
+int mm_thr_cond_wait(mm_thr_cond_t* cond, mm_thr_mutex_t* mutex)
 {
-	if (mmthr_cond_is_pshared(cond))
+	if (mm_thr_cond_is_pshared(cond))
 		return pshared_cond_wait(&cond->pshared, mutex, NULL);
 
 	CONDITION_VARIABLE* cv = (CONDITION_VARIABLE*)(&cond->srw.cv);
@@ -965,19 +965,19 @@ int mmthr_cond_wait(mmthr_cond_t* cond, mmthr_mtx_t* mutex)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_cond_timedwait(mmthr_cond_t* _cond, mmthr_mtx_t* mutex,
-                         const struct timespec* abstime)
+int mm_thr_cond_timedwait(mm_thr_cond_t* _cond, mm_thr_mutex_t* mutex,
+                         const struct mm_timespec* abstime)
 {
-	struct timespec now;
+	struct mm_timespec now;
 	int ret;
 	int64_t delta_ns;
 	DWORD timeout_ms;
 	clockid_t clk_id;
 	CONDITION_VARIABLE* cv;
 	SRWLOCK* srwlock;
-	struct mmthr_cond_swr * cond;
+	struct mm_thr_cond_swr * cond;
 
-	if (mmthr_cond_is_pshared(_cond))
+	if (mm_thr_cond_is_pshared(_cond))
 		return pshared_cond_wait(&_cond->pshared, mutex, abstime);
 
 	cond = &_cond->srw;
@@ -1007,9 +1007,9 @@ int mmthr_cond_timedwait(mmthr_cond_t* _cond, mmthr_mtx_t* mutex,
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_cond_signal(mmthr_cond_t* cond)
+int mm_thr_cond_signal(mm_thr_cond_t* cond)
 {
-	if (mmthr_cond_is_pshared(cond))
+	if (mm_thr_cond_is_pshared(cond))
 		return pshared_cond_signal(&cond->pshared);
 
 	WakeConditionVariable((CONDITION_VARIABLE*)(&cond->srw.cv));
@@ -1019,9 +1019,9 @@ int mmthr_cond_signal(mmthr_cond_t* cond)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_cond_broadcast(mmthr_cond_t* cond)
+int mm_thr_cond_broadcast(mm_thr_cond_t* cond)
 {
-	if (mmthr_cond_is_pshared(cond))
+	if (mm_thr_cond_is_pshared(cond))
 		return pshared_cond_broadcast(&cond->pshared);
 
 	WakeAllConditionVariable((CONDITION_VARIABLE*)(&cond->srw.cv));
@@ -1031,7 +1031,7 @@ int mmthr_cond_broadcast(mmthr_cond_t* cond)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_cond_deinit(mmthr_cond_t* cond)
+int mm_thr_cond_deinit(mm_thr_cond_t* cond)
 {
 	(void) cond;
 	return 0;
@@ -1040,19 +1040,19 @@ int mmthr_cond_deinit(mmthr_cond_t* cond)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_cond_init(mmthr_cond_t * _cond, int flags)
+int mm_thr_cond_init(mm_thr_cond_t * _cond, int flags)
 {
-	struct mmthr_cond_swr * cond = &_cond->srw;
+	struct mm_thr_cond_swr * cond = &_cond->srw;
 
 	/* pshared and srw flag fields are aliased */
 	cond->flag = flags & ~WAITCLK_MASK;
 
-	if (flags & MMTHR_WAIT_MONOTONIC)
+	if (flags & MM_THR_WAIT_MONOTONIC)
 		cond->flag |= WAITCLK_FLAG_MONOTONIC;
 	else
 		cond->flag |= WAITCLK_FLAG_REALTIME;
 
-	if (flags & MMTHR_PSHARED)
+	if (flags & MM_THR_PSHARED)
 		return pshared_cond_init(&_cond->pshared);
 
 	InitializeConditionVariable((CONDITION_VARIABLE*)(&cond->cv));
@@ -1062,14 +1062,14 @@ int mmthr_cond_init(mmthr_cond_t * _cond, int flags)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_once(mmthr_once_t* once, void (*once_routine)(void))
+int mm_thr_once(mm_thr_once_t* once, void (*once_routine)(void))
 {
 	static SRWLOCK once_global_lock = SRWLOCK_INIT;
 	static int global_lock_recursion_level = 0;
 	static DWORD global_lock_owner = 0;
 	DWORD tid;
 
-	if (LIKELY(*once != MMTHR_ONCE_INIT))
+	if (LIKELY(*once != MM_THR_ONCE_INIT))
 		return 0;
 
 	// Acquire lock allowing recursion
@@ -1081,8 +1081,8 @@ int mmthr_once(mmthr_once_t* once, void (*once_routine)(void))
 	global_lock_recursion_level++;
 
 	// Execute once routine
-	if (*once == MMTHR_ONCE_INIT) {
-		*once = !MMTHR_ONCE_INIT;
+	if (*once == MM_THR_ONCE_INIT) {
+		*once = !MM_THR_ONCE_INIT;
 		once_routine();
 	}
 
@@ -1105,7 +1105,7 @@ int mmthr_once(mmthr_once_t* once, void (*once_routine)(void))
 static
 unsigned __stdcall thread_proc_wrapper(void* param)
 {
-	struct mmthread* thread = param;
+	struct mm_thread* thread = param;
 
 	// Set mm_thread passed as self
 	get_thread_local_data()->thread = thread;
@@ -1119,11 +1119,11 @@ unsigned __stdcall thread_proc_wrapper(void* param)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_create(mmthread_t* thread, void* (*proc)(void*), void* arg)
+int mm_thr_create(mm_thread_t* thread, void* (*proc)(void*), void* arg)
 {
-	struct mmthread* th;
+	struct mm_thread* th;
 
-	th = create_mmthread_data();
+	th = create_mm_thread_data();
 	if (!th)
 		return errno;
 
@@ -1135,7 +1135,7 @@ int mmthr_create(mmthread_t* thread, void* (*proc)(void*), void* arg)
 	th->hnd = (HANDLE)_beginthreadex(NULL, 0, thread_proc_wrapper, th, 0, NULL);
 	if (!th->hnd) {
 		mm_raise_from_errno("Failed to begin thread");
-		destroy_mmthread_data(th);
+		destroy_mm_thread_data(th);
 		return errno;
 	}
 
@@ -1146,7 +1146,7 @@ int mmthr_create(mmthread_t* thread, void* (*proc)(void*), void* arg)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_join(mmthread_t thread, void** value_ptr)
+int mm_thr_join(mm_thread_t thread, void** value_ptr)
 {
 	if (atomic_load(&thread->state) & STATE_DETACHED) {
 		mm_raise_error(EINVAL, "The thread is detached");
@@ -1158,14 +1158,14 @@ int mmthr_join(mmthread_t thread, void** value_ptr)
 	if (value_ptr)
 		*value_ptr = thread->retval;
 
-	destroy_mmthread_data(thread);
+	destroy_mm_thread_data(thread);
 	return 0;
 }
 
 
 /* doc in posix implementation */
 API_EXPORTED
-int mmthr_detach(mmthread_t thread)
+int mm_thr_detach(mm_thread_t thread)
 {
 	int64_t prev_state;
 
@@ -1180,7 +1180,7 @@ int mmthr_detach(mmthread_t thread)
 	// cleaned at thread termination because it was then known as
 	// joinable
 	if (prev_state & STATE_STOPPED)
-		destroy_mmthread_data(thread);
+		destroy_mm_thread_data(thread);
 
 	return 0;
 
@@ -1189,20 +1189,20 @@ int mmthr_detach(mmthread_t thread)
 
 /* doc in posix implementation */
 API_EXPORTED
-mmthread_t mmthr_self(void)
+mm_thread_t mm_thr_self(void)
 {
-	struct mmthread* self;
+	struct mm_thread* self;
 
 	self = get_thread_local_data()->thread;
 	if (LIKELY(self))
 		return self;
 
-	// If we reach here, the mmthread structure of current thread is not
-	// set because it has not been created by mmthread_create(). So we
-	// must create a mmthread structure usable by other thread. It is
+	// If we reach here, the mm_thread structure of current thread is not
+	// set because it has not been created by mm_thread_create(). So we
+	// must create a mm_thread structure usable by other thread. It is
 	// not necessary to create a usable thread handle because this
 	// thread is not joinable
-	self = create_mmthread_data();
+	self = create_mm_thread_data();
 	get_thread_local_data()->thread = self;
 
 	return self;

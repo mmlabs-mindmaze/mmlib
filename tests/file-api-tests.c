@@ -94,7 +94,7 @@ int create_file(const char* path, int mode, size_t filelen)
 static
 int create_entry(struct file_info* info)
 {
-	struct timespec ts;
+	struct mm_timespec ts;
 	char suffix[16];
 
 	// Append a random suffix to prevent file metadata reuse on windows
@@ -552,7 +552,7 @@ END_TEST
 
 START_TEST(rename_empty_directory)
 {
-	MMDIR * dir;
+	MM_DIR * dir;
 
 	ck_assert(mm_mkdir("dir", 0777, O_CREAT) == 0);
 

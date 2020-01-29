@@ -14,36 +14,36 @@
 
 #include <pthread.h>
 
-typedef pthread_mutex_t mmthr_mtx_t;
-typedef pthread_cond_t mmthr_cond_t;
-typedef pthread_once_t mmthr_once_t;
-typedef pthread_t mmthread_t;
+typedef pthread_mutex_t mm_thr_mutex_t;
+typedef pthread_cond_t mm_thr_cond_t;
+typedef pthread_once_t mm_thr_once_t;
+typedef pthread_t mm_thread_t;
 
-#define MMTHR_MTX_INITIALIZER  PTHREAD_MUTEX_INITIALIZER
-#define MMTHR_COND_INITIALIZER PTHREAD_COND_INITIALIZER
-#define MMTHR_ONCE_INIT        PTHREAD_ONCE_INIT
+#define MM_THR_MTX_INITIALIZER  PTHREAD_MUTEX_INITIALIZER
+#define MM_THR_COND_INITIALIZER PTHREAD_COND_INITIALIZER
+#define MM_THR_ONCE_INIT        PTHREAD_ONCE_INIT
 
 #else // _WIN32
 
 #include <stdint.h>
 
 typedef union {
-	struct mmthr_mtx_pshared {
+	struct mm_thr_mutex_pshared {
 		int flag;
 		int padding;
 		int64_t lock;
 		int64_t pshared_key;
 	} pshared;
 
-	struct mmthr_mtx_swr {
+	struct mm_thr_mutex_swr {
 		int flag;
 		int padding;
 		void * srw_lock;
 	} srw;
-} mmthr_mtx_t;
+} mm_thr_mutex_t;
 
 typedef union {
-	struct mmthr_cond_pshared {
+	struct mm_thr_cond_pshared {
 		int flag;
 		int padding;
 		int64_t pshared_key;
@@ -51,50 +51,51 @@ typedef union {
 		int64_t wakeup_seq;
 	} pshared;
 
-	struct mmthr_cond_swr {
+	struct mm_thr_cond_swr {
 		int flag;
 		int padding;
 		void* cv;
 	} srw;
-} mmthr_cond_t;
+} mm_thr_cond_t;
 
-typedef int mmthr_once_t;
+typedef int mm_thr_once_t;
 
-#define MMTHR_MTX_INITIALIZER {0}
-#define MMTHR_COND_INITIALIZER {0}
-#define MMTHR_ONCE_INIT 0
+#define MM_THR_MTX_INITIALIZER {0}
+#define MM_THR_COND_INITIALIZER {0}
+#define MM_THR_ONCE_INIT 0
 
-typedef struct mmthread* mmthread_t;
+typedef struct mm_thread* mm_thread_t;
 
 #endif // !_WIN32
 
-#define MMTHR_PSHARED 0x00000001
-#define MMTHR_WAIT_MONOTONIC 0x00000002
+#define MM_THR_PSHARED 0x00000001
+#define MM_THR_WAIT_MONOTONIC 0x00000002
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-MMLIB_API int mmthr_mtx_init(mmthr_mtx_t* mutex, int flags);
-MMLIB_API int mmthr_mtx_lock(mmthr_mtx_t* mutex);
-MMLIB_API int mmthr_mtx_trylock(mmthr_mtx_t* mutex);
-MMLIB_API int mmthr_mtx_consistent(mmthr_mtx_t* mutex);
-MMLIB_API int mmthr_mtx_unlock(mmthr_mtx_t* mutex);
-MMLIB_API int mmthr_mtx_deinit(mmthr_mtx_t* mutex);
-MMLIB_API int mmthr_cond_init(mmthr_cond_t* cond, int flags);
-MMLIB_API int mmthr_cond_wait(mmthr_cond_t* cond, mmthr_mtx_t* mutex);
-MMLIB_API int mmthr_cond_timedwait(mmthr_cond_t* cond, mmthr_mtx_t* mutex,
-                                   const struct timespec* abstime);
+MMLIB_API int mm_thr_mutex_init(mm_thr_mutex_t* mutex, int flags);
+MMLIB_API int mm_thr_mutex_lock(mm_thr_mutex_t* mutex);
+MMLIB_API int mm_thr_mutex_trylock(mm_thr_mutex_t* mutex);
+MMLIB_API int mm_thr_mutex_consistent(mm_thr_mutex_t* mutex);
+MMLIB_API int mm_thr_mutex_unlock(mm_thr_mutex_t* mutex);
+MMLIB_API int mm_thr_mutex_deinit(mm_thr_mutex_t* mutex);
+MMLIB_API int mm_thr_cond_init(mm_thr_cond_t* cond, int flags);
+MMLIB_API int mm_thr_cond_wait(mm_thr_cond_t* cond, mm_thr_mutex_t* mutex);
+MMLIB_API int mm_thr_cond_timedwait(mm_thr_cond_t* cond, mm_thr_mutex_t* mutex,
+                                    const struct mm_timespec* abstime);
 
-MMLIB_API int mmthr_cond_signal(mmthr_cond_t* cond);
-MMLIB_API int mmthr_cond_broadcast(mmthr_cond_t* cond);
-MMLIB_API int mmthr_cond_deinit(mmthr_cond_t* cond);
-MMLIB_API int mmthr_once(mmthr_once_t* once, void (* once_routine)(void));
-MMLIB_API int mmthr_create(mmthread_t* thread, void* (*proc)(void*), void* arg);
-MMLIB_API int mmthr_join(mmthread_t thread, void** value_ptr);
-MMLIB_API int mmthr_detach(mmthread_t thread);
-MMLIB_API mmthread_t mmthr_self(void);
+MMLIB_API int mm_thr_cond_signal(mm_thr_cond_t* cond);
+MMLIB_API int mm_thr_cond_broadcast(mm_thr_cond_t* cond);
+MMLIB_API int mm_thr_cond_deinit(mm_thr_cond_t* cond);
+MMLIB_API int mm_thr_once(mm_thr_once_t* once, void (* once_routine)(void));
+MMLIB_API int mm_thr_create(mm_thread_t* thread, void* (*proc)(void*),
+                            void* arg);
+MMLIB_API int mm_thr_join(mm_thread_t thread, void** value_ptr);
+MMLIB_API int mm_thr_detach(mm_thread_t thread);
+MMLIB_API mm_thread_t mm_thr_self(void);
 
 #ifdef __cplusplus
 }

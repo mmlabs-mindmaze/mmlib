@@ -11,6 +11,21 @@
 #include <stdlib.h>
 
 #ifdef _WIN32
+/*
+ * WARNING
+ * Windows enforces include of <windows.h> after <winsock2.h>
+ * However, what gets included when you do the actual include of <windows.h>
+ * depends on some macros of your project (eg. WIN32_LEAN_AND_MEAN), so
+ * mmsysio.h cannot do this for you.
+ * Should you stumble on warning such as this one:
+ *   #warning Please include winsock2.h before windows.h
+ * The easiest way around is probably for you to re-order your includes.
+ * Other platforms NEVER enforce include order, so this will not have an
+ * impact there.
+ *
+ * More info here:
+ * https://docs.microsoft.com/en-us/windows/win32/winsock/creating-a-basic-winsock-application
+ */
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <mswsock.h>
@@ -253,7 +268,7 @@ MMLIB_API int mm_remove(const char* path, int flags);
 /**************************************************************************
  *                      Directory navigation                              *
  **************************************************************************/
-typedef struct mm_dirstream MMDIR;
+typedef struct mm_dirstream MM_DIR;
 
 struct mm_dirent {
 	size_t reclen;  /* this record length */
@@ -266,10 +281,10 @@ struct mm_dirent {
 #endif
 };
 
-MMLIB_API MMDIR* mm_opendir(const char* path);
-MMLIB_API void mm_closedir(MMDIR* dir);
-MMLIB_API void mm_rewinddir(MMDIR* dir);
-MMLIB_API const struct mm_dirent* mm_readdir(MMDIR* dir, int * status);
+MMLIB_API MM_DIR* mm_opendir(const char* path);
+MMLIB_API void mm_closedir(MM_DIR* dir);
+MMLIB_API void mm_rewinddir(MM_DIR* dir);
+MMLIB_API const struct mm_dirent* mm_readdir(MM_DIR* dir, int * status);
 
 
 /**************************************************************************
@@ -339,7 +354,7 @@ MMLIB_API int mm_shm_unlink(const char* name);
  **************************************************************************/
 
 /**
- * struct mmipc_msg - structure for IPC message
+ * struct mm_ipc_msg - structure for IPC message
  * @iov:        scatter/gather array
  * @fds:        array of file descriptor to pass/receive
  * @num_iov:    number of element in @iov
@@ -348,7 +363,7 @@ MMLIB_API int mm_shm_unlink(const char* name);
  * @num_fds_max: maximum number of file descriptors in @fds
  * @reserved:   reserved for future use (must be NULL)
  */
-struct mmipc_msg {
+struct mm_ipc_msg {
 	struct iovec* iov;
 	int* fds;
 	int num_iov;
@@ -358,15 +373,15 @@ struct mmipc_msg {
 	void* reserved;
 };
 
-struct mmipc_srv;
+struct mm_ipc_srv;
 
-MMLIB_API struct mmipc_srv* mmipc_srv_create(const char* addr);
-MMLIB_API void mmipc_srv_destroy(struct mmipc_srv* srv);
-MMLIB_API int mmipc_srv_accept(struct mmipc_srv* srv);
-MMLIB_API int mmipc_connect(const char* addr);
-MMLIB_API int mmipc_connected_pair(int fds[2]);
-MMLIB_API ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg);
-MMLIB_API ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg);
+MMLIB_API struct mm_ipc_srv* mm_ipc_srv_create(const char* addr);
+MMLIB_API void mm_ipc_srv_destroy(struct mm_ipc_srv* srv);
+MMLIB_API int mm_ipc_srv_accept(struct mm_ipc_srv* srv);
+MMLIB_API int mm_ipc_connect(const char* addr);
+MMLIB_API int mm_ipc_connected_pair(int fds[2]);
+MMLIB_API ssize_t mm_ipc_sendmsg(int fd, const struct mm_ipc_msg* msg);
+MMLIB_API ssize_t mm_ipc_recvmsg(int fd, struct mm_ipc_msg* msg);
 
 
 /**************************************************************************
@@ -431,19 +446,19 @@ struct msghdr {
 
 
 /**
- * struct mmsock_multimsg - structure for transmitting multiple messages
+ * struct mm_sock_multimsg - structure for transmitting multiple messages
  * @msg:        message
  * @datalen:    number of received byte for @msg
  *
- * This should alias with struct mmsghdr on system supporting recvmmsg()
+ * This should alias with struct mm_sghdr on system supporting recvmmsg()
  */
-struct mmsock_multimsg {
+struct mm_sock_multimsg {
 	struct msghdr msg;
 	unsigned int datalen;
 };
 
 
-MMLIB_API int mm_socket(int domain, int type);
+MMLIB_API int mm_socket(int domain, int type, int protocol);
 MMLIB_API int mm_bind(int sockfd, const struct sockaddr * addr, socklen_t
                       addrlen);
 MMLIB_API int mm_getsockname(int sockfd, struct sockaddr * addr,
@@ -467,11 +482,11 @@ MMLIB_API ssize_t mm_recv(int sockfd, void * buffer, size_t length, int flags);
 MMLIB_API ssize_t mm_sendmsg(int sockfd, const struct msghdr* msg, int flags);
 MMLIB_API ssize_t mm_recvmsg(int sockfd, struct msghdr* msg, int flags);
 MMLIB_API int mm_send_multimsg(int sockfd, int vlen,
-                               struct mmsock_multimsg * msgvec, int flags);
+                               struct mm_sock_multimsg * msgvec, int flags);
 
 MMLIB_API int mm_recv_multimsg(int sockfd, int vlen,
-                               struct mmsock_multimsg * msgvec, int flags,
-                               struct timespec * timeout);
+                               struct mm_sock_multimsg * msgvec, int flags,
+                               struct mm_timespec * timeout);
 
 MMLIB_API int mm_getaddrinfo(const char * node, const char * service,
                              const struct addrinfo * hints,
@@ -483,15 +498,6 @@ MMLIB_API int mm_getnameinfo(const struct sockaddr * addr, socklen_t addrlen,
 
 MMLIB_API void mm_freeaddrinfo(struct addrinfo * res);
 MMLIB_API int mm_create_sockclient(const char* uri);
-
-
-#if defined (_WIN32)
-#  define MM_POLLIN 0x0100
-#  define MM_POLLOUT 0x0010
-#else /*  defined(_WIN32) */
-#  define MM_POLLIN POLLIN
-#  define MM_POLLOUT POLLOUT
-#endif /* defined(_WIN32) */
 
 #if defined (_WIN32)
 struct mm_pollfd {

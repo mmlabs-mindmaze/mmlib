@@ -19,12 +19,12 @@
 static int prev_max_loglvl;
 static void setup(void)
 {
-	prev_max_loglvl = mmlog_set_maxlvl(MMLOG_NONE);
+	prev_max_loglvl = mm_log_set_maxlvl(MM_LOG_NONE);
 }
 
 static void teardown(void)
 {
-	mmlog_set_maxlvl(prev_max_loglvl);
+	mm_log_set_maxlvl(prev_max_loglvl);
 }
 
 START_TEST(aligned_heap_allocation)
