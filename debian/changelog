@@ -1,3 +1,14 @@
+mmlib (1.2.0) UNRELEASED; urgency=medium
+
+  * Remove skeleton type
+  * Remove calibration related types
+  * Remove geometry APIs
+  * Add protocol parameter to mm_socket()
+  * Replace struct timespec with own struct mm_timespec
+  * mm_poll() - ignore negative file descriptors
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>  Mon, 06 Jan 2020 14:10:31 +0100
+
 mmlib (1.1.0) unstable; urgency=medium
 
   * Add mm_error_set_flags() API
