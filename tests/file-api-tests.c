@@ -527,6 +527,51 @@ START_TEST(read_closed_pipe)
 END_TEST
 
 
+START_TEST(rename_simple_file)
+{
+	int fd;
+
+	fd = mm_open(TEST_FILE, O_CREAT, S_IWUSR|S_IRUSR);
+	ck_assert(fd >= 0);
+	mm_close(fd);
+
+	// check that renaming works while the file is not used
+	ck_assert(mm_rename(TEST_FILE, "new") == 0);
+
+	fd = mm_open("new", O_RDWR, S_IWUSR|S_IRUSR);
+	ck_assert(fd >= 0);
+
+	// check that renaming works while the file is opened
+	ck_assert(mm_rename("new", TEST_FILE) == 0);
+	mm_close(fd);
+
+	ck_assert(mm_check_access(TEST_FILE, F_OK) == 0);
+}
+END_TEST
+
+
+START_TEST(rename_empty_directory)
+{
+	MMDIR * dir;
+
+	ck_assert(mm_mkdir("dir", 0777, O_CREAT) == 0);
+
+	// check that renaming works while the directory is not used
+	ck_assert(mm_rename("dir", "newdir") == 0);
+	ck_assert(mm_check_access("newdir", F_OK) == 0);
+
+	dir = mm_opendir("newdir");
+	ck_assert(dir != NULL);
+
+	// check that renaming works while the directory is opened
+	ck_assert(mm_rename("newdir", "otherdir") == 0);
+	ck_assert(mm_check_access("otherdir", F_OK) == 0);
+	mm_closedir(dir);
+	mm_rmdir("otherdir");
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -537,8 +582,10 @@ END_TEST
 static
 void cleanup_testdir(void)
 {
+	int flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
 	mm_chdir(BUILDDIR);
 	mm_remove(TEST_DIR, MM_DT_ANY|MM_RECURSIVE);
+	mm_error_set_flags(flags, MM_ERROR_IGNORE);
 }
 
 
@@ -576,6 +623,8 @@ TCase* create_file_tcase(void)
 	tcase_add_test(tc, unlink_before_close);
 	tcase_add_test(tc, one_way_pipe);
 	tcase_add_test(tc, read_closed_pipe);
+	tcase_add_test(tc, rename_simple_file);
+	tcase_add_test(tc, rename_empty_directory);
 
 	return tc;
 }

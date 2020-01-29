@@ -7,10 +7,6 @@ Contributors are essential. Here is some advice to help you help the project.
 We try to keep mmlib as lean and fast as possible and to conform as close as
 possible to **POSIX**.
 
-## Reporting issues
-
-**TODOC**
-
 ## Submitting pull requests
 
 We use gerrit for code review. If you are unfamiliar with it, please look

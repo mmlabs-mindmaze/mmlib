@@ -117,7 +117,7 @@ HANDLE open_handle(const char* path, DWORD access, DWORD creat,
 	HANDLE hnd = INVALID_HANDLE_VALUE;
 	char16_t* path_u16 = NULL;
 	int path_u16_len;
-	DWORD share = FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE;
+
 	SECURITY_ATTRIBUTES sec_attrs = {
 		.nLength = sizeof(SECURITY_ATTRIBUTES),
 		.lpSecurityDescriptor = sec,
@@ -136,7 +136,7 @@ HANDLE open_handle(const char* path, DWORD access, DWORD creat,
 
 	// Convert to UTF-16 and open/create file
 	conv_utf8_to_utf16(path_u16, path_u16_len, path);
-	hnd = CreateFileW(path_u16, access, share, &sec_attrs,
+	hnd = CreateFileW(path_u16, access, FILE_SHARE_ALL, &sec_attrs,
 	                  creat, flags, NULL);
 
 	mm_freea(path_u16);

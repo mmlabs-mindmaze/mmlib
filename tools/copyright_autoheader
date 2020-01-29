@@ -1,0 +1,263 @@
+#!/usr/bin/env python3
+
+# @mindmaze_header@
+"""
+copyright_autoheader is a script that expand a set of tag in source code files
+tracked by a git with a configurable content. Typically this is used to expand
+the header of a file with the license and copyright reflecting accurately the
+years of modification based on the information contained in the git repository.
+
+When executed, an autoheader.yml file will be searched in the top directory of the
+git repo. It is composed of 2 entries: 'headers' and 'owner_remap'.
+
+The 'headers' entry:
+    The headers entry must be composed of a dictionary. Each key correspond to
+    a token that can be recognized and expanded in any tracked source file if
+    it appears surrounded by '@' character. The expanded data will be the value
+    of the dictionary. If a <copyrights> token is present in the associated
+    value, it will be itself expanded to the copyright line reflecting the
+    years of modification and the copyright owner of the file based on the data
+    contained in the git repository (the author name and date of commits
+    touching the file).
+
+The 'owner_remap' entry:
+    This must be composed of list of 2-elements dictionaries with 'pattern' and
+    'name' fields. During the copyright expansion described previously, if one
+    commit author email match the regular expression in 'pattern' field, the
+    copyright owner will be substituted with the value of field 'name'.
+"""
+
+import re
+from os import replace, popen, chdir, getenv
+from os.path import islink, isfile, join
+from shutil import copymode
+from subprocess import PIPE, Popen
+
+from typing import List, Dict
+import yaml
+
+
+def multiline_expand(re_obj, line: str, content: List[str]) -> List[str]:
+    """
+    replace the pattern in one line with content made of multiple lines. Each
+    line replacing the pattern will conserve the prolog and epilog of the line.
+    Here is an example:
+
+    pattern:
+        '+PATTERN+'
+    content to substitute (list of strings):
+        - 'Hello World!'
+        - 'How are you?'
+    line:
+        ' prolog +PATTERN+   epilog'
+    returned value (list of strings):
+        - ' prolog Hello World!   epilog'
+        - ' prolog How are you?   epilog'
+    """
+    lines = list()
+    for cline in content:
+        lines.append(re_obj.sub(cline, line))
+    return lines
+
+
+def gen_year_range(start: int, end: int) -> str:
+    """
+    Generate a string representing a range of years
+    """
+    if start == end:
+        return str(start)
+    return '{}-{}'.format(start, end)
+
+
+class CopyrightOwner:
+    """
+    Data holding information regarding of a copyright owner of a file
+    """
+    def __init__(self, name: str):
+        self.name = name
+        self.years = set()
+        self.firstyear = 9999
+
+    def gen_copyright(self):
+        """
+        Generate the copyright line associated to the owner
+        """
+        yearlist = list(self.years)
+        yearlist.sort()
+
+        # Generate list of years. If two or more year are consecutive, merge
+        # them into a range of year
+        strlist = []
+        start = yearlist[0]
+        end = yearlist[0]
+        for i in range(1, len(yearlist)):
+            # If year are not consecutive, the year range must be finished
+            if yearlist[i]-1 != yearlist[i-1]:
+                strlist.append(gen_year_range(start, end))
+                start = yearlist[i]
+            end = yearlist[i]
+        strlist.append(gen_year_range(start, end))
+        years_str = ', '.join(strlist)
+
+        copyright_str = 'Copyright © {} {}'.format(years_str, self.name)
+        return bytes(copyright_str, 'utf-8')
+
+    def add(self, year: int):
+        """
+        Add a year of modification made by the copyright owner
+        """
+        self.years.add(year)
+        if year < self.firstyear:
+            self.firstyear = year
+
+    def __gt__(self, other):
+        return self.firstyear > other.firstyear
+
+
+def get_copyrights_from_owners(owners: Dict[str, CopyrightOwner]) -> List[str]:
+    """
+    Get list of copyright lines representing the owners of a file
+    """
+    owner_list = list(owners.values())
+    owner_list.sort()
+    return [owner.gen_copyright() for owner in owner_list]
+
+
+class Header:
+    """
+    Data representing a token that can be substituted in a source file
+    """
+    def __init__(self, token: str, content: str):
+        self.regex = re.compile(bytes('@{}@'.format(token), 'utf-8'))
+        self.lines = bytes(content.strip(), 'utf-8').split(b'\n')
+
+    def subst(self, line: bytes):
+        """
+        Expand a line containing the header token with the content of the
+        header
+        """
+        return multiline_expand(self.regex, line, self.lines)
+
+    def match(self, line: bytes) -> bool:
+        """
+        Test if a line contains the token
+        """
+        return self.regex.search(line) is not None
+
+
+class HeaderFormatter:
+    """
+    Main class header generator
+    """
+    def __init__(self):
+        self.hdrs = dict()
+        self.owner_remap_list = []
+        self.copyright_re = re.compile(b'<copyrights>')
+        self.destdir = getenv('MESON_DIST_ROOT', '')
+
+        try:
+            cfg = yaml.load(open('autoheader.yml', 'rb').read())
+        except FileNotFoundError:
+            return
+
+        try:
+            for token, content in cfg['headers'].items():
+                self.hdrs[token] = Header(token, content)
+        except KeyError:
+            pass
+
+        try:
+            for entry in cfg['owner_remap']:
+                regex = re.compile(entry['pattern'])
+                self.owner_remap_list.append([regex, entry['name']])
+        except KeyError:
+            pass
+
+    def _remap_owner(self, email: str, name: str) -> [str, str]:
+        for pattern, remap_name in self.owner_remap_list:
+            if pattern.fullmatch(email):
+                return [remap_name, remap_name]
+        return [email, name]
+
+    def get_copyright_owners(self, filename: str) -> Dict[str, CopyrightOwner]:
+        """
+        Get the copyright owner data from a file tracked in git
+        """
+        cmd = ['git', 'log', '--date=format:%Y', '--format=%ae|%ad|%an',
+               '--', filename]
+        proc = Popen(cmd, stdout=PIPE, universal_newlines=True)
+
+        owners = dict()
+        for entry in proc.stdout:
+            email, year, name = entry.strip().split('|')
+            key, name = self._remap_owner(email, name)
+            owner = owners.get(key, CopyrightOwner(name))
+            owner.add(int(year))
+            owners[key] = owner
+
+        proc.wait()
+        return owners
+
+    def _format_copyrights(self, filename, lines: List[bytes]) -> List[bytes]:
+        owners = self.get_copyright_owners(filename)
+        copyrights = get_copyrights_from_owners(owners)
+
+        out_lines = list()
+        for line in lines:
+            if self.copyright_re.search(line) is not None:
+                res = multiline_expand(self.copyright_re, line, copyrights)
+                out_lines.extend(res)
+                continue
+            else:
+                out_lines.append(line)
+
+        return out_lines
+
+    def format(self, filename):
+        """
+        Expand the header tokens and copyrights in a file tracked by git
+        """
+        outname = join(self.destdir, filename)
+        tmpoutname = outname + '.licfmt'
+        filein = open(filename, 'rb')
+        fileout = open(tmpoutname, 'wb')
+
+        for line in filein:
+            lines = [line]
+            for hdr in self.hdrs.values():
+                if hdr.match(line):
+                    lines = hdr.subst(line)
+                    lines = self._format_copyrights(filename, lines)
+                    break
+
+            for outline in lines:
+                fileout.write(outline)
+
+        filein.close()
+        fileout.close()
+        copymode(filename, tmpoutname)
+        replace(tmpoutname, outname)
+
+
+def main():
+    """
+    Program entry point
+    """
+    # Determine the root dir of the git project
+    prj_topdir = popen('git rev-parse --show-toplevel').read().strip()
+    if not prj_topdir:
+        exit(1)
+
+    chdir(prj_topdir)
+    formatter = HeaderFormatter()
+
+    proc = Popen(['git', 'ls-files'], stdout=PIPE, universal_newlines=True)
+    for entry in proc.stdout:
+        tracked_file = entry.strip()
+        if not islink(tracked_file) and isfile(tracked_file):
+            formatter.format(tracked_file.strip())
+    proc.wait()
+
+
+if __name__ == '__main__':
+    main()

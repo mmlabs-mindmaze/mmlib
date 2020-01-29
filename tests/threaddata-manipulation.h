@@ -4,9 +4,11 @@
 #ifndef THREADDATA_MANIPULATION_H
 #define THREADDATA_MANIPULATION_H
 
-#include "mmthread.h"
-#include <stdint.h>
+#include <stdatomic.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#include "mmthread.h"
 
 #define SHARED_WRITE_INIT_VALUE 0
 

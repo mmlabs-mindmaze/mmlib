@@ -31,8 +31,10 @@
 
 static void test_teardown(void)
 {
+	int flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
 	mm_chdir(BUILDDIR);
 	mm_remove(TMP_DIR_ROOT, MM_DT_ANY|MM_RECURSIVE);
+	mm_error_set_flags(flags, MM_ERROR_IGNORE);
 }
 
 static void test_init(void)

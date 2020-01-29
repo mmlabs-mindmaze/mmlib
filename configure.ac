@@ -14,7 +14,7 @@ m4_define([lib_revision],0)
 m4_define([lib_age],0)
 
 # Setup autoconf
-AC_INIT(mmlib,[1.0.0],[nicolas.bourdaud@mindmaze.ch])
+AC_INIT(mmlib,[1.1.0],[nicolas.bourdaud@mindmaze.com])
 AC_CONFIG_SRCDIR([src/mmlog.h])
 #AC_CONFIG_LIBOBJ_DIR([lib])
 AC_CONFIG_MACRO_DIR([m4])
@@ -40,6 +40,9 @@ AC_DEFINE([_POSIX_C_SOURCE], [200809L], [Strive to comply to POSIX-2008])
 # Note: when defined with _POSIX_C_SOURCE, POSIX sources are always preferred
 # in case of conflict
 AC_DEFINE([_DEFAULT_SOURCE], [1], [ensure that the default definitions are provided])
+
+# for compatibility with old OS
+AC_DEFINE([_BSD_SOURCE], [1], [ensure that the default definitions are provided])
 
 # Check for programs
 AM_PROG_CC_C_O
@@ -118,7 +121,7 @@ AH_TOP([#ifndef CONFIG_H
 AH_BOTTOM([#endif /*CONFIG_H*/])
 
 AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile
-                 tests/Makefile po/Makefile.in])
+                 tests/Makefile tests/handmaid/Makefile po/Makefile.in])
 AC_OUTPUT
 
 
