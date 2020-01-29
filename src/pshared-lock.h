@@ -43,7 +43,7 @@ struct shared_lock {
  */
 struct lock_timeout {
 	int clk_flags;
-	struct timespec ts;
+	struct mm_timespec ts;
 };
 
 void deinit_lock_referee_connection(struct lockref_connection* conn);

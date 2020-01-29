@@ -2,16 +2,13 @@ public_headers = files(
         'mmargparse.h',
         'mmdlfcn.h',
         'mmerrno.h',
-        'mmgeometry.h',
         'mmlib.h',
         'mmlog.h',
         'mmpredefs.h',
         'mmprofile.h',
-        'mmskeleton.h',
         'mmsysio.h',
         'mmthread.h',
         'mmtime.h',
-        'mmtype.h',
 )
 install_headers(public_headers)
 
@@ -22,32 +19,27 @@ mmlib_sources = files(
         'error.c',
         'file.c',
         'file-internal.h',
-        'geometry.c',
         'log.c',
         'mmargparse.h',
         'mmdlfcn.h',
         'mmerrno.h',
-        'mmgeometry.h',
         'mmlib.h',
         'mmlog.h',
         'mmprofile.h',
-        'mmskeleton.h',
         'mmsysio.h',
         'mmthread.h',
         'mmtime.h',
-        'mmtype.h',
         'nls-internals.h',
         'profile.c',
-        'skeleton.c',
         'socket.c',
         'time.c',
-        'type.c',
         'utils.c',
 )
 
-libm = cc.find_library('m', required : true)
 cflags = []
-dependencies = [libm]
+ldflags = []
+link_deps = []
+dependencies = []
 
 if nls_state == 'enabled'
     cflags += '-DENABLE_NLS'
@@ -103,6 +95,10 @@ else
     libdl = cc.find_library('dl', required : true)
     librt = cc.find_library('rt', required : true)
 
+    mmlib_map = meson.current_source_dir() + '/libmmlib.map'
+    ldflags += '-Wl,--version-script,' + mmlib_map
+    link_deps += mmlib_map
+
     dependencies += [libthread, libdl, librt]
 endif
 
@@ -139,8 +135,8 @@ endif # windows
 # * MINOR version when you add functionality in a backwards-compatible manner
 # * PATCH version when you make backwards-compatible bug fixes.
 
-major = '0'
-minor = '5'
+major = '1'
+minor = '0'
 patch = '0'
 version = major + '.' + minor + '.' + patch
 
@@ -154,6 +150,8 @@ mmlib_static = static_library('mmlib-static',
 mmlib = shared_library('mmlib',
         mmlib_sources,
         c_args : cflags,
+        link_args : ldflags,
+        link_depends : link_deps,
         install : true,
         version : version,
         include_directories : configuration_inc,

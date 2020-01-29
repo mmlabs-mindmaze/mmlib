@@ -9,9 +9,9 @@
 # - If any interfaces have been removed since the last public release, then
 # set age to 0.
 
-m4_define([lib_current],5)
+m4_define([lib_current],1)
 m4_define([lib_revision],0)
-m4_define([lib_age],5)
+m4_define([lib_age],0)
 
 # Setup autoconf
 AC_INIT(mmlib,[1.1.0],[nicolas.bourdaud@mindmaze.com])
@@ -80,7 +80,6 @@ AS_IF([test "x$enable_lockserverprocess" = xno],
 AC_CHECK_FUNCS([posix_memalign aligned_alloc _aligned_malloc], [break])
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
 MM_CHECK_FUNCS([pthread_mutex_consistent], [], [], [$PTHREAD_LIB])
-MM_CHECK_LIB([sqrtf], [m], MATH)
 MM_CHECK_LIB([clock_gettime], [rt], CLOCK)
 MM_CHECK_LIB([localtime64_s], [], LOCALTIME_S, [AC_DEFINE([HAS_LOCALTIME_S], [1], [Define if localtime_s is present])])
 MM_CHECK_LIB([shm_open], [rt], SHM)

@@ -283,7 +283,7 @@ void init_basedirs(void)
 API_EXPORTED
 const char* mm_get_basedir(enum mm_known_dir dirtype)
 {
-	static mmthr_once_t basedirs_once = MMTHR_ONCE_INIT;
+	static mm_thr_once_t basedirs_once = MM_THR_ONCE_INIT;
 
 	if (dirtype < 0 || dirtype >= MM_NUM_DIRTYPE) {
 		mm_raise_error(EINVAL, "Unknown dir type (%i)", dirtype);
@@ -291,7 +291,7 @@ const char* mm_get_basedir(enum mm_known_dir dirtype)
 	}
 
 	// Init base directory the first time we reach here
-	mmthr_once(&basedirs_once, init_basedirs);
+	mm_thr_once(&basedirs_once, init_basedirs);
 
 	return basedirs[dirtype];
 }

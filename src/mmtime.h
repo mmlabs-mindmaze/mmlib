@@ -73,9 +73,25 @@ extern "C" {
 typedef int clockid_t;
 #endif
 
-MMLIB_API int mm_gettime(clockid_t clock_id, struct timespec * ts);
-MMLIB_API int mm_getres(clockid_t clock_id, struct timespec * res);
-MMLIB_API int mm_nanosleep(clockid_t clock_id, const struct timespec * ts);
+/**
+ * struct mm_timespec - interval broken down into seconds and nanoseconds.
+ * @tv_sec:     whole seconds (valid values are >= 0)
+ * @tv_nsec:    nanoseconds (valid values are [0, 999999999])
+ *
+ * This structure is meant to be binary compatible with the struct timespec
+ * defined on the platform while avoid the issue of missing declaration of
+ * struct timespec (if compiled with old C standard < C11 without posix
+ * feature) or multiple definition of it (in certain circumstances, on Win32
+ * with mingw using pthread.h).
+ */
+struct mm_timespec {
+	time_t tv_sec;
+	long tv_nsec;
+};
+
+MMLIB_API int mm_gettime(clockid_t clock_id, struct mm_timespec * ts);
+MMLIB_API int mm_getres(clockid_t clock_id, struct mm_timespec * res);
+MMLIB_API int mm_nanosleep(clockid_t clock_id, const struct mm_timespec * ts);
 MMLIB_API int mm_relative_sleep_ms(int64_t duration_ms);
 MMLIB_API int mm_relative_sleep_us(int64_t duration_us);
 MMLIB_API int mm_relative_sleep_ns(int64_t duration_ns);
@@ -103,8 +119,8 @@ MMLIB_API int mm_relative_sleep_ns(int64_t duration_ns);
  * Return: the interval @ts - @orig in nanoseconds
  */
 static inline
-int64_t mm_timediff_ns(const struct timespec* ts,
-                       const struct timespec* orig)
+int64_t mm_timediff_ns(const struct mm_timespec* ts,
+                       const struct mm_timespec* orig)
 {
 	int64_t dt;
 
@@ -123,8 +139,8 @@ int64_t mm_timediff_ns(const struct timespec* ts,
  * Return: the interval @ts - @orig in microseconds
  */
 static inline
-int64_t mm_timediff_us(const struct timespec* ts,
-                       const struct timespec* orig)
+int64_t mm_timediff_us(const struct mm_timespec* ts,
+                       const struct mm_timespec* orig)
 {
 	int64_t dt;
 
@@ -143,8 +159,8 @@ int64_t mm_timediff_us(const struct timespec* ts,
  * Return: the interval @ts - @orig in milliseconds
  */
 static inline
-int64_t mm_timediff_ms(const struct timespec* ts,
-                       const struct timespec* orig)
+int64_t mm_timediff_ms(const struct mm_timespec* ts,
+                       const struct mm_timespec* orig)
 {
 	int64_t dt;
 
@@ -161,7 +177,7 @@ int64_t mm_timediff_ms(const struct timespec* ts,
  * @dt:         offset in nanoseconds to apply to @ts
  */
 static inline
-void mm_timeadd_ns(struct timespec* ts, int64_t dt)
+void mm_timeadd_ns(struct mm_timespec* ts, int64_t dt)
 {
 	ts->tv_sec += dt / NS_IN_SEC;
 	ts->tv_nsec += dt % NS_IN_SEC;
@@ -182,7 +198,7 @@ void mm_timeadd_ns(struct timespec* ts, int64_t dt)
  * @dt:         offset in microseconds to apply to @ts
  */
 static inline
-void mm_timeadd_us(struct timespec* ts, int64_t dt)
+void mm_timeadd_us(struct mm_timespec* ts, int64_t dt)
 {
 	ts->tv_sec += dt / US_IN_SEC;
 	ts->tv_nsec += (dt % US_IN_SEC) * (NS_IN_SEC / US_IN_SEC);
@@ -203,7 +219,7 @@ void mm_timeadd_us(struct timespec* ts, int64_t dt)
  * @dt:         offset in milliseconds to apply to @ts
  */
 static inline
-void mm_timeadd_ms(struct timespec* ts, int64_t dt)
+void mm_timeadd_ms(struct mm_timespec* ts, int64_t dt)
 {
 	ts->tv_sec += dt / MS_IN_SEC;
 	ts->tv_nsec += (dt % MS_IN_SEC) * (NS_IN_SEC / MS_IN_SEC);

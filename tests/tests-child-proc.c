@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 	} else {
 		exitcode = EXIT_FAILURE;
 
-		hndl = mm_dlopen(NULL, MMLD_LAZY);
+		hndl = mm_dlopen(NULL, MM_LD_LAZY);
 		if (hndl == NULL)
 			goto exit;
 
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "Running: %s\n", argv[1]);
 		/* function should return NULL on success */
 		exitcode = symbol.fn(map);
-		mmlog_debug("%s exited: %d", argv[1], exitcode);
+		mm_log_debug("%s exited: %d", argv[1], exitcode);
 	}
 
 exit:

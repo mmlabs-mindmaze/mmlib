@@ -68,7 +68,7 @@ int run_as_process(mm_pid_t* pid_ptr, char * fn_name,
  *
  * This should not be called directly, use the run_function macro below instead.
  *
- * See mmthr_create() and mm_spawn().
+ * See mm_thr_create() and mm_spawn().
  *
  * the function ran should follow the prototype:
  *   intptr_t custom_fn(void *)
@@ -91,7 +91,7 @@ int _run_function(thread_proc_id * id, intptr_t (*fn)(void*),
 
 	switch (run_mode) {
 	case RUN_AS_THREAD:
-		rv = mmthr_create(&id->thread_id, cast_fn.thread, args);
+		rv = mm_thr_create(&id->thread_id, cast_fn.thread, args);
 		ck_assert_msg(rv == 0, "can't create thread for %s", fn_name);
 		break;
 
@@ -120,7 +120,7 @@ void clean_function(thread_proc_id id, int run_mode)
 
 	switch (run_mode) {
 	case RUN_AS_THREAD:
-		mmthr_join(id.thread_id, (void**)&iptrval);
+		mm_thr_join(id.thread_id, (void**)&iptrval);
 		if (iptrval != 0) {
 			ck_abort_msg("thread returned %i", (int)iptrval);
 		}

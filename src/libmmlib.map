@@ -1,0 +1,166 @@
+/* Please name the version node according to the first 2 digit of version that
+ * introduce the listed symbol within a soname.
+ *
+ * When SONAME bump is introduced, all symbols that are kept in the new version
+ * must be grouped within the same version named after the version node using
+ * the new soname.
+ *
+ * Example:
+ * --------
+ * The version of library "somelib" being compiled is currently 2.6.3. The
+ * library exposes the following symbols:
+ * - foo (introduced in 0.9.1)
+ * - bar (introduced in 1.2.3)
+ * - afunc (introduced in 2.0.0)
+ * - bfunc (introduced in 2.3.1)
+ *
+ * The version script should be:
+ *
+ * SOMELIB_2.0 {
+ *         global:
+ *                 foo;
+ *                 bar;
+ *                 afunc;
+ *         local: *;
+ * };
+ *
+ * SOMELIB_2.3 {
+ *         global:
+ *                 bfunc;
+ * } SOMELIB_2.0;
+ *
+ */
+MMLIB_1.0 {
+	global:
+		_mm_freea_on_heap;
+		_mm_malloca_on_heap;
+		mm_accept;
+		mm_aligned_alloc;
+		mm_aligned_free;
+		mm_anon_shm;
+		mm_basename;
+		mm_bind;
+		mm_chdir;
+		mm_check_access;
+		mm_close;
+		mm_closedir;
+		mm_connect;
+		mm_create_sockclient;
+		mm_dirname;
+		mm_dl_fileext;
+		mm_dlclose;
+		mm_dlopen;
+		mm_dlsym;
+		mm_dup2;
+		mm_dup;
+		mm_error_set_flags;
+		mm_execv;
+		mm_freeaddrinfo;
+		mm_fstat;
+		mm_fsync;
+		mm_ftruncate;
+		mm_get_basedir;
+		mm_get_environ;
+		mm_get_lasterror_desc;
+		mm_get_lasterror_extid;
+		mm_get_lasterror_location;
+		mm_get_lasterror_module;
+		mm_get_lasterror_number;
+		mm_getaddrinfo;
+		mm_getcwd;
+		mm_getenv;
+		mm_getnameinfo;
+		mm_getpeername;
+		mm_getres;
+		mm_getsockname;
+		mm_getsockopt;
+		mm_gettime;
+		mm_isatty;
+		mm_link;
+		mm_listen;
+		mm_mapfile;
+		mm_mkdir;
+		mm_nanosleep;
+		mm_open;
+		mm_opendir;
+		mm_path_from_basedir;
+		mm_pipe;
+		mm_poll;
+		mm_print_lasterror;
+		mm_raise_error_full;
+		mm_raise_error_vfull;
+		mm_raise_from_errno_full;
+		mm_read;
+		mm_readdir;
+		mm_readlink;
+		mm_recv;
+		mm_recv_multimsg;
+		mm_recvmsg;
+		mm_relative_sleep_ms;
+		mm_relative_sleep_ns;
+		mm_relative_sleep_us;
+		mm_remove;
+		mm_rename;
+		mm_rewinddir;
+		mm_rmdir;
+		mm_save_errorstate;
+		mm_seek;
+		mm_send;
+		mm_send_multimsg;
+		mm_sendmsg;
+		mm_set_errorstate;
+		mm_setenv;
+		mm_setsockopt;
+		mm_shm_open;
+		mm_shm_unlink;
+		mm_shutdown;
+		mm_socket;
+		mm_spawn;
+		mm_stat;
+		mm_symlink;
+		mm_unlink;
+		mm_unmap;
+		mm_unsetenv;
+		mm_wait_process;
+		mm_write;
+		mm_arg_complete_path;
+		mm_arg_is_completing;
+		mm_arg_optv_parse;
+		mm_arg_parse;
+		mm_arg_parse_complete;
+		mm_ipc_connect;
+		mm_ipc_connected_pair;
+		mm_ipc_recvmsg;
+		mm_ipc_sendmsg;
+		mm_ipc_srv_accept;
+		mm_ipc_srv_create;
+		mm_ipc_srv_destroy;
+		mm_log;
+		mm_log_set_maxlvl;
+		mm_profile_get_data;
+		mm_profile_print;
+		mm_profile_reset;
+		mm_strerror;
+		mm_strerror_r;
+		mm_thr_cond_broadcast;
+		mm_thr_cond_deinit;
+		mm_thr_cond_init;
+		mm_thr_cond_signal;
+		mm_thr_cond_timedwait;
+		mm_thr_cond_wait;
+		mm_thr_create;
+		mm_thr_detach;
+		mm_thr_join;
+		mm_thr_mutex_consistent;
+		mm_thr_mutex_deinit;
+		mm_thr_mutex_init;
+		mm_thr_mutex_lock;
+		mm_thr_mutex_trylock;
+		mm_thr_mutex_unlock;
+		mm_thr_once;
+		mm_thr_self;
+		mm_tic;
+		mm_toc;
+		mm_toc_label;
+	local: *;
+};

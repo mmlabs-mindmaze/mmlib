@@ -24,7 +24,7 @@
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_gettime(clockid_t clock_id, struct timespec *ts)
+int mm_gettime(clockid_t clock_id, struct mm_timespec *ts)
 {
 	switch (clock_id) {
 	case MM_CLK_REALTIME:
@@ -55,7 +55,7 @@ int mm_gettime(clockid_t clock_id, struct timespec *ts)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_getres(clockid_t clock_id, struct timespec *res)
+int mm_getres(clockid_t clock_id, struct mm_timespec *res)
 {
 	switch (clock_id) {
 	case MM_CLK_REALTIME:
@@ -139,9 +139,9 @@ void relative_microsleep(int64_t delta_ns)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_nanosleep(clockid_t clock_id, const struct timespec *target)
+int mm_nanosleep(clockid_t clock_id, const struct mm_timespec *target)
 {
-	struct timespec now;
+	struct mm_timespec now;
 	int64_t delta_ns;
 
 	if (clock_id != MM_CLK_REALTIME

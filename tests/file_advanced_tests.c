@@ -237,9 +237,9 @@ END_TEST
 
 START_TEST(rename_opened_shared_lib)
 {
-	mmdynlib_t * shared_lib;
+	mm_dynlib_t * shared_lib;
 
-	shared_lib = mm_dlopen(context.shared_lib_name, MMLD_NOW);
+	shared_lib = mm_dlopen(context.shared_lib_name, MM_LD_NOW);
 
 	// rename the file while the shared library is opened
 	ck_assert(mm_rename(context.shared_lib_name,
@@ -277,9 +277,9 @@ END_TEST
 
 START_TEST(unlink_opened_shared_lib)
 {
-	mmdynlib_t * shared_lib;
+	mm_dynlib_t * shared_lib;
 
-	shared_lib = mm_dlopen(context.shared_lib_name, MMLD_NOW);
+	shared_lib = mm_dlopen(context.shared_lib_name, MM_LD_NOW);
 
 	// unlink the file while the shared library is opened
 	ck_assert(mm_unlink(context.shared_lib_name) == 0);

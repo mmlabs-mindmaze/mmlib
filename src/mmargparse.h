@@ -11,50 +11,50 @@
 extern "C" {
 #endif
 
-#define MMOPT_NOVAL    0x00
-#define MMOPT_OPTVAL   0x01
-#define MMOPT_NEEDVAL  0x02
-#define MMOPT_REQMASK  0x03
-#define MMOPT_STR      0x00
-#define MMOPT_INT      0x10
-#define MMOPT_LLONG    0x20
-#define MMOPT_UINT     0x90
-#define MMOPT_ULLONG   0xA0
-#define MMOPT_TYPEMASK 0xF0
-#define MMOPT_FILEPATH 0x100
-#define MMOPT_DIRPATH  0x200
+#define MM_OPT_NOVAL    0x00
+#define MM_OPT_OPTVAL   0x01
+#define MM_OPT_NEEDVAL  0x02
+#define MM_OPT_REQMASK  0x03
+#define MM_OPT_STR      0x00
+#define MM_OPT_INT      0x10
+#define MM_OPT_LLONG    0x20
+#define MM_OPT_UINT     0x90
+#define MM_OPT_ULLONG   0xA0
+#define MM_OPT_TYPEMASK 0xF0
+#define MM_OPT_FILEPATH 0x100
+#define MM_OPT_DIRPATH  0x200
 
-#define MMOPT_OPTSTR     (MMOPT_OPTVAL | MMOPT_STR)
-#define MMOPT_NEEDSTR    (MMOPT_NEEDVAL | MMOPT_STR)
-#define MMOPT_OPTINT     (MMOPT_OPTVAL | MMOPT_INT)
-#define MMOPT_NEEDINT    (MMOPT_NEEDVAL | MMOPT_INT)
-#define MMOPT_OPTLLONG   (MMOPT_OPTVAL | MMOPT_LLONG)
-#define MMOPT_NEEDLLONG  (MMOPT_NEEDVAL | MMOPT_LLONG)
-#define MMOPT_OPTUINT    (MMOPT_OPTVAL | MMOPT_UINT)
-#define MMOPT_NEEDUINT   (MMOPT_NEEDVAL | MMOPT_UINT)
-#define MMOPT_OPTULLONG  (MMOPT_OPTVAL | MMOPT_ULLONG)
-#define MMOPT_NEEDULLONG (MMOPT_NEEDVAL | MMOPT_ULLONG)
-#define MMOPT_OPTFILE    (MMOPT_OPTSTR | MMOPT_FILEPATH)
-#define MMOPT_NEEDFILE   (MMOPT_NEEDSTR | MMOPT_FILEPATH)
-#define MMOPT_OPTDIR     (MMOPT_OPTSTR | MMOPT_DIRPATH)
-#define MMOPT_NEEDDIR    (MMOPT_NEEDSTR | MMOPT_DIRPATH)
+#define MM_OPT_OPTSTR     (MM_OPT_OPTVAL | MM_OPT_STR)
+#define MM_OPT_NEEDSTR    (MM_OPT_NEEDVAL | MM_OPT_STR)
+#define MM_OPT_OPTINT     (MM_OPT_OPTVAL | MM_OPT_INT)
+#define MM_OPT_NEEDINT    (MM_OPT_NEEDVAL | MM_OPT_INT)
+#define MM_OPT_OPTLLONG   (MM_OPT_OPTVAL | MM_OPT_LLONG)
+#define MM_OPT_NEEDLLONG  (MM_OPT_NEEDVAL | MM_OPT_LLONG)
+#define MM_OPT_OPTUINT    (MM_OPT_OPTVAL | MM_OPT_UINT)
+#define MM_OPT_NEEDUINT   (MM_OPT_NEEDVAL | MM_OPT_UINT)
+#define MM_OPT_OPTULLONG  (MM_OPT_OPTVAL | MM_OPT_ULLONG)
+#define MM_OPT_NEEDULLONG (MM_OPT_NEEDVAL | MM_OPT_ULLONG)
+#define MM_OPT_OPTFILE    (MM_OPT_OPTSTR | MM_OPT_FILEPATH)
+#define MM_OPT_NEEDFILE   (MM_OPT_NEEDSTR | MM_OPT_FILEPATH)
+#define MM_OPT_OPTDIR     (MM_OPT_OPTSTR | MM_OPT_DIRPATH)
+#define MM_OPT_NEEDDIR    (MM_OPT_NEEDSTR | MM_OPT_DIRPATH)
 
 
 /**
- * union mmarg_val - generic holder of argument value
+ * union mm_arg_val - generic holder of argument value
  * @str:        pointer to string value
  * @i:          signed integer value
  * @ll:         signed long long value
  * @ui:         unsigned integer value
  * @ull:        unsigned long long value
  *
- * &union mmarg_val is the data holder to pass the value of an argument when a
+ * &union mm_arg_val is the data holder to pass the value of an argument when a
  * argument callback function is called. The field to use to manipulate the
- * value depends on the type indicated &mmarg_opt.flags of the option supplied
+ * value depends on the type indicated &mm_arg_opt.flags of the option supplied
  * in the callback. This type can be retrieved by the helper
- * mmarg_opt_get_type().
+ * mm_arg_opt_get_type().
  */
-union mmarg_val {
+union mm_arg_val {
 	const char* str;
 	int i;
 	long long ll;
@@ -64,16 +64,16 @@ union mmarg_val {
 
 
 /**
- * struct mmarg_opt - option parser configuration
+ * struct mm_arg_opt - option parser configuration
  * @name:       option names, see description
  * @flags:      conversion type and requirement flags, see options flags
  * @defval:     default value is option is supplied without value
  * @val:        union for the various types
- * @val.sptr:   pointer to pointer to string, used if type is MMOPT_STR
- * @val.iptr:   pointer to integer, used if type is MMOPT_INT
- * @val.llptr:  pointer to long long, used if type is MMOPT_LLONG
- * @val.uiptr:  pointer to unsigned integer, used if type is MMOPT_UINT
- * @val.ullptr: pointer to unsigned long long, used if type is MMOPT_ULLONG
+ * @val.sptr:   pointer to pointer to string, used if type is MM_OPT_STR
+ * @val.iptr:   pointer to integer, used if type is MM_OPT_INT
+ * @val.llptr:  pointer to long long, used if type is MM_OPT_LLONG
+ * @val.uiptr:  pointer to unsigned integer, used if type is MM_OPT_UINT
+ * @val.ullptr: pointer to unsigned long long, used if type is MM_OPT_ULLONG
  * @desc:       description of the option printed when usage is displayed
  *
  * This structure defines what an option supports and how its value must be
@@ -89,18 +89,18 @@ union mmarg_val {
  *
  * The parameter @flags determine whether a value for an option:
  *
- * - %MMOPT_NOVAL: value is forbidden
- * - %MMOPT_OPTVAL: value is optional and @defval will be used if not set.
- * - %MMOPT_NEEDVAL: value is mandatory
+ * - %MM_OPT_NOVAL: value is forbidden
+ * - %MM_OPT_OPTVAL: value is optional and @defval will be used if not set.
+ * - %MM_OPT_NEEDVAL: value is mandatory
  *
  * it also determines what is the supported type of a value (if not
  * forbidden):
  *
- * - %MMOPT_STR: value is string (then @val.sptr used)
- * - %MMOPT_INT: value is int (then @val.iptr used)
- * - %MMOPT_UINT: value is unsigned int (then @val.uiptr used)
- * - %MMOPT_LLONG: value is long long (then @val.llptr used)
- * - %MMOPT_ULLONG: value is unsigned long long (then @val.ullptr used)
+ * - %MM_OPT_STR: value is string (then @val.sptr used)
+ * - %MM_OPT_INT: value is int (then @val.iptr used)
+ * - %MM_OPT_UINT: value is unsigned int (then @val.uiptr used)
+ * - %MM_OPT_LLONG: value is long long (then @val.llptr used)
+ * - %MM_OPT_ULLONG: value is unsigned long long (then @val.ullptr used)
  *
  * the ptr fields specified in parenthesis indicates that if the
  * corresponding field is not NULL, it will receive the value specified
@@ -115,7 +115,7 @@ union mmarg_val {
  * synopsis and all occurrence of "@NAMEOFVALUE" will be replaced by
  * "NAMEOFVALUE" in description.
  */
-struct mmarg_opt {
+struct mm_arg_opt {
 	const char* name;
 	int flags;
 	const char* defval;
@@ -129,40 +129,40 @@ struct mmarg_opt {
 	const char* desc;
 };
 
-#define MMARGPARSE_ERROR    -1
-#define MMARGPARSE_STOP     -2
-#define MMARGPARSE_COMPLETE -3
+#define MM_ARGPARSE_ERROR    -1
+#define MM_ARGPARSE_STOP     -2
+#define MM_ARGPARSE_COMPLETE -3
 
-#define MMARG_OPT_COMPLETION (1 << 0)
+#define MM_ARG_OPT_COMPLETION (1 << 0)
 
 /**
- * typedef mmarg_callback() - prototype of argument parser callback
+ * typedef mm_arg_callback() - prototype of argument parser callback
  * @opt:        pointer to matching option
  * @value:      value set for option. The field of the union to use is
- *              determined with mmarg_opt_get_type(@opt).
+ *              determined with mm_arg_opt_get_type(@opt).
  * @data:       user pointer provided for hold state while running parser
  * @state:      flags indicating the state of option parsing.
  *
  * The flags in @state indicates special calling context. It can be a
  * combination of the following flags :
  *
- * %MMARG_OPT_COMPLETION: the option value is being completed. The value
+ * %MM_ARG_OPT_COMPLETION: the option value is being completed. The value
  * passed is then always a string, no matter is @opt->value. Also its
  * content may be incomplete. If the callback want to provide completion
  * candidates, it has to write them on standard output, each candidate on
- * its own line. If it returns MMARGPARSE_COMPLETE, no further completion
+ * its own line. If it returns MM_ARGPARSE_COMPLETE, no further completion
  * proposal will be added. This flag cannot appear if the flag
- * %MMARG_PARSER_COMPLETION has not been set in argument parser.
+ * %MM_ARG_PARSER_COMPLETION has not been set in argument parser.
  *
- * Return: 0 in case of success, MMARGPARSE_ERROR (-1) if an error has been
- * detected, MMARGPARSE_STOP (-2) if early exit is requested like with help
- * display or MMARGPARSE_COMPLETE (-3) if value has been completed.
+ * Return: 0 in case of success, MM_ARGPARSE_ERROR (-1) if an error has been
+ * detected, MM_ARGPARSE_STOP (-2) if early exit is requested like with help
+ * display or MM_ARGPARSE_COMPLETE (-3) if value has been completed.
  */
-typedef int (* mmarg_callback)(const struct mmarg_opt* opt,
-                               union mmarg_val value, void* data, int state);
+typedef int (* mm_arg_callback)(const struct mm_arg_opt* opt,
+                                union mm_arg_val value, void* data, int state);
 
 /**
- * typedef mmarg_complete_path_cb() - prototype of path completion callback
+ * typedef mm_arg_complete_path_cb() - prototype of path completion callback
  * @name:       basename of path candidate
  * @dir:        directory of path candidate.
  * @type:       file type of path candidate (one of the MM_DT_* definition)
@@ -170,15 +170,15 @@ typedef int (* mmarg_callback)(const struct mmarg_opt* opt,
  *
  * Return: 1 if path candidate must be kept, 0 if it must be discarded.
  */
-typedef int (* mmarg_complete_path_cb)(const char* name, const char* dir,
-                                       int type, void* data);
+typedef int (* mm_arg_complete_path_cb)(const char* name, const char* dir,
+                                        int type, void* data);
 
-#define MMARG_PARSER_NOEXIT (1 << 0)
-#define MMARG_PARSER_COMPLETION (1 << 1)
+#define MM_ARG_PARSER_NOEXIT (1 << 0)
+#define MM_ARG_PARSER_COMPLETION (1 << 1)
 
 /**
- * struct mmarg_parser - argument parser configuration
- * @flags:      flags to change behavior of parsing (MMARG_PARSER_*)
+ * struct mm_arg_parser - argument parser configuration
+ * @flags:      flags to change behavior of parsing (MM_ARG_PARSER_*)
  * @num_opt:    number of element in @optv.
  * @optv:       array of option supported. Please note that @optv does not
  *              need to provide an option "h|help" since argument parser add
@@ -196,38 +196,38 @@ typedef int (* mmarg_complete_path_cb)(const char* name, const char* dir,
  *              This callback is optional and can be set to NULL if
  *              unneeded.
  */
-struct mmarg_parser {
+struct mm_arg_parser {
 	int flags;
 	int num_opt;
-	const struct mmarg_opt* optv;
+	const struct mm_arg_opt* optv;
 	const char* doc;
 	const char* args_doc;
 	const char* execname;
 	void* cb_data;
-	mmarg_callback cb;
+	mm_arg_callback cb;
 };
 
 
-MMLIB_API int mmarg_parse(const struct mmarg_parser* parser,
-                          int argc, char* argv[]);
-MMLIB_API int mmarg_optv_parse(int optn, const struct mmarg_opt* optv,
-                               int argc, char* argv[]);
-MMLIB_API int mmarg_parse_complete(const struct mmarg_parser* parser,
-                                   const char* arg);
-MMLIB_API int mmarg_complete_path(const char* arg, int type_mask,
-                                  mmarg_complete_path_cb cb, void* cb_data);
-MMLIB_API int mmarg_is_completing(void);
+MMLIB_API int mm_arg_parse(const struct mm_arg_parser* parser,
+                           int argc, char* argv[]);
+MMLIB_API int mm_arg_optv_parse(int optn, const struct mm_arg_opt* optv,
+                                int argc, char* argv[]);
+MMLIB_API int mm_arg_parse_complete(const struct mm_arg_parser* parser,
+                                    const char* arg);
+MMLIB_API int mm_arg_complete_path(const char* arg, int type_mask,
+                                   mm_arg_complete_path_cb cb, void* cb_data);
+MMLIB_API int mm_arg_is_completing(void);
 
 
 /**
- * mmarg_opt_get_key() - get short key of an option
+ * mm_arg_opt_get_key() - get short key of an option
  * @opt:        option whose key must be returned
  *
  * Return: short key code used to recognised @opt if used, 0 if @opt cannot
  * be matched by short key.
  */
 static inline
-int mmarg_opt_get_key(const struct mmarg_opt* opt)
+int mm_arg_opt_get_key(const struct mm_arg_opt* opt)
 {
 	char sep = opt->name[1];
 	return (sep == '|' || sep == '\0') ? opt->name[0] : 0;
@@ -235,13 +235,13 @@ int mmarg_opt_get_key(const struct mmarg_opt* opt)
 
 
 /**
- * mmarg_opt_get_name() - get long option name
+ * mm_arg_opt_get_name() - get long option name
  * @opt:        option whose long name must be returned
  *
  * Return: the long name of opt if supported, NULL otherwise.
  */
 static inline
-const char* mmarg_opt_get_name(const struct mmarg_opt* opt)
+const char* mm_arg_opt_get_name(const struct mm_arg_opt* opt)
 {
 	int offset;
 	char sep = opt->name[1];
@@ -259,15 +259,15 @@ const char* mmarg_opt_get_name(const struct mmarg_opt* opt)
 
 
 /**
- * mmarg_opt_get_type() - get type of value supported by an option
+ * mm_arg_opt_get_type() - get type of value supported by an option
  * @opt:        option whose value type must be returned
  *
- * Return: MMOPT_STR, MMOPT_INT, MMOPT_UINT, MMOPT_LLONG or MMOPT_ULLONG
+ * Return: MM_OPT_STR, MM_OPT_INT, MM_OPT_UINT, MM_OPT_LLONG or MM_OPT_ULLONG
  */
 static inline
-int mmarg_opt_get_type(const struct mmarg_opt* opt)
+int mm_arg_opt_get_type(const struct mm_arg_opt* opt)
 {
-	return opt->flags & MMOPT_TYPEMASK;
+	return opt->flags & MM_OPT_TYPEMASK;
 }
 
 
