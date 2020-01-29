@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "809fd615_3a4867e3",
+        "filename": "configure.ac",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1017133
+      },
+      "writtenOn": "2020-01-29T13:25:21Z",
+      "side": 1,
+      "message": "Please use 1.2.0",
+      "range": {
+        "startLine": 17,
+        "startChar": 15,
+        "endLine": 17,
+        "endChar": 20
+      },
+      "revId": "a65974fc610d2f60609b280c69f5dff17d0ea6ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1cf0494a_693af8f3",
+        "filename": "meson.build",
+        "patchSetId": 6
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1017133
+      },
+      "writtenOn": "2020-01-29T13:25:21Z",
+      "side": 1,
+      "message": "please use 1.2.0",
+      "range": {
+        "startLine": 2,
+        "startChar": 18,
+        "endLine": 2,
+        "endChar": 23
+      },
+      "revId": "a65974fc610d2f60609b280c69f5dff17d0ea6ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebe95560_6cba262d",
+        "filename": "mmpack/libmmlib1.provides",
+        "patchSetId": 6
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1017133
+      },
+      "writtenOn": "2020-01-29T13:25:21Z",
+      "side": 1,
+      "message": "Please sort using LC_ALL\u003dC sort\n\nAnd also minimal version is 1.2.0",
+      "range": {
+        "startLine": 4,
+        "startChar": 1,
+        "endLine": 133,
+        "endChar": 17
+      },
+      "revId": "a65974fc610d2f60609b280c69f5dff17d0ea6ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d40ddcb_6638c193",
+        "filename": "mmpack/specs",
+        "patchSetId": 6
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1017133
+      },
+      "writtenOn": "2020-01-29T13:25:21Z",
+      "side": 1,
+      "message": "1.2.0",
+      "range": {
+        "startLine": 3,
+        "startChar": 11,
+        "endLine": 3,
+        "endChar": 16
+      },
+      "revId": "a65974fc610d2f60609b280c69f5dff17d0ea6ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
