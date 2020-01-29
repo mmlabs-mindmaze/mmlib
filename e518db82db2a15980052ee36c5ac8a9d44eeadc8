@@ -1,0 +1,8 @@
+Code-Review+2: Gabriel Ganne <gabriel.ganne@mindmaze.com>
+Code-Review+1: Marjorie Bournat <marjorie.bournat@mindmaze.com>
+Verified+1: MMLabs FOSS CI <58530837+mmlabs-foss-ci@users.noreply.github.com>
+Submitted-by: Gabriel Ganne <gabriel.ganne@mindmaze.com>
+Submitted-at: Wed, 29 Jan 2020 09:15:16 +0000
+Reviewed-on: https://review.gerrithub.io/c/mmlabs-mindmaze/mmlib/+/483062
+Project: mmlabs-mindmaze/mmlib
+Branch: refs/heads/abi-break
