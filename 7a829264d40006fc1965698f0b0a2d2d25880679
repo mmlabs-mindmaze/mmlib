@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5467312f_00c7b47e",
+        "filename": "configure.ac",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1017133
+      },
+      "writtenOn": "2020-01-29T12:26:46Z",
+      "side": 0,
+      "message": "Please keep 1, 0, 0",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 0
+      },
+      "revId": "7a829264d40006fc1965698f0b0a2d2d25880679",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3061204d_d9fc31a4",
+        "filename": "src/meson.build",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1017133
+      },
+      "writtenOn": "2020-01-29T12:26:46Z",
+      "side": 0,
+      "message": "1 0 0",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 66
+      },
+      "revId": "7a829264d40006fc1965698f0b0a2d2d25880679",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
