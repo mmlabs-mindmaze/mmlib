@@ -4,30 +4,18 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-CONFFLAGS = --enable-warn-all=error
-
 ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	export DEB_CFLAGS_MAINT_APPEND=-O3
 endif
 export DEB_LDFLAGS_MAINT_APPEND=-Wl,-Bsymbolic-functions
 
 %:
-	dh  $@ --with autoreconf,sphinxdoc
+	dh  $@ --with sphinxdoc --buildsystem=meson
 
 override_dh_autoreconf:
-	dh_autoreconf ./autogen.sh
-
-override_dh_auto_configure:
-	dh_auto_configure -- $(CONFFLAGS)
-
-override_dh_auto_clean:
-	if [ -f Makefile ] ; then make maintainer-clean ; fi
 
 override_dh_strip:
 	dh_strip --dbgsym-migration='libmmlib0-dbg (<< 0.3.4+next)'
 
 override_dh_compress:
 	dh_compress --exclude=examples
-
-override_dh_install:
-	dh_install -X.la --fail-missing

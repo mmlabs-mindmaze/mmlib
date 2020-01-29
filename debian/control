@@ -2,8 +2,8 @@ Source: mmlib
 Section: libs
 Priority: extra
 Maintainer: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>
-Build-Depends: debhelper (>= 10), dh-autoreconf,
- pkg-config, gnulib, libltdl-dev, gettext, check,
+Build-Depends: debhelper (>= 10),
+ meson, gettext, check,
  python3-sphinx, python3-sphinx-rtd-theme, python3-sphinx-linuxdoc
 Standards-Version: 3.9.8
 Vcs-Git: https://intranet.mindmaze.ch/bitbucket/scm/mmlab/mmlib.git
