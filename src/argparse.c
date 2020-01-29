@@ -30,8 +30,8 @@
 #define OPT_SYNOPSIS_MAXLEN (VALUE_NAME_MAXLEN + LONGOPT_NAME_MAXLEN+16)
 
 
-static const struct mmarg_opt help_opt = {
-	.name = "h|help", .flags = MMOPT_NOVAL,
+static const struct mm_arg_opt help_opt = {
+	.name = "h|help", .flags = MM_OPT_NOVAL,
 	.desc = "print this message and exit",
 };
 
@@ -43,22 +43,22 @@ struct value_type_name {
 
 static
 const struct value_type_name typenames[] = {
-	{.type = MMOPT_STR,    .name = "string"},
-	{.type = MMOPT_INT,    .name = "int"},
-	{.type = MMOPT_LLONG,  .name = "long long"},
-	{.type = MMOPT_UINT,   .name = "unsigned int"},
-	{.type = MMOPT_ULLONG, .name = "unsigned long long"},
+	{.type = MM_OPT_STR,    .name = "string"},
+	{.type = MM_OPT_INT,    .name = "int"},
+	{.type = MM_OPT_LLONG,  .name = "long long"},
+	{.type = MM_OPT_UINT,   .name = "unsigned int"},
+	{.type = MM_OPT_ULLONG, .name = "unsigned long long"},
 };
 
 
 static
-const struct mmarg_opt* find_opt(const struct mmarg_parser* parser,
-                                 int key, const char* name, int namelen);
+const struct mm_arg_opt* find_opt(const struct mm_arg_parser* parser,
+                                  int key, const char* name, int namelen);
 
 
 /**
  * get_value_type_name() - get string describing type name
- * @type:	MMOPT_* flags specifying a type
+ * @type:	MM_OPT_* flags specifying a type
  *
  * Return: The type string, or "unknown" if not found.
  */
@@ -280,7 +280,7 @@ bool match_value(const char* str, const char* valname, int namelen)
 /**
  * copy_opt_desc() - copy option description while guessing value name
  * @dst:       destination buffer where modified description is copied
- * @src:       description buffer as it is in &mmarg_opt.desc
+ * @src:       description buffer as it is in &mm_arg_opt.desc
  * @buffer:    buffer that will hold the value name if found
  *
  * Copy option description from @src to @src while trying to guess the name
@@ -412,7 +412,7 @@ void print_text_wrapped(int line_maxlen, const char* text,
  * @parser->args_doc is NULL, a generic synopsis in printed.
  */
 static
-void print_synopsis(const struct mmarg_parser* parser, FILE* stream)
+void print_synopsis(const struct mm_arg_parser* parser, FILE* stream)
 {
 	int len = 0;
 	const char* args_doc;
@@ -455,13 +455,13 @@ void print_synopsis(const struct mmarg_parser* parser, FILE* stream)
  * Return: length of synopsis (excluding null termination character)
  */
 static
-int set_option_synopsis(char* synopsis, const struct mmarg_opt* opt,
+int set_option_synopsis(char* synopsis, const struct mm_arg_opt* opt,
                         const char* valname)
 {
 	char* str = synopsis;
-	int key = mmarg_opt_get_key(opt);
-	const char* name = mmarg_opt_get_name(opt);
-	int reqflags = opt->flags & MMOPT_REQMASK;
+	int key = mm_arg_opt_get_key(opt);
+	const char* name = mm_arg_opt_get_name(opt);
+	int reqflags = opt->flags & MM_OPT_REQMASK;
 
 	// Insert small indentation
 	*str++ = ' ';
@@ -469,9 +469,9 @@ int set_option_synopsis(char* synopsis, const struct mmarg_opt* opt,
 
 	// Add short option name synopsis
 	if (key) {
-		if (reqflags == MMOPT_NOVAL)
+		if (reqflags == MM_OPT_NOVAL)
 			str += sprintf(str, "-%c", key);
-		else if (reqflags == MMOPT_NEEDVAL)
+		else if (reqflags == MM_OPT_NEEDVAL)
 			str += sprintf(str, "-%c %s", key, valname);
 		else
 			str += sprintf(str, "-%c [%s]", key, valname);
@@ -485,9 +485,9 @@ int set_option_synopsis(char* synopsis, const struct mmarg_opt* opt,
 
 	// Add long name option synopsis
 	if (name) {
-		if (reqflags == MMOPT_NOVAL)
+		if (reqflags == MM_OPT_NOVAL)
 			str += sprintf(str, "--%s", name);
-		else if (reqflags == MMOPT_NEEDVAL)
+		else if (reqflags == MM_OPT_NEEDVAL)
 			str += sprintf(str, "--%s=%s", name, valname);
 		else
 			str += sprintf(str, "--%s[=%s]", name, valname);
@@ -504,7 +504,7 @@ int set_option_synopsis(char* synopsis, const struct mmarg_opt* opt,
  * @stream:     output stream on which the option doc must be written
  */
 static
-void print_option(const struct mmarg_opt* opt, FILE* stream)
+void print_option(const struct mm_arg_opt* opt, FILE* stream)
 {
 	char synopsis[OPT_SYNOPSIS_MAXLEN];
 	char type_doc[VALUE_NAME_MAXLEN+64];
@@ -512,7 +512,7 @@ void print_option(const struct mmarg_opt* opt, FILE* stream)
 	const char * opt_desc;
 	char* desc;
 	int len, desc_len;
-	int type = mmarg_opt_get_type(opt);
+	int type = mm_arg_opt_get_type(opt);
 	bool is_positive;
 
 	opt_desc = opt->desc ? opt->desc : "";
@@ -530,8 +530,8 @@ void print_option(const struct mmarg_opt* opt, FILE* stream)
 	}
 
 	// Append value type specification if not string type
-	if (type != MMOPT_STR) {
-		is_positive = (type == MMOPT_UINT || type == MMOPT_ULLONG);
+	if (type != MM_OPT_STR) {
+		is_positive = (type == MM_OPT_UINT || type == MM_OPT_ULLONG);
 		sprintf(type_doc, "%s%s must be a%s integer.",
 		        desc_len ? " " : "", value_name,
 		        is_positive ? " non negative" : "n");
@@ -551,7 +551,7 @@ void print_option(const struct mmarg_opt* opt, FILE* stream)
  * @stream:     output stream on which usage must be written
  */
 static
-void print_help(const struct mmarg_parser* parser, FILE* stream)
+void print_help(const struct mm_arg_parser* parser, FILE* stream)
 {
 	int i;
 	const char* doc = parser->doc;
@@ -581,9 +581,9 @@ void print_help(const struct mmarg_parser* parser, FILE* stream)
  *************************************************************************/
 
 static
-int is_completing(const struct mmarg_parser* parser)
+int is_completing(const struct mm_arg_parser* parser)
 {
-	return parser->flags & MMARG_PARSER_COMPLETION;
+	return parser->flags & MM_ARG_PARSER_COMPLETION;
 }
 
 
@@ -597,26 +597,26 @@ int is_completing(const struct mmarg_parser* parser)
  * standard output the synopsis of the long option form of @opt.
  */
 static
-void complete_longopt(const struct mmarg_opt* opt,
+void complete_longopt(const struct mm_arg_opt* opt,
                       int len, const char* name_start)
 {
-	const char* lname = mmarg_opt_get_name(opt);
+	const char* lname = mm_arg_opt_get_name(opt);
 
 	// Filter completion candidate: the supplied argument must match the
 	// beginning of option name
 	if (!lname || strncmp(name_start, lname, len))
 		return;
 
-	switch (opt->flags & MMOPT_REQMASK) {
-	case MMOPT_NOVAL:
+	switch (opt->flags & MM_OPT_REQMASK) {
+	case MM_OPT_NOVAL:
 		printf("--%s\n", lname);
 		break;
 
-	case MMOPT_NEEDVAL:
+	case MM_OPT_NEEDVAL:
 		printf("--%s=\n", lname);
 		break;
 
-	case MMOPT_OPTVAL:
+	case MM_OPT_OPTVAL:
 		printf("--%s=\n", lname);
 		printf("--%s\n", lname);
 		break;
@@ -634,10 +634,10 @@ void complete_longopt(const struct mmarg_opt* opt,
  * option name specified by @arg. If @arg is NULL, it is assumed to
  * be empty.
  *
- * Return: always MMARGPARSE_COMPLETE
+ * Return: always MM_ARGPARSE_COMPLETE
  */
 static
-int complete_longopts(const struct mmarg_parser* parser, const char* arg)
+int complete_longopts(const struct mm_arg_parser* parser, const char* arg)
 {
 	int i, len;
 
@@ -651,7 +651,7 @@ int complete_longopts(const struct mmarg_parser* parser, const char* arg)
 
 	complete_longopt(&help_opt, len, arg);
 
-	return MMARGPARSE_COMPLETE;
+	return MM_ARGPARSE_COMPLETE;
 }
 
 
@@ -661,10 +661,10 @@ int complete_longopts(const struct mmarg_parser* parser, const char* arg)
  *              completed. To be passed without leading "-" (can be NULL)
  * @parser:     argument parser configuration
  *
- * Return: always MMARGPARSE_COMPLETE
+ * Return: always MM_ARGPARSE_COMPLETE
  */
 static
-int complete_shortopts(const struct mmarg_parser* parser, const char* arg)
+int complete_shortopts(const struct mm_arg_parser* parser, const char* arg)
 {
 	int i, key, len;
 
@@ -677,7 +677,7 @@ int complete_shortopts(const struct mmarg_parser* parser, const char* arg)
 	// recognized. If not, do not propose any completion.
 	for (i = 0; i < len; i++) {
 		if (!find_opt(parser, arg[i], NULL, 0))
-			return MMARGPARSE_COMPLETE;
+			return MM_ARGPARSE_COMPLETE;
 	}
 
 	// If there is already options in argument, propose only the current
@@ -685,19 +685,19 @@ int complete_shortopts(const struct mmarg_parser* parser, const char* arg)
 	// move to a new argument
 	if (len != 0) {
 		printf("-%s\n", arg);
-		return MMARGPARSE_COMPLETE;
+		return MM_ARGPARSE_COMPLETE;
 	}
 
 	// We have currently an empty argument, loop over all option
 	// providing short key display tham as completion proposal
 	for (i = 0; i < parser->num_opt; i++) {
-		key = mmarg_opt_get_key(&parser->optv[i]);
+		key = mm_arg_opt_get_key(&parser->optv[i]);
 		if (key)
 			printf("-%c\n", key);
 	}
 
 	printf("-h\n");
-	return MMARGPARSE_COMPLETE;
+	return MM_ARGPARSE_COMPLETE;
 }
 
 
@@ -707,36 +707,36 @@ int complete_shortopts(const struct mmarg_parser* parser, const char* arg)
  * @opt:        option whose value is being completed
  * @arg:        beginning of value supplied on cmdline
  *
- * Return: always MMARGPARSE_COMPLETE
+ * Return: always MM_ARGPARSE_COMPLETE
  */
 static
-int complete_opt_value(const struct mmarg_parser* parser,
-                       const struct mmarg_opt* opt, const char* arg)
+int complete_opt_value(const struct mm_arg_parser* parser,
+                       const struct mm_arg_opt* opt, const char* arg)
 {
 	int rv, flags;
-	union mmarg_val value = {.str = arg};
+	union mm_arg_val value = {.str = arg};
 
 	if (parser->cb) {
 		rv = parser->cb(opt, value, parser->cb_data,
-		                MMARG_OPT_COMPLETION);
+		                MM_ARG_OPT_COMPLETION);
 		if (rv)
-			return MMARGPARSE_COMPLETE;
+			return MM_ARGPARSE_COMPLETE;
 	}
 
-	if (opt->flags & (MMOPT_FILEPATH | MMOPT_DIRPATH)) {
+	if (opt->flags & (MM_OPT_FILEPATH | MM_OPT_DIRPATH)) {
 		flags = 0;
-		if (opt->flags & MMOPT_FILEPATH)
+		if (opt->flags & MM_OPT_FILEPATH)
 			flags |= MM_DT_REG | MM_DT_DIR;
 
-		if (opt->flags & MMOPT_DIRPATH)
+		if (opt->flags & MM_OPT_DIRPATH)
 			flags |= MM_DT_DIR;
 
-		mmarg_complete_path(arg, flags, NULL, NULL);
+		mm_arg_complete_path(arg, flags, NULL, NULL);
 	} else if (arg) {
 		printf("%s\n", arg);
 	}
 
-	return MMARGPARSE_COMPLETE;
+	return MM_ARGPARSE_COMPLETE;
 }
 
 
@@ -760,17 +760,17 @@ int complete_opt_value(const struct mmarg_parser* parser,
  * Return: true if supplied key or name match @opt, false otherwise
  */
 static
-bool match_opt_key_or_name(const struct mmarg_opt* opt,
+bool match_opt_key_or_name(const struct mm_arg_opt* opt,
                            int key, const char* name, int namelen)
 {
 	const char* opt_name;
 
 	// If key is not IGNORE_KEY, the matching MUST be done based on key
 	if (key != IGNORE_KEY)
-		return (key == mmarg_opt_get_key(opt));
+		return (key == mm_arg_opt_get_key(opt));
 
 	// Do matching based on long since key is IGNORE_KEY
-	opt_name = mmarg_opt_get_name(opt);
+	opt_name = mm_arg_opt_get_name(opt);
 	if (opt_name != NULL
 	    && !strncmp(opt_name, name, namelen)
 	    && opt_name[namelen] == '\0')
@@ -799,11 +799,11 @@ bool match_opt_key_or_name(const struct mmarg_opt* opt,
  * appears to be a request to display help, the function does not return.
  */
 static
-const struct mmarg_opt* find_opt(const struct mmarg_parser* parser,
-                                 int key, const char* name, int namelen)
+const struct mm_arg_opt* find_opt(const struct mm_arg_parser* parser,
+                                  int key, const char* name, int namelen)
 {
 	int i, num_opt;
-	const struct mmarg_opt* opt;
+	const struct mm_arg_opt* opt;
 
 	// Test in user provided options
 	num_opt = parser->num_opt;
@@ -831,11 +831,11 @@ const struct mmarg_opt* find_opt(const struct mmarg_parser* parser,
  * before displaying @msg.
  */
 static
-void print_opt_error(const struct mmarg_opt* opt, const char* msg, ...)
+void print_opt_error(const struct mm_arg_opt* opt, const char* msg, ...)
 {
 	va_list args;
-	const char* name = mmarg_opt_get_name(opt);
-	int key = mmarg_opt_get_key(opt);
+	const char* name = mm_arg_opt_get_name(opt);
+	int key = mm_arg_opt_get_key(opt);
 
 	if (name && key)
 		fprintf(stderr, "Option -%c|--%s ", key, name);
@@ -861,24 +861,24 @@ void print_opt_error(const struct mmarg_opt* opt, const char* msg, ...)
  * Return: 0 in case of success, -1 otherwise (cast problem)
  */
 static
-int cast_ll_to_argval(const struct mmarg_opt* opt,
-                      union mmarg_val * argval, long long llval)
+int cast_ll_to_argval(const struct mm_arg_opt* opt,
+                      union mm_arg_val * argval, long long llval)
 {
-	int type = mmarg_opt_get_type(opt);
+	int type = mm_arg_opt_get_type(opt);
 
 	switch (type) {
-	case MMOPT_LLONG:
+	case MM_OPT_LLONG:
 		argval->ll = llval;
 		break;
 
-	case MMOPT_INT:
+	case MM_OPT_INT:
 		if (llval < INT_MIN || llval > INT_MAX)
 			goto error;
 
 		argval->i = llval;
 		break;
 
-	case MMOPT_UINT:
+	case MM_OPT_UINT:
 		if (llval < 0 || llval > UINT_MAX)
 			goto error;
 
@@ -931,16 +931,16 @@ int check_value_is_positive(const char* str)
  * Return: 0 in case of success, -1 otherwise
  */
 static
-int conv_str_to_argval(const struct mmarg_opt* opt,
-                       union mmarg_val * argval, const char* value)
+int conv_str_to_argval(const struct mm_arg_opt* opt,
+                       union mm_arg_val * argval, const char* value)
 {
-	int type = mmarg_opt_get_type(opt);
+	int type = mm_arg_opt_get_type(opt);
 	long long llval;
 	char* endptr;
 	const char* valtype;
 	int prev_err = errno;
 
-	if (type == MMOPT_STR) {
+	if (type == MM_OPT_STR) {
 		argval->str = value;
 		return 0;
 	}
@@ -955,7 +955,7 @@ int conv_str_to_argval(const struct mmarg_opt* opt,
 	// Convert all strings as long long excepting if requesting
 	// ulonglong
 	errno = 0;
-	if (type == MMOPT_ULLONG) {
+	if (type == MM_OPT_ULLONG) {
 		// Prevent to convert negative value (strtoull() would
 		// accept them)
 		if (check_value_is_positive(value)) {
@@ -979,7 +979,7 @@ int conv_str_to_argval(const struct mmarg_opt* opt,
 
 	// If not requesting ulonglong, do final conversion of longlong to
 	// requested type
-	if (type != MMOPT_ULLONG
+	if (type != MM_OPT_ULLONG
 	    && cast_ll_to_argval(opt, argval, llval))
 		goto error;
 
@@ -995,7 +995,7 @@ error:
 }
 
 /**
- * mmarg_opt_set_value() - set value to supplied pointer
+ * mm_arg_opt_set_value() - set value to supplied pointer
  * @opt:      option whose value has to be set
  * @val:      value to set. Can be NULL if case of string type option.
  *
@@ -1006,20 +1006,20 @@ error:
  * Return: 0 in case of success, -1 otherwise
  */
 static
-int mmarg_opt_set_value(const struct mmarg_opt* opt, union mmarg_val val)
+int mm_arg_opt_set_value(const struct mm_arg_opt* opt, union mm_arg_val val)
 {
-	int type = mmarg_opt_get_type(opt);
+	int type = mm_arg_opt_get_type(opt);
 
 	// Ignore setting value if no pointer has been set
 	if (!opt->val.sptr)
 		return 0;
 
 	switch (type) {
-	case MMOPT_STR: *opt->val.sptr = val.str; break;
-	case MMOPT_INT: *opt->val.iptr = val.i; break;
-	case MMOPT_UINT: *opt->val.uiptr = val.ui; break;
-	case MMOPT_LLONG: *opt->val.llptr = val.ll; break;
-	case MMOPT_ULLONG: *opt->val.ullptr = val.ull; break;
+	case MM_OPT_STR: *opt->val.sptr = val.str; break;
+	case MM_OPT_INT: *opt->val.iptr = val.i; break;
+	case MM_OPT_UINT: *opt->val.uiptr = val.ui; break;
+	case MM_OPT_LLONG: *opt->val.llptr = val.ll; break;
+	case MM_OPT_ULLONG: *opt->val.ullptr = val.ull; break;
 	default:
 		print_opt_error(opt, "has unknown value type");
 		return -1;
@@ -1035,17 +1035,17 @@ int mmarg_opt_set_value(const struct mmarg_opt* opt, union mmarg_val val)
  * @value:      string of value if one has been supplied, NULL otherwise
  * @parser:     parser used
  *
- * Return: 0 in case of success, or MMARGPARSE_ERROR (-1) if a validation issue
- * has occurred and MMARGPARSE_STOP (-2) if early stop has been requested.
+ * Return: 0 in case of success, or MM_ARGPARSE_ERROR (-1) if a validation issue
+ * has occurred and MM_ARGPARSE_STOP (-2) if early stop has been requested.
  */
 static
-int process_opt_value(const struct mmarg_opt* opt, const char* value,
-                      const struct mmarg_parser* parser)
+int process_opt_value(const struct mm_arg_opt* opt, const char* value,
+                      const struct mm_arg_parser* parser)
 {
 	void* cb_data = parser->cb_data;
-	mmarg_callback cb = parser->cb;
-	int reqflags = opt->flags & MMOPT_REQMASK;
-	union mmarg_val argval;
+	mm_arg_callback cb = parser->cb;
+	int reqflags = opt->flags & MM_OPT_REQMASK;
+	union mm_arg_val argval;
 	int rv;
 
 	// If the recognized option is the help option added internally, just
@@ -1055,17 +1055,17 @@ int process_opt_value(const struct mmarg_opt* opt, const char* value,
 			return 0;
 
 		print_help(parser, stdout);
-		return MMARGPARSE_STOP;
+		return MM_ARGPARSE_STOP;
 	}
 
-	if ((reqflags == MMOPT_NOVAL) && value) {
+	if ((reqflags == MM_OPT_NOVAL) && value) {
 		print_opt_error(opt, "does not accept any value.");
-		return MMARGPARSE_ERROR;
+		return MM_ARGPARSE_ERROR;
 	}
 
-	if ((reqflags == MMOPT_NEEDVAL) && !value) {
+	if ((reqflags == MM_OPT_NEEDVAL) && !value) {
 		print_opt_error(opt, "needs value.");
-		return MMARGPARSE_ERROR;
+		return MM_ARGPARSE_ERROR;
 	}
 
 	if (!value)
@@ -1078,7 +1078,7 @@ int process_opt_value(const struct mmarg_opt* opt, const char* value,
 		return rv;
 
 	// set value if specified in option parser
-	return mmarg_opt_set_value(opt, argval);
+	return mm_arg_opt_set_value(opt, argval);
 }
 
 
@@ -1093,10 +1093,10 @@ int process_opt_value(const struct mmarg_opt* opt, const char* value,
  * skip in case of success. -1 in case of failure
  */
 static
-int process_short_opt(const struct mmarg_parser* parser,
+int process_short_opt(const struct mm_arg_parser* parser,
                       const char* opts, const char* next_arg, int next_is_last)
 {
-	const struct mmarg_opt* opt_parser;
+	const struct mm_arg_opt* opt_parser;
 	const char* value = NULL;
 	int move_arg_index = 0;
 	int rv, reqflags;
@@ -1113,8 +1113,8 @@ int process_short_opt(const struct mmarg_parser* parser,
 
 		// It is allowed to interpret the next argument as value
 		// only if the option key is the last one of the list
-		reqflags = opt_parser->flags & MMOPT_REQMASK;
-		if ((reqflags != MMOPT_NOVAL)
+		reqflags = opt_parser->flags & MM_OPT_REQMASK;
+		if ((reqflags != MM_OPT_NOVAL)
 		    && (opts[1] == '\0')
 		    && !is_arg_an_option(next_arg)) {
 			value = next_arg;
@@ -1145,13 +1145,13 @@ int process_short_opt(const struct mmarg_parser* parser,
  * Return: 0 in case of success, -1 otherwise
  */
 static
-int process_long_opt(const struct mmarg_parser* parser, const char* arg,
+int process_long_opt(const struct mm_arg_parser* parser, const char* arg,
                      int do_complete)
 {
 	const char* name;
 	const char* value;
 	int namelen, rv;
-	const struct mmarg_opt* opt;
+	const struct mm_arg_opt* opt;
 
 	// Set the name and value token
 	name = arg;
@@ -1162,17 +1162,17 @@ int process_long_opt(const struct mmarg_parser* parser, const char* arg,
 	// the list of long options if we are still not writing value
 	if (do_complete && arg[namelen] != '=') {
 		complete_longopts(parser, arg);
-		return MMARGPARSE_COMPLETE;
+		return MM_ARGPARSE_COMPLETE;
 	}
 
 	// Search for a matching option
 	opt = find_opt(parser, IGNORE_KEY, name, namelen);
 	if (!opt) {
 		if (do_complete)
-			return MMARGPARSE_COMPLETE;
+			return MM_ARGPARSE_COMPLETE;
 
 		fprintf(stderr, "Unsupported option --%.*s\n", namelen, arg);
-		return MMARGPARSE_ERROR;
+		return MM_ARGPARSE_ERROR;
 	}
 
 	if (do_complete)
@@ -1193,23 +1193,23 @@ int process_long_opt(const struct mmarg_parser* parser, const char* arg,
  * Return: 0 in case of success, -1 otherwise
  */
 static
-int validate_options(const struct mmarg_parser* parser)
+int validate_options(const struct mm_arg_parser* parser)
 {
 	int i, key;
 	const char* lname;
-	const struct mmarg_opt* opt;
+	const struct mm_arg_opt* opt;
 
 	for (i = 0; i < parser->num_opt; i++) {
 		opt = &parser->optv[i];
 
 		// Ensure the name field is set
 		if (!opt->name || opt->name[0] == '\0') {
-			fprintf(stderr, "name in mmarg_opt must be set\n");
+			fprintf(stderr, "name in mm_arg_opt must be set\n");
 			return -1;
 		}
 
-		key = mmarg_opt_get_key(opt);
-		lname = mmarg_opt_get_name(opt);
+		key = mm_arg_opt_get_key(opt);
+		lname = mm_arg_opt_get_name(opt);
 
 		// Validate option key and/or long option name
 		if ((key && !is_valid_short_opt_key(key))
@@ -1229,24 +1229,24 @@ int validate_options(const struct mmarg_parser* parser)
  * @parser:     argument parser configuration
  * @retval:     code returned indicating why parsing is interrupted
  *
- * This function exits program if MMARG_PARSER_NOEXIT is not set in
+ * This function exits program if MM_ARG_PARSER_NOEXIT is not set in
  * @parser->flags. If the parsing has been interrupted because of parsing error
  * (@retval == -1), a small reminder how to use help is reported to stderr.
  *
- * Return: @retval if MMARG_PARSER_NOEXIT is set in @parser->flags (otherwise,
+ * Return: @retval if MM_ARG_PARSER_NOEXIT is set in @parser->flags (otherwise,
  * the function call exit)
  */
 static
-int early_stop_parsing(const struct mmarg_parser* parser, int retval)
+int early_stop_parsing(const struct mm_arg_parser* parser, int retval)
 {
 	int exitcode = EXIT_SUCCESS;
 
-	if (retval == MMARGPARSE_ERROR) {
+	if (retval == MM_ARGPARSE_ERROR) {
 		fprintf(stderr, "Use -h or --help to display usage.\n");
 		exitcode = EXIT_FAILURE;
 	}
 
-	if (parser->flags & MMARG_PARSER_NOEXIT)
+	if (parser->flags & MM_ARG_PARSER_NOEXIT)
 		return retval;
 
 	exit(exitcode);
@@ -1254,7 +1254,7 @@ int early_stop_parsing(const struct mmarg_parser* parser, int retval)
 
 
 /**
- * mmarg_parse() - parse command-line options
+ * mm_arg_parse() - parse command-line options
  * @parser:     argument parser configuration
  * @argc:       argument count as passed to main()
  * @argv:       argument array as passed to main()
@@ -1274,10 +1274,10 @@ int early_stop_parsing(const struct mmarg_parser* parser, int retval)
  * The value of @parser->flags is a OR-combination of any number of the
  * following flags :
  *
- * - %MMARG_PARSER_NOEXIT: the process will not exit in case of help printing
- *   nor in case of error but mmarg_parse() will return respectively
- *   MMARGPARSE_STOP and MMARGPARSE_ERROR.
- * - %MMARG_PARSER_COMPLETION: the parser is invoked for being used in shell
+ * - %MM_ARG_PARSER_NOEXIT: the process will not exit in case of help printing
+ *   nor in case of error but mm_arg_parse() will return respectively
+ *   MM_ARGPARSE_STOP and MM_ARGPARSE_ERROR.
+ * - %MM_ARG_PARSER_COMPLETION: the parser is invoked for being used in shell
  *   completion script. In case of unknown option, the completed candidate
  *   options are printed on standard output (in a format suitable for bash
  *   completion script).
@@ -1285,29 +1285,29 @@ int early_stop_parsing(const struct mmarg_parser* parser, int retval)
  * There are 2 non-exclusive ways to get the values of the option supplied
  * on command line
  *
- * #. setting the struct mmarg_opt->*ptr field to the data that must be set
+ * #. setting the struct mm_arg_opt->*ptr field to the data that must be set
  *    when an option is found and parsed.
  * #. using the callback function @parser->cb and data @parser->cb_data.
  *
  * Return: a non negative value indicating the index of the first non-option
  * argument when argument parsing has been successfully finished. Additionally
- * if MMARG_PARSER_NOEXIT is set in @parser->flags :
+ * if MM_ARG_PARSER_NOEXIT is set in @parser->flags :
  *
- * - MMARGPARSE_ERROR (-1): an error of argument parsing or validation occurred
- * - MMARGPARSE_STOP (-2): help display has been requested or early parsing
+ * - MM_ARGPARSE_ERROR (-1): an error of argument parsing or validation occurred
+ * - MM_ARGPARSE_STOP (-2): help display has been requested or early parsing
  *   stop has been requested by callback.
- * - MMARGPARSE_COMPLETE (-3): parser was in completion mode and the last
+ * - MM_ARGPARSE_COMPLETE (-3): parser was in completion mode and the last
  *   argument has been completed (completion candidates have been printed on
  *   output).
  */
 API_EXPORTED
-int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
+int mm_arg_parse(const struct mm_arg_parser* parser, int argc, char* argv[])
 {
 	const char * arg, * next_arg;
 	int index, r, do_complete;
 
 	if (validate_options(parser))
-		return early_stop_parsing(parser, MMARGPARSE_ERROR);
+		return early_stop_parsing(parser, MM_ARGPARSE_ERROR);
 
 	do_complete = 0;
 	for (index = 1; index < argc; index++) {
@@ -1336,8 +1336,8 @@ int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 
 		// Complete if we have an incomplete option
 		if ((arg[1] == '\0') && do_complete) {
-			mmarg_parse_complete(parser, arg);
-			return early_stop_parsing(parser, MMARGPARSE_COMPLETE);
+			mm_arg_parse_complete(parser, arg);
+			return early_stop_parsing(parser, MM_ARGPARSE_COMPLETE);
 		}
 
 		if (arg[1] != '-')
@@ -1357,14 +1357,14 @@ int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
 }
 
 /**
- * mmarg_optv_parse() - parse command-line options
- * @optn:       number of mmarg_opt elements in optv
- * @optv:       pointer to mmarg_opt array
+ * mm_arg_optv_parse() - parse command-line options
+ * @optn:       number of mm_arg_opt elements in optv
+ * @optv:       pointer to mm_arg_opt array
  * @argc:       argument count as passed to main()
  * @argv:       argument array as passed to main()
  *
- * This function wraps around mmarg_parse and it takes care to create and
- * initialize a minimal mmarg_parser structure.
+ * This function wraps around mm_arg_parse and it takes care to create and
+ * initialize a minimal mm_arg_parser structure.
  * It can be useful when no extended usage documentation is needed, as it
  * just provides the standard help function.
  *
@@ -1372,19 +1372,19 @@ int mmarg_parse(const struct mmarg_parser* parser, int argc, char* argv[])
  * argument when argument parsing has been successfully finished.
  */
 API_EXPORTED
-int mmarg_optv_parse(int optn, const struct mmarg_opt* optv, int argc,
-                     char* argv[])
+int mm_arg_optv_parse(int optn, const struct mm_arg_opt* optv, int argc,
+                      char* argv[])
 {
-	struct mmarg_parser parser = {
+	struct mm_arg_parser parser = {
 		.optv = optv,
 		.num_opt = optn > 0 ? optn : 0,
 		.execname = argv[0]
 	};
-	return mmarg_parse(&parser, argc, argv);
+	return mm_arg_parse(&parser, argc, argv);
 }
 
 /**
- * mmarg_parse_complete() - print list of opts of arg parser for completion
+ * mm_arg_parse_complete() - print list of opts of arg parser for completion
  * @parser:     argument parser configuration
  * @arg:        beginning of argument (can be NULL)
  *
@@ -1392,16 +1392,16 @@ int mmarg_optv_parse(int optn, const struct mmarg_opt* optv, int argc,
  * parser and whose beginning match @arg (if supplied). This list is the
  * same format as bash compgen command.
  *
- * Return: 0 in case of success, MMARGPARSE_ERROR otherwise (validation
+ * Return: 0 in case of success, MM_ARGPARSE_ERROR otherwise (validation
  * error occurred)
  */
 API_EXPORTED
-int mmarg_parse_complete(const struct mmarg_parser* parser, const char* arg)
+int mm_arg_parse_complete(const struct mm_arg_parser* parser, const char* arg)
 {
 	int len;
 
 	if (validate_options(parser))
-		return early_stop_parsing(parser, MMARGPARSE_ERROR);
+		return early_stop_parsing(parser, MM_ARGPARSE_ERROR);
 
 	if (!arg)
 		return 0;
@@ -1423,7 +1423,7 @@ int mmarg_parse_complete(const struct mmarg_parser* parser, const char* arg)
 
 
 /**
- * mmarg_complete_path() - complete argument as path
+ * mm_arg_complete_path() - complete argument as path
  * @arg:        beginning of argument (must not be NULL)
  * @type_mask:  Combination of MM_DT_* flags indicating the desired file
  * @cb:         user supplied completion callback (can be NULL)
@@ -1441,10 +1441,10 @@ int mmarg_parse_complete(const struct mmarg_parser* parser, const char* arg)
  * Return: 0 in case of success, -1 otherwise
  */
 API_EXPORTED
-int mmarg_complete_path(const char* arg, int type_mask,
-                        mmarg_complete_path_cb cb, void* cb_data)
+int mm_arg_complete_path(const char* arg, int type_mask,
+                         mm_arg_complete_path_cb cb, void* cb_data)
 {
-	MMDIR* dir;
+	MM_DIR* dir;
 	const struct mm_dirent* dirent;
 	char * dirpath, * base;
 	const char * disp_dir, * name;
@@ -1522,32 +1522,32 @@ exit:
 
 
 /**
- * mmarg_is_completing() - indicates whether shell completion is running
+ * mm_arg_is_completing() - indicates whether shell completion is running
  *
  * The function indicates if command completion has been requested through
- * %MMLIB_CMD_COMPLETION environment variable: by convention command
+ * %MM_CMD_COMPLETION environment variable: by convention command
  * completion is requested if this variable is set (no matter the value).
  *
  * Please note that you are not forced to use this environment variable to
  * trigger command completion. You may use any environment variable or any
- * other mechanism of your choosing. If mmarg_parse() is used to parse
- * options, completion will run only if the flag %MMARG_PARSER_COMPLETION
- * is set in the flags field of struct mmarg_parser. However on the other
- * hand, there is little reason not to use %MMLIB_CMD_COMPLETION environment
- * variable. Hence if a code is mmarg_parse() and using command completion
- * through its executable, it is invited to set %MMARG_PARSER_COMPLETION if
- * mmarg_is_completing() returns 1.
+ * other mechanism of your choosing. If mm_arg_parse() is used to parse
+ * options, completion will run only if the flag %MM_ARG_PARSER_COMPLETION
+ * is set in the flags field of struct mm_arg_parser. However on the other
+ * hand, there is little reason not to use %MM_CMD_COMPLETION environment
+ * variable. Hence if a code is mm_arg_parse() and using command completion
+ * through its executable, it is invited to set %MM_ARG_PARSER_COMPLETION if
+ * mm_arg_is_completing() returns 1.
  *
  * Return: 1 if completion is running, 0 otherwise.
  */
 API_EXPORTED
-int mmarg_is_completing(void)
+int mm_arg_is_completing(void)
 {
 	static int is_completing = -1;
 
 	if (is_completing >= 0)
 		return is_completing;
 
-	is_completing = mm_getenv("MMLIB_CMD_COMPLETION", NULL) ? 1 : 0;
+	is_completing = mm_getenv("MM_CMD_COMPLETION", NULL) ? 1 : 0;
 	return is_completing;
 }

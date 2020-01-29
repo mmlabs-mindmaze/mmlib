@@ -33,7 +33,7 @@
  *  - initialize process shared mutex
  *  - create child process with passing file descriptor to them
  */
-#define MMLOG_MODULE_NAME "pshared-parent"
+#define MM_LOG_MODULE_NAME "pshared-parent"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -88,9 +88,9 @@ struct pshared_data* init_shared_mem_data(int* shm_fd)
 	*psh_data = (struct pshared_data) {.start = 0};
 
 	// Initialize synchronization primitives of shared data
-	if (mmthr_mtx_init(&psh_data->mutex, MMTHR_PSHARED)
-	    || mmthr_mtx_init(&psh_data->notif_mtx, MMTHR_PSHARED)
-	    || mmthr_cond_init(&psh_data->notif_cond, MMTHR_PSHARED))
+	if (mm_thr_mutex_init(&psh_data->mutex, MM_THR_PSHARED)
+	    || mm_thr_mutex_init(&psh_data->notif_mtx, MM_THR_PSHARED)
+	    || mm_thr_cond_init(&psh_data->notif_cond, MM_THR_PSHARED))
 		goto failure;
 
 	*shm_fd = fd;
@@ -155,18 +155,18 @@ void broadcast_start_notification(struct pshared_data* psh_data)
 
 	// We want a worker thread to be be scheduled in a predictable way,
 	// so we must own shdata->notif_mtx when calling
-	// mmthr_cond_broadcast()
-	lockret = mmthr_mtx_lock(&psh_data->notif_mtx);
+	// mm_thr_cond_broadcast()
+	lockret = mm_thr_mutex_lock(&psh_data->notif_mtx);
 	if (lockret == ENOTRECOVERABLE)
 		return;
 
 	if (lockret == EOWNERDEAD)
-		mmthr_mtx_consistent(&psh_data->notif_mtx);
+		mm_thr_mutex_consistent(&psh_data->notif_mtx);
 
 	psh_data->start = 1;
-	mmthr_cond_broadcast(&psh_data->notif_cond);
+	mm_thr_cond_broadcast(&psh_data->notif_cond);
 
-	mmthr_mtx_unlock(&psh_data->notif_mtx);
+	mm_thr_mutex_unlock(&psh_data->notif_mtx);
 }
 
 

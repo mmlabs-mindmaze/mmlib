@@ -10,9 +10,9 @@
 #include "mmlib.h"
 #include <string.h>
 
-static mmdynlib_t* arch_dlopen(const char * path, int flags);
-static void arch_dlclose(mmdynlib_t* handle);
-static void* arch_dlsym(mmdynlib_t* handle, const char* symbol);
+static mm_dynlib_t* arch_dlopen(const char * path, int flags);
+static void arch_dlclose(mm_dynlib_t* handle);
+static void* arch_dlsym(mm_dynlib_t* handle, const char* symbol);
 
 /**************************************************************************
  *                                                                        *
@@ -31,7 +31,7 @@ static void* arch_dlsym(mmdynlib_t* handle, const char* symbol);
 
 
 static
-mmdynlib_t* arch_dlopen(const char * path, int flags)
+mm_dynlib_t* arch_dlopen(const char * path, int flags)
 {
 	HMODULE handle;
 	(void)flags;
@@ -46,19 +46,19 @@ mmdynlib_t* arch_dlopen(const char * path, int flags)
 		return NULL;
 	}
 
-	return (mmdynlib_t*)handle;
+	return (mm_dynlib_t*)handle;
 }
 
 
 static
-void arch_dlclose(mmdynlib_t* handle)
+void arch_dlclose(mm_dynlib_t* handle)
 {
 	FreeLibrary((HMODULE)handle);
 }
 
 
 static
-void* arch_dlsym(mmdynlib_t* handle, const char* symbol)
+void* arch_dlsym(mm_dynlib_t* handle, const char* symbol)
 {
 	union {
 		void* ptr;
@@ -87,13 +87,13 @@ void* arch_dlsym(mmdynlib_t* handle, const char* symbol)
 #include <dlfcn.h>
 
 static
-mmdynlib_t* arch_dlopen(const char * path, int flags)
+mm_dynlib_t* arch_dlopen(const char * path, int flags)
 {
 	void* handle;
 	int dlflags = 0;
 
 	// Default is lazy binding
-	if (flags & MMLD_NOW)
+	if (flags & MM_LD_NOW)
 		dlflags |= RTLD_NOW;
 	else
 		dlflags |= RTLD_LAZY;
@@ -110,14 +110,14 @@ mmdynlib_t* arch_dlopen(const char * path, int flags)
 
 
 static
-void arch_dlclose(mmdynlib_t* handle)
+void arch_dlclose(mm_dynlib_t* handle)
 {
 	dlclose(handle);
 }
 
 
 static
-void* arch_dlsym(mmdynlib_t* handle, const char* symbol)
+void* arch_dlsym(mm_dynlib_t* handle, const char* symbol)
 {
 	void* ptr = dlsym(handle, symbol);
 	if (!ptr) {
@@ -176,13 +176,13 @@ const char* mm_dl_fileext(void)
  * The behavior of the function can be controlled by @flags which must be a
  * OR-combination of the following flags:
  *
- * MMLD_LAZY
+ * MM_LD_LAZY
  *   Relocations shall be performed at an implementation-defined time,
  *   ranging from the time of the mm_dlopen() call until the first reference
  *   to a given symbol occurs. Currently, this has no effect on Windows
  *   platform.
  *
- * MMLD_NOW
+ * MM_LD_NOW
  *   All necessary relocations shall be performed when shared library is
  *   first loaded. This may waste some processing if relocations are
  *   performed for symbols that are never referenced. This behavior may be
@@ -190,7 +190,7 @@ const char* mm_dl_fileext(void)
  *   during execution will be available before mm_dlopen() returns.
  *   Currently this is the only possible behavior for Windows platform.
  *
- * MMLD_APPEND_EXT
+ * MM_LD_APPEND_EXT
  *   If set, mm_dlopen() append automatically the usual file extension
  *   of a shared library (OS dependent) to @path and load this file instead.
  *   This flag allows to write code that is fully platform independent.
@@ -199,14 +199,14 @@ const char* mm_dl_fileext(void)
  * Otherwise NULL is returned and error state is set accordingly.
  */
 API_EXPORTED
-mmdynlib_t* mm_dlopen(const char* path, int flags)
+mm_dynlib_t* mm_dlopen(const char* path, int flags)
 {
 	size_t len;
 	char* path_ext;
-	mmdynlib_t* hnd;
+	mm_dynlib_t* hnd;
 
-	if ((flags & MMLD_NOW) && (flags & MMLD_LAZY)) {
-		mm_raise_error(EINVAL, "MMLD_NOW and MMLD_LAZY flags cannot "
+	if ((flags & MM_LD_NOW) && (flags & MM_LD_LAZY)) {
+		mm_raise_error(EINVAL, "MM_LD_NOW and MM_LD_LAZY flags cannot "
 		               "be set at the same time.");
 		return NULL;
 	}
@@ -221,7 +221,7 @@ mmdynlib_t* mm_dlopen(const char* path, int flags)
 
 	// Form dynamic library filename
 	strcpy(path_ext, path);
-	if (flags & MMLD_APPEND_EXT)
+	if (flags & MM_LD_APPEND_EXT)
 		strcat(path_ext, LT_MODULE_EXT);
 
 	hnd = arch_dlopen(path_ext, flags);
@@ -245,7 +245,7 @@ mmdynlib_t* mm_dlopen(const char* path, int flags)
  * accordingly
  */
 API_EXPORTED
-void mm_dlclose(mmdynlib_t* handle)
+void mm_dlclose(mm_dynlib_t* handle)
 {
 	if (!handle)
 		return;
@@ -267,7 +267,7 @@ void mm_dlclose(mmdynlib_t* handle)
  * set acccordingly
  */
 API_EXPORTED
-void* mm_dlsym(mmdynlib_t* handle, const char* symbol)
+void* mm_dlsym(mm_dynlib_t* handle, const char* symbol)
 {
 	if (!handle || !symbol) {
 		mm_raise_error(EINVAL, "invalid handle (%p) or symbol (%s) "

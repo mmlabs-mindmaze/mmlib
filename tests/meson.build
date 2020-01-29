@@ -107,7 +107,6 @@ testapi_sources = files(
         'dlfcn-api-tests.c',
         'file_advanced_tests.c',
         'file-api-tests.c',
-        'geometry-api-tests.c',
         'ipc-api-tests.c',
         'ipc-api-tests-exported.c',
         'ipc-api-tests-exported.h',
@@ -123,7 +122,6 @@ testapi_sources = files(
         'threaddata-manipulation.c',
         'threaddata-manipulation.h',
         'time-api-tests.c',
-        'type-api-tests.c',
         'utils-api-tests.c'
 )
 

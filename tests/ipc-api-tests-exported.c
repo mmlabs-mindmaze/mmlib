@@ -33,11 +33,11 @@ intptr_t test_client_process(void * arg)
 	const char data[] = "ipc client test msg";
 	char line[80] = "client message in shared object\n";
 
-	fd = mmipc_connect(IPC_ADDR);
+	fd = mm_ipc_connect(IPC_ADDR);
 	if (fd == -1)
 		goto cleanup;
 
-	if (mmipc_build_send_msg(fd, data, sizeof(data), -1) < 0
+	if (mm_ipc_build_send_msg(fd, data, sizeof(data), -1) < 0
 	   || recv_msg_and_fd(fd, buf, sizeof(buf), &recvfd) < 0)
 		goto cleanup;
 
@@ -50,7 +50,7 @@ intptr_t test_client_process(void * arg)
 	recvfd = -1;
 
 	/* send another message after we finished writing */
-	if (mmipc_build_send_msg(fd, data, sizeof(data), -1) < 0)
+	if (mm_ipc_build_send_msg(fd, data, sizeof(data), -1) < 0)
 		goto cleanup;
 
 	exit_value = 0;

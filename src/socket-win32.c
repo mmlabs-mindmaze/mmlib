@@ -55,9 +55,9 @@ void winsock_init(void)
 static
 int check_wsa_init(void)
 {
-	static mmthr_once_t wsa_ini_once = MMTHR_ONCE_INIT;
+	static mm_thr_once_t wsa_ini_once = MM_THR_ONCE_INIT;
 
-	mmthr_once(&wsa_ini_once, winsock_init);
+	mm_thr_once(&wsa_ini_once, winsock_init);
 
 	return 0;
 }
@@ -223,7 +223,7 @@ int submit_recv_xfer(struct xfer_data* xfer, SOCKET s,
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_socket(int domain, int type)
+int mm_socket(int domain, int type, int protocol)
 {
 	SOCKET s;
 	int sockfd;
@@ -231,7 +231,7 @@ int mm_socket(int domain, int type)
 	if (check_wsa_init())
 		return -1;
 
-	s = WSASocketW(domain, type, 0, NULL, 0,
+	s = WSASocketW(domain, type, protocol, NULL, 0,
 	              WSA_FLAG_OVERLAPPED|WSA_FLAG_NO_HANDLE_INHERIT);
 	if (s == INVALID_SOCKET)
 		return mm_raise_from_w32err("WSAsocket failed");
@@ -494,7 +494,7 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr *msg, int flags)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
+int mm_send_multimsg(int sockfd, int vlen, struct mm_sock_multimsg *msgvec,
                      int flags)
 {
 	int i;
@@ -515,8 +515,8 @@ int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg *msgvec,
-                     int flags, struct timespec *timeout)
+int mm_recv_multimsg(int sockfd, int vlen, struct mm_sock_multimsg *msgvec,
+                     int flags, struct mm_timespec *timeout)
 {
 	int i;
 	ssize_t ret_sz;
@@ -667,7 +667,8 @@ void mm_freeaddrinfo(struct addrinfo *res)
 API_EXPORTED
 int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)
 {
-	int i, rv;
+	int i, rv, flags;
+	int all_negative;
 	SOCKET s;
 	struct pollfd * wfds;
 
@@ -678,27 +679,43 @@ int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)
 	if (wfds == NULL)
 		return -1;
 
+	/* ignore log errors raised when unwrapping socket from fd:
+	 * poll tolerates invalid sockets */
+	rv = 0;
+	all_negative = 1;
+	flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
 	for (i = 0 ; i < nfds ; i++) {
-		if (unwrap_socket_from_fd(&s, fds[i].fd) != 0)
-			return -1;
-		wfds[i] = (struct pollfd) { .fd = s, .events = fds[i].events, };
+		s = INVALID_SOCKET;
+		if (fds[i].fd >= 0) {
+			unwrap_socket_from_fd(&s, fds[i].fd);
+			all_negative = 0;
+		}
+
+		wfds[i] = (struct pollfd) { .fd = s, .events = fds[i].events };
+	}
+	mm_error_set_flags(flags, MM_ERROR_IGNORE);
+
+	/* WSAPoll() does not wait on invalid sockets.
+	 * Let's sleep instead, then return 0 (as if timeout) */
+	if (all_negative) {
+		mm_relative_sleep_ms(timeout_ms);
+		goto exit;
 	}
 
 	rv = WSAPoll(wfds, nfds, timeout_ms);
-	if (rv < 0)
-		return mm_raise_from_w32err("poll() failed");
-
-	for (i = 0 ; i < nfds ; i++) {
-		/* if an error occurrent within poll() processing the socket
-		 * return it instead of flagging it */
-		if (fds[i].events & (POLLNVAL | POLLERR))
-			return mm_raise_error(ENOMSG, "poll() failed");
-
-		/* only return POLLIN and POLLOUT flags */
-		fds[i].events &= (POLLRDNORM | POLLWRNORM);
-
-		fds[i].revents = wfds[i].revents;
+	if (rv < 0) {
+		rv = mm_raise_from_w32err("poll() failed");
+		goto exit;
 	}
 
+	for (i = 0 ; i < nfds ; i++) {
+		if (fds[i].fd < 0)
+			fds[i].revents = 0;
+		else
+			fds[i].revents = wfds[i].revents;
+	}
+
+exit:
+	mm_freea(wfds);
 	return rv;
 }

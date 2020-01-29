@@ -20,7 +20,7 @@
 API_EXPORTED
 int mm_relative_sleep_ns(int64_t duration_ns)
 {
-	struct timespec ts;
+	struct mm_timespec ts;
 
 	mm_gettime(MM_CLK_MONOTONIC, &ts);
 	mm_timeadd_ns(&ts, duration_ns);
@@ -39,7 +39,7 @@ int mm_relative_sleep_ns(int64_t duration_ns)
 API_EXPORTED
 int mm_relative_sleep_us(int64_t duration_us)
 {
-	struct timespec ts;
+	struct mm_timespec ts;
 
 	mm_gettime(MM_CLK_MONOTONIC, &ts);
 	mm_timeadd_us(&ts, duration_us);
@@ -58,7 +58,7 @@ int mm_relative_sleep_us(int64_t duration_us)
 API_EXPORTED
 int mm_relative_sleep_ms(int64_t duration_ms)
 {
-	struct timespec ts;
+	struct mm_timespec ts;
 
 	mm_gettime(MM_CLK_MONOTONIC, &ts);
 	mm_timeadd_ms(&ts, duration_ms);

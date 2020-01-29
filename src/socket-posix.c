@@ -28,6 +28,8 @@ union posix_sockopt {
  * mm_socket() - create an endpoint for communication
  * @domain:     communications domain in which a socket is to be created
  * @type:       type of socket to be created
+ * @protocol:   particular protocol to be used with the socket. If 0, the
+ *              default protocol for the socket domain and type is used.
  *
  * The mm_socket() function creates an unbound socket in a communications
  * domain, and return a file descriptor that can be used in later function
@@ -57,17 +59,27 @@ union posix_sockopt {
  *   Provides datagrams, which are connectionless-mode, unreliable messages
  *   of fixed maximum length.
  *
+ * The @protocol specifies a particular protocol to be used with the socket.
+ * Normally only a single protocol exists to support a particular socket type
+ * within a given protocol family, in which case protocol can be specified as
+ * 0. However, it is possible that many protocols may exist, in which case a
+ * particular protocol must be specified in this manner. The protocol number to
+ * use is specific to the “communication domain” in which communication is to
+ * take place. Refer to the documentation of your system to know the supported
+ * protocols and their protocol number.
+ *
  * Return: a non-negative integer representing the file descriptor in case
  * of success. Otherwise -1 is returned with error state set accordingly.
  */
 API_EXPORTED
-int mm_socket(int domain, int type)
+int mm_socket(int domain, int type, int protocol)
 {
 	int fd;
 
-	fd = socket(domain, type, 0);
+	fd = socket(domain, type, protocol);
 	if (fd < 0)
-		return mm_raise_from_errno("socket() failed");
+		return mm_raise_from_errno("socket(%i, %i, %i) failed",
+		                           domain, type, protocol);
 
 	return fd;
 }
@@ -528,7 +540,7 @@ ssize_t mm_sendmsg(int sockfd, const struct msghdr * msg, int flags)
  * sockets because it permits the application to retrieve the source address
  * of received data.
  *
- * In the &struct mmsock_msg structure, the &msghdr.msg_name and
+ * In the &struct mm_sock_msg structure, the &msghdr.msg_name and
  * &msghdr.msg_namelen members specify the source address if the socket is
  * unconnected. If the socket is connected, those members are ignored. The
  * @msg->msg_name may be a null pointer if no names are desired or required.
@@ -573,7 +585,7 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr* msg, int flags)
  * mm_send_multimsg() - send multiple messages on a socket
  * @sockfd:     socket file descriptor.
  * @vlen:       size of @msgvec array
- * @msgvec:     pointer to an array of &struct mmsock_multimsg structures
+ * @msgvec:     pointer to an array of &struct mm_sock_multimsg structures
  * @flags:      type of message transmission
  *
  * This function is an extension of mm_sendmsg that allows the
@@ -581,9 +593,9 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr* msg, int flags)
  * call. This is equivalent to call mm_sendmsg() in a loop for each element
  * in @msgvec.
  *
- * On return from mm_sendmmsg(), the &struct mmsock_multimsg.data_len fields
+ * On return from mm_sendmmsg(), the &struct mm_sock_multimsg.data_len fields
  * of successive elements of @msgvec are updated to contain the number of
- * bytes transmitted from the corresponding &struct mmsock_multimsg.msg.
+ * bytes transmitted from the corresponding &struct mm_sock_multimsg.msg.
  *
  * Return: On success, it returns the number of messages sent from @msgvec;
  * if this is less than @vlen, the caller can retry with a further
@@ -591,7 +603,7 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr* msg, int flags)
  * returned and the error state is set accordingly.
  */
 API_EXPORTED
-int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
+int mm_send_multimsg(int sockfd, int vlen, struct mm_sock_multimsg * msgvec,
                      int flags)
 {
 	int ret;
@@ -609,7 +621,7 @@ int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
  * mm_recv_multimsg() - receive multiple messages from a socket
  * @sockfd:     socket file descriptor.
  * @vlen:       size of @msgvec array
- * @msgvec:     pointer to an array of &struct mmsock_multimsg structures
+ * @msgvec:     pointer to an array of &struct mm_sock_multimsg structures
  * @flags:      type of message reception
  * @timeout:    timeout for receive operation. If NULL, the operation blocks
  *              indefinitely
@@ -619,9 +631,9 @@ int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
  * call. This is equivalent to call mm_recvmsg() in a loop for each element
  * in @msgvec with loop break if @timeout has been reached.
  *
- * On return from mm_recvmmsg(), the &struct mmsock_multimsg.data_len fields
+ * On return from mm_recvmmsg(), the &struct mm_sock_multimsg.data_len fields
  * of successive elements of @msgvec are updated to contain the number of
- * bytes received from the corresponding &struct mmsock_multimsg.msg.
+ * bytes received from the corresponding &struct mm_sock_multimsg.msg.
  *
  * Return: On success, it returns the number of messages received from @msgvec;
  * if this is less than @vlen, the caller can retry with a further
@@ -629,13 +641,13 @@ int mm_send_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
  * returned and the error state is set accordingly.
  */
 API_EXPORTED
-int mm_recv_multimsg(int sockfd, int vlen, struct mmsock_multimsg * msgvec,
-                     int flags, struct timespec * timeout)
+int mm_recv_multimsg(int sockfd, int vlen, struct mm_sock_multimsg * msgvec,
+                     int flags, struct mm_timespec * timeout)
 {
 	int ret;
 	struct mmsghdr* hdrvec = (struct mmsghdr*)msgvec;
 
-	ret = recvmmsg(sockfd, hdrvec, vlen, flags, timeout);
+	ret = recvmmsg(sockfd, hdrvec, vlen, flags, (struct timespec*)timeout);
 	if (ret < 0)
 		return mm_raise_from_errno("recvmmsg failed");
 
@@ -702,7 +714,7 @@ int mm_getaddrinfo(const char * node, const char * service,
 	// Handle platform specific error
 	if (errnum == -1) {
 		errnum = errno;
-		mmstrerror_r(errnum, errmsg, sizeof(errmsg));
+		mm_strerror_r(errnum, errmsg, sizeof(errmsg));
 	}
 
 	mm_raise_error(errnum, "getaddrinfo(%s, %s) failed: %s",
@@ -743,7 +755,7 @@ int mm_getnameinfo(const struct sockaddr * addr, socklen_t addrlen,
 	// Handle platform specific error
 	if (errnum == -1) {
 		errnum = errno;
-		mmstrerror_r(errnum, errmsg, sizeof(errmsg));
+		mm_strerror_r(errnum, errmsg, sizeof(errmsg));
 	}
 
 	mm_raise_error(errnum, "getnameinfo() failed: %s", errmsg);
@@ -764,12 +776,6 @@ void mm_freeaddrinfo(struct addrinfo * res)
 	freeaddrinfo(res);
 }
 
-static
-int is_valid_fd(int fd)
-{
-	return (fcntl(fd, F_GETFL) != -1) || (errno != EBADF);
-}
-
 
 /**
  * mm_poll() - waits for one of a set of fd to become ready to perform I/O.
@@ -784,13 +790,9 @@ int is_valid_fd(int fd)
  * descriptors are ready. if @timeout_ms is negative, the call will block
  * indefinitely.
  *
- * &mm_pollfd.events contains a mask on revents with the following values :
- *
- * - MM_POLLIN: there is data to read
- * - MM_POLLOUT: writing is now possible
- *
- * &mm_pollfd.revents will contain the output events flags, a combination of
- * MM_POLLIN and MM_POLLOUT, or 0 if unset.
+ * Negative file descriptors are ignored, with their .revent set to 0.
+ * mm_poll() will wait the full @timeout_ms even if all the file descriptors
+ * are negatives
  *
  * Return:
  *   (>0) On success, the number of fds on which an event was raised
@@ -800,26 +802,11 @@ int is_valid_fd(int fd)
 API_EXPORTED
 int mm_poll(struct mm_pollfd * fds, int nfds, int timeout_ms)
 {
-	int i, rv;
-
-	for (i = 0; i < nfds; i++) {
-		if (!is_valid_fd(fds[i].fd))
-			return -1;
-	}
+	int rv;
 
 	rv = poll(fds, nfds, timeout_ms);
 	if (rv < 0)
 		return mm_raise_from_errno("poll() failed");
-
-	for (i = 0; i < nfds; i++) {
-		/* if an error occurrent within poll() processing the socket
-		 * return it instead of flagging it */
-		if (fds[i].events & (POLLNVAL | POLLERR))
-			return -1;
-
-		/* only return POLLIN and POLLOUT flags */
-		fds[i].events &= (POLLIN | POLLOUT);
-	}
 
 	return rv;
 }
