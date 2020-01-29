@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "65f0fc9a_7ffaa403",
+        "filename": "debian/changelog",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1017133
+      },
+      "writtenOn": "2020-01-29T12:33:47Z",
+      "side": 1,
+      "message": "Please remove... The latest version of the changelog define which version you are compiling. You will introduce +next later, we we feel we need a new debian package update",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 79
+      },
+      "revId": "40d85ccf800563fff5309c68460ae73549cc67ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
