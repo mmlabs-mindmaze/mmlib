@@ -22,8 +22,8 @@ enum {
 	LOCKREF_OP_ERROR,
 };
 
-#define WAITCLK_FLAG_MONOTONIC         (MMTHR_PSHARED << 1)
-#define WAITCLK_FLAG_REALTIME          (MMTHR_PSHARED << 2)
+#define WAITCLK_FLAG_MONOTONIC         (MM_THR_PSHARED << 1)
+#define WAITCLK_FLAG_REALTIME          (MM_THR_PSHARED << 2)
 #define WAITCLK_MASK	(WAITCLK_FLAG_MONOTONIC | WAITCLK_FLAG_REALTIME)
 
 #define SRV_TIMEOUT_MS          200
@@ -41,7 +41,7 @@ struct lockref_req_msg {
 			int64_t key;
 			int64_t val;
 			int clk_flags;
-			struct timespec timeout;
+			struct mm_timespec timeout;
 		} wait;
 		struct lockref_reqdata_getrobust {
 			int num_keys;

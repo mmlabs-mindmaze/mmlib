@@ -32,19 +32,19 @@
 #  endif
 #endif
 
-#ifndef MMLOG_LINE_MAXLEN
-#define MMLOG_LINE_MAXLEN 256
+#ifndef MM_LOG_LINE_MAXLEN
+#define MM_LOG_LINE_MAXLEN 256
 #endif
 
-static int maxloglvl = MMLOG_INFO;
+static int maxloglvl = MM_LOG_INFO;
 
 static
 const char* const loglevel[] = {
-	[MMLOG_FATAL] = "FATAL",
-	[MMLOG_ERROR] = "ERROR",
-	[MMLOG_WARN] = "WARN",
-	[MMLOG_INFO] = "INFO",
-	[MMLOG_DEBUG] = "DEBUG",
+	[MM_LOG_FATAL] = "FATAL",
+	[MM_LOG_ERROR] = "ERROR",
+	[MM_LOG_WARN] = "WARN",
+	[MM_LOG_INFO] = "INFO",
+	[MM_LOG_DEBUG] = "DEBUG",
 };
 #define NLEVEL (sizeof(loglevel)/sizeof(loglevel[0]))
 
@@ -53,7 +53,7 @@ MM_CONSTRUCTOR(init_log)
 	int i;
 	const char* envlvl;
 
-	envlvl = getenv("MMLOG_MAXLEVEL");
+	envlvl = getenv("MM_LOG_MAXLEVEL");
 	if (!envlvl)
 		return;
 
@@ -66,7 +66,7 @@ MM_CONSTRUCTOR(init_log)
 
 	// If we reach each, unknown level has been set through environment
 	// In that case, it should be equivalent to no log
-	maxloglvl = MMLOG_NONE;
+	maxloglvl = MM_LOG_NONE;
 }
 
 
@@ -124,7 +124,7 @@ size_t format_log_str(char* restrict buff, size_t blen,
 
 
 /**
- * mmlog_log() - Add a formatted message to the log file
+ * mm_log() - Add a formatted message to the log file
  * @lvl:        log level.
  * @location:   origin of the log message.
  * @msg:        log message.
@@ -134,11 +134,11 @@ size_t format_log_str(char* restrict buff, size_t blen,
  * by the @location parameter. The severity part is defined by the @lvl
  * parameter which must one of this value listed from the most critical to the
  * least one:
- *   MMLOG_FATAL
- *   MMLOG_ERROR
- *   MMLOG_WARN
- *   MMLOG_INFO
- *   MMLOG_DEBUG
+ *   MM_LOG_FATAL
+ *   MM_LOG_ERROR
+ *   MM_LOG_WARN
+ *   MM_LOG_INFO
+ *   MM_LOG_DEBUG
  *
  * The message part of log entry is formed according the format specified by the
  * @msg parameters which convert the formatting and conversion of the optional
@@ -146,16 +146,17 @@ size_t format_log_str(char* restrict buff, size_t blen,
  * one of the @sprintf function.
  *
  * If the parameter lvl is less critical than the environment variable
- * @MMLOG_MAXLEVEL, the log entry will not be written to log and simply ignored.
+ * @MM_LOG_MAXLEVEL, the log entry will not be written to log and simply
+ * ignored.
  *
- * Usually, users do not call mmlog_log() directly but use one of the following
- * macros: mmlog_fatal(), mmlog_error(), mmlog_warn(), mmlog_info(),
- * mmlog_debug()
+ * Usually, users do not call mm_log() directly but use one of the following
+ * macros: mm_log_fatal(), mm_log_error(), mm_log_warn(), mm_log_info(),
+ * mm_log_debug()
  *
  * Return: None
  *
  * ENVIRONMENT: You can control the output on the log at runtime using the
- * environment variable @MMLOG_MAXLEVEL. It specifies the maximum level of
+ * environment variable @MM_LOG_MAXLEVEL. It specifies the maximum level of
  * severity that must be written on the log. It must be set to one of these
  * values:
  *   NONE
@@ -168,19 +169,19 @@ size_t format_log_str(char* restrict buff, size_t blen,
  * A value different from the one listed above, the maximum level output on the
  * log is WARN.
  *
- * mmlog_log() is thread-safe.
+ * mm_log() is thread-safe.
  *
- * See: sprintf(), mmlog_fatal(), mmlog_error(), mmlog_warn(),
- * mmlog_info(), mmlog_debug()
+ * See: sprintf(), mm_log_fatal(), mm_log_error(), mm_log_warn(),
+ * mm_log_info(), mm_log_debug()
  */
 API_EXPORTED
-void mmlog_log(int lvl, const char* location, const char* msg, ...)
+void mm_log(int lvl, const char* location, const char* msg, ...)
 {
 	ssize_t r;
 	size_t len;
 	char* cbuf;
 	va_list args;
-	char buff[MMLOG_LINE_MAXLEN];
+	char buff[MM_LOG_LINE_MAXLEN];
 
 	// Do not log something higher than the max level set by environment
 	if (lvl > maxloglvl || lvl < 0)
@@ -204,13 +205,13 @@ void mmlog_log(int lvl, const char* location, const char* msg, ...)
 
 
 /**
- * mmlog_set_maxlvl() - set maximum log level
+ * mm_log_set_maxlvl() - set maximum log level
  * @lvl: log level to set
  *
  * Return: previous log level
  */
 API_EXPORTED
-int mmlog_set_maxlvl(int lvl)
+int mm_log_set_maxlvl(int lvl)
 {
 	int rv = maxloglvl;
 	maxloglvl = lvl;

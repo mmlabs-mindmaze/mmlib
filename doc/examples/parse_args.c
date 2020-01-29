@@ -29,16 +29,17 @@ struct config cfg = {
 #define DEFAULT_PATH "/default/path"
 
 static
-struct mmarg_opt cmdline_optv[] = {
-	{"detach", MMOPT_NOVAL, "set", {.sptr = &cfg.detach_flag},
+struct mm_arg_opt cmdline_optv[] = {
+	{"detach", MM_OPT_NOVAL, "set", {.sptr = &cfg.detach_flag},
 	 "detach server process."},
-	{"n|num-instance", MMOPT_NEEDUINT, NULL, {.uiptr = &cfg.num_instance},
+	{"n|num-instance", MM_OPT_NEEDUINT, NULL, {.uiptr = &cfg.num_instance},
 	 "Server can accommodate up to @NUM client simultaneously. Here is "
 	 "more explanation to test text wrapping. " LOREM_IPSUM},
-	{"l|use-local-storage", MMOPT_OPTSTR, DEFAULT_PATH, {NULL},
+	{"l|use-local-storage", MM_OPT_OPTSTR, DEFAULT_PATH, {NULL},
 	 "Use local storage located at @PATH which must exist. "
 	 "If unspecified @PATH is assumed "DEFAULT_PATH "."},
-	{.name = "i", .flags = MMOPT_NEEDSTR, .defval = NULL, {.sptr = &cfg.ip},
+	{.name = "i", .flags = MM_OPT_NEEDSTR, .defval = NULL,
+	 {.sptr = &cfg.ip},
 	 .desc = "IP address of remote server. @ADDR must have dotted form."},
 };
 
@@ -54,13 +55,13 @@ struct mmarg_opt cmdline_optv[] = {
  * parsing must stop.
  */
 static
-int parse_option_cb(const struct mmarg_opt* opt, union mmarg_val value,
+int parse_option_cb(const struct mm_arg_opt* opt, union mm_arg_val value,
                     void* data, int state)
 {
 	struct config* conf = data;
 	(void)state;
 
-	switch (mmarg_opt_get_key(opt)) {
+	switch (mm_arg_opt_get_key(opt)) {
 	case 'n':
 		if (value.ui < 1) {
 			fprintf(stderr,
@@ -92,7 +93,7 @@ int parse_option_cb(const struct mmarg_opt* opt, union mmarg_val value,
 int main(int argc, char* argv[])
 {
 	int i, arg_index;
-	struct mmarg_parser parser = {
+	struct mm_arg_parser parser = {
 		.doc = LOREM_IPSUM,
 		.args_doc = "[options] cmd argument\n[options] hello",
 		.optv = cmdline_optv,
@@ -103,7 +104,7 @@ int main(int argc, char* argv[])
 	};
 
 
-	arg_index = mmarg_parse(&parser, argc, argv);
+	arg_index = mm_arg_parse(&parser, argc, argv);
 
 	fprintf(stdout, "options used:\n\tdetach_flag: %s\n\tinstance: %u\n"
 	        "\tserver address: %s\n\tuse local path: %s\n",

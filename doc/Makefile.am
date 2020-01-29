@@ -41,14 +41,14 @@ nobase_dist_doc_DATA = \
 	$(eol)
 
 OVERRIDING_MANPAGES = \
-	mmlog_debug.3 \
-	mmlog_fatal.3 \
-	mmlog_warn.3 \
-	mmtoc.3 \
-	mmlog_error.3 \
-	mmlog_info.3 \
-	mmtic.3 \
-	mmtoc_label.3 \
+	mm_log_debug.3 \
+	mm_log_fatal.3 \
+	mm_log_warn.3 \
+	mm_toc.3 \
+	mm_log_error.3 \
+	mm_log_info.3 \
+	mm_tic.3 \
+	mm_toc_label.3 \
 	$(eol)
 
 DOC_SRCS = \
@@ -67,7 +67,6 @@ DOC_SRCS = \
 	socket.rst \
 	thread.rst \
 	time.rst \
-	type.rst \
 	$(eol)
 
 EXTRA_DIST = \

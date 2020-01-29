@@ -66,10 +66,10 @@ START_TEST(path_from_base)
 END_TEST
 
 
-START_TEST(mmstrcasecmp_test)
+START_TEST(mm_strcasecmp_test)
 {
-	ck_assert(mmstrcasecmp("teststring", "teststring") == 0);
-	/* mmstrcasecmp() compares as lower case:
+	ck_assert(mm_strcasecmp("teststring", "teststring") == 0);
+	/* mm_strcasecmp() compares as lower case:
 	 * 'S' = 0x53
 	 * '_' = 0x5F
 	 * 's' = 0x73
@@ -77,10 +77,10 @@ START_TEST(mmstrcasecmp_test)
 	 * so: 'S' < '_' < 's'
 	 *
 	 * therefore strcmp() returns "JOHN_HENRY" > "JOHNSTON"
-	 * but mmstrcasecmp() returns "JOHN_HENRY" < "JOHNSTON"
+	 * but mm_strcasecmp() returns "JOHN_HENRY" < "JOHNSTON"
 	 */
 	ck_assert(strcmp("JOHN_HENRY", "JOHNSTON") > 0);
-	ck_assert(mmstrcasecmp("JOHN_HENRY", "JOHNSTON") < 0);
+	ck_assert(mm_strcasecmp("JOHN_HENRY", "JOHNSTON") < 0);
 }
 END_TEST
 
@@ -370,7 +370,7 @@ TCase* create_utils_tcase(void)
 
 	tcase_add_loop_test(tc, get_basedir, -5, MM_NUM_DIRTYPE+5);
 	tcase_add_loop_test(tc, path_from_base, -5, MM_NUM_DIRTYPE+5);
-	tcase_add_test(tc, mmstrcasecmp_test);
+	tcase_add_test(tc, mm_strcasecmp_test);
 	tcase_add_test(tc, get_set_unset_env);
 	tcase_add_test(tc, get_environ);
 	tcase_add_test(tc, multiple_set_unset_env);

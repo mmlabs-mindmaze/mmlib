@@ -354,7 +354,7 @@ API_EXPORTED
 ssize_t mm_read(int fd, void* buf, size_t nbyte)
 {
 	ssize_t rsz;
-	struct mmipc_msg ipcmsg;
+	struct mm_ipc_msg ipcmsg;
 	struct iovec iov;
 	int fd_info;
 
@@ -380,8 +380,8 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 	case FD_TYPE_IPCDGRAM:
 		iov.iov_base = buf;
 		iov.iov_len = nbyte;
-		ipcmsg = (struct mmipc_msg) {.iov = &iov, .num_iov = 1};
-		rsz = mmipc_recvmsg(fd, &ipcmsg);
+		ipcmsg = (struct mm_ipc_msg) {.iov = &iov, .num_iov = 1};
+		rsz = mm_ipc_recvmsg(fd, &ipcmsg);
 		break;
 
 	case FD_TYPE_MSVCRT:
@@ -402,7 +402,7 @@ API_EXPORTED
 ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 {
 	ssize_t rsz;
-	struct mmipc_msg ipcmsg;
+	struct mm_ipc_msg ipcmsg;
 	struct iovec iov;
 	int fd_info;
 
@@ -428,8 +428,8 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 	case FD_TYPE_IPCDGRAM:
 		iov.iov_base = (void*)buf;
 		iov.iov_len = nbyte;
-		ipcmsg = (struct mmipc_msg) {.iov = &iov, .num_iov = 1};
-		rsz = mmipc_sendmsg(fd, &ipcmsg);
+		ipcmsg = (struct mm_ipc_msg) {.iov = &iov, .num_iov = 1};
+		rsz = mm_ipc_sendmsg(fd, &ipcmsg);
 		break;
 
 	case FD_TYPE_MSVCRT:
@@ -1062,7 +1062,7 @@ int win32_unlinkat(const char * prefix, const char * name, int type)
 /**
  * mm_remove_rec() - internal helper to recursively clean given folder
  * @prefix:        tracks the relative prefix path from the original callpoint
- * @d:             pointer to the current MMDIR structure to clean
+ * @d:             pointer to the current MM_DIR structure to clean
  * @flags:         option flag to return on error
  * @rec_lvl:       maximum recursion level
  *
@@ -1073,11 +1073,11 @@ int win32_unlinkat(const char * prefix, const char * name, int type)
  * Return: 0 on success, -1 on error
  */
 static
-int mm_remove_rec(const char * prefix, MMDIR * d, int flags, int rec_lvl)
+int mm_remove_rec(const char * prefix, MM_DIR * d, int flags, int rec_lvl)
 {
 	int rv, status;
 	unsigned int type;
-	MMDIR * newdir;
+	MM_DIR * newdir;
 	const struct mm_dirent * dp;
 
 	if (UNLIKELY(rec_lvl < 0))
@@ -1144,7 +1144,7 @@ API_EXPORTED
 int mm_remove(const char* path, int flags)
 {
 	int rv, error_flags;
-	MMDIR * dir;
+	MM_DIR * dir;
 	int type = -1;
 	DWORD attrs;
 
@@ -1186,21 +1186,21 @@ int mm_remove(const char* path, int flags)
 
 /**
  * win32_find_file() - helper to handle the conversion between utf8 and 16
- * @dir:    pointer to a MMDIR structure
+ * @dir:    pointer to a MM_DIR structure
  *
  * NOTE: windows Prototype are:
  *   HANDLE FindFirstFileW(path, ...)
  *   bool FindFirstFileW(HANDLE, ...)
  *
  * This function hides the difference by always returning a HANDLE like FindFirstFile()
- * and storing the HANDLE and path within the MMDIR structure.
+ * and storing the HANDLE and path within the MM_DIR structure.
  *
  * Return: 0 on success, -1 on error
  * The caller should call GetLastError() and investigate the issue itself
  *
  */
 static
-int win32_find_file(MMDIR * dir)
+int win32_find_file(MM_DIR * dir)
 {
 	size_t reclen, namelen;
 	int path_u16_len;
@@ -1262,17 +1262,17 @@ int win32_find_file(MMDIR * dir)
 
 /* doc in posix implementation */
 API_EXPORTED
-MMDIR * mm_opendir(const char* path)
+MM_DIR * mm_opendir(const char* path)
 {
 	int len;
-	MMDIR * d;
+	MM_DIR * d;
 
 	len = strlen(path) + 3;  // concat with "/*\0"
 	d = malloc(sizeof(*d) + len);
 	if (d == NULL)
 		goto error;
 
-	*d = (MMDIR) { .hdir = INVALID_HANDLE_VALUE };
+	*d = (MM_DIR) { .hdir = INVALID_HANDLE_VALUE };
 	strcpy(d->dirname, path);
 	strcat(d->dirname, "/*");
 
@@ -1295,7 +1295,7 @@ error:
 
 /* doc in posix implementation */
 API_EXPORTED
-void mm_closedir(MMDIR* dir)
+void mm_closedir(MM_DIR* dir)
 {
 	if (dir == NULL)
 		return;
@@ -1307,7 +1307,7 @@ void mm_closedir(MMDIR* dir)
 
 /* doc in posix implementation */
 API_EXPORTED
-void mm_rewinddir(MMDIR* dir)
+void mm_rewinddir(MM_DIR* dir)
 {
 	if (dir == NULL) {
 		mm_raise_error(EINVAL, "Does not accept NULL arguments");
@@ -1320,7 +1320,7 @@ void mm_rewinddir(MMDIR* dir)
 
 /* doc in posix implementation */
 API_EXPORTED
-const struct mm_dirent* mm_readdir(MMDIR* d, int * status)
+const struct mm_dirent* mm_readdir(MM_DIR* d, int * status)
 {
 	if (d == NULL) {
 		if (status != NULL)

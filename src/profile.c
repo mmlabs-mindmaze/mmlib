@@ -122,11 +122,11 @@ int64_t median_estimator_getvalue(struct median_estimator* me)
 static int clock_id;    // Clock type to use to measure time
 static int num_ts;      // Maximum number of points of measure used so far
 static int next_ts;     // Index of the next point of measure slot. 0 is for
-                        // the measure done by mmtic()
+                        // the measure done by mm_tic()
 
 static int num_iter;            // Number of iteration recorded so far
-static int64_t toc_overhead;    // Overhead of a mmtic()/mmtoc() call
-static struct timespec timestamps[NUM_TS_MAX];  // current iteration measure
+static int64_t toc_overhead;    // Overhead of a mm_tic()/mm_toc() call
+static struct mm_timespec timestamps[NUM_TS_MAX];  // current iteration measure
 static int64_t max_diff_ts[NUM_TS_MAX];         // max time difference
 static int64_t min_diff_ts[NUM_TS_MAX];         // min time difference
 static int64_t sum_diff_ts[NUM_TS_MAX];  // sum of time difference overall
@@ -146,12 +146,12 @@ static char label_storage[MAX_LABEL_LEN*NUM_TS_MAX];
 /**
  * get_diff_ts() - Estimate the time difference between 2 consecutive points
  * @i:  Index of the point. The difference will be computed between the
- *      (i-1)-th and the (i)-th timestamp. (index 0 correspond to mmtic())
+ *      (i-1)-th and the (i)-th timestamp. (index 0 correspond to mm_tic())
  *
  * Compute the time difference between 2 consecutive points at indices (i-1)
  * and (i). If it is not called at the initialization, the computed
- * difference takes into account the overhead of mmtic() and mmtoc(). This
- * means that if the difference correspond to 2 consecutive call to mmtoc(),
+ * difference takes into account the overhead of mm_tic() and mm_toc(). This
+ * means that if the difference correspond to 2 consecutive call to mm_toc(),
  * the estimated difference (in absence of cold cache) should be close to 0
  * ns (depends on the clock used).
  *
@@ -220,17 +220,17 @@ void reset_diffs(void)
 
 
 /**
- * estimate_toc_overhead() - Estimate the overhead of call to mmtic/mmtoc
+ * estimate_toc_overhead() - Estimate the overhead of call to mm_tic/mm_toc
  *
- * The estimation is done by several call to mmtic mmtoc after resetting the
+ * The estimation is done by several call to mm_tic mm_toc after resetting the
  * toc overhead to 0. Only the min value provide insight of the actual
  * overhead.
  *
  * NOTE: This approach of measuring call overhead can work only if the calls
- * to mmtoc() and mmtic() are not optimized, ie, the prologues are not
+ * to mm_toc() and mm_tic() are not optimized, ie, the prologues are not
  * skipped because the functions are in the same dynamic shared object. This
  * is ensured by setting a default visibility (ie API_EXPORTED_RELOCATABLE)
- * to the mmtic() and mmtoc() functions.
+ * to the mm_tic() and mm_toc() functions.
  */
 static
 void estimate_toc_overhead(void)
@@ -240,13 +240,13 @@ void estimate_toc_overhead(void)
 	reset_diffs();
 	toc_overhead = 0;
 	for (i = 0; i < 1000; i++) {
-		mmtic();
-		mmtoc();
-		mmtoc();
+		mm_tic();
+		mm_toc();
+		mm_toc();
 
-		mmtic();
-		mmtoc_label("");
-		mmtoc_label("");
+		mm_tic();
+		mm_toc_label("");
+		mm_toc_label("");
 
 		// Remove the first measure to avoid cold cache effect
 		if (i == 0)
@@ -267,7 +267,7 @@ void estimate_toc_overhead(void)
 static inline
 void local_toc(void)
 {
-	struct timespec ts;
+	struct mm_timespec ts;
 
 	mm_gettime(clock_id, &ts);
 
@@ -320,7 +320,7 @@ int max_label_len(void)
 /**
  * compute_requested_timings() - Compute and store result in an array
  * @mask:       mask of the requested timings computation
- * @num_points: number of time measure (ie number of call to mmtoc())
+ * @num_points: number of time measure (ie number of call to mm_toc())
  * @data:       array (num_col x @num_points) receiving the results
  *
  * Returns: the number of different timing computation requested, i.e. the
@@ -382,7 +382,7 @@ int compute_requested_timings(int mask, int num_points, int64_t data[])
 
 /**
  * get_display_unit() - get the index of suitable unit
- * @num_points: number of rows in @data (number of call to mmtoc())
+ * @num_points: number of rows in @data (number of call to mm_toc())
  * @num_cols:   number of columns in @data
  * @data:       array (num_col x @num_points) holding the results
  * @mask:       mask supplied by user to possibly force use of a unit
@@ -478,7 +478,7 @@ int format_header_line(int mask, int label_width, char str[])
 /**
  * format_result_line() - print a line of the result table
  * @ncol:       number of columns in @data
- * @num_points: number of rows in @data (number of call to mmtoc())
+ * @num_points: number of rows in @data (number of call to mm_toc())
  * @v:          index of the desired line in the table (first is 0)
  * @unit_index: index of the unit to use to display the result
  * @label_width:        maximum length of a registered label
@@ -547,18 +547,18 @@ int full_mm_write(int fd, const void* buf, size_t len)
  **************************************************************************/
 
 /**
- * mmtic() - Start a iteration of profiling
+ * mm_tic() - Start a iteration of profiling
  *
  * Update the timing statistics with the previous data if applicable and
  * reset the metadata for a new timing iteration. Finally measure the
  * timestamp of the iteration start.
  *
- * NOTE: Contrary to the usual API functions, mmtic() uses the attribute
+ * NOTE: Contrary to the usual API functions, mm_tic() uses the attribute
  * API_EXPORTED_RELOCATABLE. This is done on purpose. See NOTE of
  * estimate_toc_overhead().
  */
 API_EXPORTED_RELOCATABLE
-void mmtic(void)
+void mm_tic(void)
 {
 	update_diffs();
 	next_ts = 0;
@@ -568,35 +568,35 @@ void mmtic(void)
 
 
 /**
- * mmtoc() - Add a new point of measure to the current timing iteration
+ * mm_toc() - Add a new point of measure to the current timing iteration
  *
- * NOTE: Contrary to the usual API functions, mmtoc() uses the attribute
+ * NOTE: Contrary to the usual API functions, mm_toc() uses the attribute
  * API_EXPORTED_RELOCATABLE. This is done on purpose. See NOTE of
  * estimate_toc_overhead().
  */
 API_EXPORTED_RELOCATABLE
-void mmtoc(void)
+void mm_toc(void)
 {
 	local_toc();
 }
 
 
 /**
- * mmtoc_label() - Add a new point of measure associated with a label
+ * mm_toc_label() - Add a new point of measure associated with a label
  * @label:      string to appear in front of measure point at result display
  *
- * This function is the same as mmtoc() excepting it provides a way to label
+ * This function is the same as mm_toc() excepting it provides a way to label
  * the meansure point. Beware than only the first occurrence of a label
  * associated with a measure point will be retained. Any subsequent call to
- * mmtoc_label() at the same measure point index will be the same as calling
- * mmtoc().
+ * mm_toc_label() at the same measure point index will be the same as calling
+ * mm_toc().
  *
- * NOTE: Contrary to the usual API functions, mmtoc_label() uses the
+ * NOTE: Contrary to the usual API functions, mm_toc_label() uses the
  * attribute API_EXPORTED_RELOCATABLE. This is done on purpose. See NOTE of
  * estimate_toc_overhead().
  */
 API_EXPORTED_RELOCATABLE
-void mmtoc_label(const char* label)
+void mm_toc_label(const char* label)
 {
 	// Copy label if it the first time to appear
 	if (!labels[next_ts]) {
@@ -609,7 +609,7 @@ void mmtoc_label(const char* label)
 
 
 /**
- * mmprofile_print() - Print the timing statistics gathered so far
+ * mm_profile_print() - Print the timing statistics gathered so far
  * @mask:       combination of flags indicating statistics must be printed
  * @fd:         file descriptor to which the statistics must be printed
  *
@@ -629,10 +629,10 @@ void mmtoc_label(const char* label)
  *
  * Returns: 0 in case of success, -1 otherwise with errno set accordingly
  *
- * See: mmprofile_reset(), mmtic(), write()
+ * See: mm_profile_reset(), mm_tic(), write()
  */
 API_EXPORTED
-int mmprofile_print(int mask, int fd)
+int mm_profile_print(int mask, int fd)
 {
 	int i, ncol, num_points, label_width, unit_index;
 	char str[512];
@@ -666,14 +666,14 @@ int mmprofile_print(int mask, int fd)
 
 
 /**
- * mmprofile_get_data - Retrieve profile result programmatically
+ * mm_profile_get_data - Retrieve profile result programmatically
  * @measure_point:      measure point whose statistic must be get
  * @type:               type of statistic (PROF_[CURR|MIN|MEAN|MAX|MEDIAN])
  *
  * Return: statistic value in nanosecond
  */
 API_EXPORTED
-int64_t mmprofile_get_data(int measure_point, int type)
+int64_t mm_profile_get_data(int measure_point, int type)
 {
 	int64_t data[NUM_TS_MAX];
 	int num_points, mask;
@@ -704,7 +704,7 @@ int64_t mmprofile_get_data(int measure_point, int type)
 
 
 /**
- * mmprofile_reset() - Reset the statistics and change the timer
+ * mm_profile_reset() - Reset the statistics and change the timer
  * @flags:	bit-OR combination of flags influencing the reset behavior.
  *
  * Reset the timing statistics, ie, reset the min, max, mean values as well
@@ -727,17 +727,17 @@ int64_t mmprofile_get_data(int measure_point, int type)
  * If the PROF_RESET_KEEPLABEL flag is set in the @flags argument, the
  * labels associated with each measure point will be kept over the reset.
  * In practice, this provides a way to avoid the overhead of of label copy
- * when using mmtoc_label(): an initial iteration will copy the label and
+ * when using mm_toc_label(): an initial iteration will copy the label and
  * the measurements are reset after this first iteration while keeping the
- * label. Then the subsequent call to mmtoc_label() will not be affected by
+ * label. Then the subsequent call to mm_toc_label() will not be affected by
  * the string copy overhead.
  *
  * At startup, the function are configured to use CPU based timer.
  *
- * See: mmprofile_print(), mmtic(), mmtoc_label()
+ * See: mm_profile_print(), mm_tic(), mm_toc_label()
  */
 API_EXPORTED
-void mmprofile_reset(int flags)
+void mm_profile_reset(int flags)
 {
 	unsigned int i;
 

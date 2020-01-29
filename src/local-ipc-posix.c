@@ -17,13 +17,13 @@
 
 #define BACKLOG_LENGTH 5
 
-struct mmipc_srv {
+struct mm_ipc_srv {
 	int listenfd;
 };
 
 
 /**
- * mmipc_srv_create() - Create a IPC server
+ * mm_ipc_srv_create() - Create a IPC server
  * @addr:       path to which the server must listen
  *
  * This creates a server instance that will listen to the path specified by
@@ -37,11 +37,11 @@ struct mmipc_srv {
  * error state set accordingly
  */
 API_EXPORTED
-struct mmipc_srv* mmipc_srv_create(const char* addr)
+struct mm_ipc_srv* mm_ipc_srv_create(const char* addr)
 {
 	int fd = -1;
 	struct sockaddr_un address = {.sun_family = AF_UNIX};
-	struct mmipc_srv* srv;
+	struct mm_ipc_srv* srv;
 
 	if (strlen(addr) > (sizeof(address.sun_path) - 1)) {
 		mm_raise_error(ENAMETOOLONG, "server name too long");
@@ -70,11 +70,11 @@ struct mmipc_srv* mmipc_srv_create(const char* addr)
 
 
 /**
- * mmipc_srv_destroy() - Destroy IPC server
+ * mm_ipc_srv_destroy() - Destroy IPC server
  * @srv:        server to destroy
  *
  * This function destroy the server referenced to by @srv. The path to which
- * server was listening become available for new call to mmipc_srv_create().
+ * server was listening become available for new call to mm_ipc_srv_create().
  * However, if there were accepted connection still opened, it is
  * unspecified whether the name will be available before all connection are
  * closed or not. If there were client connection pending that had not been
@@ -84,7 +84,7 @@ struct mmipc_srv* mmipc_srv_create(const char* addr)
  * survive until they are specifically closed with mm_close().
  */
 API_EXPORTED
-void mmipc_srv_destroy(struct mmipc_srv* srv)
+void mm_ipc_srv_destroy(struct mm_ipc_srv* srv)
 {
 	if (!srv)
 		return;
@@ -95,7 +95,7 @@ void mmipc_srv_destroy(struct mmipc_srv* srv)
 
 
 /**
- * mmipc_srv_accept() - accept a incoming connection
+ * mm_ipc_srv_accept() - accept a incoming connection
  * @srv:        IPC server
  *
  * This function extracts the first connection on the queue of pending
@@ -107,7 +107,7 @@ void mmipc_srv_destroy(struct mmipc_srv* srv)
  * of success. Otherwise -1 is returned with error state set accordingly.
  */
 API_EXPORTED
-int mmipc_srv_accept(struct mmipc_srv* srv)
+int mm_ipc_srv_accept(struct mm_ipc_srv* srv)
 {
 	int fd;
 
@@ -122,10 +122,10 @@ int mmipc_srv_accept(struct mmipc_srv* srv)
 
 
 /**
- * mmipc_connect() - connect a client to an IPC server
+ * mm_ipc_connect() - connect a client to an IPC server
  * @addr:       path to which the client must connect
  *
- * Client-side counterpart of mmipc_srv_accept(), this functions attempts to
+ * Client-side counterpart of mm_ipc_srv_accept(), this functions attempts to
  * connect to a server listening to @addr if there are any. If one is found,
  * it allocates a new file descriptor for that connection (the lowest number
  * available). If there are no server listening to @addr, the function will
@@ -135,7 +135,7 @@ int mmipc_srv_accept(struct mmipc_srv* srv)
  * of success. Otherwise -1 is returned with error state set accordingly.
  */
 API_EXPORTED
-int mmipc_connect(const char* addr)
+int mm_ipc_connect(const char* addr)
 {
 	int fd;
 	size_t len;
@@ -159,7 +159,7 @@ int mmipc_connect(const char* addr)
 
 
 /**
- * mmipc_sendmsg() - send message to ICP endpoint
+ * mm_ipc_sendmsg() - send message to ICP endpoint
  * @fd:         file descriptor of an IPC connection endpoint
  * @msg:        IPC message
  *
@@ -176,7 +176,7 @@ int mmipc_connect(const char* addr)
  * error state set accordingly.
  */
 API_EXPORTED
-ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg)
+ssize_t mm_ipc_sendmsg(int fd, const struct mm_ipc_msg* msg)
 {
 	ssize_t rsz;
 	struct msghdr dgram = {
@@ -210,7 +210,7 @@ ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg)
 
 
 /**
- * mmipc_recvmsg() - recv message from IPC endpoint
+ * mm_ipc_recvmsg() - recv message from IPC endpoint
  * @fd:         file descriptor of an IPC connection endpoint
  * @msg:        IPC message
  *
@@ -231,7 +231,7 @@ ssize_t mmipc_sendmsg(int fd, const struct mmipc_msg* msg)
  * error state set accordingly.
  */
 API_EXPORTED
-ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
+ssize_t mm_ipc_recvmsg(int fd, struct mm_ipc_msg* msg)
 {
 	ssize_t rsz;
 	int i, num_fd, passed_fd;
@@ -272,7 +272,7 @@ ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
 		cmsg_data = CMSG_DATA(cmsg);
 		memcpy(msg->fds, cmsg_data, msg->num_fds*sizeof(int));
 
-		// Close any fd that could not have been passed in mmipc_msg
+		// Close any fd that could not have been passed in mm_ipc_msg
 		for (i = msg->num_fds_max; i < num_fd; i++) {
 			memcpy(&passed_fd, cmsg_data + i * sizeof(int),
 			       sizeof(int));
@@ -286,14 +286,14 @@ ssize_t mmipc_recvmsg(int fd, struct mmipc_msg* msg)
 
 
 /**
- * mmipc_connected_pair() - create a pair of connected IPC endpoints
+ * mm_ipc_connected_pair() - create a pair of connected IPC endpoints
  * @fds:        array receiving the file descriptor of the 2 endpoints
  *
  * Return: 0 in case of success, -1 otherwise with error state set
  * accordingly.
  */
 API_EXPORTED
-int mmipc_connected_pair(int fds[2])
+int mm_ipc_connected_pair(int fds[2])
 {
 	int rv;
 

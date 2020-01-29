@@ -331,13 +331,13 @@ void drop_child_from_children_list(mm_pid_t pid)
 
 
 /**
- * mmlib_fd_init() - Initializer of fd info array
+ * mm_fd_init() - Initializer of fd info array
  *
  * This function is called at startup (before main or during dllmain if
  * dynamically loaded) and initialize the fd information array according to
  * what the parent may have pass to the current process
  */
-MM_CONSTRUCTOR(mmlib_fd_init)
+MM_CONSTRUCTOR(mm_fd_init)
 {
 	STARTUPINFOW si;
 	int fd, num_fd;

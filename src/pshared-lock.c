@@ -26,18 +26,18 @@
 static
 void spawn_lockserver_thread(void)
 {
-	mmthread_t thid;
+	mm_thread_t thid;
 
-	mmthr_create(&thid, lockserver_thread_routine, NULL);
-	mmthr_detach(thid);
+	mm_thr_create(&thid, lockserver_thread_routine, NULL);
+	mm_thr_detach(thid);
 }
 
 static
 void try_spawn_lockserver(void)
 {
-	static mmthr_once_t lockserver_once = MMTHR_ONCE_INIT;
+	static mm_once_t lockserver_once = MM_THR_ONCE_INIT;
 
-	mmthr_once(&lockserver_once, spawn_lockserver_thread);
+	mm_once(&lockserver_once, spawn_lockserver_thread);
 }
 
 #else //!LOCKSERVER_IN_MMLIB_DLL
