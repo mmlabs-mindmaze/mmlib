@@ -16,6 +16,8 @@
 #include <fcntl.h>
 #include <uchar.h>
 
+#define FILE_SHARE_ALL FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE
+
 
 struct w32_create_file_options {
 	DWORD access_mode;

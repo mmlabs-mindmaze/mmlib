@@ -26,6 +26,8 @@ enum {
 #define WAITCLK_FLAG_REALTIME          (MM_THR_PSHARED << 2)
 #define WAITCLK_MASK	(WAITCLK_FLAG_MONOTONIC | WAITCLK_FLAG_REALTIME)
 
+#define SRV_TIMEOUT_MS          200
+
 
 struct lockref_req_msg {
 	int opcode;
@@ -80,6 +82,27 @@ struct mutex_cleanup_job {
 	int num_dead;
 	struct dead_thread deadlist[];
 };
+
+
+static inline
+HANDLE create_srv_first_pipe(void)
+{
+	HANDLE hnd;
+	DWORD open_mode, pipe_mode;
+
+	open_mode = PIPE_ACCESS_DUPLEX
+	          | FILE_FLAG_OVERLAPPED
+	          | FILE_FLAG_FIRST_PIPE_INSTANCE;
+
+	pipe_mode = PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE
+	          | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS;
+
+	hnd = CreateNamedPipe(referee_pipename, open_mode, pipe_mode,
+	                      PIPE_UNLIMITED_INSTANCES, MM_PAGESZ, MM_PAGESZ,
+	                      SRV_TIMEOUT_MS, NULL);
+
+	return hnd;
+}
 
 
 #ifdef LOCKSERVER_IN_MMLIB_DLL

@@ -1099,7 +1099,7 @@ static const struct {
 	int exp_port;
 } sockclient_cases[] = {
 	{"msnp://localhost", SOCK_STREAM, 1863},
-	{"rlp://localhost", SOCK_DGRAM, 39},
+	{"ntp://localhost", SOCK_DGRAM, 123},
 	{"tcp://localhost:" MM_STRINGIFY(PORT), SOCK_STREAM, PORT},
 	{"udp://localhost:" MM_STRINGIFY(PORT), SOCK_DGRAM, PORT},
 };
@@ -1126,6 +1126,12 @@ START_TEST(create_sockclient)
 	}
 
 	fd = mm_create_sockclient(uri);
+	if (fd == -1) {
+		fprintf(stderr, "Failed to create server socker with uri: %s, port %d\n"
+		        "If you do not support this protocol, or if this port is closed "
+		        "you can ignore this failure\n",
+		        uri, exp_port);
+	}
 	ck_assert(fd != -1);
 
 	socktype = get_socktype(fd);
@@ -1167,8 +1173,10 @@ END_TEST
 static
 void socket_test_teardown(void)
 {
+	int flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
 	clean_childproc(&child);
 	clean_helper_test_data();
+	mm_error_set_flags(flags, MM_ERROR_IGNORE);
 }
 
 

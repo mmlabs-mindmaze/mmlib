@@ -42,21 +42,81 @@ void try_spawn_lockserver(void)
 
 #else //!LOCKSERVER_IN_MMLIB_DLL
 
+
 static
-void try_spawn_lockserver(void)
+void spawn_lock_server(HANDLE pipe)
 {
+	STARTUPINFOEX info = {.StartupInfo = {.cb = sizeof(info)}};
+	LPPROC_THREAD_ATTRIBUTE_LIST attrlist = NULL;
+	SIZE_T attrlist_bufsize;
 	const char* binpath;
-	struct mm_remap_fd fd_map[] = {
-		{.child_fd = 0, .parent_fd = -1},
-		{.child_fd = 1, .parent_fd = -1},
-		{.child_fd = 2, .parent_fd = -1},
-	};
+	char* cmdline = NULL;
+	PROCESS_INFORMATION proc_info;
 
 	// Determine the path of the referee server
 	binpath = mm_getenv("MMLIB_LOCKREF_BIN", LOCK_REFEREE_SERVER_BIN);
 
-	mm_spawn(NULL, binpath, MM_NELEM(fd_map), fd_map,
-	         MM_SPAWN_DAEMONIZE, NULL, NULL);
+	// cmdline is formatted with "binpath 0x<hnd_val>"
+	cmdline = mm_malloca(strlen(binpath) + 1 + 2 + 16 + 1);
+	if (!cmdline)
+		goto exit;
+
+	sprintf(cmdline, "%s 0x%016llx", binpath, (unsigned long long)pipe);
+
+	// Allocate attribute list
+	InitializeProcThreadAttributeList(NULL, 1, 0, &attrlist_bufsize);
+	attrlist = mm_malloca(attrlist_bufsize);
+	if (!attrlist)
+		goto exit;
+
+	// Setup attribute list with the pipe handle to inherit
+	InitializeProcThreadAttributeList(attrlist, 1, 0, &attrlist_bufsize);
+	UpdateProcThreadAttribute(attrlist, 0,
+	                          PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+	                          &pipe, sizeof(pipe), NULL, NULL);
+
+	// Spawn detached process (ie, close child process handles)
+	info.lpAttributeList = attrlist;
+	if (!CreateProcess(binpath, cmdline, NULL, NULL, TRUE,
+	                   EXTENDED_STARTUPINFO_PRESENT,
+	                   NULL, NULL, &info.StartupInfo, &proc_info)) {
+		mm_raise_from_w32err("Unable to spawn \"%s\"", cmdline);
+	} else {
+		// Success case: close handle to child
+		CloseHandle(proc_info.hThread);
+		CloseHandle(proc_info.hProcess);
+	}
+
+	DeleteProcThreadAttributeList(attrlist);
+exit:
+	mm_freea(attrlist);
+	mm_freea(cmdline);
+}
+
+
+static
+void try_spawn_lockserver(void)
+{
+	HANDLE pipe, inheritable_pipe, proc_hnd;
+
+	// It is normal if the pipe creation failed. This happens if another
+	// lockserver has been openned concurrently. Hence we should be quiet.
+	pipe = create_srv_first_pipe();
+	if (pipe == INVALID_HANDLE_VALUE)
+		return;
+
+	// Make pipe inheritable
+	proc_hnd = GetCurrentProcess();
+	if (!DuplicateHandle(proc_hnd, pipe, proc_hnd, &inheritable_pipe,
+	                     0, TRUE, DUPLICATE_SAME_ACCESS)) {
+		mm_raise_from_w32err("Unable to duplicate pipe handle");
+		return;
+	}
+
+	CloseHandle(pipe);
+
+	spawn_lock_server(inheritable_pipe);
+	CloseHandle(inheritable_pipe);
 }
 
 #endif //!LOCKSERVER_IN_MMLIB_DLL

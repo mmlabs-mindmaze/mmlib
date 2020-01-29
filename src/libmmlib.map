@@ -100,6 +100,7 @@ MMLIB_1.0 {
 		mm_relative_sleep_ns;
 		mm_relative_sleep_us;
 		mm_remove;
+		mm_rename;
 		mm_rewinddir;
 		mm_rmdir;
 		mm_save_errorstate;

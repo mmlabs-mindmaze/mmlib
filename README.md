@@ -20,7 +20,8 @@ Running the tests require the `check` framework.
 
 ### Documentation
 
-Generating the documentation requires `sphinx` and [linuxdoc](https://github.com/return42/linuxdoc)
+Generating the documentation requires `sphinx` and
+[linuxdoc](https://github.com/mmlabs-mindmaze/linuxdoc)
 
 ## Install
 

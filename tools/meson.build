@@ -1,6 +1,6 @@
 all_lib_c_sources = mmlib_sources + lock_referee_sources
 
-if get_option('tests')
+if tests_state == 'enabled'
     all_test_c_sources = (testlog_sources
             + testerrno_sources
             + testprofile_sources
@@ -14,7 +14,7 @@ else
     all_test_c_sources = []
 endif
 
-if get_option('docs')
+if docs_state == 'enabled'
     all_doc_c_sources = (pshared_parent_doc_example_sources
             + pshared_child_doc_example_sources
             + parse_args_doc_example
@@ -75,3 +75,5 @@ api_compat_test = run_target('api-compat-test',
             public_headers,
         ]
 )
+
+meson.add_dist_script('copyright_autoheader')

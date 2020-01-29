@@ -1,8 +1,8 @@
-option('tests', type: 'boolean', value: true,
+option('tests', type: 'feature', value: 'auto',
     description: 'build unit tests')
-option('docs', type: 'boolean', value: true,
+option('docs', type: 'feature', value: 'auto',
     description: 'build documentation')
-option('nls', type: 'boolean', value: true,
+option('nls', type: 'feature', value: 'auto',
     description: 'use Native Language Support (Translations)')
 
 option('lock-server-process', type: 'boolean', value: true,

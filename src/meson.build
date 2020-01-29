@@ -41,7 +41,7 @@ ldflags = []
 link_deps = []
 dependencies = []
 
-if get_option('nls')
+if nls_state == 'enabled'
     cflags += '-DENABLE_NLS'
     if not cc.has_function('ngettext')
         dependencies += cc.find_library('intl', required : true)
