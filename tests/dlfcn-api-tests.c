@@ -21,8 +21,8 @@
 
 START_TEST(dlopen_simple)
 {
-	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
-	                              MMLD_NOW);
+	mm_dynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
+	                              MM_LD_NOW);
 	ck_assert(hndl != NULL);
 	mm_dlclose(hndl);
 }
@@ -30,8 +30,8 @@ END_TEST
 
 START_TEST(dlopen_invalid_flags)
 {
-	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
-	                              MMLD_NOW | MMLD_LAZY);
+	mm_dynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
+	                              MM_LD_NOW | MM_LD_LAZY);
 	ck_assert(hndl == NULL);
 	ck_assert(mm_get_lasterror_number() == EINVAL);
 	mm_dlclose(hndl);
@@ -40,8 +40,8 @@ END_TEST
 
 START_TEST(dlopen_invalid_path)
 {
-	mmdynlib_t * hndl = mm_dlopen("invalid-path-name",
-	                              MMLD_NOW | MMLD_LAZY);
+	mm_dynlib_t * hndl = mm_dlopen("invalid-path-name",
+	                              MM_LD_NOW | MM_LD_LAZY);
 	ck_assert(hndl == NULL);
 	ck_assert(mm_get_lasterror_number() == EINVAL);
 	mm_dlclose(hndl);
@@ -50,8 +50,8 @@ END_TEST
 
 START_TEST(dlsym_simple)
 {
-	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
-	                              MMLD_NOW);
+	mm_dynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
+	                              MM_LD_NOW);
 	ck_assert(hndl != NULL);
 	ck_assert(mm_dlsym(hndl, "api") != NULL);
 	mm_dlclose(hndl);
@@ -64,8 +64,8 @@ START_TEST(dlsym_invalid)
 	ck_assert(mm_get_lasterror_number() == EINVAL);
 
 
-	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
-	                              MMLD_NOW);
+	mm_dynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
+	                              MM_LD_NOW);
 	ck_assert(hndl != NULL);
 
 	ck_assert(mm_dlsym(hndl, NULL) == NULL);
@@ -77,8 +77,8 @@ END_TEST
 
 START_TEST(dlsym_not_found)
 {
-	mmdynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
-	                              MMLD_NOW);
+	mm_dynlib_t * hndl = mm_dlopen(LT_OBJDIR "/dynlib-test" LT_MODULE_EXT,
+	                              MM_LD_NOW);
 	ck_assert(hndl != NULL);
 	ck_assert(mm_dlsym(hndl, "invalid-symbol-name") == NULL);
 	mm_dlclose(hndl);
@@ -109,7 +109,7 @@ bool check_dynlibdata_val(struct dynlib_data* data,
 static
 int run_plugin_tests(const char* plugin, int flags)
 {
-	mmdynlib_t* libhnd;
+	mm_dynlib_t* libhnd;
 	struct dynlib_data* data;
 	struct dynlib_vtab* vtab;
 
@@ -169,7 +169,7 @@ END_TEST
 
 START_TEST(plugin_ld_append_ext)
 {
-	ck_assert(run_plugin_tests(LT_OBJDIR "/dynlib-test", MMLD_APPEND_EXT) ==
+	ck_assert(run_plugin_tests(LT_OBJDIR "/dynlib-test", MM_LD_APPEND_EXT) ==
 	          0);
 }
 END_TEST

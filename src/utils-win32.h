@@ -32,7 +32,7 @@ int mm_raise_from_w32err_full(const char* module, const char* func,
                               const char* srcfile, int srcline,
                               const char* desc, ...);
 #define mm_raise_from_w32err(...) \
-	mm_raise_from_w32err_full(MMLOG_MODULE_NAME, __func__, __FILE__, __LINE__, __VA_ARGS__)
+	mm_raise_from_w32err_full(MM_LOG_MODULE_NAME, __func__, __FILE__, __LINE__, __VA_ARGS__)
 
 
 /**************************************************************************
@@ -121,7 +121,7 @@ int wrap_handle_into_fd_with_logctx(HANDLE hnd, int* p_fd, int info,
 
 error:
 	errnum = errno;
-	mm_raise_error_full(errnum, MMLOG_MODULE_NAME,
+	mm_raise_error_full(errnum, MM_LOG_MODULE_NAME,
 	                    func, srcfile, srcline, NULL,
 	                    "Failed to wrap windows handle into file "
 	                    "descriptor: %s", strerror(errnum));
@@ -145,7 +145,7 @@ int unwrap_handle_from_fd_with_logctx(HANDLE* p_hnd, int fd, const char* func,
 
 error:
 	errnum = errno;
-	mm_raise_error_full(errnum, MMLOG_MODULE_NAME,
+	mm_raise_error_full(errnum, MM_LOG_MODULE_NAME,
 	                    func, srcfile, srcline, NULL,
 	                    "Failed to unwrap windows handle from file "
 	                    "descriptor: %s", strerror(errnum));
@@ -220,7 +220,7 @@ int unsetenv_utf8(const char* name);
 
 
 static inline
-void filetime_to_timespec(FILETIME ft, struct timespec* ts)
+void filetime_to_timespec(FILETIME ft, struct mm_timespec* ts)
 {
 	ULARGE_INTEGER time_int;
 
@@ -236,7 +236,7 @@ void filetime_to_timespec(FILETIME ft, struct timespec* ts)
 static inline
 time_t filetime_to_time(FILETIME ft)
 {
-	struct timespec ts;
+	struct mm_timespec ts;
 
 	filetime_to_timespec(ft, &ts);
 

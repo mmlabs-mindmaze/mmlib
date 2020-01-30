@@ -68,7 +68,7 @@ void determine_cpu_cycle_rate(void)
 
 
 static
-void convert_cpu_cycle_to_ts(int64_t cpu_cycle, struct timespec* ts)
+void convert_cpu_cycle_to_ts(int64_t cpu_cycle, struct mm_timespec* ts)
 {
 	int64_t sec, nsec;
 
@@ -82,7 +82,7 @@ void convert_cpu_cycle_to_ts(int64_t cpu_cycle, struct timespec* ts)
 
 
 static
-void gettimespec_tsc(struct timespec* ts)
+void gettimespec_tsc(struct mm_timespec* ts)
 {
 	unsigned int tsc_aux;
 	int64_t tsc;
@@ -93,7 +93,7 @@ void gettimespec_tsc(struct timespec* ts)
 
 
 static
-void getres_tsc(struct timespec* res)
+void getres_tsc(struct mm_timespec* res)
 {
 	long nsec;
 
@@ -125,7 +125,7 @@ void init_qpc(void)
 
 
 static
-void gettimespec_qpc(struct timespec* ts)
+void gettimespec_qpc(struct mm_timespec* ts)
 {
 	LARGE_INTEGER count;
 	LONGLONG sec, nsec;
@@ -140,7 +140,7 @@ void gettimespec_qpc(struct timespec* ts)
 
 
 static
-void getres_qpc(struct timespec* res)
+void getres_qpc(struct mm_timespec* res)
 {
 	res->tv_sec = 0;
 	res->tv_nsec = nsec_in_qpc_tick;
@@ -191,7 +191,7 @@ void init_monotonic_clock(void)
 
 
 LOCAL_SYMBOL
-void gettimespec_monotonic_w32(struct timespec* ts)
+void gettimespec_monotonic_w32(struct mm_timespec* ts)
 {
 	if (monotonic_use_tsc)
 		gettimespec_tsc(ts);
@@ -201,7 +201,7 @@ void gettimespec_monotonic_w32(struct timespec* ts)
 
 
 LOCAL_SYMBOL
-void getres_monotonic_w32(struct timespec* res)
+void getres_monotonic_w32(struct mm_timespec* res)
 {
 	if (monotonic_use_tsc)
 		getres_tsc(res);
@@ -215,7 +215,7 @@ void getres_monotonic_w32(struct timespec* res)
  **************************************************************************/
 
 LOCAL_SYMBOL
-void gettimespec_wallclock_w32(struct timespec* ts)
+void gettimespec_wallclock_w32(struct mm_timespec* ts)
 {
 	FILETIME curr;
 
@@ -225,7 +225,7 @@ void gettimespec_wallclock_w32(struct timespec* ts)
 
 
 LOCAL_SYMBOL
-void getres_wallclock_w32(struct timespec* res)
+void getres_wallclock_w32(struct mm_timespec* res)
 {
 	// GetSystemTimePreciseAsFileTime() express time in term of number of
 	// 100-nanosecond intervals
@@ -235,7 +235,7 @@ void getres_wallclock_w32(struct timespec* res)
 
 
 LOCAL_SYMBOL
-void gettimespec_thread_w32(struct timespec* ts)
+void gettimespec_thread_w32(struct mm_timespec* ts)
 {
 	ULONG64 cycles;
 
@@ -245,14 +245,14 @@ void gettimespec_thread_w32(struct timespec* ts)
 
 
 LOCAL_SYMBOL
-void getres_thread_w32(struct timespec* res)
+void getres_thread_w32(struct mm_timespec* res)
 {
 	getres_tsc(res);
 }
 
 
 LOCAL_SYMBOL
-void gettimespec_process_w32(struct timespec* ts)
+void gettimespec_process_w32(struct mm_timespec* ts)
 {
 	ULONG64 cycles;
 
@@ -262,7 +262,7 @@ void gettimespec_process_w32(struct timespec* ts)
 
 
 LOCAL_SYMBOL
-void getres_process_w32(struct timespec* res)
+void getres_process_w32(struct mm_timespec* res)
 {
 	getres_tsc(res);
 }

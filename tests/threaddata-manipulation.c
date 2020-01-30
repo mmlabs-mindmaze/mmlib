@@ -70,15 +70,15 @@ intptr_t run_write_shared_data(struct shared_write_data* shdata)
 	int i;
 	int num_iter = shdata->num_iteration;
 	_Atomic int64_t* data = &shdata->value;
-	int64_t tid = (int64_t)mmthr_self();
+	int64_t tid = (int64_t)mm_thr_self();
 	bool match, do_sleep;
 
 	do_sleep = shdata->sleep_in_touch;
 
 	for (i = 0; i < num_iter; i++) {
-		mmthr_mtx_lock(&shdata->mutex);
+		mm_thr_mutex_lock(&shdata->mutex);
 		match = touch_data(data, tid, do_sleep);
-		mmthr_mtx_unlock(&shdata->mutex);
+		mm_thr_mutex_unlock(&shdata->mutex);
 
 		if (!match) {
 			shdata->failed = true;
@@ -95,21 +95,21 @@ intptr_t run_write_shared_data(struct shared_write_data* shdata)
 API_EXPORTED
 intptr_t run_notif_data(struct notif_data* ndata)
 {
-	mmthr_mtx_lock(&ndata->mutex);
+	mm_thr_mutex_lock(&ndata->mutex);
 
 	// Notify that the runner is ready
 	ndata->nwaiter += 1;
-	mmthr_cond_signal(&ndata->cv1);
+	mm_thr_cond_signal(&ndata->cv1);
 
 	// Wait for being signal or asked to exit
 	while (!ndata->todo && !ndata->quit)
-		mmthr_cond_wait(&ndata->cv2, &ndata->mutex);
+		mm_thr_cond_wait(&ndata->cv2, &ndata->mutex);
 
 	if (!ndata->quit)
 		ndata->done += 1;
 
 	ndata->numquit += 1;
-	mmthr_mtx_unlock(&ndata->mutex);
+	mm_thr_mutex_unlock(&ndata->mutex);
 
 	return 0;
 }
@@ -119,12 +119,12 @@ API_EXPORTED
 intptr_t run_robust_mutex_write_data(struct robust_mutex_write_data* rdata)
 {
 	int r, iter;
-	mmthr_mtx_t* mtx = &rdata->mutex;
+	mm_thr_mutex_t* mtx = &rdata->mutex;
 
-	r = mmthr_mtx_lock(mtx);
+	r = mm_thr_mutex_lock(mtx);
 	if (r == EOWNERDEAD) {
 		rdata->detected_iter_after_crash = rdata->iter_finished;
-		mmthr_mtx_consistent(mtx);
+		mm_thr_mutex_consistent(mtx);
 	} else if (r != 0) {
 		return -1;
 	}
@@ -140,7 +140,7 @@ intptr_t run_robust_mutex_write_data(struct robust_mutex_write_data* rdata)
 
 	rdata->iter_finished++;
 
-	mmthr_mtx_unlock(mtx);
+	mm_thr_mutex_unlock(mtx);
 
 	return 0;
 }

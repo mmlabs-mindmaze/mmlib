@@ -22,7 +22,7 @@
 static
 int mutex_type_flags[] = {
 	0,
-	MMTHR_PSHARED,
+	MM_THR_PSHARED,
 };
 #define NUM_MUTEX_TYPE	MM_NELEM(mutex_type_flags)
 #define FIRST_PSHARED_MUTEX_TYPE	1
@@ -44,10 +44,10 @@ void* simple_write_proc(void* arg)
 START_TEST(data_write_in_thread)
 {
 	int value = 0;
-	mmthread_t thid;
+	mm_thread_t thid;
 
-	ck_assert(mmthr_create(&thid, simple_write_proc, &value) == 0);
-	mmthr_join(thid, NULL);
+	ck_assert(mm_thr_create(&thid, simple_write_proc, &value) == 0);
+	mm_thr_join(thid, NULL);
 
 	ck_assert(value == EXPECTED_VALUE);
 }
@@ -77,7 +77,7 @@ void init_shared_write_data(struct shared_write_data* shdata, int mutex_flags,
 	shdata->failed = false;
 	shdata->num_runner_remaining = num_runner;
 
-	ck_assert(mmthr_mtx_init(&shdata->mutex, mutex_flags) == 0);
+	ck_assert(mm_thr_mutex_init(&shdata->mutex, mutex_flags) == 0);
 }
 
 
@@ -96,7 +96,7 @@ static
 void runtest_mutex_protection_on_write(int mutex_flags, int num_iter, bool do_sleep)
 {
 	int i, num_thread;
-	mmthread_t thid[NUM_CONCURRENCY];
+	mm_thread_t thid[NUM_CONCURRENCY];
 	struct shared_write_data shdata;
 
 	init_shared_write_data(&shdata, mutex_flags, NUM_CONCURRENCY, num_iter, do_sleep);
@@ -104,7 +104,7 @@ void runtest_mutex_protection_on_write(int mutex_flags, int num_iter, bool do_sl
 	// Spawn all thread for the test
 	num_thread = 0;
 	for (i = 0; i < NUM_CONCURRENCY; i++) {
-		if (mmthr_create(&thid[i], protected_write_threadproc, &shdata) != 0)
+		if (mm_thr_create(&thid[i], protected_write_threadproc, &shdata) != 0)
 			break;
 
 		num_thread++;
@@ -113,7 +113,7 @@ void runtest_mutex_protection_on_write(int mutex_flags, int num_iter, bool do_sl
 
 	// Join only threads that have been created
 	for (i = 0; i < num_thread; i++)
-		mmthr_join(thid[i], NULL);
+		mm_thr_join(thid[i], NULL);
 
 	ck_assert(num_thread == NUM_CONCURRENCY);
 	ck_assert(shdata.num_runner_remaining == 0);
@@ -247,7 +247,7 @@ START_TEST(robust_mutex)
 	rdata->sleep_after_first_lock = robust_sleep_on_lock_cases[_i];
 	rdata->crash_at_iter = EXPECTED_CRASH_ITER;
 	rdata->detected_iter_after_crash = -1;
-	ck_assert(mmthr_mtx_init(&rdata->mutex, MMTHR_PSHARED) == 0);
+	ck_assert(mm_thr_mutex_init(&rdata->mutex, MM_THR_PSHARED) == 0);
 
 	// Spawn all children for the test
 	fdmap.child_fd = 3;
@@ -298,18 +298,18 @@ void init_notif_data(struct notif_data* ndata, int mutex_flags)
 {
 	memset(ndata, 0, sizeof(*ndata));
 
-	mmthr_mtx_init(&ndata->mutex, mutex_flags);
-	mmthr_cond_init(&ndata->cv1, mutex_flags);
-	mmthr_cond_init(&ndata->cv2, mutex_flags);
+	mm_thr_mutex_init(&ndata->mutex, mutex_flags);
+	mm_thr_cond_init(&ndata->cv1, mutex_flags);
+	mm_thr_cond_init(&ndata->cv2, mutex_flags);
 }
 
 
 static
 void deinit_notif_data(struct notif_data* ndata)
 {
-	mmthr_mtx_deinit(&ndata->mutex);
-	mmthr_cond_deinit(&ndata->cv1);
-	mmthr_cond_deinit(&ndata->cv2);
+	mm_thr_mutex_deinit(&ndata->mutex);
+	mm_thr_cond_deinit(&ndata->cv1);
+	mm_thr_cond_deinit(&ndata->cv2);
 }
 
 
@@ -317,26 +317,26 @@ static
 void do_notif_and_inspect(struct notif_data* ndata, bool do_broadcast,
                           int num_runner)
 {
-	mmthr_mtx_lock(&ndata->mutex);
+	mm_thr_mutex_lock(&ndata->mutex);
 
 	// Wait for all started thread be ready
 	while (ndata->nwaiter < num_runner)
-		mmthr_cond_wait(&ndata->cv1, &ndata->mutex);
+		mm_thr_cond_wait(&ndata->cv1, &ndata->mutex);
 
 	if (!do_broadcast) {
 		// Notify one thread to wakeup and give it time respond
 		ndata->todo = true;
-		mmthr_cond_signal(&ndata->cv2);
-		mmthr_mtx_unlock(&ndata->mutex);
+		mm_thr_cond_signal(&ndata->cv2);
+		mm_thr_mutex_unlock(&ndata->mutex);
 		mm_relative_sleep_ms(500);
-		mmthr_mtx_lock(&ndata->mutex);
+		mm_thr_mutex_lock(&ndata->mutex);
 	}
 
 	// Copy done value for later inspection and notify all threads to
 	// quit
 	ndata->quit = true;
-	mmthr_cond_broadcast(&ndata->cv2);
-	mmthr_mtx_unlock(&ndata->mutex);
+	mm_thr_cond_broadcast(&ndata->cv2);
+	mm_thr_mutex_unlock(&ndata->mutex);
 }
 
 
@@ -349,7 +349,7 @@ static
 void runtest_signal_or_broadcast_thread(int mutex_flags, bool do_broadcast)
 {
 	int i, num_thread;
-	mmthread_t thid[NUM_CONCURRENCY];
+	mm_thread_t thid[NUM_CONCURRENCY];
 	struct notif_data ndata;
 
 	init_notif_data(&ndata, mutex_flags);
@@ -357,7 +357,7 @@ void runtest_signal_or_broadcast_thread(int mutex_flags, bool do_broadcast)
 	// Spawn all thread for the test
 	num_thread = 0;
 	for (i = 0; i < NUM_CONCURRENCY; i++) {
-		if (mmthr_create(&thid[i], notif_var_threadproc, &ndata) != 0)
+		if (mm_thr_create(&thid[i], notif_var_threadproc, &ndata) != 0)
 			break;
 
 		num_thread++;
@@ -367,7 +367,7 @@ void runtest_signal_or_broadcast_thread(int mutex_flags, bool do_broadcast)
 
 	// Join only threads that have been created
 	for (i = 0; i < num_thread; i++)
-		mmthr_join(thid[i], NULL);
+		mm_thr_join(thid[i], NULL);
 
 	// Verify expected outcome
 	if (do_broadcast)
@@ -476,7 +476,7 @@ END_TEST
  **************************************************************************/
 static atomic_int once_val1 = 0;
 static atomic_int once_val2 = 0;
-static mmthr_once_t once = MMTHR_ONCE_INIT;
+static mm_thr_once_t once = MM_THR_ONCE_INIT;
 
 static
 void one_time_proc(void)
@@ -494,7 +494,7 @@ void* once_test_proc(void* data)
 {
 	(void)data;
 
-	mmthr_once(&once, one_time_proc);
+	mm_thr_once(&once, one_time_proc);
 
 	return NULL;
 }
@@ -502,14 +502,14 @@ void* once_test_proc(void* data)
 
 START_TEST(concurrent_once)
 {
-	mmthread_t thid[NUM_CONCURRENCY];
+	mm_thread_t thid[NUM_CONCURRENCY];
 	int i;
 
 	for (i = 0; i < MM_NELEM(thid); i++)
-		ck_assert(mmthr_create(&thid[i], once_test_proc, NULL) == 0);
+		ck_assert(mm_thr_create(&thid[i], once_test_proc, NULL) == 0);
 
 	for (i = 0; i < MM_NELEM(thid); i++)
-		mmthr_join(thid[i], NULL);
+		mm_thr_join(thid[i], NULL);
 
 	ck_assert_int_eq(once_val1, 1);
 	ck_assert_int_eq(once_val2, 1);

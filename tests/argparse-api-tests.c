@@ -241,9 +241,9 @@ void each_test_teardown(void)
 #define STRVAL4         u8"µ%POPIP"
 
 static
-struct mmarg_opt cmdline_optv[] = {
-	{"d|distractor", MMOPT_OPTSTR, "default_distractor", {NULL}, NULL},
-	{"s|set", MMOPT_OPTSTR, STRVAL_DEFAULT, {NULL}, NULL},
+struct mm_arg_opt cmdline_optv[] = {
+	{"d|distractor", MM_OPT_OPTSTR, "default_distractor", {NULL}, NULL},
+	{"s|set", MM_OPT_OPTSTR, STRVAL_DEFAULT, {NULL}, NULL},
 };
 
 static const
@@ -264,13 +264,13 @@ struct argv_case parsing_order_cases[] = {
 };
 
 static
-int parse_option_cb(const struct mmarg_opt* opt, union mmarg_val value,
+int parse_option_cb(const struct mm_arg_opt* opt, union mm_arg_val value,
                     void* data, int state)
 {
 	(void)state;
 	const char** strval = data;
 
-	if (mmarg_opt_get_key(opt) == 's')
+	if (mm_arg_opt_get_key(opt) == 's')
 		*strval = value.str;
 
 	return 0;
@@ -280,7 +280,7 @@ int parse_option_cb(const struct mmarg_opt* opt, union mmarg_val value,
 START_TEST(parsing_order_cb)
 {
 	const char* str_value = STRVAL_UNSET;
-	struct mmarg_parser parser = {
+	struct mm_arg_parser parser = {
 		.optv = cmdline_optv,
 		.num_opt = MM_NELEM(cmdline_optv),
 		.cb = parse_option_cb,
@@ -291,7 +291,7 @@ START_TEST(parsing_order_cb)
 	char** argv = (char**)case_data->argv;
 
 	argc =  argv_len(argv);
-	arg_index = mmarg_parse(&parser, argc, argv);
+	arg_index = mm_arg_parse(&parser, argc, argv);
 
 	ck_assert_int_ge(arg_index, 0);
 	ck_assert_str_eq(str_value, case_data->expval);
@@ -313,13 +313,13 @@ struct {
 } optdata = {0};
 
 static
-struct mmarg_opt argval_valid_tests_optv[] = {
-	{"set-ll", MMOPT_NEEDLLONG, NULL, {.llptr = &optdata.ll}, NULL},
-	{"set-ull", MMOPT_NEEDULLONG, NULL, {.ullptr = &optdata.ull},
+struct mm_arg_opt argval_valid_tests_optv[] = {
+	{"set-ll", MM_OPT_NEEDLLONG, NULL, {.llptr = &optdata.ll}, NULL},
+	{"set-ull", MM_OPT_NEEDULLONG, NULL, {.ullptr = &optdata.ull},
 	 "Use this option to ull to @VAL_ULL. Recall value is @VAL_ULL."},
-	{"i|set-i", MMOPT_NEEDINT, NULL, {.iptr = &optdata.i}, NULL},
-	{"set-ui", MMOPT_NEEDUINT, NULL, {.uiptr = &optdata.ui}, NULL},
-	{"set-str", MMOPT_NEEDSTR, NULL, {.sptr = &optdata.str}, NULL},
+	{"i|set-i", MM_OPT_NEEDINT, NULL, {.iptr = &optdata.i}, NULL},
+	{"set-ui", MM_OPT_NEEDUINT, NULL, {.uiptr = &optdata.ui}, NULL},
+	{"set-str", MM_OPT_NEEDSTR, NULL, {.sptr = &optdata.str}, NULL},
 };
 
 
@@ -335,8 +335,8 @@ struct argv_case help_argv_cases[] = {
 
 START_TEST(print_help)
 {
-	struct mmarg_parser parser = {
-		.flags = MMARG_PARSER_NOEXIT,
+	struct mm_arg_parser parser = {
+		.flags = MM_ARG_PARSER_NOEXIT,
 		.doc = LOREM_IPSUM,
 		.optv = argval_valid_tests_optv,
 		.num_opt = MM_NELEM(argval_valid_tests_optv),
@@ -345,9 +345,9 @@ START_TEST(print_help)
 	char** argv = (char**)help_argv_cases[_i].argv;
 
 	argc = argv_len(argv);
-	rv = mmarg_parse(&parser, argc, argv);
+	rv = mm_arg_parse(&parser, argc, argv);
 
-	ck_assert_int_eq(rv, MMARGPARSE_STOP);
+	ck_assert_int_eq(rv, MM_ARGPARSE_STOP);
 }
 END_TEST
 
@@ -381,8 +381,8 @@ struct argv_case error_argv_cases[] = {
 
 START_TEST(parsing_error)
 {
-	struct mmarg_parser parser = {
-		.flags = MMARG_PARSER_NOEXIT,
+	struct mm_arg_parser parser = {
+		.flags = MM_ARG_PARSER_NOEXIT,
 		.optv = argval_valid_tests_optv,
 		.num_opt = MM_NELEM(argval_valid_tests_optv),
 	};
@@ -390,9 +390,9 @@ START_TEST(parsing_error)
 	char** argv = (char**)error_argv_cases[_i].argv;
 
 	argc = argv_len(argv);
-	rv = mmarg_parse(&parser, argc, argv);
+	rv = mm_arg_parse(&parser, argc, argv);
 
-	ck_assert_int_eq(rv, MMARGPARSE_ERROR);
+	ck_assert_int_eq(rv, MM_ARGPARSE_ERROR);
 }
 END_TEST
 
@@ -403,7 +403,7 @@ START_TEST(optv_parsing_error)
 	char** argv = (char**)error_argv_cases[_i].argv;
 
 	argc = argv_len(argv);
-	mmarg_optv_parse(MM_NELEM(argval_valid_tests_optv),
+	mm_arg_optv_parse(MM_NELEM(argval_valid_tests_optv),
 	                 argval_valid_tests_optv, argc, argv);
 }
 END_TEST
@@ -420,8 +420,8 @@ struct argv_case success_argv_cases[] = {
 
 START_TEST(parsing_success)
 {
-	struct mmarg_parser parser = {
-		.flags = MMARG_PARSER_NOEXIT,
+	struct mm_arg_parser parser = {
+		.flags = MM_ARG_PARSER_NOEXIT,
 		.optv = argval_valid_tests_optv,
 		.num_opt = MM_NELEM(argval_valid_tests_optv),
 	};
@@ -429,7 +429,7 @@ START_TEST(parsing_success)
 	char** argv = (char**)success_argv_cases[_i].argv;
 
 	argc = argv_len(argv);
-	rv = mmarg_parse(&parser, argc, argv);
+	rv = mm_arg_parse(&parser, argc, argv);
 
 	ck_assert_int_ge(rv, 0);
 	ck_assert_str_eq(argv[rv], success_argv_cases[_i].expval);
@@ -442,7 +442,7 @@ START_TEST(optv_parsing_success)
 	char** argv = (char**)success_argv_cases[_i].argv;
 
 	argc = argv_len(argv);
-	rv = mmarg_optv_parse(MM_NELEM(argval_valid_tests_optv),
+	rv = mm_arg_optv_parse(MM_NELEM(argval_valid_tests_optv),
 	                      argval_valid_tests_optv, argc, argv);
 
 	ck_assert_int_ge(rv, 0);
@@ -457,7 +457,7 @@ END_TEST
  *                                                                        *
  **************************************************************************/
 struct {
-	struct mmarg_opt opt;
+	struct mm_arg_opt opt;
 	char key;
 	char* name;
 } parse_optname_cases [] = {
@@ -472,9 +472,9 @@ struct {
 START_TEST(get_key)
 {
 	int key;
-	const struct mmarg_opt* opt = &parse_optname_cases[_i].opt;
+	const struct mm_arg_opt* opt = &parse_optname_cases[_i].opt;
 
-	key = mmarg_opt_get_key(opt);
+	key = mm_arg_opt_get_key(opt);
 
 	ck_assert_int_eq(key, parse_optname_cases[_i].key);
 }
@@ -484,9 +484,9 @@ END_TEST
 START_TEST(get_name)
 {
 	const char *name, *ref_name;
-	const struct mmarg_opt* opt = &parse_optname_cases[_i].opt;
+	const struct mm_arg_opt* opt = &parse_optname_cases[_i].opt;
 
-	name = mmarg_opt_get_name(opt);
+	name = mm_arg_opt_get_name(opt);
 	ref_name = parse_optname_cases[_i].name;
 
 	if (ref_name)
@@ -575,8 +575,8 @@ void check_props_from_output_file(char* expected_props[])
 
 START_TEST(complete_empty_arg)
 {
-	struct mmarg_parser parser = {
-		.flags = MMARG_PARSER_NOEXIT | MMARG_PARSER_COMPLETION,
+	struct mm_arg_parser parser = {
+		.flags = MM_ARG_PARSER_NOEXIT | MM_ARG_PARSER_COMPLETION,
 		.optv = argval_valid_tests_optv,
 		.num_opt = MM_NELEM(argval_valid_tests_optv),
 	};
@@ -584,10 +584,10 @@ START_TEST(complete_empty_arg)
 	char* few_argv[] = {"bin", "--set-ll=42", "-i", "-23", ""};
 	int rv;
 
-	rv = mmarg_parse(&parser, MM_NELEM(only_argv), only_argv);
+	rv = mm_arg_parse(&parser, MM_NELEM(only_argv), only_argv);
 	ck_assert_int_eq(rv, MM_NELEM(only_argv)-1);
 
-	rv = mmarg_parse(&parser, MM_NELEM(few_argv), few_argv);
+	rv = mm_arg_parse(&parser, MM_NELEM(few_argv), few_argv);
 	ck_assert_int_eq(rv, MM_NELEM(few_argv)-1);
 }
 END_TEST
@@ -595,8 +595,8 @@ END_TEST
 
 START_TEST(complete_opt)
 {
-	struct mmarg_parser parser = {
-		.flags = MMARG_PARSER_NOEXIT | MMARG_PARSER_COMPLETION,
+	struct mm_arg_parser parser = {
+		.flags = MM_ARG_PARSER_NOEXIT | MM_ARG_PARSER_COMPLETION,
 		.optv = argval_valid_tests_optv,
 		.num_opt = MM_NELEM(argval_valid_tests_optv),
 	};
@@ -605,14 +605,14 @@ START_TEST(complete_opt)
 	char* few_argv[] = {"bin", "--set-ll=42", comp_cases[_i].arg};
 	int rv;
 
-	rv = mmarg_parse(&parser, MM_NELEM(only_argv), only_argv);
-	ck_assert_int_eq(rv, MMARGPARSE_COMPLETE);
+	rv = mm_arg_parse(&parser, MM_NELEM(only_argv), only_argv);
+	ck_assert_int_eq(rv, MM_ARGPARSE_COMPLETE);
 	check_props_from_output_file(expected_props);
 
 	reset_output_fd();
 
-	rv = mmarg_parse(&parser, MM_NELEM(few_argv), few_argv);
-	ck_assert_int_eq(rv, MMARGPARSE_COMPLETE);
+	rv = mm_arg_parse(&parser, MM_NELEM(few_argv), few_argv);
+	ck_assert_int_eq(rv, MM_ARGPARSE_COMPLETE);
 	check_props_from_output_file(expected_props);
 }
 END_TEST
@@ -665,10 +665,10 @@ void filter_props_type(char** dst_props, char** src_props, int typemask)
  * @name:       basename of completion proposal
  * @dir:        dirname of completion proposal
  * @type:       type of completion proposal
- * @data:       pointer passed to mmarg_complete_path()... must hold the
+ * @data:       pointer passed to mm_arg_complete_path()... must hold the
  *              string beginning to check
  *
- * function used to test the callback mechanism of mmarg_complete_path().
+ * function used to test the callback mechanism of mm_arg_complete_path().
  * It checks that completion candidate has its basename (@name) that start
  * with a string specified by @data.
  */
@@ -722,7 +722,7 @@ START_TEST(complete_path)
 		filter_props_type(expected_props, expfull_props, mask);
 
 		// Complete path from arg and check its expected proposals
-		rv = mmarg_complete_path(arg, mask, NULL, NULL);
+		rv = mm_arg_complete_path(arg, mask, NULL, NULL);
 		ck_assert(rv == 0);
 		check_props_from_output_file(expected_props);
 
@@ -730,7 +730,7 @@ START_TEST(complete_path)
 
 		// limit further proposal whose basename start by "f"
 		filter_props_name(expected_props, expected_props, "f");
-		rv = mmarg_complete_path(arg, mask, filt_name_path_cb, "f");
+		rv = mm_arg_complete_path(arg, mask, filt_name_path_cb, "f");
 		ck_assert(rv == 0);
 		check_props_from_output_file(expected_props);
 
@@ -746,28 +746,28 @@ struct {
 	char* props[MM_NELEM(completion_tree)];
 } comp_argval_path_cases[] = {
 	{
-		{"prog", "--set-path="}, MMOPT_NEEDFILE,
+		{"prog", "--set-path="}, MM_OPT_NEEDFILE,
 		{"adir/", "afile", "anotherdir/", "emptydir/", "file_1", "file_2"}
 	}, {
-		{"prog", "-p", ""}, MMOPT_NEEDFILE,
+		{"prog", "-p", ""}, MM_OPT_NEEDFILE,
 		{"adir/", "afile", "anotherdir/", "emptydir/", "file_1", "file_2"}
 	}, {
-		{"prog", "--set-path="}, MMOPT_NEEDDIR,
+		{"prog", "--set-path="}, MM_OPT_NEEDDIR,
 		{"adir/", "anotherdir/", "emptydir/"}
 	}, {
-		{"prog", "-p", ""}, MMOPT_NEEDDIR,
+		{"prog", "-p", ""}, MM_OPT_NEEDDIR,
 		{"adir/", "anotherdir/", "emptydir/"}
 	}, {
-		{"prog", "--set-path=a"}, MMOPT_NEEDFILE,
+		{"prog", "--set-path=a"}, MM_OPT_NEEDFILE,
 		{"adir/", "afile", "anotherdir/"}
 	}, {
-		{"prog", "-p", "a"}, MMOPT_NEEDFILE,
+		{"prog", "-p", "a"}, MM_OPT_NEEDFILE,
 		{"adir/", "afile", "anotherdir/"}
 	}, {
-		{"prog", "--set-path=a"}, MMOPT_NEEDDIR,
+		{"prog", "--set-path=a"}, MM_OPT_NEEDDIR,
 		{"adir/", "anotherdir/"}
 	}, {
-		{"prog", "--set-path=foobar"}, MMOPT_NEEDFILE, {0}
+		{"prog", "--set-path=foobar"}, MM_OPT_NEEDFILE, {0}
 	},
 };
 
@@ -777,18 +777,18 @@ START_TEST(complete_argval_path)
 	char** expected_props = comp_argval_path_cases[_i].props;
 	char** argv = comp_argval_path_cases[_i].argv;
 	const char* str = NULL;
-	struct mmarg_opt optv[] = {
+	struct mm_arg_opt optv[] = {
 		{"p|set-path", comp_argval_path_cases[_i].opttype,
 		 NULL, {.sptr = &str}, NULL},
 	};
-	struct mmarg_parser parser = {
-		.flags = MMARG_PARSER_NOEXIT | MMARG_PARSER_COMPLETION,
+	struct mm_arg_parser parser = {
+		.flags = MM_ARG_PARSER_NOEXIT | MM_ARG_PARSER_COMPLETION,
 		.optv = optv, .num_opt = MM_NELEM(optv),
 	};
 	int rv;
 
-	rv = mmarg_parse(&parser, argv_len(argv), argv);
-	ck_assert(rv == MMARGPARSE_COMPLETE);
+	rv = mm_arg_parse(&parser, argv_len(argv), argv);
+	ck_assert(rv == MM_ARGPARSE_COMPLETE);
 	check_props_from_output_file(expected_props);
 
 	// Ensure that str has NOT been set (completion must not set val)
@@ -799,9 +799,9 @@ END_TEST
 
 #define INIT_IVAL 9999
 static
-struct mmarg_opt completion_in_cb_optv[] = {
-	{"d|distractor", MMOPT_NEEDSTR, "default_distractor", {NULL}, NULL},
-	{"i|set-i", MMOPT_OPTINT, "-1", {NULL}, NULL},
+struct mm_arg_opt completion_in_cb_optv[] = {
+	{"d|distractor", MM_OPT_NEEDSTR, "default_distractor", {NULL}, NULL},
+	{"i|set-i", MM_OPT_OPTINT, "-1", {NULL}, NULL},
 };
 
 static struct {
@@ -824,15 +824,15 @@ static struct {
 
 
 static
-int comp_option_parse_cb(const struct mmarg_opt* opt, union mmarg_val value,
+int comp_option_parse_cb(const struct mm_arg_opt* opt, union mm_arg_val value,
                          void* data, int state)
 {
 	int* ival = data;
 
-	if (mmarg_opt_get_key(opt) == 'i') {
-		if (state & MMARG_OPT_COMPLETION) {
+	if (mm_arg_opt_get_key(opt) == 'i') {
+		if (state & MM_ARG_OPT_COMPLETION) {
 			printf("512\n1024\n");
-			return MMARGPARSE_COMPLETE;
+			return MM_ARGPARSE_COMPLETE;
 		}
 
 		*ival = value.i;
@@ -845,8 +845,8 @@ int comp_option_parse_cb(const struct mmarg_opt* opt, union mmarg_val value,
 START_TEST(completion_in_cb)
 {
 	int i_value = INIT_IVAL;
-	struct mmarg_parser parser = {
-		.flags = MMARG_PARSER_NOEXIT | MMARG_PARSER_COMPLETION,
+	struct mm_arg_parser parser = {
+		.flags = MM_ARG_PARSER_NOEXIT | MM_ARG_PARSER_COMPLETION,
 		.optv = completion_in_cb_optv,
 		.num_opt = MM_NELEM(completion_in_cb_optv),
 		.cb = comp_option_parse_cb,
@@ -857,9 +857,9 @@ START_TEST(completion_in_cb)
 	char** expected_props = comp_in_cb_cases[_i].props;
 
 	argc = argv_len(argv);
-	arg_index = mmarg_parse(&parser, argc, argv);
+	arg_index = mm_arg_parse(&parser, argc, argv);
 
-	ck_assert_int_eq(arg_index, MMARGPARSE_COMPLETE);
+	ck_assert_int_eq(arg_index, MM_ARGPARSE_COMPLETE);
 	ck_assert_int_eq(i_value, comp_in_cb_cases[_i].exp_val);
 	check_props_from_output_file(expected_props);
 }

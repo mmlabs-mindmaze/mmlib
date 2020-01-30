@@ -769,8 +769,8 @@ START_TEST(recv_multimsg_on_localhost)
 	struct iovec iov[MULTIMSG_LEN*IOV_MAXLEN];
 	struct iovec iov_ref[MULTIMSG_LEN*IOV_MAXLEN];
 	struct msghdr *msg_test, *msg_ref;
-	struct mmsock_multimsg msgvec_ref[MULTIMSG_LEN] = {{.datalen = 0}};
-	struct mmsock_multimsg msgvec_test[MULTIMSG_LEN] = {{.datalen = 0}};
+	struct mm_sock_multimsg msgvec_ref[MULTIMSG_LEN] = {{.datalen = 0}};
+	struct mm_sock_multimsg msgvec_test[MULTIMSG_LEN] = {{.datalen = 0}};
 	int domain = test_cases[_i].domain;
 	int socktype = test_cases[_i].socktype;
 
@@ -829,7 +829,7 @@ START_TEST(send_multimsg_on_localhost)
 	int socktype = test_cases[_i].socktype;
 	struct iovec iov[DGRAM_MAXSIZE * IOV_MAXLEN];
 	struct msghdr* msg;
-	struct mmsock_multimsg msgvec[MULTIMSG_LEN] = {{.datalen = 0}};
+	struct mm_sock_multimsg msgvec[MULTIMSG_LEN] = {{.datalen = 0}};
 
 	// Create connected socket and child process (the created child and
 	// socket are cleaned up in teardown)
@@ -868,14 +868,14 @@ START_TEST(send_multimsg_on_localhost)
 }
 END_TEST
 
-START_TEST(test_poll_invalid)
+START_TEST(test_poll_all_negative)
 {
 	struct mm_pollfd pollfds = {
 		.fd = -1,
-		.events = MM_POLLIN | MM_POLLOUT,
+		.events = POLLIN | POLLOUT,
 	};
 
-	ck_assert(mm_poll(&pollfds, 1, 100) < 0);
+	ck_assert(mm_poll(&pollfds, 1, 100) == 0);
 }
 END_TEST
 
@@ -883,13 +883,35 @@ START_TEST(test_poll_simple)
 {
 	struct mm_pollfd pollfds = {
 		.fd = create_server_socket(AF_INET, SOCK_DGRAM, PORT),
-		.events = MM_POLLIN | MM_POLLOUT,
+		.events = POLLIN | POLLOUT,
 	};
 
 	ck_assert(pollfds.fd > 0);
 	ck_assert(mm_poll(&pollfds, 1, 100) == 1);
-	ck_assert((pollfds.revents & MM_POLLOUT) != 0);  // can write
+	ck_assert((pollfds.revents & POLLOUT) != 0);  // can write
 	mm_close(pollfds.fd);
+}
+END_TEST
+
+/* test that if the fd is negative then the corresponding events field is
+ * ignored and the revents field returns zero */
+START_TEST(test_poll_ignore_negative_socket)
+{
+	struct mm_pollfd pollfds[] = {
+		{
+			.fd = -1,
+			.events = POLLIN | POLLOUT,
+		},
+		{
+			.fd = create_server_socket(AF_INET, SOCK_DGRAM, PORT),
+			.events = POLLIN | POLLOUT,
+		},
+	};
+	ck_assert(mm_poll(pollfds, 2, 100) == 1);  // only one valid fd
+	ck_assert((pollfds[0].revents) == 0);  // empty event
+	ck_assert((pollfds[1].revents & POLLOUT) != 0);  // can write
+	mm_close(pollfds[0].fd);
+	mm_close(pollfds[1].fd);
 }
 END_TEST
 
@@ -1182,8 +1204,9 @@ TCase* create_socket_tcase(void)
 	tcase_add_loop_test(tc, recv_multimsg_on_localhost, 0, num_cases);
 	tcase_add_loop_test(tc, send_multimsg_on_localhost, 0, num_cases);
 
-	tcase_add_test(tc, test_poll_invalid);
+	tcase_add_test(tc, test_poll_all_negative);
 	tcase_add_test(tc, test_poll_simple);
+	tcase_add_test(tc, test_poll_ignore_negative_socket);
 	tcase_add_test(tc, test_getsockname);
 	tcase_add_loop_test(tc, test_getpeername, 0, num_cases);
 	tcase_add_test(tc, getaddrinfo_valid);

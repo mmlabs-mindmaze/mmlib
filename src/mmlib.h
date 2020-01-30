@@ -184,9 +184,9 @@ void mm_freea(void* ptr)
  * choose to define based on strcasecmp's name.
  */
 #ifdef _WIN32
-#define mmstrcasecmp _stricmp
+#define mm_strcasecmp _stricmp
 #else
-#define mmstrcasecmp strcasecmp
+#define mm_strcasecmp strcasecmp
 #endif
 
 #ifdef __cplusplus

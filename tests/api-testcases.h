@@ -6,8 +6,6 @@
 
 #include <check.h>
 
-TCase* create_type_tcase(void);
-TCase* create_geometry_tcase(void);
 TCase* create_allocation_tcase(void);
 TCase* create_time_tcase(void);
 TCase* create_thread_tcase(void);

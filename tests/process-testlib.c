@@ -76,13 +76,13 @@ API_EXPORTED
 intptr_t test_execv_process(void * arg)
 {
 	int pipe_fds[2];
-	mmthread_t t1, t2;
+	mm_thread_t t1, t2;
 
 	// Create a pipe and read and write thread to create process
 	// activity in other threads when mm_execv() will be called
 	mm_check(mm_pipe(pipe_fds) == 0);
-	mm_check(mmthr_create(&t1, read_pipe_thread, pipe_fds) == 0);
-	mm_check(mmthr_create(&t2, write_pipe_thread, pipe_fds) == 0);
+	mm_check(mm_thr_create(&t1, read_pipe_thread, pipe_fds) == 0);
+	mm_check(mm_thr_create(&t2, write_pipe_thread, pipe_fds) == 0);
 
 	return exec_child(arg);
 }

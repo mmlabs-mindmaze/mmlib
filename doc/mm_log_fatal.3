@@ -1,0 +1,42 @@
+.\"@mindmaze_header@
+.TH MM_LOG_FATAL 3 2012 "" "mmlib library manual"
+.SH NAME
+mm_log_fatal, mm_log_error, mm_log_warn, mm_log_info, mm_log_debug - Add a formatted message to the log file
+.SH SYNOPSIS
+.LP
+.B #include <mmlog.h>
+.sp
+.BI "void mm_log_fatal(msg, ...);"
+.br
+.BI "void mm_log_error(msg, ...);"
+.br
+.BI "void mm_log_warn(msg, ...);"
+.br
+.BI "void mm_log_info(msg, ...);"
+.br
+.BI "void mm_log_debug(msg, ...);"
+.br
+.sp
+Link with
+.I -lmmlib
+.SH DESCRIPTION
+.LP
+Those macros writes a log entry (using \fBmm_log\fP(3)) using the level
+specified by the macro name. If the preprocessor definition
+\fIMM_LOG_MAXLEVEL\fP is smaller than the corresponding level of the macro,
+this macros is simply not exanded in the code.
+.LP
+The module name in the location string is defined by
+\fIMM_LOG_MODULE_NAME\fP. If unset when including \fBmmlog.h\fP, this
+definition is intialized to the value of \fIPACKAGE_NAME\fP. If
+\fIMM_LOG_VERBOSE_LOCATION\fP is defined, the filename and line number are
+prepended to the location string.
+.SH "RETURN VALUE"
+.LP
+None.
+.SH THREAD SAFETY
+.LP
+\fBmm_log\fP() is thread-safe.
+.SH EXAMPLE
+.LP
+
