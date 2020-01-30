@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c379de4_90a5ebe8",
+        "filename": "mmpack/specs",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1017133
+      },
+      "writtenOn": "2020-01-30T12:18:03Z",
+      "side": 1,
+      "message": "I would use the occasion to keep it out of libmmlib1... Since the current version of mmpack-build on CI server is old and does not include the locales hook, I would add it here:\n\nmmlib-locales:\n  files:\n    - share/local/.*\n\nlibmmlib1:\n  depends:\n    - mmlib-locales: any",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 20
+      },
+      "revId": "63a6b5b20831cd0fdb06bed706bb354177e0b41f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
