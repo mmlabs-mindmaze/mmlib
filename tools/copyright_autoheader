@@ -156,7 +156,8 @@ class HeaderFormatter:
         self.destdir = getenv('MESON_DIST_ROOT', '')
 
         try:
-            cfg = yaml.load(open('autoheader.yml', 'rb').read())
+            cfg = yaml.load(open('autoheader.yml', 'rb').read(),
+                            Loader=yaml.BaseLoader)
         except FileNotFoundError:
             return
 
