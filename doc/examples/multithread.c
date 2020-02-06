@@ -124,8 +124,8 @@ int main(void)
 	mm_thread_t thid[NUM_THREAD];
 	struct thread_data thdata[NUM_THREAD];
 	struct shared_data shared = {
-		.mutex = MM_THR_MTX_INITIALIZER,
-		.notif_mtx = MM_THR_MTX_INITIALIZER,
+		.mutex = MM_THR_MUTEX_INITIALIZER,
+		.notif_mtx = MM_THR_MUTEX_INITIALIZER,
 		.notif_cond = MM_THR_COND_INITIALIZER,
 		.start = 0,
 	};

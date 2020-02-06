@@ -3,6 +3,11 @@ Cleaning before opening
 
 * change source URL once the new server is in place
 
+API breaking changes
+====================
+
+* remove deprecated MTX macros
+
 ABI non-breaking changes
 ========================
 

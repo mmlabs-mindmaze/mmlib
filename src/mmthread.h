@@ -19,7 +19,8 @@ typedef pthread_cond_t mm_thr_cond_t;
 typedef pthread_once_t mm_thr_once_t;
 typedef pthread_t mm_thread_t;
 
-#define MM_THR_MTX_INITIALIZER  PTHREAD_MUTEX_INITIALIZER
+#define MM_THR_MTX_INITIALIZER  PTHREAD_MUTEX_INITIALIZER /* deprecated */
+#define MM_THR_MUTEX_INITIALIZER  PTHREAD_MUTEX_INITIALIZER
 #define MM_THR_COND_INITIALIZER PTHREAD_COND_INITIALIZER
 #define MM_THR_ONCE_INIT        PTHREAD_ONCE_INIT
 
@@ -60,7 +61,8 @@ typedef union {
 
 typedef int mm_thr_once_t;
 
-#define MM_THR_MTX_INITIALIZER {0}
+#define MM_THR_MTX_INITIALIZER {0} /* deprecated */
+#define MM_THR_MUTEX_INITIALIZER {0}
 #define MM_THR_COND_INITIALIZER {0}
 #define MM_THR_ONCE_INIT 0
 
