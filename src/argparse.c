@@ -1525,7 +1525,7 @@ exit:
  * mm_arg_is_completing() - indicates whether shell completion is running
  *
  * The function indicates if command completion has been requested through
- * %MM_CMD_COMPLETION environment variable: by convention command
+ * %MMLIB_CMD_COMPLETION environment variable: by convention command
  * completion is requested if this variable is set (no matter the value).
  *
  * Please note that you are not forced to use this environment variable to
@@ -1533,7 +1533,7 @@ exit:
  * other mechanism of your choosing. If mm_arg_parse() is used to parse
  * options, completion will run only if the flag %MM_ARG_PARSER_COMPLETION
  * is set in the flags field of struct mm_arg_parser. However on the other
- * hand, there is little reason not to use %MM_CMD_COMPLETION environment
+ * hand, there is little reason not to use %MMLIB_CMD_COMPLETION environment
  * variable. Hence if a code is mm_arg_parse() and using command completion
  * through its executable, it is invited to set %MM_ARG_PARSER_COMPLETION if
  * mm_arg_is_completing() returns 1.
@@ -1548,6 +1548,6 @@ int mm_arg_is_completing(void)
 	if (is_completing >= 0)
 		return is_completing;
 
-	is_completing = mm_getenv("MM_CMD_COMPLETION", NULL) ? 1 : 0;
+	is_completing = mm_getenv("MMLIB_CMD_COMPLETION", NULL) ? 1 : 0;
 	return is_completing;
 }
