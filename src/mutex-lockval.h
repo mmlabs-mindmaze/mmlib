@@ -135,7 +135,7 @@ bool is_mtx_ownerdead(int64_t lockval)
  *
  * If a robust mutex is in inconsistent and the owning thead unlock it
  * without a recover it, ie calling to mmthr_mtx_consistent() before
- * mmthr_mtx_unlock(), the mutex is marked permanently unusable. This helper
+ * mm_thr_mutex_unlock(), the mutex is marked permanently unusable. This helper
  * allows to identify this state from the mutex lock value @lockval.
  *
  * Return: true if mutex was inconsistent and previous owner did not recover
