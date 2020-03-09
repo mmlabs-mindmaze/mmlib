@@ -10,11 +10,3 @@ general:
     module. It provides facilities for logging, error reporting and basic
     geometry.
   build-system: meson
-
-mmlib-locales:
-  files:
-    - share/local/.*
-
-libmmlib1:
-  depends:
-    - mmlib-locales: any
