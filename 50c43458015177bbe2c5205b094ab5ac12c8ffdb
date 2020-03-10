@@ -70,6 +70,30 @@
       "revId": "50c43458015177bbe2c5205b094ab5ac12c8ffdb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d441f72_32691055",
+        "filename": "src/error.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1017133
+      },
+      "writtenOn": "2020-03-10T15:33:03Z",
+      "side": 0,
+      "message": "I was thinking about a piece of plugable hardware... Do you think that changing msg to:\n\"The hardware has been disconnected.\"\nis fine?",
+      "parentUuid": "3ef76b50_0ebd77f3",
+      "range": {
+        "startLine": 41,
+        "startChar": 12,
+        "endLine": 41,
+        "endChar": 28
+      },
+      "revId": "50c43458015177bbe2c5205b094ab5ac12c8ffdb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
