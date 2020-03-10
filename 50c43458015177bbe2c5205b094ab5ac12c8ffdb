@@ -94,6 +94,30 @@
       "revId": "50c43458015177bbe2c5205b094ab5ac12c8ffdb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4255672d_7b35b9ac",
+        "filename": "src/error.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1017136
+      },
+      "writtenOn": "2020-03-10T15:37:24Z",
+      "side": 0,
+      "message": "There is no reason why it should only be hardware.\nPeople are visualizing lots of stuff (computers, routers, access points, mix tables ...)\nI would have said \"Object\" like below, or \"device\".\n\nAnyway I don\u0027t have that strong an opinion on this.",
+      "parentUuid": "1d441f72_32691055",
+      "range": {
+        "startLine": 41,
+        "startChar": 12,
+        "endLine": 41,
+        "endChar": 28
+      },
+      "revId": "50c43458015177bbe2c5205b094ab5ac12c8ffdb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
