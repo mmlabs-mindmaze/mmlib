@@ -57,7 +57,7 @@ static const struct errmsg_entry error_tab[] = {
 		 "Specified hostname cannot be resolved")},
 };
 
-#define NUM_ERROR_ENTRY (sizeof(error_tab)/sizeof(error_tab[0]))
+#define NUM_ERROR_ENTRY MM_NELEM(error_tab)
 
 /**************************************************************************
  *                                                                        *
@@ -73,8 +73,17 @@ MM_CONSTRUCTOR(translation)
 static
 const char* get_mm_errmsg(int errnum)
 {
-	int i = errnum - error_tab[0].errnum;
-	return _(error_tab[i].msg);
+	int i;
+
+	if ((errnum < error_tab[0].errnum)
+	    || (errnum > error_tab[NUM_ERROR_ENTRY-1].errnum))
+		return NULL;
+
+	for (i = 0; i < NUM_ERROR_ENTRY; i++)
+		if (errnum == error_tab[i].errnum)
+			return _(error_tab[i].msg);
+
+	return NULL;
 }
 
 
@@ -96,11 +105,13 @@ const char* get_mm_errmsg(int errnum)
 API_EXPORTED
 const char* mm_strerror(int errnum)
 {
-	if ((errnum < error_tab[0].errnum)
-	    || (errnum > error_tab[NUM_ERROR_ENTRY-1].errnum))
-		return strerror(errnum);
+	const char* msg;
 
-	return get_mm_errmsg(errnum);
+	msg = get_mm_errmsg(errnum);
+	if (!msg)
+		msg = strerror(errnum);
+
+	return msg;
 }
 
 
@@ -127,16 +138,14 @@ int mm_strerror_r(int errnum, char * buf, size_t buflen)
 	const char* msg;
 	size_t msglen, trunclen;
 
-	if ((errnum < error_tab[0].errnum)
-	    || (errnum > error_tab[NUM_ERROR_ENTRY-1].errnum))
+	msg = get_mm_errmsg(errnum);
+	if (!msg)
 		return strerror_r(errnum, buf, buflen);
 
 	if (buflen < 1) {
 		errno = ERANGE;
 		return -1;
 	}
-
-	msg = get_mm_errmsg(errnum);
 
 	msglen = strlen(msg)+1;
 	trunclen = (buflen < msglen) ? buflen : msglen;
