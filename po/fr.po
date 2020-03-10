@@ -5,65 +5,59 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mmlib 1.0\n"
-"Report-Msgid-Bugs-To: nicolas.bourdaud@mindmaze.ch\n"
-"POT-Creation-Date: 2019-09-04 15:58+0200\n"
-"PO-Revision-Date: 2017-10-03 08:36+0200\n"
-"Last-Translator: Sébastien Lasserre <sebastien.lasserre@mindmaze.ch>\n"
+"Project-Id-Version: mmlib 1.2.0\n"
+"Report-Msgid-Bugs-To: nicolas.bourdaud@mindmaze.com\n"
+"POT-Creation-Date: 2020-03-10 17:34+0100\n"
+"PO-Revision-Date: 2020-03-10 17:36+0100\n"
+"Last-Translator: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>\n"
 "Language-Team: Project management team <NA>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.11\n"
+"X-Generator: Poedit 2.2.1\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/error.c:41
-msgid "The acquisition module has been disconnected."
-msgstr "Le module d'acquisition a été déconnecté."
-
 #: src/error.c:42
-msgid "User unknown"
-msgstr "Utilisateur inconnu"
+msgid "The device has been disconnected."
+msgstr "L'appareil a été déconnecté."
 
 #: src/error.c:43
-msgid "Wrong password"
-msgstr "Mot de passe erroné"
-
-#: src/error.c:44
 msgid "Object in wrong state"
 msgstr "État erroné de l'objet"
 
-#: src/error.c:46
-msgid "Too many entities have been requested"
-msgstr "Trop d'entités ont été requises"
-
-#: src/error.c:47
+#: src/error.c:44
 msgid "Object not found"
 msgstr "Objet non identifié"
 
-#: src/error.c:48
+#: src/error.c:45
 msgid "Bad format"
 msgstr "Format erroné"
 
-#: src/error.c:49
-msgid "Calibration needed"
-msgstr "Calibration requise"
-
-#: src/error.c:50
-msgid ""
-"Hand trackers not detected.\n"
-"Please ensure the USB dongle is connected \n"
-"and the sensors are switched on"
-msgstr ""
-"Hand Trackers non détectés.\n"
-"Vérifiez que le dongle USB est connecté\n"
-" et que les capteurs sont allumés."
-
-#: src/error.c:52
-msgid "Communication error with camera hardware."
-msgstr "Erreur de communication avec la caméra."
-
-#: src/error.c:53
+#: src/error.c:47
 msgid "Specified hostname cannot be resolved"
 msgstr "Le nom d'hôte spécifié ne peut pas être résolu"
+
+#~ msgid "User unknown"
+#~ msgstr "Utilisateur inconnu"
+
+#~ msgid "Wrong password"
+#~ msgstr "Mot de passe erroné"
+
+#~ msgid "Too many entities have been requested"
+#~ msgstr "Trop d'entités ont été requises"
+
+#~ msgid "Calibration needed"
+#~ msgstr "Calibration requise"
+
+#~ msgid ""
+#~ "Hand trackers not detected.\n"
+#~ "Please ensure the USB dongle is connected \n"
+#~ "and the sensors are switched on"
+#~ msgstr ""
+#~ "Hand Trackers non détectés.\n"
+#~ "Vérifiez que le dongle USB est connecté\n"
+#~ " et que les capteurs sont allumés."
+
+#~ msgid "Communication error with camera hardware."
+#~ msgstr "Erreur de communication avec la caméra."

@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: mmlib 1.0.0\n"
-"Report-Msgid-Bugs-To: nicolas.bourdaud@mindmaze.ch\n"
-"POT-Creation-Date: 2019-09-04 15:58+0200\n"
+"Project-Id-Version: mmlib 1.2.0\n"
+"Report-Msgid-Bugs-To: nicolas.bourdaud@mindmaze.com\n"
+"POT-Creation-Date: 2020-03-10 17:34+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,49 +17,22 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/error.c:41
-msgid "The acquisition module has been disconnected."
-msgstr ""
-
 #: src/error.c:42
-msgid "User unknown"
+msgid "The device has been disconnected."
 msgstr ""
 
 #: src/error.c:43
-msgid "Wrong password"
-msgstr ""
-
-#: src/error.c:44
 msgid "Object in wrong state"
 msgstr ""
 
-#: src/error.c:46
-msgid "Too many entities have been requested"
-msgstr ""
-
-#: src/error.c:47
+#: src/error.c:44
 msgid "Object not found"
 msgstr ""
 
-#: src/error.c:48
+#: src/error.c:45
 msgid "Bad format"
 msgstr ""
 
-#: src/error.c:49
-msgid "Calibration needed"
-msgstr ""
-
-#: src/error.c:50
-msgid ""
-"Hand trackers not detected.\n"
-"Please ensure the USB dongle is connected \n"
-"and the sensors are switched on"
-msgstr ""
-
-#: src/error.c:52
-msgid "Communication error with camera hardware."
-msgstr ""
-
-#: src/error.c:53
+#: src/error.c:47
 msgid "Specified hostname cannot be resolved"
 msgstr ""
