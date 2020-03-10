@@ -87,30 +87,14 @@
  * MM_EBADFMT:
  *   The format of a file or data is not the one expected.
  *
- * MM_ENOCALIB:
- *   A module need to be calibrated (either it has not been calibrated or
- *   the calibration data is no longer valid).
- *
- * MM_ENOINERTIAL:
- *   Inertial sensors are disconnected
- *
- * MM_ECAMERROR:
- *   Communication error with camera hardware
- *
  * MM_NONAME:
  *   The specified hostname cannot be resolved
  */
 
 #define MM_EDISCONNECTED 1000
-#define MM_EUNKNOWNUSER  1001
-#define MM_EWRONGPWD     1002
 #define MM_EWRONGSTATE   1003
-#define MM_ETOOMANY      1004
 #define MM_ENOTFOUND     1005
 #define MM_EBADFMT       1006
-#define MM_ENOCALIB      1007
-#define MM_ENOINERTIAL   1008
-#define MM_ECAMERROR     1009
 #define MM_ENONAME       1010
 
 // Surprisingly some compilers targeting windows fail to define

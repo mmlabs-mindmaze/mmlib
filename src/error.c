@@ -40,19 +40,9 @@ struct errmsg_entry {
 static const struct errmsg_entry error_tab[] = {
 	{.errnum = MM_EDISCONNECTED,
 	 .msg = N_("The acquisition module has been disconnected.")},
-	{.errnum = MM_EUNKNOWNUSER, .msg = N_("User unknown")},
-	{.errnum = MM_EWRONGPWD, .msg = N_("Wrong password")},
 	{.errnum = MM_EWRONGSTATE, .msg = N_("Object in wrong state")},
-	{.errnum = MM_ETOOMANY,
-	 .msg = N_("Too many entities have been requested")},
 	{.errnum = MM_ENOTFOUND, .msg = N_("Object not found")},
 	{.errnum = MM_EBADFMT, .msg = N_("Bad format")},
-	{.errnum = MM_ENOCALIB, .msg = N_("Calibration needed")},
-	{.errnum = MM_ENOINERTIAL, .msg = N_("Hand trackers not detected.\n"
-		                             "Please ensure the USB dongle is connected \n"
-		                             "and the sensors are switched on")},
-	{.errnum = MM_ECAMERROR, .msg = N_(
-		 "Communication error with camera hardware.")},
 	{.errnum = MM_ENONAME, .msg = N_(
 		 "Specified hostname cannot be resolved")},
 };

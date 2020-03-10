@@ -22,7 +22,7 @@ static
 int bar(const char* name)
 {
 	if (!strcmp(name, "thread3"))
-		return mm_raise_error_with_extid(MM_ENOCALIB, "mmscam-calib-out", "Calibration of %s is outdated", name);
+		return mm_raise_error_with_extid(MM_ENOTFOUND, "mmscam-calib-out", "Calibration of %s is outdated", name);
 
 	return 0;
 }
@@ -63,9 +63,9 @@ int main(void)
 	setlocale(LC_ALL, "");
 
 	print_errno_info(MM_EDISCONNECTED);
-	print_errno_info(MM_EUNKNOWNUSER);
-	print_errno_info(MM_EWRONGPWD);
-	print_errno_info(MM_ECAMERROR);
+	print_errno_info(MM_EBADFMT);
+	print_errno_info(MM_ENOTFOUND);
+	print_errno_info(MM_ENONAME);
 
 	mm_thread_t t1, t2, t3, t4;
 	mm_thr_create(&t1, thread_func, "thread1");
