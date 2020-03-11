@@ -83,7 +83,16 @@ const struct {
 	{EAI_FAIL, EIO, "A non recoverable error occurred"},
 	{EAI_MEMORY, ENOMEM, "Out of memory"},
 #ifdef EAI_NODATA
-	{EAI_NODATA, EADDRNOTAVAIL, "host doesn't have any network addresses"},
+	/* RFC 2553 had both EAI_NODATA and EAI_NONAME, while RFC 3493 has only
+	 * EAI_NONAME. Some implementations define EAI_NODATA and EAI_NONAME to
+	 * the same value, others don't. This also means that the returned error
+	 * depends on the platform AND on the contacted DNS server as well as on
+	 * his upstream.
+	 *
+	 * Let's handle EAI_NODATA and EAI_NONAME the same for
+	 * more robustness of the error path.
+	 */
+	{EAI_NODATA, MM_ENONAME, "Node is not known"},
 #endif
 	{EAI_NONAME, MM_ENONAME, "Node is not known"},
 	{EAI_OVERFLOW, EOVERFLOW, "host or serv buffer is too small"},
