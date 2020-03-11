@@ -1,4 +1,4 @@
-mmlib (1.2.1) UNRELEASED; urgency=medium
+mmlib (1.2.1) unstable; urgency=medium
 
   * Remove skeleton type
   * Remove calibration related types
@@ -8,7 +8,7 @@ mmlib (1.2.1) UNRELEASED; urgency=medium
   * mm_poll() - ignore negative file descriptors
   * move locales in its own package (mmlib-l10n)
 
- -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>  Mon, 06 Jan 2020 14:10:31 +0100
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>  Wed, 11 Mar 2020 12:34:34 +0100
 
 mmlib (1.1.0) unstable; urgency=medium
 
