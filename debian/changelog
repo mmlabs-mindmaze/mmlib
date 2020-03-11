@@ -1,8 +1,8 @@
-mmlib (1.2.2) UNRELEASED; urgency=medium
+mmlib (1.2.2) unstable; urgency=medium
 
   * fix missing file of mmlib-l10n 
 
- -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>  Wed, 11 Mar 2020 15:30:43 +0100
+ -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>  Wed, 11 Mar 2020 15:31:54 +0100
 
 mmlib (1.2.1) unstable; urgency=medium
 
