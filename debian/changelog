@@ -1,4 +1,4 @@
-mmlib (1.2.0) UNRELEASED; urgency=medium
+mmlib (1.2.1) UNRELEASED; urgency=medium
 
   * Remove skeleton type
   * Remove calibration related types
@@ -6,6 +6,7 @@ mmlib (1.2.0) UNRELEASED; urgency=medium
   * Add protocol parameter to mm_socket()
   * Replace struct timespec with own struct mm_timespec
   * mm_poll() - ignore negative file descriptors
+  * move locales in its own package (mmlib-l10n)
 
  -- Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>  Mon, 06 Jan 2020 14:10:31 +0100
 
