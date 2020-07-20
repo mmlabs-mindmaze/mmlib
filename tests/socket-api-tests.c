@@ -1098,7 +1098,11 @@ static const struct {
 	int exp_socktype;
 	int exp_port;
 } sockclient_cases[] = {
+#if _WIN32
 	{"msnp://localhost", SOCK_STREAM, 1863},
+#else
+	{"socks://localhost", SOCK_STREAM, 1080},
+#endif
 	{"ntp://localhost", SOCK_DGRAM, 123},
 	{"tcp://localhost:" MM_STRINGIFY(PORT), SOCK_STREAM, PORT},
 	{"udp://localhost:" MM_STRINGIFY(PORT), SOCK_DGRAM, PORT},
