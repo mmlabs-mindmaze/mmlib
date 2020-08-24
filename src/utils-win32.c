@@ -390,6 +390,9 @@ int local_secdesc_init_from_mode(struct local_secdesc* lsd, mode_t mode)
 	DWORD len;
 	int rv = -1;
 
+	// Initial local secdesc functional field
+	lsd->sd = NULL;
+
 	// Get SID values
 	if (get_caller_sids(&owner.sid, &group.sid))
 		goto exit;
