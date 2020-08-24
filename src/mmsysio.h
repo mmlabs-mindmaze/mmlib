@@ -257,6 +257,7 @@ MMLIB_API int mm_unlink(const char* path);
 MMLIB_API int mm_link(const char* oldpath, const char* newpath);
 MMLIB_API int mm_symlink(const char* oldpath, const char* newpath);
 MMLIB_API int mm_readlink(const char* path, char* buf, size_t bufsize);
+MMLIB_API int mm_copy(const char* src, const char* dst, int flags);
 
 MMLIB_API int mm_mkdir(const char* path, int mode, int flags);
 MMLIB_API int mm_chdir(const char* path);

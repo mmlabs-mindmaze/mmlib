@@ -395,6 +395,62 @@ START_TEST(dangling_symlink)
 END_TEST
 
 
+START_TEST(copy_file)
+{
+	int i;
+	struct mm_stat st, st_cp;
+	const struct file_info* info;
+
+	for (i = 0; i < MM_NELEM(init_setup_files); i++) {
+		info = &init_setup_files[i];
+
+		// Check number of link is initially 1
+		ck_assert(mm_stat(info->path, &st, 0) == 0);
+		ck_assert_int_eq(st.nlink, 1);
+
+		// Skip test if file could not be open
+		if (!(info->mode & S_IRUSR)) {
+			ck_assert(mm_copy(info->path, TEST_FILE, 0) == -1);
+			ck_assert(mm_get_lasterror_number() == EACCES);
+			continue;
+		}
+
+		// Make file copy
+		ck_assert(mm_copy(info->path, TEST_FILE, 0) == 0);
+		ck_assert(are_files_same(info->path, TEST_FILE) == true);
+
+		ck_assert(mm_stat(info->path, &st, 0) == 0);
+		ck_assert(mm_stat(TEST_FILE, &st_cp, 0) == 0);
+
+		// Compate stat data (ino must be different)
+		ck_assert_int_eq(st.dev, st_cp.dev);
+		ck_assert(!mm_ino_equal(st.ino, st_cp.ino));
+		ck_assert_int_eq(st_cp.nlink, 1);
+		ck_assert_int_eq(st.nlink, 1);
+
+		ck_assert(mm_unlink(TEST_FILE) == 0);
+	}
+}
+END_TEST
+
+
+START_TEST(copy_file_fail)
+{
+	const char* afile = init_setup_files[0].path;
+
+	// Test not existing source fails with ENOENT
+	ck_assert(mm_copy("does-not-exist", TEST_FILE, 0) == -1);
+	ck_assert(mm_get_lasterror_number() == ENOENT);
+
+	// test copy directory fails
+	mm_mkdir("dir", 0777, O_CREAT);
+	ck_assert(mm_copy("dir", TEST_FILE, 0) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+	mm_rmdir("dir");
+}
+END_TEST
+
+
 START_TEST(check_access)
 {
 	int i, exp_rv;
@@ -620,6 +676,8 @@ TCase* create_file_tcase(void)
 	tcase_add_test(tc, symbolic_link);
 	tcase_add_test(tc, dir_symbolic_link);
 	tcase_add_test(tc, dangling_symlink);
+	tcase_add_test(tc, copy_file);
+	tcase_add_test(tc, copy_file_fail);
 	tcase_add_test(tc, unlink_before_close);
 	tcase_add_test(tc, one_way_pipe);
 	tcase_add_test(tc, read_closed_pipe);
