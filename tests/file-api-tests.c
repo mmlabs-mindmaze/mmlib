@@ -395,6 +395,110 @@ START_TEST(dangling_symlink)
 END_TEST
 
 
+START_TEST(copy_file)
+{
+	int i;
+	struct mm_stat st, st_cp;
+	const struct file_info* info;
+
+	for (i = 0; i < MM_NELEM(init_setup_files); i++) {
+		info = &init_setup_files[i];
+
+		// Check number of link is initially 1
+		ck_assert(mm_stat(info->path, &st, 0) == 0);
+		ck_assert_int_eq(st.nlink, 1);
+
+		// Skip test if file could not be open
+		if (!(info->mode & S_IRUSR)) {
+			ck_assert(mm_copy(info->path, TEST_FILE, 0, 0666));
+			ck_assert(mm_get_lasterror_number() == EACCES);
+			continue;
+		}
+
+		// Make file copy
+		ck_assert(mm_copy(info->path, TEST_FILE, 0, 0666) == 0);
+		ck_assert(are_files_same(info->path, TEST_FILE) == true);
+
+		ck_assert(mm_stat(info->path, &st, 0) == 0);
+		ck_assert(mm_stat(TEST_FILE, &st_cp, 0) == 0);
+
+		// Compare stat data (ino must be different)
+		ck_assert_int_eq(st.dev, st_cp.dev);
+		ck_assert(!mm_ino_equal(st.ino, st_cp.ino));
+		ck_assert_int_eq(st_cp.nlink, 1);
+		ck_assert_int_eq(st.nlink, 1);
+
+		ck_assert(mm_unlink(TEST_FILE) == 0);
+	}
+}
+END_TEST
+
+
+START_TEST(copy_symlink)
+{
+	struct mm_stat st, st_cp;
+	const char* afile = init_setup_files[0].path;
+
+	mm_symlink(afile, LINKNAME);
+
+	// Make copy of symlink's target
+	ck_assert(mm_copy(LINKNAME, TEST_FILE, 0, 0666) == 0);
+	ck_assert(are_files_same(afile, TEST_FILE) == true);
+
+	ck_assert(mm_stat(TEST_FILE, &st_cp, MM_NOFOLLOW) == 0);
+	ck_assert(S_ISREG(st_cp.mode));
+	ck_assert(mm_unlink(TEST_FILE) == 0);
+
+	// Make symlink copy
+	ck_assert(mm_copy(LINKNAME, TEST_FILE, MM_NOFOLLOW, 0666) == 0);
+	ck_assert(are_files_same(afile, TEST_FILE) == true);
+
+	ck_assert(mm_stat(LINKNAME, &st, MM_NOFOLLOW) == 0);
+	ck_assert(mm_stat(TEST_FILE, &st_cp, MM_NOFOLLOW) == 0);
+
+	ck_assert(S_ISLNK(st_cp.mode));
+	ck_assert_int_eq(st.dev, st_cp.dev);
+	ck_assert(!mm_ino_equal(st.ino, st_cp.ino));
+
+	ck_assert(mm_unlink(TEST_FILE) == 0);
+
+	ck_assert(mm_unlink(LINKNAME) == 0);
+}
+END_TEST
+
+
+START_TEST(copy_fail)
+{
+	const char* afile = init_setup_files[0].path;
+	mm_symlink(afile, LINKNAME);
+
+	// Test not existing source fails with ENOENT
+	ck_assert(mm_copy("does-not-exist", TEST_FILE, 0, 0666) == -1);
+	ck_assert(mm_get_lasterror_number() == ENOENT);
+
+	// test copy directory fails
+	mm_mkdir("dir", 0777, O_CREAT);
+	ck_assert(mm_copy("dir", TEST_FILE, 0, 0666) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+	mm_rmdir("dir");
+
+	// test regular file copy does not overwrite file
+	mm_copy(afile, TEST_FILE, 0, 0666);
+	ck_assert(mm_copy(afile, TEST_FILE, 0, 0666) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EEXIST);
+	mm_unlink(TEST_FILE);
+
+	// test regular file copy does not overwrite file
+	mm_copy(LINKNAME, TEST_FILE, 0, 0666);
+	ck_assert(mm_copy(LINKNAME, TEST_FILE, MM_NOFOLLOW, 0666) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EEXIST);
+	mm_unlink(TEST_FILE);
+
+	mm_unlink(LINKNAME);
+}
+END_TEST
+
+
 START_TEST(check_access)
 {
 	int i, exp_rv;
@@ -620,6 +724,9 @@ TCase* create_file_tcase(void)
 	tcase_add_test(tc, symbolic_link);
 	tcase_add_test(tc, dir_symbolic_link);
 	tcase_add_test(tc, dangling_symlink);
+	tcase_add_test(tc, copy_file);
+	tcase_add_test(tc, copy_symlink);
+	tcase_add_test(tc, copy_fail);
 	tcase_add_test(tc, unlink_before_close);
 	tcase_add_test(tc, one_way_pipe);
 	tcase_add_test(tc, read_closed_pipe);
