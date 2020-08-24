@@ -45,6 +45,7 @@ MMLIB_1.0 {
 		mm_close;
 		mm_closedir;
 		mm_connect;
+		mm_copy;
 		mm_create_sockclient;
 		mm_dirname;
 		mm_dl_fileext;
