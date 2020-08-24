@@ -313,7 +313,7 @@ int mm_open(const char* path, int oflag, int mode)
 	}
 
 	hnd = open_handle(path, opts.access_mode, opts.creation_mode,
-	                  &lsd.desc, opts.file_attribute);
+	                  lsd.sd, opts.file_attribute);
 	if (hnd == INVALID_HANDLE_VALUE) {
 		mm_raise_from_w32err("Can't get handle for %s", path);
 		goto exit;
