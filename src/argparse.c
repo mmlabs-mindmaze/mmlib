@@ -935,7 +935,8 @@ int conv_str_to_argval(const struct mm_arg_opt* opt,
                        union mm_arg_val * argval, const char* value)
 {
 	int type = mm_arg_opt_get_type(opt);
-	long long llval;
+	long long llval = 0;  // shut up false warning about uninitialized
+	                      // llval when type == MM_OPT_ULLONG
 	char* endptr;
 	const char* valtype;
 	int prev_err = errno;
