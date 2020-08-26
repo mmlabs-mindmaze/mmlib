@@ -104,10 +104,8 @@ sphinx-build.log: $(wildcard $(SRCTREE)/src/*.[ch]) $(DOC_SRCS)
 # sphinx-build.log target does the doc generation
 # This target checks that it was done right
 manpages-buildstamp: sphinx-build.log
-	@if [ "$(shell grep -c WARNING: sphinx-build.log)" != "0" ] ; then \
-		grep WARNING: sphinx-build.log; \
-		false; \
-	fi
+	@grep -q -c "WARNING:" sphinx-build.log && \
+		echo "warnings issued during documentation build. See sphinx-build.log." 
 	@echo
 	@echo "Build finished. The man pages are in $(builddir)/man."
 	@touch $@
@@ -119,7 +117,7 @@ html-local: html-buildstamp
 # always generate html after man: parallel sphinx invocation is not upported
 html-buildstamp: $(wildcard $(SRCTREE)/src/*.[ch]) $(DOC_SRCS) manpages-buildstamp
 	@$(RM) -f $@
-	$(AM_V_GEN) $(SPHINXBUILD) -M html $(ALLSPHINXOPTS) $(builddir)/html
+	$(AM_V_GEN) $(SPHINXBUILD) -M html $(ALLSPHINXOPTS) $(builddir)/html &> sphinx-build-html.log
 	@echo
 	@echo "Build finished. The HTML pages are in $(builddir)/html."
 	@touch $@
@@ -153,4 +151,4 @@ uninstall-local: uninstall-man3 uninstall-html
 endif # BUILD_SPHINXDOC
 
 clean-local:
-	$(RM) -rf html .doctrees man manpages-buildstamp html-buildstamp sphinx-build.log
+	$(RM) -rf html .doctrees man manpages-buildstamp html-buildstamp sphinx-build.log sphinx-build-html.log
