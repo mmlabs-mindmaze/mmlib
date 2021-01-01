@@ -104,8 +104,8 @@ sphinx-build.log: $(wildcard $(SRCTREE)/src/*.[ch]) $(DOC_SRCS)
 # sphinx-build.log target does the doc generation
 # This target checks that it was done right
 manpages-buildstamp: sphinx-build.log
-	@grep -q -c "WARNING:" sphinx-build.log && \
-		echo "warnings issued during documentation build. See sphinx-build.log." 
+	@grep -q WARNING: sphinx-build.log && \
+		echo "warnings issued during documentation build. See sphinx-build.log." || true
 	@echo
 	@echo "Build finished. The man pages are in $(builddir)/man."
 	@touch $@
