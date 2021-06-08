@@ -1,0 +1,8 @@
+[ $1 != "git" ] && exit 0
+
+command -v copyright-autoheader || exit 0
+
+export GIT_DIR=$(readlink -f $VCSDIR)
+export GIT_WORK_TREE=$SRCDIR
+git fetch $PATH_URL
+copyright-autoheader
