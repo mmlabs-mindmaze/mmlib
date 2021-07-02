@@ -78,6 +78,7 @@ AS_IF([test "x$enable_lockserverprocess" = xno],
 
 # Check for libraries
 AC_CHECK_FUNCS([posix_memalign aligned_alloc _aligned_malloc], [break])
+AC_CHECK_FUNCS([copy_file_range])
 MM_CHECK_LIB([pthread_create], [pthread], PTHREAD)
 MM_CHECK_FUNCS([pthread_mutex_consistent], [], [], [$PTHREAD_LIB])
 MM_CHECK_LIB([clock_gettime], [rt], CLOCK)
