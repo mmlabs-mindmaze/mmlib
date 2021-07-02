@@ -69,6 +69,12 @@ foreach f : check_functions
     endif
 endforeach
 
+
+if cc.has_header_symbol('unistd.h', 'copy_file_range', args:'-D_GNU_SOURCE')
+    config.set('HAVE_COPY_FILE_RANGE', 1)
+endif
+
+
 configuration_inc = include_directories('.', 'src')
 
 # write config file
