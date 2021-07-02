@@ -204,6 +204,7 @@ extern "C" {
 #define MM_RECURSIVE (1 << 31)
 #define MM_FAILONERROR (1 << 30)
 #define MM_NOFOLLOW (1 << 29)
+#define MM_NOCOW (1 << 28)
 
 /**
  * struct mm_stat - file status data

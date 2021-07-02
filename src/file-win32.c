@@ -1661,7 +1661,7 @@ exit:
 #define COPYBUFFER_SIZE (1024*1024) // 1MiB
 
 static
-int clone_handle(HANDLE hnd_src, HANDLE hnd_dst)
+int clone_hnd_fallback(HANDLE hnd_src, HANDLE hnd_dst)
 {
 	size_t wbuf_sz;
 	char * buffer, * wbuf;
@@ -1743,7 +1743,7 @@ exit:
 
 
 static
-int clone_src_hnd(HANDLE hnd_src, const char* dst, int mode)
+int clone_src_hnd(HANDLE hnd_src, const char* dst, int flags, int mode)
 {
 	HANDLE hnd_dst;
 	struct local_secdesc lsd;
@@ -1758,7 +1758,12 @@ int clone_src_hnd(HANDLE hnd_src, const char* dst, int mode)
 	if (hnd_dst == INVALID_HANDLE_VALUE)
 		goto exit;
 
-	rv = clone_handle(hnd_src, hnd_dst);
+	switch (flags & MM_NOCOW) {
+	case MM_NOCOW:
+	default:
+		rv = clone_hnd_fallback(hnd_src, hnd_dst);
+	}
+
 	CloseHandle(hnd_dst);
 
 exit:
@@ -1803,7 +1808,7 @@ int copy_internal(const char* src, const char* dst, int flags, int mode)
 	else if (tag_info.FileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 		rv = mm_raise_error(EISDIR, "Cannot copy directory %s", src);
 	else
-		rv = clone_src_hnd(hnd_src, dst, mode);
+		rv = clone_src_hnd(hnd_src, dst, flags, mode);
 
 exit:
 	CloseHandle(hnd_src);
