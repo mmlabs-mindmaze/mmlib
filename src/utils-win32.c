@@ -733,10 +733,10 @@ int is_cygpty_pipe(HANDLE hnd)
 	// \(cygwin|msys)-[number_in_hexa]-ptyN-(from-master|to-master)
 	// (the actual \Device\NamedPipe part is striped by
 	// GetFileInformationByHandleEx(FileNameInfo)
-	r = sscanf(name_u8, "\\%7[a-z]-%*[0-9a-f]-pty%*u-%15s", orig, dir);
+	r = sscanf(name_u8, "\\%7[a-z]-%*[0-9a-f]-pty%*u-%15[a-z]-master", orig, dir);
 	if ((r == 2)
 	   && (!strcmp(orig, "msys") || !strcmp(orig, "cygwin"))
-	   && (!strcmp(dir, "from-master") || !strcmp(dir, "to-master")))
+	   && (!strcmp(dir, "from") || !strcmp(dir, "to")))
 		return 1;
 
 	return 0;
