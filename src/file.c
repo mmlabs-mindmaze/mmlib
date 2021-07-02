@@ -283,16 +283,25 @@ int mm_mkdir(const char* path, int mode, int flags)
  * mm_copy() - copy source to destination
  * @src:        path to file to copy from
  * @dst:        path to destination
- * @flags:      0 or MM_NOFOLLOW
+ * @flags:      combination of flags controlling the copy
  * @mode:       access permission bits of created file
  *
  * Copies the content of @src into @dst. If the @dst already exists, the
  * function will fail. @mode will be used as permission mask for the created
  * file.
  *
- * If flags contains MM_NOFOLLOW, and @src is a symbolic link the copy is done
- * on the symbolic link itself, not the target, thus producing a symbolic link
- * in @dst.
+ * @flags must be constructed by a bitwise-inclusive OR of flags from the
+ * following list (maybe none):
+ *
+ * %MM_NOFOLLOW
+ *   If @src is a symbolic link the copy is done on the symbolic link itself,
+ *   not the target, thus producing a symbolic link in @dst.
+ * %MM_NOCOW
+ *   Prevents to perform a copy-on-write clone of the source content (reflink), even if
+ *   the filesystem allows it.
+ *
+ * Note that %MM_NOCOW affects only the copy of a regular file. It will be
+ * ignored in the case of symlink used as source with %MM_NOFOLLOW flag.
  *
  * If @src is neither a regular file or symbolic link, the function will fail.
  *
