@@ -1122,7 +1122,7 @@ int copy_symlink(const char* src, const char* dst)
 
 
 static
-int clone_srcfd(int fd_in, const char* dst, int mode)
+int clone_srcfd(int fd_in, const char* dst, int cow_mode, int mode)
 {
 	int fd_out = -1;
 	int rv = -1;
@@ -1131,7 +1131,10 @@ int clone_srcfd(int fd_in, const char* dst, int mode)
 	if (fd_out == -1)
 		return -1;
 
-	rv = clone_fd_try_cow(fd_in, fd_out);
+	if (cow_mode == MM_NOCOW)
+		rv = clone_fd_fallback(fd_in, fd_out);
+	else
+		rv = clone_fd_try_cow(fd_in, fd_out);
 
 	mm_close(fd_out);
 	return rv;
@@ -1161,7 +1164,7 @@ int copy_internal(const char* src, const char* dst, int flags, int mode)
 		return mm_raise_from_errno("Cannot open %s", src);
 	}
 
-	rv = clone_srcfd(fd_in, dst, mode);
+	rv = clone_srcfd(fd_in, dst, flags & MM_NOCOW, mode);
 
 	mm_close(fd_in);
 	return rv;
