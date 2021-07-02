@@ -91,6 +91,10 @@ else
         'time-posix.c',
     )
 
+    if cc.has_function('copy_file_range', prefix : '#include <unistd.h>')
+	cflags += '-DHAS_COPY_FILE_RANGE'
+    endif
+
     libthread = dependency('threads', required : true)
     libdl = cc.find_library('dl', required : true)
     librt = cc.find_library('rt', required : true)
