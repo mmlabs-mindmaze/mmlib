@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: mmlib
-Upstream-Contact: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>
+Upstream-Contact: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
 Source: https://github.com/mmlabs-mindmaze/mmlib
 
 Files: *

@@ -1,7 +1,7 @@
 Source: mmlib
 Section: libs
 Priority: extra
-Maintainer: Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>
+Maintainer: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
 Build-Depends: debhelper (>= 10),
  meson, gettext, check,
  python3-sphinx, python3-sphinx-rtd-theme, python3-sphinx-linuxdoc
