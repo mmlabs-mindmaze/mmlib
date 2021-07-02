@@ -52,4 +52,4 @@ See LICENSE file.
 ## Authors and Contributors
 
 mmlib has been open-sourced by [MindMaze](https://www.mindmaze.com) and is
-maintained by Nicolas Bourdaud <nicolas.bourdaud@mindmaze.com>
+maintained by Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
