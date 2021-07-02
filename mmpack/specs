@@ -1,12 +1,11 @@
-general:
-  name: mmlib
-  version: 1.2.2
-  maintainer: nicolas.bourdaud@mindmaze.com
-  url: https://github.com/mmlabs-mindmaze/mmlib
-  licenses: [ Apache-2.0 ]
-  copyright: Copyright (C) 2012-2020 MindMaze Holdings SA
-  description: |
-    mmlib is the general purpose library providing helper functions to other
-    module. It provides facilities for logging, error reporting and basic
-    geometry.
-  build-system: meson
+name: mmlib
+version: 1.2.2
+maintainer: nicolas.bourdaud@mindmaze.com
+url: https://github.com/mmlabs-mindmaze/mmlib
+licenses: [ Apache-2.0 ]
+copyright: Copyright (C) 2012-2020 MindMaze Holdings SA
+description: |
+  mmlib is the general purpose library providing helper functions to other
+  module. It provides facilities for logging, error reporting and basic
+  geometry.
+build-system: meson
