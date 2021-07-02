@@ -1024,7 +1024,7 @@ const struct mm_dirent* mm_readdir(MM_DIR* d, int * status)
 #define COPYBUFFER_SIZE (1024*1024) // 1MiB
 
 static
-int clone_fd(int fd_in, int fd_out)
+int clone_fd_fallback(int fd_in, int fd_out)
 {
 	size_t wbuf_sz;
 	char * buffer, * wbuf;
@@ -1064,6 +1064,39 @@ exit:
 
 
 static
+int clone_fd_try_cow(int fd_in, int fd_out)
+{
+#if HAVE_COPY_FILE_RANGE
+	ssize_t rsz;
+	ssize_t written = 0;
+	int err, prev_errno = errno;
+
+	do {
+		rsz = copy_file_range(fd_in, NULL, fd_out, NULL, SSIZE_MAX, 0);
+		if (rsz > 0)
+			written += rsz;
+	} while (rsz > 0);
+
+	if (rsz < 0) {
+		err = errno;
+		if (err == ENOSYS || err == EXDEV) {
+			errno = prev_errno;
+			return clone_fd_fallback(fd_in, fd_out);
+		}
+		return mm_raise_from_errno("copy_file_range failed");
+	}
+
+	// copy_file_range may return 0 instead of error in case of
+	// some filesystem. If no data has been written so far, try
+	// copy fallback.
+	return written ? 0 : clone_fd_fallback(fd_in, fd_out);
+#else
+	return clone_fd_fallback(fd_in, fd_out);
+#endif
+}
+
+
+static
 int copy_symlink(const char* src, const char* dst)
 {
 	int rv = 0;
@@ -1098,7 +1131,7 @@ int clone_srcfd(int fd_in, const char* dst, int mode)
 	if (fd_out == -1)
 		return -1;
 
-	rv = clone_fd(fd_in, fd_out);
+	rv = clone_fd_try_cow(fd_in, fd_out);
 
 	mm_close(fd_out);
 	return rv;
