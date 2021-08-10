@@ -1098,6 +1098,15 @@ int clone_fd_try_cow(int fd_in, int fd_out)
 
 
 static
+int clone_fd_force_cow(int fd_in, int fd_out)
+{
+	(void)fd_in;
+	(void)fd_out;
+	return mm_raise_error(ENOTSUP, "COW is not supported on platform");
+}
+
+
+static
 int copy_symlink(const char* src, const char* dst)
 {
 	int rv = 0;
@@ -1132,10 +1141,15 @@ int clone_srcfd(int fd_in, const char* dst, int flags, int mode)
 	if (fd_out == -1)
 		return -1;
 
-	switch (flags & MM_NOCOW) {
+	switch (flags & (MM_NOCOW & MM_FORCECOW)) {
+	case MM_FORCECOW:
+		rv = clone_fd_force_cow(fd_in, fd_out);
+		break;
+
 	case MM_NOCOW:
 		rv = clone_fd_fallback(fd_in, fd_out);
 		break;
+
 	default:
 		rv = clone_fd_try_cow(fd_in, fd_out);
 	}
