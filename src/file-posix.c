@@ -5,6 +5,11 @@
 # include <config.h>
 #endif
 
+// Needed for copy_file_range if available
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include "mmlib.h"
 #include "mmerrno.h"
 #include "mmpredefs.h"
@@ -16,6 +21,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <unistd.h>
@@ -1012,4 +1018,118 @@ const struct mm_dirent* mm_readdir(MM_DIR* d, int * status)
 		*status = 0;
 
 	return d->dirent;
+}
+
+
+#define COPYBUFFER_SIZE (1024*1024) // 1MiB
+
+static
+int clone_fd(int fd_in, int fd_out)
+{
+	size_t wbuf_sz;
+	char * buffer, * wbuf;
+	ssize_t rsz, wsz;
+	int rv = -1;
+
+	buffer = malloc(COPYBUFFER_SIZE);
+	if (!buffer)
+		return mm_raise_from_errno("unable to alloc transfer buffer");
+
+	do {
+		// Perform read operation
+		rsz = mm_read(fd_in, buffer, COPYBUFFER_SIZE);
+		if (rsz < 0)
+			goto exit;
+
+		// Do write of what has been read, possibly chunked if transfer
+		// got interrupted
+		wbuf = buffer;
+		wbuf_sz = rsz;
+		while (wbuf_sz) {
+			wsz = mm_write(fd_out, wbuf, wbuf_sz);
+			if (wsz < 0)
+				goto exit;
+
+			wbuf += wsz;
+			wbuf_sz -= wsz;
+		}
+	} while (rsz != 0);
+
+	rv = 0;
+
+exit:
+	free(buffer);
+	return rv;
+}
+
+
+static
+int copy_symlink(const char* src, const char* dst)
+{
+	int rv = 0;
+	size_t tgt_sz;
+	char* target = NULL;
+	struct stat buf;
+
+	if (lstat(src, &buf))
+		return mm_raise_from_errno("lstat(%s) failed", src);
+
+	tgt_sz = buf.st_size + 1;
+	target = mm_malloca(tgt_sz);
+	if (!target)
+		return -1;
+
+	if (mm_readlink(src, target, tgt_sz)
+	    || mm_symlink(target, dst))
+		rv = -1;
+
+	mm_freea(target);
+	return rv;
+}
+
+
+static
+int clone_srcfd(int fd_in, const char* dst, int cow_mode, int mode)
+{
+	int fd_out = -1;
+	int rv = -1;
+
+	fd_out = mm_open(dst, O_WRONLY|O_CREAT|O_EXCL, mode);
+	if (fd_out == -1)
+		return -1;
+
+	rv = clone_fd(fd_in, fd_out);
+
+	mm_close(fd_out);
+	return rv;
+}
+
+
+LOCAL_SYMBOL
+int copy_internal(const char* src, const char* dst, int flags, int mode)
+{
+	int fd_in = -1;
+	int rv = -1;
+	int src_oflags;
+	int err, prev_err = errno;
+
+	src_oflags = O_RDONLY;
+	if (flags & MM_NOFOLLOW)
+		src_oflags |= O_NOFOLLOW;
+
+	fd_in = open(src, src_oflags, 0);
+	if (fd_in == -1) {
+		err = errno;
+		if ((flags & MM_NOFOLLOW) && (err == ELOOP)) {
+			errno = prev_err;
+			return copy_symlink(src, dst);
+		}
+
+		return mm_raise_from_errno("Cannot open %s", src);
+	}
+
+	rv = clone_srcfd(fd_in, dst, flags & (MM_NOCOW|MM_FORCECOW), mode);
+
+	mm_close(fd_in);
+	return rv;
 }
