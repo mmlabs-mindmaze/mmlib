@@ -299,9 +299,14 @@ int mm_mkdir(const char* path, int mode, int flags)
  * %MM_NOCOW
  *   Prevents to perform a copy-on-write clone of the source content (reflink),
  *   even if the filesystem allows it.
+ * %MM_FORCECOW
+ *   Ensures the copy is performed through a copy-on-write clone of the source
+ *   content (reflink), leading to failure if the filesystem or the conditions
+ *   do not allow it.
  *
- * Note that %MM_NOCOW affects only the copy of a regular file. It will be
- * ignored in the case of symlink used as source with %MM_NOFOLLOW flag.
+ * Note that %MM_NOCOW and %MM_FORCECOW affect only the copy of a regular
+ * file. They will be ignored in the case of symlink used as source with
+ * %MM_NOFOLLOW flag.
  *
  * If @src is neither a regular file or symbolic link, the function will fail.
  *
@@ -310,8 +315,13 @@ int mm_mkdir(const char* path, int mode, int flags)
 API_EXPORTED
 int mm_copy(const char* src, const char* dst, int flags, int mode)
 {
-	if (flags & ~(MM_NOFOLLOW|MM_NOCOW))
+	if (flags & ~(MM_NOFOLLOW|MM_NOCOW|MM_FORCECOW))
 		return mm_raise_error(EINVAL, "invalid flags (0x%08x)", flags);
+
+
+	if ((flags & MM_NOCOW) && (flags & MM_FORCECOW))
+		return mm_raise_error(EINVAL, "MM_NOCOW and MM_FORCECOW "
+		                      "cannot be set together");
 
 	return copy_internal(src, dst, flags, mode);
 }

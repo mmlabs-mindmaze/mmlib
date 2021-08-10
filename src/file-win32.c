@@ -1701,6 +1701,16 @@ exit:
 
 
 static
+int clone_hnd_force_cow(HANDLE hnd_src, HANDLE hnd_dst)
+{
+	(void)hnd_src;
+	(void)hnd_dst;
+	SetLastError(ERROR_NOT_SUPPORTED);
+	return -1;
+}
+
+
+static
 int copy_hnd_symlink(HANDLE hnd, const char* dst)
 {
 	REPARSE_DATA_BUFFER* rep = NULL;
@@ -1756,7 +1766,11 @@ int clone_src_hnd(HANDLE hnd_src, const char* dst, int flags, int mode)
 	if (hnd_dst == INVALID_HANDLE_VALUE)
 		return -1;
 
-	switch (flags & MM_NOCOW) {
+	switch (flags & (MM_NOCOW & MM_FORCECOW)) {
+	case MM_FORCECOW:
+		rv = clone_hnd_force_cow(hnd_src, hnd_dst);
+		break;
+
 	case MM_NOCOW:
 	default:
 		rv = clone_hnd_fallback(hnd_src, hnd_dst);
