@@ -299,9 +299,14 @@ int mm_mkdir(const char* path, int mode, int flags)
  * %MM_NOCOW
  *   Prevents to perform a copy-on-write clone of the source content (reflink), even if
  *   the filesystem allows it.
+ * %MM_FORCECOW
+ *   Ensures the copy is performed through a copy-on-write clone of the source
+ *   content (reflink), leading to failure if the filesystem or the conditions
+ *   do not allow it.
  *
- * Note that %MM_NOCOW affects only the copy of a regular file. It will be
- * ignored in the case of symlink used as source with %MM_NOFOLLOW flag.
+ * Note that %MM_NOCOW and %MM_FORCECOW affect only the copy of a regular
+ * file. They will be ignored in the case of symlink used as source with
+ * %MM_NOFOLLOW flag.
  *
  * If @src is neither a regular file or symbolic link, the function will fail.
  *
