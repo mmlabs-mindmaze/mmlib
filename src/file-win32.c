@@ -1656,3 +1656,147 @@ exit:
 	return rv;
 }
 
+
+
+#define COPYBUFFER_SIZE (1024*1024) // 1MiB
+
+static
+int clone_handle(HANDLE hnd_src, HANDLE hnd_dst)
+{
+	size_t wbuf_sz;
+	char * buffer, * wbuf;
+	ssize_t rsz, wsz;
+	int rv = -1;
+
+	buffer = malloc(COPYBUFFER_SIZE);
+	if (!buffer)
+		return mm_raise_from_errno("cannot alloc transfer buffer");
+
+	do {
+		// Perform read operation
+		rsz = mmlib_read(hnd_src, buffer, COPYBUFFER_SIZE);
+		if (rsz < 0)
+			goto exit;
+
+		// Do write of what has been read, possibly chunked if transfer
+		// got interrupted
+		wbuf = buffer;
+		wbuf_sz = rsz;
+		while (wbuf_sz) {
+			wsz = mmlib_write(hnd_dst, wbuf, wbuf_sz);
+			if (wsz < 0)
+				goto exit;
+
+			wbuf += wsz;
+			wbuf_sz -= wsz;
+		}
+	} while (rsz != 0);
+
+	rv = 0;
+
+exit:
+	free(buffer);
+	return rv;
+}
+
+
+static
+int copy_hnd_symlink(HANDLE hnd, const char* dst)
+{
+	REPARSE_DATA_BUFFER* rep = NULL;
+	const char16_t* target;
+	char16_t* dst16 = NULL;
+	DWORD flags;
+	int dst16_len, rv = -1;
+
+	dst16_len = get_utf16_buffer_len_from_utf8(dst);
+	if (dst16_len < 0)
+		goto exit;
+
+	dst16 = mm_malloca(dst16_len * sizeof(*dst16));
+	if (dst16 == NULL)
+		goto exit;
+
+	conv_utf8_to_utf16(dst16, dst16_len, dst);
+	rep = get_reparse_data(hnd);
+	if (rep)
+		goto exit;
+
+	target = get_target_u16_from_reparse_data(rep);
+
+	flags = SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
+	if (!CreateSymbolicLinkW(dst16, target, flags)) {
+		if (GetLastError() != ERROR_INVALID_PARAMETER
+		   || !CreateSymbolicLinkW(dst16, target, 0))
+			goto exit;
+	}
+	rv = 0;
+
+exit:
+	mm_freea(dst16);
+	free(rep);
+	if (rv)
+		mm_raise_from_w32err("Failed to make symlink at %s", dst);
+
+	return rv;
+}
+
+
+static
+int clone_src_hnd(HANDLE hnd_src, const char* dst, int mode)
+{
+	HANDLE hnd_dst;
+	struct local_secdesc lsd;
+	int rv = -1;
+
+	if (local_secdesc_init_from_mode(&lsd, mode))
+		goto exit;
+
+	hnd_dst = open_handle(dst, GENERIC_WRITE, CREATE_ALWAYS,
+	                      lsd.sd, FILE_ATTRIBUTE_NORMAL);
+	local_secdesc_deinit(&lsd);
+	if (hnd_dst == INVALID_HANDLE_VALUE)
+		goto exit;
+
+	rv = clone_handle(hnd_src, hnd_dst);
+	CloseHandle(hnd_dst);
+
+exit:
+	if (rv == -1)
+		mm_raise_from_w32err("Failed to copy to %s", dst);
+
+	return rv;
+}
+
+
+LOCAL_SYMBOL
+int copy_internal(const char* src, const char* dst, int flags, int mode)
+{
+	int rv = -1;
+	HANDLE hnd_src;
+	DWORD attrs;
+	FILE_ATTRIBUTE_TAG_INFO tag_info;
+
+	attrs = (flags & MM_NOFOLLOW) ? FILE_FLAG_OPEN_REPARSE_POINT : 0;
+	hnd_src = open_handle(src, GENERIC_READ | READ_CONTROL,
+	                      OPEN_EXISTING, NULL, attrs);
+
+	if (hnd_src == INVALID_HANDLE_VALUE)
+		return mm_raise_from_w32err("Cannot open %s", src);
+
+	if (!GetFileInformationByHandleEx(hnd_src, FileAttributeTagInfo,
+	                                  &tag_info, sizeof(tag_info))) {
+		mm_raise_from_w32err("Cannot read attribute of %s", src);
+		goto exit;
+	}
+
+	if ((tag_info.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+	    && (tag_info.ReparseTag == IO_REPARSE_TAG_SYMLINK))
+		rv = copy_hnd_symlink(hnd_src, dst);
+	else
+		rv = clone_src_hnd(hnd_src, dst, mode);
+
+exit:
+	CloseHandle(hnd_src);
+	return rv;
+}
