@@ -1164,7 +1164,7 @@ int copy_internal(const char* src, const char* dst, int flags, int mode)
 		return mm_raise_from_errno("Cannot open %s", src);
 	}
 
-	rv = clone_srcfd(fd_in, dst, flags & MM_NOCOW, mode);
+	rv = clone_srcfd(fd_in, dst, flags & (MM_NOCOW|MM_FORCECOW), mode);
 
 	mm_close(fd_in);
 	return rv;
