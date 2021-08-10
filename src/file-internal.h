@@ -30,4 +30,8 @@ int is_wildcard_directory(const char * name)
 	return (len == 1 || len == 2);
 }
 
+
+int copy_internal(const char* src, const char* dst, int flags, int mode);
+
+
 #endif /* FILE_INTERNAL_H */
