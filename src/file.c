@@ -279,88 +279,6 @@ int mm_mkdir(const char* path, int mode, int flags)
 }
 
 
-#define COPYBUFFER_SIZE (1024*1024) // 1MiB
-
-static
-int clone_fd(int fd_in, int fd_out)
-{
-	size_t wbuf_sz;
-	char * buffer, * wbuf;
-	ssize_t rsz, wsz;
-	int rv = -1;
-
-	buffer = malloc(COPYBUFFER_SIZE);
-	if (!buffer)
-		return mm_raise_from_errno("unable to alloc transfer buffer");
-
-	do {
-		// Perform read operation
-		rsz = mm_read(fd_in, buffer, COPYBUFFER_SIZE);
-		if (rsz < 0)
-			goto exit;
-
-		// Do write of what has been read, possibly chunked if transfer
-		// got interrupted
-		wbuf = buffer;
-		wbuf_sz = rsz;
-		while (wbuf_sz) {
-			wsz = mm_write(fd_out, wbuf, wbuf_sz);
-			if (wsz < 0)
-				goto exit;
-
-			wbuf += wsz;
-			wbuf_sz -= wsz;
-		}
-	} while (rsz != 0);
-
-	rv = 0;
-
-exit:
-	free(buffer);
-	return rv;
-}
-
-
-static
-int copy_regular(const char* src, const char* dst, int mode)
-{
-	int fd_in = -1;
-	int fd_out = -1;
-	int rv = -1;
-
-	fd_in = mm_open(src, O_RDONLY, 0);
-	if (fd_in == -1)
-		goto exit;
-
-	fd_out = mm_open(dst, O_WRONLY|O_CREAT|O_EXCL, mode);
-	if (fd_out == -1)
-		goto exit;
-
-	rv = clone_fd(fd_in, fd_out);
-
-exit:
-	mm_close(fd_out);
-	mm_close(fd_in);
-	return rv;
-}
-
-
-static
-int copy_symlink(const char* src, const char* dst, const struct mm_stat* buf)
-{
-	int rv = 0;
-	size_t tgt_sz = buf->size;
-	char* target = mm_malloca(tgt_sz);
-
-	if (mm_readlink(src, target, tgt_sz)
-	    || mm_symlink(target, dst))
-		rv = -1;
-
-	mm_freea(target);
-	return rv;
-}
-
-
 /**
  * mm_copy() - copy source to destination
  * @src:        path to file to copy from
@@ -383,19 +301,8 @@ int copy_symlink(const char* src, const char* dst, const struct mm_stat* buf)
 API_EXPORTED
 int mm_copy(const char* src, const char* dst, int flags, int mode)
 {
-	struct mm_stat buf;
+	if (flags & ~MM_NOFOLLOW)
+		return mm_raise_error(EINVAL, "invalid flags (0x%08x)", flags);
 
-	if (mm_stat(src, &buf, flags))
-		return -1;
-
-	switch (buf.mode & S_IFMT) {
-	case S_IFREG:
-		return copy_regular(src, dst, mode);
-
-	case S_IFLNK:
-		return copy_symlink(src, dst, &buf);
-
-	default:
-		return mm_raise_error(EINVAL, "cannot copy type of %s", src);
-	}
+	return copy_internal(src, dst, flags, mode);
 }
