@@ -479,7 +479,7 @@ START_TEST(copy_fail)
 	// test copy directory fails
 	mm_mkdir("dir", 0777, O_CREAT);
 	ck_assert(mm_copy("dir", TEST_FILE, 0, 0666) == -1);
-	ck_assert_int_eq(mm_get_lasterror_number(), EINVAL);
+	ck_assert_int_eq(mm_get_lasterror_number(), EISDIR);
 	mm_rmdir("dir");
 
 	// test regular file copy does not overwrite file
