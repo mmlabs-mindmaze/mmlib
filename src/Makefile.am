@@ -152,7 +152,7 @@ checkstyle: ../tools/uncrustify.cfg
 
 .PHONY: fixstyle
 fixstyle: ../tools/uncrustify.cfg
-	cd $(srcdir) && uncrustify -c ../tools/uncrustify.cfg -l C --replace \
+	cd $(srcdir) && uncrustify -c ../tools/uncrustify.cfg -l C --replace --no-backup \
 		$(libmmlib_internal_wrapper_la_SOURCES)
 
 .PHONY: spelling
