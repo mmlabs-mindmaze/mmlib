@@ -9,6 +9,7 @@
 #include "mmerrno.h"
 #include "utils-win32.h"
 #include "clock-win32.h"
+#include "local-ipc-win32.h"
 
 #include <windows.h>
 #include <io.h>
@@ -424,6 +425,26 @@ ssize_t mm_ipc_sendmsg(int fd, const struct mm_ipc_msg* msg)
 }
 
 
+LOCAL_SYMBOL
+ssize_t ipc_hnd_write(HANDLE hpipe, const void* buf, size_t nbyte)
+{
+	DWORD send_sz;
+	ssize_t len;
+	size_t hdr_sz;
+	struct iovec iov[] = {{.iov_base = (void*)buf, .iov_len = nbyte}};
+	struct mm_ipc_msg ipcmsg = {.iov = iov, .num_iov = 1};
+	uintptr_t msg_data[MAX_DATA_SIZE];
+
+	if ((len = serialize_msg(hpipe, &ipcmsg, msg_data, &hdr_sz)) < 0)
+		return -1;
+
+	if (!WriteFile(hpipe, msg_data, (DWORD)len, &send_sz, NULL))
+		return mm_raise_from_w32err("WriteFile failed");
+
+	return send_sz - hdr_sz;
+}
+
+
 /* doc in posix implementation */
 API_EXPORTED
 ssize_t mm_ipc_recvmsg(int fd, struct mm_ipc_msg* msg)
@@ -439,6 +460,21 @@ ssize_t mm_ipc_recvmsg(int fd, struct mm_ipc_msg* msg)
 		return mm_raise_from_w32err("ReadFile failed");
 
 	return deserialize_msg(recv_sz, msg_data, msg);
+}
+
+
+LOCAL_SYMBOL
+ssize_t ipc_hnd_read(HANDLE hpipe, void* buf, size_t nbyte)
+{
+	DWORD recv_sz;
+	struct iovec iov[] = {{.iov_base = buf, .iov_len = nbyte}};
+	struct mm_ipc_msg ipcmsg = {.iov = iov, .num_iov = 1};
+	uintptr_t msg_data[MAX_DATA_SIZE];
+
+	if (!ReadFile(hpipe, msg_data, sizeof(msg_data), &recv_sz, NULL))
+		return mm_raise_from_w32err("ReadFile failed");
+
+	return deserialize_msg(recv_sz, msg_data, &ipcmsg);
 }
 
 

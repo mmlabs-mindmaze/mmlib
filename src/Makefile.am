@@ -98,12 +98,13 @@ libmmlib_internal_wrapper_la_SOURCES += \
 	shm-win32.c \
 	process-win32.c \
 	local-ipc-win32.c \
+	local-ipc-win32.h \
 	thread-win32.c \
 	atomic-win32.h \
 	mutex-lockval.h \
 	lock-referee-proto.h \
 	pshared-lock.h pshared-lock.c \
-	socket-win32.c \
+	socket-win32.h socket-win32.c \
 	env-win32.c \
 	startup-win32.c \
 	volume-win32.h volume-win32.c \
