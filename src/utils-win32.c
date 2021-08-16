@@ -764,7 +764,7 @@ int is_cygpty_pipe(HANDLE hnd)
 static
 int guess_fd_info(int fd)
 {
-	int info;
+	int info, tmode;
 	HANDLE hnd;
 	DWORD mode, type;
 
@@ -779,6 +779,14 @@ int guess_fd_info(int fd)
 		info = FD_TYPE_CONSOLE | FD_FLAG_ISATTY;
 	else if ((type == FILE_TYPE_PIPE) && is_cygpty_pipe(hnd))
 		info = FD_TYPE_PIPE | FD_FLAG_ISATTY;
+
+	// Detect whether the file is in text mode
+	tmode = _setmode(fd, _O_BINARY);
+	if (tmode != -1) {
+		_setmode(fd, tmode);
+		if (tmode != _O_BINARY)
+			info |= FD_FLAG_TEXT;
+	}
 
 	set_fd_info(fd, info);
 	return info;
