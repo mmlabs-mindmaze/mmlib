@@ -98,6 +98,7 @@ libmmlib_internal_wrapper_la_SOURCES += \
 	shm-win32.c \
 	process-win32.c \
 	local-ipc-win32.c \
+	local-ipc-win32.h \
 	thread-win32.c \
 	atomic-win32.h \
 	mutex-lockval.h \

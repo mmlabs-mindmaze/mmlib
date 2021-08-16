@@ -9,6 +9,7 @@
 #include "mmerrno.h"
 #include "mmlib.h"
 #include "file-internal.h"
+#include "local-ipc-win32.h"
 #include "utils-win32.h"
 #include "volume-win32.h"
 #include "mmlog.h"
@@ -246,6 +247,30 @@ exit:
 }
 
 
+static
+ssize_t ipcdgram_read(int fd, void* buf, size_t nbyte)
+{
+	HANDLE hnd;
+
+	if (unwrap_handle_from_fd(&hnd, fd))
+		return -1;
+
+	return ipc_hnd_read(hnd, buf, nbyte);
+}
+
+
+static
+ssize_t ipcdgram_write(int fd, const void* buf, size_t nbyte)
+{
+	HANDLE hnd;
+
+	if (unwrap_handle_from_fd(&hnd, fd))
+		return -1;
+
+	return ipc_hnd_write(hnd, buf, nbyte);
+}
+
+
 /**
  * msvcrt_read() - perform a read operation using MSVCRT implementation
  * @fd:         file descriptor to read
@@ -354,8 +379,6 @@ API_EXPORTED
 ssize_t mm_read(int fd, void* buf, size_t nbyte)
 {
 	ssize_t rsz;
-	struct mm_ipc_msg ipcmsg;
-	struct iovec iov;
 	int fd_info;
 
 	fd_info = get_fd_info_checked(fd);
@@ -378,10 +401,7 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 		break;
 
 	case FD_TYPE_IPCDGRAM:
-		iov.iov_base = buf;
-		iov.iov_len = nbyte;
-		ipcmsg = (struct mm_ipc_msg) {.iov = &iov, .num_iov = 1};
-		rsz = mm_ipc_recvmsg(fd, &ipcmsg);
+		rsz = ipcdgram_read(fd, buf, nbyte);
 		break;
 
 	case FD_TYPE_MSVCRT:
@@ -402,8 +422,6 @@ API_EXPORTED
 ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 {
 	ssize_t rsz;
-	struct mm_ipc_msg ipcmsg;
-	struct iovec iov;
 	int fd_info;
 
 	fd_info = get_fd_info_checked(fd);
@@ -426,10 +444,7 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 		break;
 
 	case FD_TYPE_IPCDGRAM:
-		iov.iov_base = (void*)buf;
-		iov.iov_len = nbyte;
-		ipcmsg = (struct mm_ipc_msg) {.iov = &iov, .num_iov = 1};
-		rsz = mm_ipc_sendmsg(fd, &ipcmsg);
+		rsz = ipcdgram_write(fd, buf, nbyte);
 		break;
 
 	case FD_TYPE_MSVCRT:

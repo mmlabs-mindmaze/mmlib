@@ -56,6 +56,7 @@ if host_machine.system() == 'windows'
         'env-win32.c',
         'file-win32.c',
         'local-ipc-win32.c',
+        'local-ipc-win32.h',
         'lock-referee-proto.h',
         'mutex-lockval.h',
         'process-win32.c',
