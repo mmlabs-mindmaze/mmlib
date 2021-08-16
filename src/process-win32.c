@@ -389,6 +389,9 @@ unsigned char convert_fdinfo_to_crtflags(int fdinfo)
 	if (fdinfo & FD_FLAG_APPEND)
 		crtflags |= FAPPEND;
 
+	if (fdinfo & FD_FLAG_TEXT)
+		crtflags |= FTEXT;
+
 	return crtflags;
 }
 
