@@ -9,6 +9,8 @@
 #include "mmerrno.h"
 #include "mmlib.h"
 #include "file-internal.h"
+#include "local-ipc-win32.h"
+#include "socket-win32.h"
 #include "utils-win32.h"
 #include "volume-win32.h"
 #include "mmlog.h"
@@ -52,7 +54,7 @@ MM_CONSTRUCTOR(win32_temp_path)
 
 /**
  * mmlib_read() - perform a read operation using local implementation
- * @fd:         file descriptor to read
+ * @hnd:        handle on which to read
  * @buf:        buffer to hold the data to read
  * @nbyte:      number of byte to read
  *
@@ -63,13 +65,9 @@ MM_CONSTRUCTOR(win32_temp_path)
  * error state is set accordingly
  */
 static
-ssize_t mmlib_read(int fd, void* buf, size_t nbyte)
+ssize_t mmlib_read(HANDLE hnd, void* buf, size_t nbyte)
 {
 	DWORD read_sz;
-	HANDLE hnd;
-
-	if (unwrap_handle_from_fd(&hnd, fd))
-		return -1;
 
 	if (!ReadFile(hnd, buf, nbyte, &read_sz, NULL)) {
 		// If write end is closed and pipe is empty, this is not an
@@ -77,7 +75,7 @@ ssize_t mmlib_read(int fd, void* buf, size_t nbyte)
 		if (GetLastError() == ERROR_BROKEN_PIPE)
 			return 0;
 
-		return mm_raise_from_w32err("ReadFile() for fd=%i failed", fd);
+		return mm_raise_from_w32err("ReadFile() failed");
 	}
 
 	return read_sz;
@@ -86,7 +84,8 @@ ssize_t mmlib_read(int fd, void* buf, size_t nbyte)
 
 /**
  * mmlib_write() - perform a write operation using local implementation
- * @fd:         file descriptor to write
+ * @hnd:        handle on which to write
+ * @fd_info:    file desriptor mmlib info
  * @buf:        buffer to hold the data to write
  * @nbyte:      number of byte to write
  *
@@ -97,26 +96,22 @@ ssize_t mmlib_read(int fd, void* buf, size_t nbyte)
  * and error state is set accordingly.
  */
 static
-ssize_t mmlib_write(int fd, const void* buf, size_t nbyte)
+ssize_t mmlib_write(HANDLE hnd, int fd_info, const void* buf, size_t nbyte)
 {
 	DWORD written_sz;
-	HANDLE hnd;
-
-	if (unwrap_handle_from_fd(&hnd, fd))
-		return -1;
 
 	// If file is opened in append mode, we must reset file pointer to
 	// the end.
-	if (get_fd_info(fd) & FD_FLAG_APPEND) {
+	if (fd_info & FD_FLAG_APPEND) {
 		if (!SetFilePointer(hnd, 0, NULL, FILE_END)) {
-			mm_raise_from_w32err("fd=%i is opened in append mode "
-			                     "but can't seek file end", fd);
+			mm_raise_from_w32err("handle is opened in append mode "
+			                     "but can't seek file end");
 			return -1;
 		}
 	}
 
 	if (!WriteFile(hnd, buf, nbyte, &written_sz, NULL))
-		return mm_raise_from_w32err("WriteFile() for fd=%i failed", fd);
+		return mm_raise_from_w32err("WriteFile() failed");
 
 	return written_sz;
 }
@@ -124,7 +119,7 @@ ssize_t mmlib_write(int fd, const void* buf, size_t nbyte)
 
 /**
  * console_read() - read UTF-8 from console
- * @fd:         console file descriptor
+ * @hnd:        console handle
  * @buf:	buffer that should hold the console input
  * @nbyte:      size of @buf
  *
@@ -132,16 +127,12 @@ ssize_t mmlib_write(int fd, const void* buf, size_t nbyte)
  * number of the byte read. -1 in case of failure with error state set
  */
 static
-ssize_t console_read(int fd, char* buf, size_t nbyte)
+ssize_t console_read(HANDLE hnd, char* buf, size_t nbyte)
 {
 	DWORD nchar16_read;
-	HANDLE hnd;
 	size_t nchar16;
 	char16_t* buf16;
 	int i, len, rsz = -1;
-
-	if (unwrap_handle_from_fd(&hnd, fd))
-		return -1;
 
 	// Allocate supplementary buffer to hold UTF-16 data from console
 	nchar16 = nbyte / sizeof(char16_t);
@@ -179,7 +170,7 @@ exit:
 
 /**
  * console_write() - write UTF-8 to console
- * @fd:         console file descriptor
+ * @hnd:        handle on which to write
  * @buf:        UTF-8 string to be written on console
  * @nbyte:      size of @buf
  *
@@ -187,17 +178,13 @@ exit:
  * number of the byte written. -1 in case of failure with error state set
  */
 static
-ssize_t console_write(int fd, const char* buf, size_t nbyte)
+ssize_t console_write(HANDLE hnd, const char* buf, size_t nbyte)
 {
 	DWORD nchar16_written;
-	HANDLE hnd;
 	int i, len_crlf, nchar16, nchar;
 	char* buf_crlf = NULL;
 	char16_t* buf16 = NULL;
 	ssize_t rsz = -1;
-
-	if (unwrap_handle_from_fd(&hnd, fd))
-		return -1;
 
 	// Allocate temporary buffers
 	buf_crlf = mm_malloca(2*nbyte);
@@ -243,6 +230,74 @@ exit:
 	mm_freea(buf16);
 	mm_freea(buf_crlf);
 	return rsz;
+}
+
+
+/**
+ * hnd_write() - perform a write operation on handle
+ * @hnd:        handle on which to write
+ * @fd_info:    file desriptor mmlib info
+ * @buf:        buffer to hold the data to write
+ * @nbyte:      number of byte to write
+ *
+ * Return: number of byte written in case of success. Otherwise -1 is returned
+ * and error state is set accordingly.
+ */
+static
+ssize_t hnd_write(HANDLE hnd, int fd_info, const void* buf, size_t nbyte)
+{
+	switch (fd_info & FD_TYPE_MASK) {
+
+	case FD_TYPE_NORMAL:
+	case FD_TYPE_PIPE:
+		return mmlib_write(hnd, fd_info, buf, nbyte);
+
+	case FD_TYPE_CONSOLE:
+		return console_write(hnd, buf, nbyte);
+
+	case FD_TYPE_SOCKET:
+		return sock_hnd_write(hnd, buf, nbyte);
+
+	case FD_TYPE_IPCDGRAM:
+		return ipc_hnd_write(hnd, buf, nbyte);
+
+	default:
+		abort();
+	}
+}
+
+
+/**
+ * hnd_read() - perform a read operation on handle
+ * @hnd:        handle on which to read
+ * @fd_info:    file desriptor mmlib info
+ * @buf:        buffer to hold the data to read
+ * @nbyte:      number of byte to read
+ *
+ * Return: number of byte written in case of success. Otherwise -1 is returned
+ * and error state is set accordingly.
+ */
+static
+ssize_t hnd_read(HANDLE hnd, int fd_info, void* buf, size_t nbyte)
+{
+	switch (fd_info & FD_TYPE_MASK) {
+
+	case FD_TYPE_NORMAL:
+	case FD_TYPE_PIPE:
+		return mmlib_read(hnd, buf, nbyte);
+
+	case FD_TYPE_CONSOLE:
+		return console_read(hnd, buf, nbyte);
+
+	case FD_TYPE_SOCKET:
+		return sock_hnd_read(hnd, buf, nbyte);
+
+	case FD_TYPE_IPCDGRAM:
+		return ipc_hnd_read(hnd, buf, nbyte);
+
+	default:
+		abort();
+	}
 }
 
 
@@ -353,47 +408,20 @@ int mm_close(int fd)
 API_EXPORTED
 ssize_t mm_read(int fd, void* buf, size_t nbyte)
 {
-	ssize_t rsz;
-	struct mm_ipc_msg ipcmsg;
-	struct iovec iov;
+	HANDLE hnd;
 	int fd_info;
+
+	if (unwrap_handle_from_fd(&hnd, fd))
+		return -1;
 
 	fd_info = get_fd_info_checked(fd);
 	if (fd_info < 0)
 		return mm_raise_error(EBADF, "Invalid file descriptor: %i", fd);
 
-	switch (fd_info & FD_TYPE_MASK) {
+	if ((fd_info & FD_TYPE_MASK) == FD_TYPE_MSVCRT)
+		return msvcrt_read(fd, buf, nbyte);
 
-	case FD_TYPE_NORMAL:
-	case FD_TYPE_PIPE:
-		rsz = mmlib_read(fd, buf, nbyte);
-		break;
-
-	case FD_TYPE_CONSOLE:
-		rsz = console_read(fd, buf, nbyte);
-		break;
-
-	case FD_TYPE_SOCKET:
-		rsz = mm_recv(fd, buf, nbyte, 0);
-		break;
-
-	case FD_TYPE_IPCDGRAM:
-		iov.iov_base = buf;
-		iov.iov_len = nbyte;
-		ipcmsg = (struct mm_ipc_msg) {.iov = &iov, .num_iov = 1};
-		rsz = mm_ipc_recvmsg(fd, &ipcmsg);
-		break;
-
-	case FD_TYPE_MSVCRT:
-		rsz = msvcrt_read(fd, buf, nbyte);
-		break;
-
-	default:
-		return mm_raise_error(EBADF, "Invalid file descriptor: %i", fd);
-
-	}
-
-	return rsz;
+	return hnd_read(hnd, fd_info, buf, nbyte);
 }
 
 
@@ -401,47 +429,20 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 API_EXPORTED
 ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 {
-	ssize_t rsz;
-	struct mm_ipc_msg ipcmsg;
-	struct iovec iov;
+	HANDLE hnd;
 	int fd_info;
+
+	if (unwrap_handle_from_fd(&hnd, fd))
+		return -1;
 
 	fd_info = get_fd_info_checked(fd);
 	if (fd_info < 0)
 		return mm_raise_error(EBADF, "Invalid file descriptor: %i", fd);
 
-	switch (fd_info & FD_TYPE_MASK) {
+	if ((fd_info & FD_TYPE_MASK) == FD_TYPE_MSVCRT)
+		return msvcrt_write(fd, buf, nbyte);
 
-	case FD_TYPE_NORMAL:
-	case FD_TYPE_PIPE:
-		rsz = mmlib_write(fd, buf, nbyte);
-		break;
-
-	case FD_TYPE_CONSOLE:
-		rsz = console_write(fd, buf, nbyte);
-		break;
-
-	case FD_TYPE_SOCKET:
-		rsz = mm_send(fd, buf, nbyte, 0);
-		break;
-
-	case FD_TYPE_IPCDGRAM:
-		iov.iov_base = (void*)buf;
-		iov.iov_len = nbyte;
-		ipcmsg = (struct mm_ipc_msg) {.iov = &iov, .num_iov = 1};
-		rsz = mm_ipc_sendmsg(fd, &ipcmsg);
-		break;
-
-	case FD_TYPE_MSVCRT:
-		rsz = msvcrt_write(fd, buf, nbyte);
-		break;
-
-	default:
-		return mm_raise_error(EBADF, "Invalid file descriptor: %i", fd);
-
-	}
-
-	return rsz;
+	return hnd_write(hnd, fd_info, buf, nbyte);
 }
 
 

@@ -11,6 +11,7 @@
 #include "mmpredefs.h"
 #include "mmthread.h"
 #include "socket-internal.h"
+#include "socket-win32.h"
 #include "utils-win32.h"
 
 #include <winsock2.h>
@@ -443,6 +444,38 @@ ssize_t mm_recv(int sockfd, void* buffer, size_t length, int flags)
 		return -1;
 
 	ret_sz = recv(s, buffer, length, flags);
+	if (ret_sz < 0)
+		return mm_raise_from_w32err("recv() failed");
+
+	return ret_sz;
+}
+
+
+LOCAL_SYMBOL
+ssize_t sock_hnd_write(HANDLE hnd, const void* buffer, size_t length)
+{
+	ssize_t ret_sz;
+
+	if (check_wsa_init())
+		return -1;
+
+	ret_sz = send((SOCKET)hnd, buffer, length, 0);
+	if (ret_sz < 0)
+		return mm_raise_from_w32err("send() failed");
+
+	return ret_sz;
+}
+
+
+LOCAL_SYMBOL
+ssize_t sock_hnd_read(HANDLE hnd, void* buffer, size_t length)
+{
+	ssize_t ret_sz;
+
+	if (check_wsa_init())
+		return -1;
+
+	ret_sz = recv((SOCKET)hnd, buffer, length, 0);
 	if (ret_sz < 0)
 		return mm_raise_from_w32err("recv() failed");
 
