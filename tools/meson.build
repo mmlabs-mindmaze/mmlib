@@ -63,6 +63,7 @@ if uncrustify.found()
             '-l', 'c',
             '-c', uncrustify_config,
             '--replace',
+            '--no-backup',
             all_lib_c_sources, all_doc_c_sources
         ],
     )
