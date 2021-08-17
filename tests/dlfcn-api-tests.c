@@ -7,6 +7,7 @@
 
 #include <check.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -151,8 +152,8 @@ int run_plugin_tests(const char* plugin, int flags)
 	return 0;
 
 error:
-	mm_print_lasterror("run_plugin_tests(\"%s\", %08x) failed", plugin,
-	                   flags);
+	fprintf(stderr, "run_plugin_tests(\"%s\", %08x) failed: %s",
+	        plugin, flags, mm_get_lasterror_desc());
 	if (libhnd)
 		mm_dlclose(libhnd);
 

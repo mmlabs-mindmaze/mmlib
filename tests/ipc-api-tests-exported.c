@@ -58,7 +58,8 @@ intptr_t test_client_process(void * arg)
 cleanup:
 	if (exit_value != 0) {
 		exit_value = mm_get_lasterror_number();
-		mm_print_lasterror("%s() failed", __func__);
+		fprintf(stderr, "%s() failed: %s",
+		        __func__, mm_get_lasterror_desc());
 	}
 
 	mm_close(fd);

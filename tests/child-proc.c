@@ -17,16 +17,15 @@ int main(int argc, char* argv[])
 	char line[64];
 
 	for (i = 0; i < argc; i++)
-		printf("%s\n", argv[i]);
+		fprintf(stderr, "%s\n", argv[i]);
 
 	num_fd = atoi(argv[argc-1]);
-	printf("num_fd = %i\n", num_fd);
+	fprintf(stderr, "num_fd = %i\n", num_fd);
 	for (i = 3; i < 2*num_fd+3; i++) {
 		sprintf(line, "fd = %i", i);
 		if (mm_write(i, line, strlen(line)) < 0)
-			printf("failed write for fd=%i\n", i);
+			fprintf(stderr, "failed write for fd=%i\n", i);
 	}
-	fflush(stdout);
 
 	return 0;
 }

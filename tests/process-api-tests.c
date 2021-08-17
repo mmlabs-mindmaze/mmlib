@@ -123,16 +123,15 @@ struct process_test_data* create_process_test_data(const char* file)
 	}
 
 	// Initialize fd parent->child fd mapping
-	printf("map_fd = [");
+	fprintf(stderr, "map_fd = [");
 	child_last_fd = 3; // first fd after STDERR
 	for (i = 0; i < NUM_FILE; i++) {
 		data->fd_map[i].child_fd = child_last_fd++;
 		data->fd_map[i].parent_fd = data->fds[NUM_FILE+i];
-		printf(" %i:%i", data->fd_map[i].child_fd,
-		                 data->fd_map[i].parent_fd);
+		fprintf(stderr, " %i:%i", data->fd_map[i].child_fd,
+		                          data->fd_map[i].parent_fd);
 	}
-	printf(" ]\n");
-	fflush(stdout);
+	fprintf(stderr, " ]\n");
 
 	// Add final remap for pipe
 	mm_pipe(pipe_fds);
@@ -163,7 +162,8 @@ int spawn_child(int spawn_flags, struct process_test_data* data)
 	if (mm_spawn(&data->pid, data->cmd,
 	             NUM_FDMAP, data->fd_map,
 	             spawn_flags, argv, NULL) != 0) {
-		mm_print_lasterror(NULL);
+		fprintf(stderr, "%s() failed: %s",
+		        __func__, mm_get_lasterror_desc());
 		return -1;
 	}
 
