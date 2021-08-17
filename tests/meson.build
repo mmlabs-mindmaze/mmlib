@@ -1,5 +1,5 @@
-# '-DCHECK_SUPPORT_TAP=1',
 unittest_args = [
+    '-DCHECK_SUPPORT_TAP=1',
     '-DSRCDIR="' + meson.source_root() + '"',
     '-DBUILDDIR="' + meson.current_build_dir() + '"',
     '-DTOP_BUILDDIR="' + meson.build_root() + '"',
@@ -94,7 +94,10 @@ testinternals = executable('testinternals',
         dependencies: libcheck,
 )
 
-test('internal tests', testinternals)
+test('internal tests', testinternals,
+     env: ['CK_VERBOSITY=silent'],
+     protocol: 'tap',
+)
 
 # create the binary and shared library for the rename and unlink tests
 subdir('handmaid')
@@ -142,5 +145,7 @@ testapi = executable('testapi',
 # as long as *all* the API tests are part of the same program, it makes
 # sense anyway
 test('unit api tests', testapi,
-        timeout : 300,
+     env: ['CK_VERBOSITY=silent'],
+     timeout : 300,
+     protocol: 'tap',
 )
