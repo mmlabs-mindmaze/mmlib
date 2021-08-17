@@ -64,7 +64,8 @@ int exec_child(struct process_test_data* data)
 
 	if (mm_execv(data->cmd, NUM_FDMAP, data->fd_map,
 	             0, argv, NULL) != 0) {
-		mm_print_lasterror(NULL);
+		fprintf(stderr, "%s() failed: %s",
+		        __func__, mm_get_lasterror_desc());
 		return -1;
 	}
 

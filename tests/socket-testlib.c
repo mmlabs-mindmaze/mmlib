@@ -90,7 +90,7 @@ int create_server_socket(int domain, int type, int port)
 	return fd;
 
 error:
-	mm_print_lasterror("%s() failed", __func__);
+	fprintf(stderr, "%s() failed: %s", __func__, mm_get_lasterror_desc());
 	mm_freeaddrinfo(res);
 	mm_close(fd);
 	return -1;
@@ -129,7 +129,7 @@ int create_client_socket(int domain, int type, const char* host, int port)
 	return fd;
 
 error:
-	mm_print_lasterror("%s() failed", __func__);
+	fprintf(stderr, "%s() failed: %s", __func__, mm_get_lasterror_desc());
 	mm_freeaddrinfo(res);
 	mm_close(fd);
 	return -1;
@@ -244,5 +244,6 @@ void run_socket_client(int wr_fd, int rd_fd, int narg, char* argv[])
 	}
 
 	if (mm_get_lasterror_number() != 0)
-		mm_print_lasterror("%s() failed", __func__);
+		fprintf(stderr, "%s() failed: %s",
+		        __func__, mm_get_lasterror_desc());
 }

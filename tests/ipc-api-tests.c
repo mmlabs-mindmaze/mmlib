@@ -138,7 +138,8 @@ void* test_handle_client(void * arg)
 cleanup:
 	if (exit_value != NULL) {
 		exit_value = (void*)(intptr_t) mm_get_lasterror_number();
-		mm_print_lasterror("%s() failed", __func__);
+		fprintf(stderr, "%s() failed: %s",
+		        __func__, mm_get_lasterror_desc());
 	}
 
 	mm_close(pipe[0]);
@@ -184,7 +185,8 @@ void* test_server_process(void * arg)
 
 cleanup:
 	if (mm_get_lasterror_number() != 0)
-		mm_print_lasterror("%s() failed", __func__);
+		fprintf(stderr, "%s() failed: %s",
+		        __func__, mm_get_lasterror_desc());
 
 	while (--i > 0) {
 		mm_thr_join(thid[i], NULL);
@@ -229,7 +231,8 @@ intptr_t test_server_process_pending(void * arg)
 
 cleanup:
 	if (mm_get_lasterror_number() != 0)
-		mm_print_lasterror("%s() failed", __func__);
+		fprintf(stderr, "%s() failed: %s",
+		        __func__, mm_get_lasterror_desc());
 
 	while (--i > 0) {
 		mm_thr_join(thid[i], NULL);
