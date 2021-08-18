@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef UTILS_WIN32_H
 #define UTILS_WIN32_H
 
@@ -25,14 +25,19 @@ struct w32_create_file_options {
 	DWORD file_attribute;
 };
 
-int set_w32_create_file_options(struct w32_create_file_options* opts, int oflags);
+int set_w32_create_file_options(struct w32_create_file_options* opts,
+                                int oflags);
 int get_errcode_from_w32err(DWORD w32err);
 void write_w32err_msg(DWORD w32err, size_t len, char* buff);
 int mm_raise_from_w32err_full(const char* module, const char* func,
                               const char* srcfile, int srcline,
                               const char* desc, ...);
 #define mm_raise_from_w32err(...) \
-	mm_raise_from_w32err_full(MM_LOG_MODULE_NAME, __func__, __FILE__, __LINE__, __VA_ARGS__)
+	mm_raise_from_w32err_full(MM_LOG_MODULE_NAME, \
+	                          __func__, \
+	                          __FILE__, \
+	                          __LINE__, \
+	                          __VA_ARGS__)
 
 
 /**************************************************************************
@@ -153,10 +158,19 @@ error:
 }
 
 #define wrap_handle_into_fd(hnd, p_fd, type) \
-	wrap_handle_into_fd_with_logctx(hnd, p_fd, type, __func__, __FILE__, __LINE__)
+	wrap_handle_into_fd_with_logctx(hnd, \
+	                                p_fd, \
+	                                type, \
+	                                __func__, \
+	                                __FILE__, \
+	                                __LINE__)
 
 #define unwrap_handle_from_fd(p_hnd, fd) \
-	unwrap_handle_from_fd_with_logctx(p_hnd, fd, __func__, __FILE__, __LINE__)
+	unwrap_handle_from_fd_with_logctx(p_hnd, \
+	                                  fd, \
+	                                  __func__, \
+	                                  __FILE__, \
+	                                  __LINE__)
 
 
 HANDLE open_handle(const char* path, DWORD access, DWORD create,
@@ -175,9 +189,9 @@ HANDLE open_handle(const char* path, DWORD access, DWORD create,
  * indeed the context of the call. It may retrieve error with GetLastError())
  */
 #define open_handle_for_metadata(path, nofollow)                        \
-        open_handle((path), READ_CONTROL, OPEN_EXISTING, NULL,            \
+	open_handle((path), READ_CONTROL, OPEN_EXISTING, NULL,            \
 	            FILE_FLAG_BACKUP_SEMANTICS                          \
-	             | ((nofollow) ? FILE_FLAG_OPEN_REPARSE_POINT : 0))
+	            | ((nofollow) ? FILE_FLAG_OPEN_REPARSE_POINT : 0))
 
 static inline
 void safe_closehandle(HANDLE hnd)
@@ -198,7 +212,8 @@ int get_file_id_info_from_handle(HANDLE hnd, FILE_ID_INFO* info);
  **************************************************************************/
 
 int get_utf16_buffer_len_from_utf8(const char* utf8_str);
-int conv_utf8_to_utf16(char16_t* utf16_str, int utf16_len, const char* utf8_str);
+int conv_utf8_to_utf16(char16_t* utf16_str, int utf16_len,
+                       const char* utf8_str);
 int get_utf8_buffer_len_from_utf16(const char16_t* utf16_str);
 int conv_utf16_to_utf8(char* utf8_str, int utf8_len, const char16_t* utf16_str);
 
@@ -215,7 +230,7 @@ int unsetenv_utf8(const char* name);
  **************************************************************************/
 
 /* timespec time are expressed since Epoch i.e. since January, 1, 1970
- whereas windows FILETIME since  January 1, 1601 (UTC)*/
+ * whereas windows FILETIME since  January 1, 1601 (UTC)*/
 #define FT_EPOCH (((LONGLONG)27111902 << 32) + (LONGLONG)3577643008)
 
 
@@ -224,7 +239,7 @@ void filetime_to_timespec(FILETIME ft, struct mm_timespec* ts)
 {
 	ULARGE_INTEGER time_int;
 
-	time_int.LowPart  = ft.dwLowDateTime;
+	time_int.LowPart = ft.dwLowDateTime;
 	time_int.HighPart = ft.dwHighDateTime;
 	time_int.QuadPart -= FT_EPOCH;
 
@@ -265,9 +280,9 @@ static inline
 DWORD get_tid(void)
 {
 	DWORD tid;
-#if defined(__x86_64) || defined(_M_X64)
+#if defined (__x86_64) || defined (_M_X64)
 	tid = __readgsdword(0x48);
-#elif defined(__i386__) || defined(_M_IX86)
+#elif defined (__i386__) || defined (_M_IX86)
 	tid = __readfsdword(0x24);
 #else
 	tid = GetCurrentThreadId();
@@ -279,17 +294,17 @@ DWORD get_tid(void)
 static inline
 void* read_teb_address(unsigned long offset)
 {
-#if defined(__x86_64) || defined(_M_X64)
+#if defined (__x86_64) || defined (_M_X64)
 	return (void*)__readgsqword(offset);
-#elif defined(__i386__) || defined(_M_IX86)
+#elif defined (__i386__) || defined (_M_IX86)
 	return (void*)__readfsdword(offset);
 #else
 	return (((char*)NtCurrentTeb())+offset);
 #endif
 }
 
-#define TEB_OFFSET(member)	(offsetof(struct _TEB, member))
-#define NUM_TLS_SLOTS		(MM_NELEM(((struct _TEB*)0)->TlsSlots))
+#define TEB_OFFSET(member)      (offsetof(struct _TEB, member))
+#define NUM_TLS_SLOTS           (MM_NELEM(((struct _TEB*)0)->TlsSlots))
 
 
 /**
@@ -326,5 +341,5 @@ void* tls_get_value(DWORD index)
 	return tls_exp_slots[index - NUM_TLS_SLOTS];
 }
 
-#endif
+#endif /* ifndef UTILS_WIN32_H */
 

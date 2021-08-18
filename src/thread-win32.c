@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -36,13 +36,14 @@
  * @hnd:        WIN32 thread object handle
  * @routine:    pointer to routine to execute in the thread (NULL if thread not
  *              created by mmlib)
- * @arg:        argument passed to @routine (NULL if thread not created by mmlib)
+ * @arg:        argument passed to @routine,
+ *              NULL if thread not created by mmlib.
  * @retval:     value returned by the thread when it terminates
  * @state:      state of the thread indicating if it is stopped or detached
  *
  * This structure represents the data necessary to manipulate thread through
- * the API of mmlib. The &typedef mm_thread_t type corresponds to a pointer to this
- * structure layout.
+ * the API of mmlib. The &typedef mm_thread_t type corresponds to a pointer to
+ * this structure layout.
  *
  * This structure should be freed when:
  * - the thread terminates in the case of a detached thread
@@ -50,7 +51,7 @@
  */
 struct mm_thread {
 	HANDLE hnd;
-	void* (*routine)(void*);
+	void* (* routine)(void*);
 	void* arg;
 	void* retval;
 	int64_t state;
@@ -211,12 +212,13 @@ BOOL WINAPI DllMain(HINSTANCE hdll, DWORD reason, LPVOID reserved)
 	(void)hdll;
 	(void)reserved;
 
-	switch(reason) {
+	switch (reason) {
 	case DLL_PROCESS_ATTACH:
 		threaddata_tls_index = TlsAlloc();
 		if (threaddata_tls_index == TLS_OUT_OF_INDEXES) {
 			return FALSE;
 		}
+
 		break;
 
 	case DLL_PROCESS_DETACH:
@@ -369,7 +371,8 @@ bool register_waiter_in_mtx(int64_t* restrict lock, int64_t* restrict poldval,
 
 	// Now that robust data has been updated, we can release the waiter
 	// count lock
-	*poldval = atomic_fetch_sub(lock, mtx_lockval(0, tid, 0)) & ~MTX_WAITER_TID_MASK;
+	*poldval = ~MTX_WAITER_TID_MASK
+	           & atomic_fetch_sub(lock, mtx_lockval(0, tid, 0));
 
 	return true;
 }
@@ -389,7 +392,8 @@ bool register_waiter_in_mtx(int64_t* restrict lock, int64_t* restrict poldval,
  * Return: the return value to report to the calling lock function.
  */
 static
-int finish_mtx_lock(struct robust_data* robust_data, bool locked, int64_t oldval)
+int finish_mtx_lock(struct robust_data* robust_data, bool locked,
+                    int64_t oldval)
 {
 	int64_t mtx_key;
 	int retval;
@@ -497,7 +501,8 @@ int pshared_mtx_lock(struct mm_thr_mutex_pshared* mutex)
 		// to indicate in the lock value that we are waiting for it,
 		// ie, increasing the number of waiters part of the lock
 		if (!is_waiting_notified) {
-			if (!register_waiter_in_mtx(lockptr, &oldval, robust_data))
+			if (!register_waiter_in_mtx(lockptr, &oldval,
+			                            robust_data))
 				continue;
 
 			oldval &= ~MTX_OWNER_TID_MASK;
@@ -651,13 +656,13 @@ int pshared_mtx_consistent(struct mm_thr_mutex_pshared * mutex)
  * @cond:       condition variable initialized with MM_THR_PSHARED
  * @mutex:      mutex protecting the condition wait update
  * @abstime:    absolute time indicating the timeout or NULL in case of
-                infinite wait.
+ *              infinite wait.
  *
  * Implementation of mm_thr_cond_wait() and mm_thr_cond_timedwait() in the case
  * of process shared condition.
  *
- * Return: 0 in case of success, any error that mm_thr_mutex_lock() can return, or
- * ETIMEDOUT if @abstime is not NULL and the wait has timedout
+ * Return: 0 in case of success, any error that mm_thr_mutex_lock() can return,
+ * or ETIMEDOUT if @abstime is not NULL and the wait has timedout.
  */
 static
 int pshared_cond_wait(struct mm_thr_cond_pshared * cond,
@@ -668,7 +673,7 @@ int pshared_cond_wait(struct mm_thr_cond_pshared * cond,
 	int64_t wakeup_val;
 	int wait_ret, ret;
 	struct shared_lock shlock = {.key = cond->pshared_key};
-	struct lock_timeout timeout, *timeout_ptr;
+	struct lock_timeout timeout, * timeout_ptr;
 
 	timeout_ptr = NULL;
 	if (abstime) {
@@ -680,7 +685,8 @@ int pshared_cond_wait(struct mm_thr_cond_pshared * cond,
 	wakeup_val = atomic_fetch_add(&cond->waiter_seq, 1);
 
 	mm_thr_mutex_unlock(mutex);
-	wait_ret = pshared_wait_on_lock(lockref, shlock, wakeup_val, timeout_ptr);
+	wait_ret = pshared_wait_on_lock(lockref, shlock,
+	                                wakeup_val, timeout_ptr);
 	ret = mm_thr_mutex_lock(mutex);
 
 	// Report return value of timed wait operation only if there is nothing
@@ -966,7 +972,7 @@ int mm_thr_cond_wait(mm_thr_cond_t* cond, mm_thr_mutex_t* mutex)
 /* doc in posix implementation */
 API_EXPORTED
 int mm_thr_cond_timedwait(mm_thr_cond_t* _cond, mm_thr_mutex_t* mutex,
-                         const struct mm_timespec* abstime)
+                          const struct mm_timespec* abstime)
 {
 	struct mm_timespec now;
 	int ret;
@@ -1062,7 +1068,7 @@ int mm_thr_cond_init(mm_thr_cond_t * _cond, int flags)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_thr_once(mm_thr_once_t* once, void (*once_routine)(void))
+int mm_thr_once(mm_thr_once_t* once, void (* once_routine)(void))
 {
 	static SRWLOCK once_global_lock = SRWLOCK_INIT;
 	static int global_lock_recursion_level = 0;
@@ -1078,6 +1084,7 @@ int mm_thr_once(mm_thr_once_t* once, void (*once_routine)(void))
 		AcquireSRWLockExclusive(&once_global_lock);
 		global_lock_owner = tid;
 	}
+
 	global_lock_recursion_level++;
 
 	// Execute once routine
@@ -1132,7 +1139,8 @@ int mm_thr_create(mm_thread_t* thread, void* (*proc)(void*), void* arg)
 	th->routine = proc;
 	th->arg = arg;
 
-	th->hnd = (HANDLE)_beginthreadex(NULL, 0, thread_proc_wrapper, th, 0, NULL);
+	th->hnd = (HANDLE)_beginthreadex(NULL, 0, thread_proc_wrapper,
+	                                 th, 0, NULL);
 	if (!th->hnd) {
 		mm_raise_from_errno("Failed to begin thread");
 		destroy_mm_thread_data(th);

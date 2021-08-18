@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -17,7 +17,7 @@
 
 #include <windows.h>
 
-#define LOCK_REFEREE_SERVER_BIN		LIBEXECDIR"/lock-referee.exe"
+#define LOCK_REFEREE_SERVER_BIN         LIBEXECDIR "/lock-referee.exe"
 #define PIPE_WAIT_MS    50
 
 
@@ -152,8 +152,14 @@ HANDLE connect_to_lockref_server(void)
 
 		// Try Connect named pipe to server. If failed, it will
 		// restart over.
-		open_mode= GENERIC_READ|GENERIC_WRITE;
-		pipe = CreateFile(referee_pipename, open_mode, 0, NULL, OPEN_EXISTING, 0, NULL);
+		open_mode = GENERIC_READ|GENERIC_WRITE;
+		pipe = CreateFile(referee_pipename,
+		                  open_mode,
+		                  0,
+		                  NULL,
+		                  OPEN_EXISTING,
+		                  0,
+		                  NULL);
 	}
 
 	SetNamedPipeHandleState(pipe, &pipe_mode, NULL, NULL);
@@ -201,7 +207,9 @@ int64_t get_lockval_change(int64_t lockval, int is_waiter, DWORD tid)
  * sent back to server (need of waiter wakeup will be indicated here).
  */
 static NOINLINE
-void cleanup_mutex_lock(HANDLE hmap, struct shared_lock shlock, struct lockref_req_msg* ack_msg)
+void cleanup_mutex_lock(HANDLE hmap,
+                        struct shared_lock shlock,
+                        struct lockref_req_msg* ack_msg)
 {
 	struct mutex_cleanup_job* job;
 	int i;
@@ -216,10 +224,10 @@ void cleanup_mutex_lock(HANDLE hmap, struct shared_lock shlock, struct lockref_r
 	// Inspect the current value of the shared lock
 	lockval = atomic_load(shlock.ptr);
 
-	// Find the modification to apply for each dead thread onto the shared lock value
+	// Find the modification to apply for each dead onto the lock value
 	cleanup_val = 0;
 	for (i = 0; i < job->num_dead; i++) {
-		tid =  job->deadlist[i].tid;
+		tid = job->deadlist[i].tid;
 		is_waiter = job->deadlist[i].is_waiter;
 		cleanup_val += get_lockval_change(lockval, is_waiter, tid);
 	}
@@ -389,8 +397,10 @@ int64_t pshared_init_lock(struct lockref_connection* conn)
  * the wait has timed out.
  */
 LOCAL_SYMBOL
-int pshared_wait_on_lock(struct lockref_connection* conn, struct shared_lock lock,
-                         int64_t wakeup_val, const struct lock_timeout* timeout)
+int pshared_wait_on_lock(struct lockref_connection* conn,
+                         struct shared_lock lock,
+                         int64_t wakeup_val,
+                         const struct lock_timeout* timeout)
 {
 	DWORD rsz;
 	BOOL ret;
@@ -414,7 +424,8 @@ int pshared_wait_on_lock(struct lockref_connection* conn, struct shared_lock loc
 	// reply without a cleanup job request.
 	while (1) {
 		ret = TransactNamedPipe(conn->pipe, &request, sizeof(request),
-		                        &response, sizeof(response), &rsz, NULL);
+		                        &response, sizeof(response), &rsz,
+		                        NULL);
 		mm_check(ret && (rsz == sizeof(response)));
 
 		if (UNLIKELY(response.respcode == LOCKREF_OP_CLEANUP))
@@ -439,8 +450,10 @@ int pshared_wait_on_lock(struct lockref_connection* conn, struct shared_lock loc
  * whose wakeup value are lower or equal to @val.
  */
 LOCAL_SYMBOL
-void pshared_wake_lock(struct lockref_connection* conn, struct shared_lock shlock,
-                      int64_t val, int num_wakeup)
+void pshared_wake_lock(struct lockref_connection* conn,
+                       struct shared_lock shlock,
+                       int64_t val,
+                       int num_wakeup)
 {
 	DWORD rsz;
 	BOOL ret;

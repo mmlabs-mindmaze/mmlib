@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -110,7 +110,7 @@ char* write_nbackslash(char* str, int nbackslash)
 static
 int parse_cmdline(char*** p_argv, const char* cmdline)
 {
-	char c, *str, **argv;
+	char c, * str, ** argv;
 	int argc = 0, nbackslash = 0;
 	bool in_quotes = false, prev_is_whitespace = false;
 
@@ -136,6 +136,7 @@ int parse_cmdline(char*** p_argv, const char* cmdline)
 				str = write_nbackslash(str, (nbackslash-1)/2);
 				*str++ = '"';
 			}
+
 			nbackslash = 0;
 			prev_is_whitespace = false;
 			break;
@@ -157,7 +158,8 @@ int parse_cmdline(char*** p_argv, const char* cmdline)
 				prev_is_whitespace = true;
 				break;
 			}
-			/* fall through */
+
+		/* fall through */
 
 		default:
 			str = write_nbackslash(str, nbackslash);
@@ -173,6 +175,7 @@ int parse_cmdline(char*** p_argv, const char* cmdline)
 		*str++ = '\0';
 		argc++;
 	}
+
 	argv[argc] = NULL;
 
 	*p_argv = argv;
@@ -348,14 +351,14 @@ int __getmainargs(int * p_argc, char *** p_argv, char *** p_env,
 
 // Value equivalent as from vcruntime-startup.h (_crt_argv_mode)
 enum {
-    ucrt_argv_no_arguments,
-    ucrt_argv_unexpanded_arguments,
-    ucrt_argv_expanded_arguments,
+	ucrt_argv_no_arguments,
+	ucrt_argv_unexpanded_arguments,
+	ucrt_argv_expanded_arguments,
 };
 
 
 /**
- * _get_startup_argv_mode() - get argv population mode, used during executable startup
+ * _get_startup_argv_mode() - get argv mode, used during executable startup
  *
  * This function is meant to override the default implementation in CRT init
  * bits. It ensures that command line is split in array of UTF-8 argument

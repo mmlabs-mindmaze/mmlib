@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef ATOMIC_WIN32_H
 #define ATOMIC_WIN32_H
 
@@ -13,16 +13,19 @@
  *                                                                        *
  **************************************************************************/
 /**
- * atomic_cmp_exchange() - atomically swap if expected value is actually in object
+ * atomic_cmp_exchange() - atomically swap if expected value is in object
  * @obj:        pointer of int64_t to change
  * @expected:   pointer to expected value in input, receive the previous value
  *              of *@obj in output
  * @desired:    new value that must be swapped into @obj
  *
- * Return: If *@expected equal *@obj, the swap occurs and true is returned. Otherwise false.
+ * Return: If @expected equal @obj, the swap occurs and true is returned.
+ * Otherwise false.
  */
 static inline
-bool atomic_cmp_exchange(volatile int64_t* obj, int64_t* expected, int64_t desired)
+bool atomic_cmp_exchange(volatile int64_t* obj,
+                         int64_t* expected,
+                         int64_t desired)
 {
 	int64_t prev_val;
 	bool has_swapped;
@@ -52,4 +55,4 @@ bool atomic_cmp_exchange(volatile int64_t* obj, int64_t* expected, int64_t desir
 #define atomic_load(obj)            (*obj)
 #endif
 
-#endif
+#endif /* ifndef ATOMIC_WIN32_H */

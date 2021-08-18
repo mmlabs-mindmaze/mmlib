@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef MUTEX_LOCK_H
 #define MUTEX_LOCK_H
 
@@ -13,7 +13,8 @@
 #define MTX_NWAITER_MASK                0x000000FF00000000LL
 #define MTX_NWAITER_SHIFTLEN            32
 #define MTX_NWAITER_INCREMENT           (1LL << MTX_NWAITER_SHIFTLEN)
-#define MTX_UNRECOVERABLE_MASK		(MTX_NEED_RECOVER_MASK | MTX_OWNER_TID_MASK)
+#define MTX_UNRECOVERABLE_MASK          (MTX_NEED_RECOVER_MASK | \
+	                                 MTX_OWNER_TID_MASK)
 
 /**
  * is_mtx_waited() - test thread waiting mutex to be unlocked
@@ -73,8 +74,8 @@ static inline
 int64_t mtx_lockval(DWORD owner_tid, DWORD waiter_tid, int nwaiter)
 {
 	return (owner_tid & MTX_OWNER_TID_MASK)
-	    | ((int64_t)nwaiter << MTX_NWAITER_SHIFTLEN)
-	    | ((int64_t)waiter_tid << MTX_WAITER_TID_SHIFTLEN);
+	       | ((int64_t)nwaiter << MTX_NWAITER_SHIFTLEN)
+	       | ((int64_t)waiter_tid << MTX_WAITER_TID_SHIFTLEN);
 }
 
 
@@ -160,4 +161,4 @@ int mtx_num_waiter(int64_t lockval)
 	return (int)((lockval & MTX_NWAITER_MASK) >> MTX_NWAITER_SHIFTLEN);
 }
 
-#endif
+#endif /* ifndef MUTEX_LOCK_H */

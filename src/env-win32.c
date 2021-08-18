@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -94,7 +94,7 @@ void envstr_deinit(struct envstr* entry)
 
 	free(entry->str);
 
-	*entry = (struct envstr){.str = NULL};
+	*entry = (struct envstr) {.str = NULL};
 }
 
 
@@ -185,7 +185,7 @@ void envcache_deinit(struct envcache* cache)
 
 	free(cache->envp);
 	free(cache->array);
-	*cache = (struct envcache){.array = NULL};
+	*cache = (struct envcache) {.array = NULL};
 }
 
 
@@ -225,7 +225,7 @@ static
 struct envstr* envcache_create_entry(struct envcache* cache, const char* name)
 {
 	int max_arrlen;
-	struct envstr *entry, *array;
+	struct envstr * entry, * array;
 
 	array = cache->array;
 	max_arrlen = cache->max_arrlen;
@@ -317,14 +317,14 @@ char** envcache_update_envp(struct envcache* cache)
 static
 char16_t* get_u16env(const char* name_u8)
 {
-	char16_t *name_u16, *value_u16;
+	char16_t * name_u16, * value_u16;
 	int u16_len;
 
 	// Estimate the size of the variable name in UTF-16. If the name in
 	// invalid, we consider (rightfully) that the environment does not
 	// contains such a name
 	u16_len = get_utf16_buffer_len_from_utf8(name_u8);
-	if (u16_len  < 0)
+	if (u16_len < 0)
 		return NULL;
 
 	// Get UTF-16 env value from temporary UTF-16 variable name
@@ -354,10 +354,11 @@ MM_DESTRUCTOR(utf8_environment_cache_cleanup)
  * @envstr_u16:  "key=val" string in UTF-16
  */
 static
-void update_environment_cache(struct envcache* cache, const char16_t* envstr_u16)
+void update_environment_cache(struct envcache* cache,
+                              const char16_t* envstr_u16)
 {
 	int len8;
-	char *envstr_u8, *name, *value;
+	char * envstr_u8, * name, * value;
 	struct envstr* entry;
 
 	// Get temporary UTF-8 env string from envstr_u16.
@@ -490,7 +491,7 @@ int setenv_utf8(const char* name, const char* value, int overwrite)
 	// Estimate the size of components of the environment string in UTF-16
 	name_u16_len = get_utf16_buffer_len_from_utf8(name);
 	value_u16_len = get_utf16_buffer_len_from_utf8(value);
-	if (name_u16_len  <= 0 || value_u16_len < 0) {
+	if (name_u16_len <= 0 || value_u16_len < 0) {
 		errno = (name_u16_len == 0) ? EILSEQ : EINVAL;
 		return -1;
 	}

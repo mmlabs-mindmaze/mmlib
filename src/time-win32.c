@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -24,7 +24,7 @@
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_gettime(clockid_t clock_id, struct mm_timespec *ts)
+int mm_gettime(clockid_t clock_id, struct mm_timespec* ts)
 {
 	switch (clock_id) {
 	case MM_CLK_REALTIME:
@@ -47,7 +47,7 @@ int mm_gettime(clockid_t clock_id, struct mm_timespec *ts)
 	default:
 		mm_raise_error(EINVAL, "Invalid clock id: %i", clock_id);
 		return -1;
-	};
+	}
 
 	return 0;
 }
@@ -55,7 +55,7 @@ int mm_gettime(clockid_t clock_id, struct mm_timespec *ts)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_getres(clockid_t clock_id, struct mm_timespec *res)
+int mm_getres(clockid_t clock_id, struct mm_timespec* res)
 {
 	switch (clock_id) {
 	case MM_CLK_REALTIME:
@@ -78,7 +78,7 @@ int mm_getres(clockid_t clock_id, struct mm_timespec *res)
 	default:
 		mm_raise_error(EINVAL, "Invalid clock id: %i", clock_id);
 		return -1;
-	};
+	}
 
 	return 0;
 }
@@ -139,14 +139,14 @@ void relative_microsleep(int64_t delta_ns)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_nanosleep(clockid_t clock_id, const struct mm_timespec *target)
+int mm_nanosleep(clockid_t clock_id, const struct mm_timespec* target)
 {
 	struct mm_timespec now;
 	int64_t delta_ns;
 
 	if (clock_id != MM_CLK_REALTIME
-	   && clock_id != MM_CLK_MONOTONIC
-	   && clock_id != MM_CLK_MONOTONIC_RAW)
+	    && clock_id != MM_CLK_MONOTONIC
+	    && clock_id != MM_CLK_MONOTONIC_RAW)
 		return mm_raise_error(EINVAL, "Invalid clock (%i)", clock_id);
 
 	// Wait until the target timestamp is reached

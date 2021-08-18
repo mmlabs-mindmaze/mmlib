@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -20,7 +20,7 @@
 /**
  * get_win32_page_protect() - Get page protection and access mask
  * @mflags:             flags passed to mm_mapfile
- * @protect_mask:       pointer to mask that will specify the page protect for file
+ * @protect_mask:       pointer to mask specifying the page protect for file
  *                      mapping creation (output variable)
  * @access_mask:        location of mask that will specify the access during
  *                      the creation of the map view (output variable)
@@ -31,7 +31,7 @@
  */
 static
 void get_win32_page_protect(int mflags,
-                           DWORD* protect_mask, DWORD* access_mask)
+                            DWORD* protect_mask, DWORD* access_mask)
 {
 	DWORD protect = 0;
 	DWORD access = 0;
@@ -85,9 +85,9 @@ void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags)
 	off_l = offset & 0xffffffff;
 	ptr = MapViewOfFile(hmap, access, off_h, off_l, len);
 	if (!ptr) {
-		/* when trying to map a file, if the request length is larger than
-		 * the size of the file itself, windows returns a generic permission
-		 * error. Transform it into EINVAL instead */
+		/* when trying to map a file, if the request length is larger
+		 * than the size of the file itself, windows returns a generic
+		 * permission error. Transform it into EINVAL instead */
 		if (GetLastError() == ERROR_ACCESS_DENIED
 		    && get_stat_from_handle(hfile, &stat) == 0
 		    && S_ISREG(stat.mode)
@@ -97,7 +97,8 @@ void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags)
 			               "requested len (%d) > file size (%d)",
 			               fd, stat.size, len);
 		} else {
-			mm_raise_from_w32err("MapViewOfFile failed (fd=%i)", fd);
+			mm_raise_from_w32err("MapViewOfFile failed (fd=%i)",
+			                     fd);
 		}
 	}
 
@@ -125,9 +126,9 @@ int mm_unmap(void* addr)
  *                         SHM access per se                              *
  *                                                                        *
  **************************************************************************/
-#define MAX_ATTEMPT	32
-#define MAX_NAME	256
-#define SHMROOT_PATH_MAXLEN	512
+#define MAX_ATTEMPT     32
+#define MAX_NAME        256
+#define SHMROOT_PATH_MAXLEN     512
 
 
 /**
@@ -177,7 +178,7 @@ int mm_anon_shm(void)
 		sprintf(filename, "%s/mmlib-shm-%u", get_shm_path(), randval);
 		// Try open the file
 		hnd = CreateFile(filename, GENERIC_READ|GENERIC_WRITE,
-                                 0, NULL, CREATE_ALWAYS,
+		                 0, NULL, CREATE_ALWAYS,
 		                 FILE_FLAG_DELETE_ON_CLOSE, NULL);
 		if (hnd != INVALID_HANDLE_VALUE)
 			break;

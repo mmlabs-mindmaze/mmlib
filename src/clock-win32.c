@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -26,12 +26,12 @@
 
 //Not defined outside of DDK, but documented
 typedef struct _PROCESSOR_POWER_INFORMATION {
-  ULONG Number;
-  ULONG MaxMhz;
-  ULONG CurrentMhz;
-  ULONG MhzLimit;
-  ULONG MaxIdleState;
-  ULONG CurrentIdleState;
+	ULONG Number;
+	ULONG MaxMhz;
+	ULONG CurrentMhz;
+	ULONG MhzLimit;
+	ULONG MaxIdleState;
+	ULONG CurrentIdleState;
 } PROCESSOR_POWER_INFORMATION, *PPROCESSOR_POWER_INFORMATION;
 
 
@@ -48,7 +48,8 @@ void determine_cpu_cycle_rate(void)
 	SYSTEM_INFO sysinfo;
 	PROCESSOR_POWER_INFORMATION* proc_pwr_info;
 
-	// Get number of logical processor to allocate proc_pwr_info array size to the right one
+	// Get number of logical processor to allocate proc_pwr_info array size
+	// to the right one
 	GetSystemInfo(&sysinfo);
 	num_proc = sysinfo.dwNumberOfProcessors;
 
@@ -58,10 +59,11 @@ void determine_cpu_cycle_rate(void)
 	// installed on the system
 	proc_pwr_info = _alloca(num_proc*sizeof(*proc_pwr_info));
 	CallNtPowerInformation(ProcessorInformation, NULL, 0,
-                               proc_pwr_info, num_proc*sizeof(*proc_pwr_info));
+	                       proc_pwr_info, num_proc*sizeof(*proc_pwr_info));
 
 	// Compute CPU max clock rate and tick length
-	// On x86 processors supporting invariant TSC, the TSC clock rate is this one
+	// On x86 processors supporting invariant TSC, the TSC clock rate is
+	// this one
 	cpu_cycle_freq = proc_pwr_info[0].MaxMhz * MHZ_IN_HZ;
 	cpu_cycle_tick_psec = PICOSEC_IN_SEC / cpu_cycle_freq;
 }
@@ -151,13 +153,13 @@ void getres_qpc(struct mm_timespec* res)
  *                          monotonic clock                               *
  **************************************************************************/
 
-#define EAX_REG_INDEX	0
-#define EBX_REG_INDEX	1
-#define ECX_REG_INDEX	2
-#define EDX_REG_INDEX	3
+#define EAX_REG_INDEX   0
+#define EBX_REG_INDEX   1
+#define ECX_REG_INDEX   2
+#define EDX_REG_INDEX   3
 #define NUM_REG         4
 
-// To get the value that must be passed to cpuid, see the ISA documentation from Intel
+// To get the value that must be passed to cpuid, see the ISA documentation
 #define CPUID_LEAF_EXTENDED     0x80000001
 #define RDTSCP_EDX_MASK         (1<<27)
 #define CPUID_LEAF_TSC          0x80000007

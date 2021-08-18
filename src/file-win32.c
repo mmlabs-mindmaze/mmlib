@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -22,7 +22,7 @@
 #include <ntdef.h>
 #include <winioctl.h>
 
-#define NUM_ATTEMPT	256
+#define NUM_ATTEMPT     256
 
 #ifndef SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
 #define SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE 0x02
@@ -30,7 +30,7 @@
 
 struct mm_dirstream {
 	HANDLE hdir;
-	int find_first_done;       /* flag specifying the folder has been though FindFirstFile() */
+	int find_first_done;       // has folder been though FindFirstFile()?
 	struct mm_dirent * dirent;
 	char dirname[];
 };
@@ -93,8 +93,8 @@ ssize_t mmlib_read(int fd, void* buf, size_t nbyte)
  * Perform write assuming file type on which WriteFile() is possible without
  * passing special flags or not requiring transforming the data.
  *
- * Return: number of byte written in case of success. Otherwise -1 is returned and
- * error state is set accordingly
+ * Return: number of byte written in case of success. Otherwise -1 is returned
+ * and error state is set accordingly.
  */
 static
 ssize_t mmlib_write(int fd, const void* buf, size_t nbyte)
@@ -110,7 +110,8 @@ ssize_t mmlib_write(int fd, const void* buf, size_t nbyte)
 	if (get_fd_info(fd) & FD_FLAG_APPEND) {
 		if (!SetFilePointer(hnd, 0, NULL, FILE_END)) {
 			mm_raise_from_w32err("File (fd=%i) is opend in append mode "
-			                     "but can't seek file end", fd);
+			                     "but can't seek file end",
+			                     fd);
 			return -1;
 		}
 	}
@@ -192,7 +193,7 @@ ssize_t console_write(int fd, const char* buf, size_t nbyte)
 	DWORD nchar16_written;
 	HANDLE hnd;
 	int i, len_crlf, nchar16, nchar;
-	char *buf_crlf = NULL;
+	char* buf_crlf = NULL;
 	char16_t* buf16 = NULL;
 	ssize_t rsz = -1;
 
@@ -214,7 +215,7 @@ ssize_t console_write(int fd, const char* buf, size_t nbyte)
 
 	// Convert UTF-8 (with crlf) into UTF-16
 	nchar16 = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-	                             buf_crlf, len_crlf, buf16, 2*nbyte);
+	                              buf_crlf, len_crlf, buf16, 2*nbyte);
 	if (nchar16 < 0) {
 		mm_raise_from_w32err("Invalid UTF-8 buffer");
 		goto exit;
@@ -280,8 +281,8 @@ ssize_t msvcrt_read(int fd, void* buf, size_t nbyte)
  * Same as _write() from MSVCRT, excepting that error state is set in case of
  * error.
  *
- * Return: number of byte written in case of success. Otherwise -1 is returned and
- * error state is set accordingly
+ * Return: number of byte written in case of success. Otherwise -1 is returned
+ * and error state is set accordingly.
  */
 static
 ssize_t msvcrt_write(int fd, const void* buf, size_t nbyte)
@@ -360,9 +361,9 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 
 	fd_info = get_fd_info_checked(fd);
 	if (fd_info < 0)
-		return mm_raise_error(EBADF, "Invalid file descriptor (%i)", fd);
+		return mm_raise_error(EBADF, "Invalid file descriptor: %i", fd);
 
-	switch(fd_info & FD_TYPE_MASK) {
+	switch (fd_info & FD_TYPE_MASK) {
 
 	case FD_TYPE_NORMAL:
 	case FD_TYPE_PIPE:
@@ -389,7 +390,7 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 		break;
 
 	default:
-		return mm_raise_error(EBADF, "Invalid file descriptor (%i)", fd);
+		return mm_raise_error(EBADF, "Invalid file descriptor: %i", fd);
 
 	}
 
@@ -408,9 +409,9 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 
 	fd_info = get_fd_info_checked(fd);
 	if (fd_info < 0)
-		return mm_raise_error(EBADF, "Invalid file descriptor (%i)", fd);
+		return mm_raise_error(EBADF, "Invalid file descriptor: %i", fd);
 
-	switch(fd_info & FD_TYPE_MASK) {
+	switch (fd_info & FD_TYPE_MASK) {
 
 	case FD_TYPE_NORMAL:
 	case FD_TYPE_PIPE:
@@ -437,7 +438,7 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 		break;
 
 	default:
-		return mm_raise_error(EBADF, "Invalid file descriptor (%i)", fd);
+		return mm_raise_error(EBADF, "Invalid file descriptor: %i", fd);
 
 	}
 
@@ -609,7 +610,7 @@ int rename_file_to_trash_from_handle(HANDLE hnd)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_rename(const char *oldpath, const char *newpath)
+int mm_rename(const char* oldpath, const char* newpath)
 {
 
 	/* TODO: make the verifications for the directories (returns an error
@@ -618,7 +619,7 @@ int mm_rename(const char *oldpath, const char *newpath)
 
 	int newpath_u16_len;
 	FILE_RENAME_INFO * info;
-	size_t info_sz;
+	size_t sz;
 	HANDLE hndold = INVALID_HANDLE_VALUE;
 	HANDLE hndnew = INVALID_HANDLE_VALUE;
 	int rv = -1;
@@ -628,8 +629,8 @@ int mm_rename(const char *oldpath, const char *newpath)
 	if (newpath_u16_len < 0)
 		return mm_raise_from_w32err("invalid UTF-8 sequence");
 
-	info_sz = newpath_u16_len * sizeof(char16_t) + sizeof(*info);
-	info = mm_malloca(info_sz);
+	sz = newpath_u16_len * sizeof(char16_t) + sizeof(*info);
+	info = mm_malloca(sz);
 	if (!info)
 		return -1;
 
@@ -638,7 +639,7 @@ int mm_rename(const char *oldpath, const char *newpath)
 	access = DELETE | FILE_WRITE_ATTRIBUTES;
 	hndold = open_handle(oldpath, access, OPEN_EXISTING, NULL, flags);
 	if (hndold == INVALID_HANDLE_VALUE)
-        	goto exit;
+		goto exit;
 
 	conv_utf8_to_utf16(info->FileName, newpath_u16_len, newpath);
 	info->RootDirectory = NULL;
@@ -648,17 +649,18 @@ int mm_rename(const char *oldpath, const char *newpath)
 	// Try to rename the file oldpath to newpath. In case the renaming did
 	// not work because a file named newpath was already used, then put it
 	// in the trash and retry
-	if (!SetFileInformationByHandle(hndold, FileRenameInfo, info, info_sz)){
+	if (!SetFileInformationByHandle(hndold, FileRenameInfo, info, sz)) {
 		hndnew = CreateFileW(info->FileName, access, FILE_SHARE_ALL,
 		                     NULL, OPEN_EXISTING, flags, NULL);
 
 		if ((hndnew == INVALID_HANDLE_VALUE)
 		    || (rename_file_to_trash_from_handle(hndnew) == -1)
 		    || !SetFileInformationByHandle(hndold, FileRenameInfo,
-		                                info, info_sz)) {
+		                                   info, sz)) {
 			goto exit;
 		}
 	}
+
 	rv = 0;
 
 exit:
@@ -723,12 +725,12 @@ int mm_unlink(const char* path)
 }
 
 
-#define TOKEN_ACCESS 	\
-  (  TOKEN_IMPERSONATE | TOKEN_QUERY        \
-   | TOKEN_DUPLICATE | STANDARD_RIGHTS_READ)
+#define TOKEN_ACCESS    \
+	(  TOKEN_IMPERSONATE | TOKEN_QUERY        \
+	   | TOKEN_DUPLICATE | STANDARD_RIGHTS_READ)
 /*
-from http://blog.aaronballman.com/2011/08/how-to-check-access-rights/
-*/
+ * from http://blog.aaronballman.com/2011/08/how-to-check-access-rights/
+ */
 static
 int test_access(SECURITY_DESCRIPTOR* sd, DWORD access_rights)
 {
@@ -750,13 +752,13 @@ int test_access(SECURITY_DESCRIPTOR* sd, DWORD access_rights)
 
 	// Get obtained a token suitable for impersonation and check access
 	if (!OpenProcessToken(hproc, TOKEN_ACCESS, &proc_htoken)
-	   || !DuplicateToken(proc_htoken, SecurityImpersonation, &imp_htoken)
-	   || !AccessCheck(sd, imp_htoken, access_rights, &mapping,
-	                   &privileges, &priv_len, &granted, &result)) {
+	    || !DuplicateToken(proc_htoken, SecurityImpersonation, &imp_htoken)
+	    || !AccessCheck(sd, imp_htoken, access_rights, &mapping,
+	                    &privileges, &priv_len, &granted, &result)) {
 		goto exit;
 	}
 
-	rv =  (result == TRUE) ? 0 : EACCES;
+	rv = (result == TRUE) ? 0 : EACCES;
 
 exit:
 	safe_closehandle(imp_htoken);
@@ -780,7 +782,7 @@ int mm_check_access(const char* path, int amode)
 		// must be reported as return value
 		w32err = GetLastError();
 		if (w32err == ERROR_PATH_NOT_FOUND
-		   || w32err == ERROR_FILE_NOT_FOUND)
+		    || w32err == ERROR_FILE_NOT_FOUND)
 			return ENOENT;
 
 		return mm_raise_from_w32err("Can't get handle for %s", path);
@@ -817,7 +819,7 @@ API_EXPORTED
 int mm_link(const char* oldpath, const char* newpath)
 {
 	int oldpath_u16_len, newpath_u16_len;
-	char16_t *oldpath_u16, *newpath_u16;
+	char16_t * oldpath_u16, * newpath_u16;
 	int retval = 0;
 
 	// Get the length (in byte) of the string when converted in UTF-8
@@ -835,7 +837,9 @@ int mm_link(const char* oldpath, const char* newpath)
 	conv_utf8_to_utf16(newpath_u16, newpath_u16_len, newpath);
 
 	if (!CreateHardLinkW(newpath_u16, oldpath_u16, NULL)) {
-		mm_raise_from_w32err("CreateHardLinkW(%s, %s) failed", newpath, oldpath);
+		mm_raise_from_w32err("CreateHardLinkW(%s, %s) failed",
+		                     newpath,
+		                     oldpath);
 		retval = -1;
 	}
 
@@ -850,7 +854,7 @@ API_EXPORTED
 int mm_symlink(const char* oldpath, const char* newpath)
 {
 	int oldpath_u16_len, newpath_u16_len;
-	char16_t *oldpath_u16, *newpath_u16;
+	char16_t * oldpath_u16, * newpath_u16;
 	int retval = 0;
 	int err;
 	DWORD flags, file_attrs;
@@ -879,18 +883,21 @@ int mm_symlink(const char* oldpath, const char* newpath)
 	// the target folder handle seems not functional)
 	file_attrs = GetFileAttributesW(oldpath_u16);
 	if ((file_attrs != INVALID_FILE_ATTRIBUTES)
-	   && (file_attrs & FILE_ATTRIBUTE_DIRECTORY))
+	    && (file_attrs & FILE_ATTRIBUTE_DIRECTORY))
 		flags |= SYMBOLIC_LINK_FLAG_DIRECTORY;
 
 	err = CreateSymbolicLinkW(newpath_u16, oldpath_u16, flags);
 	if (!err && GetLastError() == ERROR_INVALID_PARAMETER) {
-		/* SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE was introduced in 2017-03
-		 * if it is not recognized, try again without it */
+		/* SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE was introduced
+		 * in 2017-03. If it is not recognized, try again without it */
 		flags &= ~SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
 		err = CreateSymbolicLinkW(newpath_u16, oldpath_u16, flags);
 	}
+
 	if (!err) {
-		mm_raise_from_w32err("CreateSymbolicLinkW(%s, %s) failed", newpath, oldpath);
+		mm_raise_from_w32err("CreateSymbolicLinkW(%s, %s) failed",
+		                     newpath,
+		                     oldpath);
 		retval = -1;
 	}
 
@@ -913,6 +920,7 @@ int mm_chdir(const char* path)
 	path_u16 = mm_malloca(path_u16_len * sizeof(*path_u16));
 	if (path_u16 == NULL)
 		return mm_raise_from_w32err("Failed to alloc required memory!");
+
 	conv_utf8_to_utf16(path_u16, path_u16_len, path);
 
 	rv = _wchdir(path_u16);
@@ -942,8 +950,8 @@ char* mm_getcwd(char* buf, size_t size)
 			return NULL;
 		}
 
-		// Try to get the copy the currdir to buffer (if buffer is NULL or
-		// too short, the return value will be larger than provided
+		// Try to get the copy the currdir to buffer (if buffer is NULL
+		// or too short, the return value will be larger than provided
 		// and will represent the needed size)
 		ret = GetCurrentDirectoryW(path_u16_len, path_u16);
 		if (ret == 0) {
@@ -964,7 +972,7 @@ char* mm_getcwd(char* buf, size_t size)
 	// sufficient
 	if (buf && (int)size < path_u8_len) {
 		mm_raise_error(ERANGE, "Buffer too short for holding "
-		                       "current directory path");
+		               "current directory path");
 		goto exit;
 	}
 
@@ -1002,6 +1010,7 @@ int mm_rmdir(const char* path)
 	path_u16 = mm_malloca(path_u16_len * sizeof(*path_u16));
 	if (path_u16 == NULL)
 		return mm_raise_from_w32err("Failed to alloc required memory!");
+
 	conv_utf8_to_utf16(path_u16, path_u16_len, path);
 
 	rv = _wrmdir(path_u16);
@@ -1026,7 +1035,7 @@ int translate_filetype(DWORD type)
 	} else if (type & FILE_ATTRIBUTE_DIRECTORY) {
 		return MM_DT_DIR;
 	} else if ((type & FILE_ATTRIBUTE_NORMAL)
-			|| (type & FILE_ATTRIBUTE_ARCHIVE)) {
+	           || (type & FILE_ATTRIBUTE_ARCHIVE)) {
 		return MM_DT_REG;
 	} else {
 		return MM_DT_UNKNOWN;
@@ -1083,8 +1092,7 @@ int mm_remove_rec(const char * prefix, MM_DIR * d, int flags, int rec_lvl)
 	if (UNLIKELY(rec_lvl < 0))
 		return mm_raise_error(EOVERFLOW, "Too many levels of recurion");
 
-	while ((dp = mm_readdir(d, &status)) != NULL)
-	{
+	while ((dp = mm_readdir(d, &status)) != NULL) {
 		if (status != 0)
 			return -1;
 
@@ -1107,6 +1115,7 @@ int mm_remove_rec(const char * prefix, MM_DIR * d, int flags, int rec_lvl)
 			newdir_path = mm_malloca(len);
 			if (newdir_path == NULL)
 				return -1;
+
 			*newdir_path = '\0';
 			strcat(newdir_path, prefix);
 			strcat(newdir_path, "/");
@@ -1121,7 +1130,11 @@ int mm_remove_rec(const char * prefix, MM_DIR * d, int flags, int rec_lvl)
 					continue;
 				}
 			}
-			rv = mm_remove_rec(newdir_path, newdir, flags, rec_lvl - 1);
+
+			rv = mm_remove_rec(newdir_path,
+			                   newdir,
+			                   flags,
+			                   rec_lvl - 1);
 			mm_freea(newdir_path);
 			mm_closedir(newdir);
 			if (rv != 0 && (flags & MM_FAILONERROR))
@@ -1133,7 +1146,7 @@ int mm_remove_rec(const char * prefix, MM_DIR * d, int flags, int rec_lvl)
 			return -1;
 	}
 
-	if (GetLastError() ==  ERROR_NO_MORE_FILES)
+	if (GetLastError() == ERROR_NO_MORE_FILES)
 		return 0;
 
 	return -1;
@@ -1160,15 +1173,19 @@ int mm_remove(const char* path, int flags)
 		if (type == MM_DT_DIR) {
 			dir = mm_opendir(path);
 
-			error_flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_NOLOG);
+			error_flags = mm_error_set_flags(MM_ERROR_SET,
+			                                 MM_ERROR_NOLOG);
 			rv = mm_remove_rec(path, dir, flags, RECURSION_MAX);
 			mm_error_set_flags(error_flags, MM_ERROR_NOLOG);
 			mm_closedir(dir);
 			if (rv != 0 && !(flags & MM_FAILONERROR)) {
-				return mm_raise_from_errno("recursive mm_remove(%s) failed", path);
+				return mm_raise_from_errno(
+					"recursive mm_remove(%s) failed",
+					path);
 			}
 
-			/* allow rmdir(".") when called with the recursive flag only */
+			/* allow rmdir(".") when called with the recursive flag
+			 * only */
 			if (is_wildcard_directory(path))
 				return rv;
 		}
@@ -1176,7 +1193,7 @@ int mm_remove(const char* path, int flags)
 
 	if ((flags & type) == 0)
 		return mm_raise_error(EPERM, "failed to remove %s: "
-				"invalid type", path);
+		                      "invalid type", path);
 
 	if (type == MM_DT_DIR)
 		return mm_rmdir(path);
@@ -1192,8 +1209,9 @@ int mm_remove(const char* path, int flags)
  *   HANDLE FindFirstFileW(path, ...)
  *   bool FindFirstFileW(HANDLE, ...)
  *
- * This function hides the difference by always returning a HANDLE like FindFirstFile()
- * and storing the HANDLE and path within the MM_DIR structure.
+ * This function hides the difference by always returning a HANDLE like
+ * FindFirstFile() and storing the HANDLE and path within the MM_DIR
+ * structure.
  *
  * Return: 0 on success, -1 on error
  * The caller should call GetLastError() and investigate the issue itself
@@ -1215,7 +1233,7 @@ int win32_find_file(MM_DIR * dir)
 
 	path_u16_len = get_utf16_buffer_len_from_utf8(dir->dirname);
 	if (path_u16_len < 0) {
-		 mm_raise_from_w32err("Invalid UTF-8 path");
+		mm_raise_from_w32err("Invalid UTF-8 path");
 		return -1;
 	}
 
@@ -1224,13 +1242,14 @@ int win32_find_file(MM_DIR * dir)
 		mm_raise_from_w32err("Failed to alloc required memory!");
 		return -1;
 	}
+
 	conv_utf8_to_utf16(path_u16, path_u16_len, dir->dirname);
 
 	if (!dir->find_first_done) {
 		hdir = dir->hdir = FindFirstFileW(path_u16, &find_dataw);
 		dir->find_first_done = 1;
 	} else {
-		if(!FindNextFileW(dir->hdir, &find_dataw))
+		if (!FindNextFileW(dir->hdir, &find_dataw))
 			hdir = INVALID_HANDLE_VALUE;
 		else
 			hdir = dir->hdir;
@@ -1247,13 +1266,13 @@ int win32_find_file(MM_DIR * dir)
 	reclen = sizeof(*dir->dirent) + namelen;
 	if (dir->dirent == NULL || dir->dirent->reclen != reclen) {
 		void * tmp = realloc(dir->dirent, reclen);
-		if (tmp == NULL) {
-			mm_raise_from_errno("win32_find_file() failed to alloc the required memory");
-			return -1;
-		}
+		if (tmp == NULL)
+			return mm_raise_from_errno("cannot alloc dirent");
+
 		dir->dirent = tmp;
 		dir->dirent->reclen = reclen;
 	}
+
 	dir->dirent->type = translate_filetype(find_dataw.dwFileAttributes);
 	conv_utf16_to_utf8(dir->dirent->name, namelen, find_dataw.cFileName);
 
@@ -1262,7 +1281,7 @@ int win32_find_file(MM_DIR * dir)
 
 /* doc in posix implementation */
 API_EXPORTED
-MM_DIR * mm_opendir(const char* path)
+MM_DIR* mm_opendir(const char* path)
 {
 	int len;
 	MM_DIR * d;
@@ -1272,13 +1291,13 @@ MM_DIR * mm_opendir(const char* path)
 	if (d == NULL)
 		goto error;
 
-	*d = (MM_DIR) { .hdir = INVALID_HANDLE_VALUE };
+	*d = (MM_DIR) {.hdir = INVALID_HANDLE_VALUE};
 	strcpy(d->dirname, path);
 	strcat(d->dirname, "/*");
 
 	/* call FindFirstFile() to ensure that the given path
 	 * is meaningful, and to keep ithe folder opened */
-	if(win32_find_file(d))
+	if (win32_find_file(d))
 		goto error;
 
 	return d;
@@ -1289,6 +1308,7 @@ error:
 		free(d->dirname);
 		free(d->dirent);
 	}
+
 	free(d);
 	return NULL;
 }
@@ -1315,7 +1335,7 @@ void mm_rewinddir(MM_DIR* dir)
 	}
 
 	FindClose(dir->hdir);
-	win32_find_file (dir);
+	win32_find_file(dir);
 }
 
 /* doc in posix implementation */
@@ -1325,6 +1345,7 @@ const struct mm_dirent* mm_readdir(MM_DIR* d, int * status)
 	if (d == NULL) {
 		if (status != NULL)
 			*status = -1;
+
 		mm_raise_error(EINVAL, "Does not accept NULL arguments");
 		return NULL;
 	}
@@ -1333,11 +1354,12 @@ const struct mm_dirent* mm_readdir(MM_DIR* d, int * status)
 		*status = 0;
 
 	if (win32_find_file(d)) {
-		if (GetLastError() ==  ERROR_NO_MORE_FILES)
+		if (GetLastError() == ERROR_NO_MORE_FILES)
 			return NULL;
 
 		if (status != NULL)
 			*status = -1;
+
 		mm_raise_from_errno("readdir() failed to find next file");
 		return NULL;
 	}
@@ -1372,7 +1394,7 @@ REPARSE_DATA_BUFFER* get_reparse_data(HANDLE hnd)
 	// Get reparse point data
 	if (!DeviceIoControl(hnd, FSCTL_GET_REPARSE_POINT, NULL, 0,
 	                     rep, MAXIMUM_REPARSE_DATA_BUFFER_SIZE,
-			     &io_retsz, NULL)) {
+	                     &io_retsz, NULL)) {
 		free(rep);
 		return NULL;
 	}
@@ -1464,7 +1486,7 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 	if (!GetFileInformationByHandleEx(hnd, FileAttributeTagInfo,
 	                                  &attr_tag, sizeof(attr_tag))
 	    || !GetFileInformationByHandleEx(hnd, FileIdInfo,
-				&id_info, sizeof(id_info))) {
+	                                     &id_info, sizeof(id_info))) {
 		DWORD id[4];
 
 		attr_tag = (FILE_ATTRIBUTE_TAG_INFO) {
@@ -1484,13 +1506,13 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 	// translate_filetype() consider all reparse point as symlink. Here
 	// we can use dwReserved0 field to distinguish type
 	if (attr_tag.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
-		switch(attr_tag.ReparseTag) {
+		switch (attr_tag.ReparseTag) {
 		case IO_REPARSE_TAG_SYMLINK:     type = S_IFLNK; break;
 		case IO_REPARSE_TAG_MOUNT_POINT: type = S_IFDIR; break;
 		default:                         type = S_IFREG; break;
 		}
 	} else {
-		switch(translate_filetype(attr_tag.FileAttributes)) {
+		switch (translate_filetype(attr_tag.FileAttributes)) {
 		case MM_DT_DIR:  type = S_IFDIR; break;
 		case MM_DT_LNK:  type = S_IFLNK; break;
 		case MM_DT_FIFO: type = S_IFIFO; break;
