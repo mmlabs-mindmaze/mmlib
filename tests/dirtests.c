@@ -122,7 +122,7 @@ START_TEST(test_dir_read)
 		found_file |= (dp->type == MM_DT_REG);
 	}
 
-	while ((dp = mm_readdir(dir, &status)) != NULL) {
+	while (mm_readdir(dir, &status) != NULL) {
 		ck_assert(status == 0);
 		ck_abort_msg(
 			"readdir should not find anything without rewind()");
