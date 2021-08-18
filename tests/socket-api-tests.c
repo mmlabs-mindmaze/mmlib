@@ -157,7 +157,7 @@ void childproc_order_read(struct childproc* child, size_t len, struct socket_dat
 /**
  * childproc_order_read() - instruct child to write data on its socket end
  * @child:      pointer to childproc holding the data relative to child
- * @data:       socket_data structure containining data child has to send to socket
+ * @data:       socket_data structure containing data child has to send to socket
  */
 static
 void childproc_order_write(struct childproc* child, struct socket_data* data)

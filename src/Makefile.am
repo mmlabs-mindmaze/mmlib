@@ -157,7 +157,7 @@ fixstyle: ../tools/uncrustify.cfg
 
 .PHONY: spelling
 spelling: $(libmmlib_internal_wrapper_la_SOURCES)
-	$(AM_V_at) codespell $^
+	$(AM_V_at) codespell -x $(top_srcdir)/tools/codespell-ignore $^
 
 .PHONY: api-compat-test
 api-compat-test: ../tools/api-compat-test.sh $(include_HEADERS)

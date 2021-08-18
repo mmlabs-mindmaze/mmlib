@@ -34,6 +34,7 @@ if codespell.found()
     run_target('spelling',
         command : [
             codespell,
+	    '-x', files('codespell-ignore'),
             all_sources,
         ]
     )

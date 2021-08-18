@@ -513,7 +513,7 @@ int format_result_line(int ncol, int num_points, int v, int unit_index,
 
 
 /**
- * full_mm_write() - full write of buffer succed or error is reported
+ * full_mm_write() - full write of buffer succeed or error is reported
  * @fd:         file descriptor to write to
  * @buf:        buffer to transfer
  * @len:        size of @buf
