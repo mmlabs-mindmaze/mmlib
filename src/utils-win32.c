@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -24,7 +24,7 @@
 static
 int set_access_mode(struct w32_create_file_options* opts, int oflags)
 {
-	switch(oflags & (_O_RDONLY|_O_WRONLY| _O_RDWR)) {
+	switch (oflags & (_O_RDONLY|_O_WRONLY| _O_RDWR)) {
 	case _O_RDONLY:
 		opts->access_mode = GENERIC_READ;
 		break;
@@ -38,7 +38,8 @@ int set_access_mode(struct w32_create_file_options* opts, int oflags)
 		break;
 
 	default:
-		mm_raise_error(EINVAL, "Invalid combination of file access mode");
+		mm_raise_error(EINVAL,
+		               "Invalid combination of file access mode");
 		return -1;
 	}
 
@@ -82,10 +83,11 @@ int set_creation_mode(struct w32_create_file_options* opts, int oflags)
 
 
 LOCAL_SYMBOL
-int set_w32_create_file_options(struct w32_create_file_options* opts, int oflags)
+int set_w32_create_file_options(struct w32_create_file_options* opts,
+                                int oflags)
 {
 	if (set_access_mode(opts, oflags)
-	  || set_creation_mode(opts, oflags))
+	    || set_creation_mode(opts, oflags))
 		return -1;
 
 	opts->file_attribute = FILE_ATTRIBUTE_NORMAL;
@@ -163,7 +165,8 @@ int get_file_id_info_from_handle(HANDLE hnd, FILE_ID_INFO* id_info)
 	DWORD id[4];
 
 	// First try with normal call
-	if (GetFileInformationByHandleEx(hnd, FileIdInfo, id_info, sizeof(*id_info)))
+	if (GetFileInformationByHandleEx(hnd, FileIdInfo, id_info,
+	                                 sizeof(*id_info)))
 		return 0;
 
 	// GetFileInformationByHandleEx() usually fail with file handle in
@@ -192,7 +195,8 @@ int get_file_id_info_from_handle(HANDLE hnd, FILE_ID_INFO* id_info)
 #define MIN_ACCESS_FLAGS \
 	(READ_CONTROL | SYNCHRONIZE | FILE_READ_ATTRIBUTES | FILE_READ_EA)
 #define MIN_OWNER_ACCESS_FLAGS \
-	(DELETE | WRITE_DAC | WRITE_OWNER | FILE_WRITE_EA | FILE_WRITE_ATTRIBUTES)
+	(DELETE | WRITE_DAC | WRITE_OWNER | FILE_WRITE_EA | \
+	 FILE_WRITE_ATTRIBUTES)
 
 #define IS_DACL_EMPTY(acl, dacl_present) \
 	(((acl) == NULL) && ((dacl_present) == TRUE))
@@ -432,7 +436,7 @@ int local_secdesc_init_from_mode(struct local_secdesc* lsd, mode_t mode)
 	lsd->sd = (SECURITY_DESCRIPTOR*)lsd->buffer;
 	while (!MakeSelfRelativeSD(&abs_sd, lsd->sd, &len)) {
 		if (GetLastError() != ERROR_INSUFFICIENT_BUFFER
-		   || local_secdesc_resize(lsd, len))
+		    || local_secdesc_resize(lsd, len))
 			goto exit;
 	}
 
@@ -477,7 +481,7 @@ int local_secdesc_init_from_handle(struct local_secdesc* lsd, HANDLE hnd)
 	                                lsd->sd, len, &len)) {
 
 		if (GetLastError() != ERROR_INSUFFICIENT_BUFFER
-		   || local_secdesc_resize(lsd, len)) {
+		    || local_secdesc_resize(lsd, len)) {
 			rv = -1;
 			local_secdesc_deinit(lsd);
 			break;
@@ -568,7 +572,7 @@ mode_t local_secdesc_get_mode(struct local_secdesc* lsd)
 LOCAL_SYMBOL
 int get_errcode_from_w32err(DWORD w32err)
 {
-	switch(w32err) {
+	switch (w32err) {
 
 	case ERROR_TOO_MANY_OPEN_FILES:
 	case WSAEMFILE:                 return EMFILE;
@@ -733,10 +737,13 @@ int is_cygpty_pipe(HANDLE hnd)
 	// \(cygwin|msys)-[number_in_hexa]-ptyN-(from-master|to-master)
 	// (the actual \Device\NamedPipe part is striped by
 	// GetFileInformationByHandleEx(FileNameInfo)
-	r = sscanf(name_u8, "\\%7[a-z]-%*[0-9a-f]-pty%*u-%15[a-z]-master", orig, dir);
+	r = sscanf(name_u8,
+	           "\\%7[a-z]-%*[0-9a-f]-pty%*u-%15[a-z]-master",
+	           orig,
+	           dir);
 	if ((r == 2)
-	   && (!strcmp(orig, "msys") || !strcmp(orig, "cygwin"))
-	   && (!strcmp(dir, "from") || !strcmp(dir, "to")))
+	    && (!strcmp(orig, "msys") || !strcmp(orig, "cygwin"))
+	    && (!strcmp(dir, "from") || !strcmp(dir, "to")))
 		return 1;
 
 	return 0;
@@ -778,7 +785,7 @@ int guess_fd_info(int fd)
 }
 
 // https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/setmaxstdio
-#define MAX_FD	2048
+#define MAX_FD  2048
 
 
 static unsigned char fd_infos[MAX_FD] = {0};

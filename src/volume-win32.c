@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -71,8 +71,10 @@ int get_volume_fs_type(HANDLE hnd)
 
 	if (!wcscmp(fs_name, L"NTFS"))
 		return FSTYPE_NTFS;
+
 	if (!wcscmp(fs_name, L"FAT32"))
 		return FSTYPE_FAT32;
+
 	if (!wcscmp(fs_name, L"EXFAT"))
 		return FSTYPE_EXFAT;
 
@@ -82,7 +84,7 @@ int get_volume_fs_type(HANDLE hnd)
 
 static
 void volume_init(struct volume* vol, const char16_t* volume_path,
-		 mm_dev_t dev, HANDLE hnd)
+                 mm_dev_t dev, HANDLE hnd)
 {
 	vol->dev = dev;
 	vol->guid_path = wcsdup(volume_path);

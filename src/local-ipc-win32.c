@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -15,11 +15,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#define PIPE_PREFIX	"\\\\.\\pipe\\"
-#define MAX_PIPENAME	256
-#define MAX_DATA_SIZE	MM_PAGESZ
-#define BUFSIZE		MAX_DATA_SIZE
-#define MAX_ATTEMPTS	16
+#define PIPE_PREFIX     "\\\\.\\pipe\\"
+#define MAX_PIPENAME    256
+#define MAX_DATA_SIZE   MM_PAGESZ
+#define BUFSIZE         MAX_DATA_SIZE
+#define MAX_ATTEMPTS    16
 
 /**
  * struct fd_data - data to serialize file descriptor information
@@ -82,6 +82,7 @@ struct mm_ipc_srv* mm_ipc_srv_create(const char* addr)
 			mm_raise_from_w32err("Failed to create server "
 			                     "Named pipe at %s", addr);
 		}
+
 		free(srv);
 		return NULL;
 	}
@@ -116,7 +117,7 @@ int mm_ipc_srv_accept(struct mm_ipc_srv* srv)
 	// connect to client, It is harmless if error pipe connected is
 	// returned
 	if (!ConnectNamedPipe(srv->hpipe, NULL)
-          && (GetLastError() != ERROR_PIPE_CONNECTED)) {
+	    && (GetLastError() != ERROR_PIPE_CONNECTED)) {
 		mm_raise_from_w32err("Failed to connect client");
 		return -1;
 	}
@@ -160,8 +161,8 @@ int mm_ipc_connect(const char* addr)
 		}
 
 		hpipe = CreateFile(pipe_name, GENERIC_READ|GENERIC_WRITE,
-				0, NULL, OPEN_EXISTING, 0,
-				NULL);
+		                   0, NULL, OPEN_EXISTING, 0,
+		                   NULL);
 		if (hpipe == INVALID_HANDLE_VALUE) {
 			if (GetLastError() == ERROR_PIPE_BUSY)
 				continue;
@@ -251,12 +252,13 @@ ssize_t write_ancillary_data(struct ancillary_data* data,
 	// Duplicate WIN32 handle to send into the other endpoint process
 	for (i = 0; i < msg->num_fds; i++) {
 		if (unwrap_handle_from_fd(&hnd, msg->fds[i])
-		   || !DuplicateHandle(src_proc, hnd, dst_proc, &dst_hnd,
-		                       0, FALSE, DUPLICATE_SAME_ACCESS)) {
+		    || !DuplicateHandle(src_proc, hnd, dst_proc, &dst_hnd,
+		                        0, FALSE, DUPLICATE_SAME_ACCESS)) {
 			mm_raise_from_w32err("Failed to duplicate handle");
 			while (--i >= 0) {
 				CloseHandle(data->array[i].hnd);
 			}
+
 			retsize = -1;
 			break;
 		}
@@ -307,6 +309,7 @@ ssize_t serialize_msg(HANDLE hpipe, const struct mm_ipc_msg* msg,
 			// Force break at the end of iteration
 			truncated = 1;
 		}
+
 		memcpy(buff, msg->iov[i].iov_base, len);
 		buff += len;
 		total_sz += len;
@@ -390,6 +393,7 @@ ssize_t deserialize_msg(size_t buff_sz,
 			// Force break at the end of iteration
 			truncated = 1;
 		}
+
 		memcpy(msg->iov[i].iov_base, buff, len);
 		buff += len;
 		buff_sz -= len;
@@ -410,7 +414,7 @@ ssize_t mm_ipc_sendmsg(int fd, const struct mm_ipc_msg* msg)
 	uintptr_t msg_data[MAX_DATA_SIZE];
 
 	if (unwrap_handle_from_fd(&hpipe, fd)
-	   || (len = serialize_msg(hpipe, msg, msg_data, &hdr_sz)) < 0)
+	    || (len = serialize_msg(hpipe, msg, msg_data, &hdr_sz)) < 0)
 		return -1;
 
 	if (!WriteFile(hpipe, msg_data, (DWORD)len, &send_sz, NULL))
@@ -464,7 +468,7 @@ int mm_ipc_connected_pair(int fds[2])
 		if (hsrv == INVALID_HANDLE_VALUE) {
 			// retry if we couldn't create a first instance
 			if (GetLastError() == ERROR_ACCESS_DENIED
-			   && ++attempt < MAX_ATTEMPTS)
+			    && ++attempt < MAX_ATTEMPTS)
 				continue;
 
 			mm_raise_from_w32err("Can't create named pipe");

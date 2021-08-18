@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -35,9 +35,9 @@
 #define FTEXT           0x80    /* file handle is in text mode */
 
 #define CRT_BUFFER_SIZE(nh)   ( sizeof(int)                       \
-                                + (nh) * sizeof(unsigned char)    \
-                                + (nh) * sizeof(HANDLE)           \
-                                + (nh) * sizeof(unsigned char))
+	                        + (nh) * sizeof(unsigned char)    \
+	                        + (nh) * sizeof(HANDLE)           \
+	                        + (nh) * sizeof(unsigned char))
 static const struct mm_remap_fd std_fd_mappings[] = {{0, 0}, {1, 1}, {2, 2}};
 
 
@@ -46,7 +46,7 @@ static const struct mm_remap_fd std_fd_mappings[] = {{0, 0}, {1, 1}, {2, 2}};
  * @num_hnd:        number of WIN32 handle inherited in child process
  * @num_fd:         maximum number of inherited file descriptor
  * @num_crt_fd:     length of @crt_fd_hnds and @crt_fd_flags
- * @inherited_hnds: array of @num_hnd WIN32 handle that child process must inherit
+ * @inherited_hnds: array of @num_hnd WIN32 handle that child must inherit
  * @crt_buff:       buffer holding the data to pass to &STARTUPINFO.cbReserved2
  * @crt_fd_hnds:    array of handle of each child fd (each element may
  *                  INVALID_HANDLE_VALUE if not inherited). Points in @crt_buff
@@ -158,7 +158,7 @@ static
 int add_to_children_list(mm_pid_t pid, HANDLE hnd)
 {
 	struct children_list* list = &children_list;
-	struct child_entry *entries, *entry;
+	struct child_entry * entries, * entry;
 	int nmax, retval;
 
 	AcquireSRWLockExclusive(&list->lock);
@@ -170,7 +170,7 @@ int add_to_children_list(mm_pid_t pid, HANDLE hnd)
 		nmax = (list->num_max != 0) ? (list->num_max * 2) : 16;
 		entries = realloc(list->entries, nmax*sizeof(*entries));
 		if (!entries) {
-			retval = mm_raise_from_errno("Can't resize children array");
+			retval = mm_raise_from_errno("Cannot alloc child");
 			goto exit;
 		}
 
@@ -355,8 +355,8 @@ MM_CONSTRUCTOR(mm_fd_init)
 	// used because crtbuff is not guaranteed to be aligned
 	memcpy(&num_fd, crtbuff, sizeof(num_fd));
 	fd_infos = crtbuff + sizeof(int)
-	                   + num_fd * sizeof(unsigned char)
-	                   + num_fd * sizeof(HANDLE);
+	           + num_fd * sizeof(unsigned char)
+	           + num_fd * sizeof(HANDLE);
 
 	// Check from buffer size that lpReserved2 has been set by mmlib
 	if (si.cbReserved2 != CRT_BUFFER_SIZE(num_fd))
@@ -486,7 +486,8 @@ int startup_config_alloc_crt_buffs(struct startup_config* cfg)
 
 	// Adjust num_fd so that cfg->crt_fd_hnds is aligned. This is the
 	// case if sizeof(int)+num_fd is a multiple of sizeof(HANDLE)
-	num_crt_fd = round_up(sizeof(int)+cfg->num_fd, sizeof(HANDLE)) - sizeof(int);
+	num_crt_fd = round_up(sizeof(int)+cfg->num_fd, sizeof(HANDLE))
+	             - sizeof(int);
 
 	// Allocate a CRT buffer with the adjusted number of file descriptor
 	cfg->num_crt_fd = num_crt_fd;
@@ -524,7 +525,7 @@ int startup_config_alloc_crt_buffs(struct startup_config* cfg)
 static
 int startup_config_allocate_internals(struct startup_config* cfg)
 {
-	int  max_num_hnd;
+	int max_num_hnd;
 	SIZE_T attrlist_bufsize;
 	SECURITY_ATTRIBUTES sa = {
 		.nLength = sizeof(sa),
@@ -539,14 +540,16 @@ int startup_config_allocate_internals(struct startup_config* cfg)
 		return -1;
 
 	// Allocate auxiliary buffers
-	cfg->inherited_hnds = malloc(max_num_hnd * sizeof(*cfg->inherited_hnds));
+	cfg->inherited_hnds =
+		malloc(max_num_hnd * sizeof(*cfg->inherited_hnds));
 	cfg->attr_list = malloc(attrlist_bufsize);
 	if (!cfg->inherited_hnds || !cfg->attr_list)
-		return mm_raise_error(ENOMEM, "Failed to alloc buffers for startup info");
+		return mm_raise_error(ENOMEM, "Cannot alloc info buffers");
 
 	// Allocate a process attribute list
-	if (!InitializeProcThreadAttributeList(cfg->attr_list, 1, 0, &attrlist_bufsize))
-		return mm_raise_from_w32err("Failed to initialize attribute list");
+	if (!InitializeProcThreadAttributeList(cfg->attr_list, 1, 0,
+	                                       &attrlist_bufsize))
+		return mm_raise_from_w32err("cannot init attribute list");
 
 	cfg->is_attr_init = true;
 	return 0;
@@ -576,7 +579,10 @@ int startup_config_setup_mappings(struct startup_config* cfg,
 		parent_fd = fd_map[i].parent_fd;
 
 		if (child_fd < 0) {
-			mm_raise_error(EBADF, "fd_map[%i].child_fd=%i is invalid", i, child_fd);
+			mm_raise_error(EBADF,
+			               "fd_map[%i].child_fd=%i is invalid",
+			               i,
+			               child_fd);
 			return -1;
 		}
 
@@ -591,14 +597,18 @@ int startup_config_setup_mappings(struct startup_config* cfg,
 		// Get handle of fd in parent
 		hnd = (HANDLE)_get_osfhandle(parent_fd);
 		if (hnd == INVALID_HANDLE_VALUE) {
-			mm_raise_error(EBADF, "fd_map[%i].parent_fd=%i does not refer to a valid fd", i, parent_fd);
+			mm_raise_error(EBADF,
+			               "fd_map[%i].parent_fd=%i is invalid",
+			               i,
+			               parent_fd);
 			return -1;
 		}
 
 		// setup child_fd mapping
 		fd_info = get_fd_info(parent_fd);
 		cfg->crt_fd_hnds[child_fd] = hnd;
-		cfg->crt_fd_flags[child_fd] = convert_fdinfo_to_crtflags(fd_info);
+		cfg->crt_fd_flags[child_fd] =
+			convert_fdinfo_to_crtflags(fd_info);
 		cfg->crt_fd_infos[child_fd] = fd_info;
 	}
 
@@ -631,7 +641,7 @@ int startup_config_dup_inherited_hnds(struct startup_config* cfg)
 
 		// Skip if not inherited in child
 		if ((hnd == INVALID_HANDLE_VALUE)
-		  || !(cfg->crt_fd_flags[i] & FOPEN))
+		    || !(cfg->crt_fd_flags[i] & FOPEN))
 			continue;
 
 		// Duplicate handle: all handle in the attr_list must be
@@ -641,7 +651,7 @@ int startup_config_dup_inherited_hnds(struct startup_config* cfg)
 		res = DuplicateHandle(proc_hnd, hnd, proc_hnd, &dup_hnd,
 		                      0, TRUE, DUPLICATE_SAME_ACCESS);
 		if (res == FALSE)
-			return mm_raise_from_w32err("Fail duplicate win32 handle");
+			return mm_raise_from_w32err("cannot duplicate handle");
 
 		// Add the handle in the inherited list and replace the one
 		// in CRT handle list by the duplicated one
@@ -650,9 +660,13 @@ int startup_config_dup_inherited_hnds(struct startup_config* cfg)
 	}
 
 	// Add the inherited handle list in attribute list
-	UpdateProcThreadAttribute(cfg->attr_list, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
-	                          cfg->inherited_hnds, cfg->num_hnd*sizeof(*cfg->inherited_hnds),
-				  NULL, NULL);
+	UpdateProcThreadAttribute(cfg->attr_list,
+	                          0,
+	                          PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+	                          cfg->inherited_hnds,
+	                          cfg->num_hnd*sizeof(*cfg->inherited_hnds),
+	                          NULL,
+	                          NULL);
 
 	return 0;
 }
@@ -680,7 +694,7 @@ void startup_config_deinit(struct startup_config* cfg)
 	free(cfg->inherited_hnds);
 	free(cfg->attr_list);
 
-	*cfg = (struct startup_config){.num_fd = 0};
+	*cfg = (struct startup_config) {.num_fd = 0};
 }
 
 
@@ -712,9 +726,10 @@ int startup_config_init(struct startup_config* cfg,
 	};
 
 	if (startup_config_allocate_internals(cfg)
-	  || startup_config_setup_mappings(cfg, MM_NELEM(std_fd_mappings), std_fd_mappings)
-	  || startup_config_setup_mappings(cfg, num_map, fd_map)
-	  || startup_config_dup_inherited_hnds(cfg)) {
+	    || startup_config_setup_mappings(cfg, MM_NELEM(std_fd_mappings),
+	                                     std_fd_mappings)
+	    || startup_config_setup_mappings(cfg, num_map, fd_map)
+	    || startup_config_dup_inherited_hnds(cfg)) {
 		startup_config_deinit(cfg);
 		return -1;
 	}
@@ -739,7 +754,7 @@ static
 char16_t* concat_strv(char* const* strv, char16_t sep)
 {
 	int i, len, tot_len, rem_len;
-	char16_t *concatstr, *ptr;
+	char16_t * concatstr, * ptr;
 
 	// This is a legit possibility (for example envp can be NULL and this
 	// is the value that must then be returned)
@@ -749,7 +764,7 @@ char16_t* concat_strv(char* const* strv, char16_t sep)
 	// Compute the total length for allocating the concatanated string
 	// (including null termination)
 	tot_len = 1;
-	for (i=0; strv[i]; i++) {
+	for (i = 0; strv[i]; i++) {
 		len = get_utf16_buffer_len_from_utf8(strv[i]);
 		if (len < 0)
 			return NULL;
@@ -764,7 +779,7 @@ char16_t* concat_strv(char* const* strv, char16_t sep)
 	// Do actual concatenation. Only the first element will not be prefixed
 	// by the separator
 	ptr = concatstr;
-	for (i=0; strv[i]; i++) {
+	for (i = 0; strv[i]; i++) {
 		if (i != 0)
 			*(ptr++) = sep;
 
@@ -842,6 +857,7 @@ int escape_cmd_str(char* restrict dst, const char* restrict src)
 				set_char(dst, i++, '\\');
 				nbackslash--;
 			}
+
 			set_char(dst, i++, '\\');
 			set_char(dst, i++, '"');
 			break;
@@ -851,6 +867,7 @@ int escape_cmd_str(char* restrict dst, const char* restrict src)
 				set_char(dst, i++, '\\');
 				nbackslash--;
 			}
+
 			set_char(dst, i++, c);
 			break;
 		}
@@ -862,6 +879,7 @@ int escape_cmd_str(char* restrict dst, const char* restrict src)
 		set_char(dst, i++, '\\');
 		nbackslash--;
 	}
+
 	set_char(dst, i++, '"');
 	set_char(dst, i++, '\0');
 
@@ -895,12 +913,13 @@ static
 char** escape_argv(char* const* argv)
 {
 	char** esc_argv;
-	char *ptr, *newptr;
+	char * ptr, * newptr;
 	intptr_t* index_strv;
 	int i, len, index, maxlen, argc;
 
 	// Count number of argument in the array
-	for (argc = 0; argv[argc]; argc++);
+	for (argc = 0; argv[argc]; argc++)
+		;
 
 	// Do an initial allocation
 	maxlen = 256;
@@ -920,7 +939,8 @@ char** escape_argv(char* const* argv)
 		// Check allocated block suffices and realloc if necessary
 		if (index + len > maxlen) {
 			// Readjust maxlen to ensure new block fits
-			for (; maxlen < index + len; maxlen *= 2);
+			for (; maxlen < index + len; maxlen *= 2)
+				;
 
 			// Realloc memory block
 			newptr = realloc(ptr, maxlen);
@@ -975,7 +995,7 @@ int translate_exitcode_in_status(DWORD exitcode)
 	}
 
 	// Error cases
-	switch(exitcode) {
+	switch (exitcode) {
 	case EXCEPTION_ACCESS_VIOLATION:
 	case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
 	case EXCEPTION_GUARD_PAGE:
@@ -1047,8 +1067,8 @@ int contains_dirsep(const char* path)
 static
 char* search_bin_in_path(const char* base)
 {
-	const char *dir, *eos;
-	char *path, *new_path, *ext;
+	const char * dir, * eos;
+	char * path, * new_path, * ext;
 	int baselen, dirlen, len, maxlen, error, rv, i;
 	const char* search_exts[] = {"", ".exe"};
 
@@ -1074,6 +1094,7 @@ char* search_bin_in_path(const char* base)
 				free(path);
 				return NULL;
 			}
+
 			path = new_path;
 			maxlen = len;
 		}
@@ -1164,7 +1185,7 @@ HANDLE spawn_process(DWORD* pid, const char* path,
 	cmdline = concat_strv(argv, L' ');
 	concat_envp = concat_strv(envp, L'\0');
 	if (!cmdline || (envp && !concat_envp)) {
-		mm_raise_from_w32err("Failed to format commandline or environment");
+		mm_raise_from_w32err("Failed to format cmdline or environment");
 		goto exit;
 	}
 
@@ -1176,10 +1197,16 @@ HANDLE spawn_process(DWORD* pid, const char* path,
 	// Create process with a temporary UTF-16 version of path
 	path_u16 = mm_malloca(path_u16_len * sizeof(*path_u16));
 	conv_utf8_to_utf16(path_u16, path_u16_len, path);
-	res = CreateProcessW(path_u16, cmdline, NULL, NULL, TRUE,
-	                    EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT,
-	                    concat_envp, NULL,
-	                    startup_config_get_startup_info(&cfg), &proc_info);
+	res = CreateProcessW(path_u16,
+	                     cmdline,
+	                     NULL,
+	                     NULL,
+	                     TRUE,
+	                     EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT,
+	                     concat_envp,
+	                     NULL,
+	                     startup_config_get_startup_info(&cfg),
+	                     &proc_info);
 	mm_freea(path_u16);
 
 	// We no longer need the configured STARTUPINFO
@@ -1223,7 +1250,7 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 
 	if (flags & MM_SPAWN_KEEP_FDS)
 		return mm_raise_error(ENOTSUP, "MM_SPAWN_KEEP_FDS "
-		                               "not supported yet");
+		                      "not supported yet");
 
 	if (!argv)
 		argv = default_argv;
@@ -1249,6 +1276,7 @@ int mm_spawn(mm_pid_t* child_pid, const char* path,
 	} else {
 		CloseHandle(hnd);
 	}
+
 	retval = 0;
 
 exit:
@@ -1268,7 +1296,7 @@ int mm_wait_process(mm_pid_t pid, int* status)
 	hnd = get_handle_from_children_list(pid);
 	if (hnd == NULL) {
 		mm_raise_error(ECHILD, "Cannot find process %lli in the list "
-		                       "of children", pid);
+		               "of children", pid);
 		return -1;
 	}
 

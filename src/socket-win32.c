@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -45,7 +45,7 @@ void winsock_init(void)
 {
 	WSADATA wsa;
 
-	if (WSAStartup(MAKEWORD(2,2), &wsa))
+	if (WSAStartup(MAKEWORD(2, 2), &wsa))
 		mm_raise_from_w32err("WSAStartup() failed");
 
 	atexit(winsock_deinit);
@@ -85,7 +85,10 @@ struct xfer_data {
 	enum {XFER_PENDING, XFER_SUCCESS, XFER_ERROR} status;
 	DWORD flags;
 };
-#define GET_XFER_DATA_FROM_LPO(lpo)    ((struct xfer_data*)(((char*)lpo)-offsetof(struct xfer_data, overlapped)))
+#define GET_XFER_DATA_FROM_LPO(lpo)    ((struct xfer_data*)(((char*)lpo)- \
+	                                                    offsetof(struct \
+	                                                             xfer_data, \
+	                                                             overlapped)))
 
 
 /**
@@ -203,7 +206,7 @@ int submit_recv_xfer(struct xfer_data* xfer, SOCKET s,
 		              &xfer->overlapped, xfer_completion);
 	} else {
 		ret = WSARecvFrom(s, buffs, msg->msg_iovlen, NULL, &dwflags,
-	                          msg->msg_name, &msg->msg_namelen,
+		                  msg->msg_name, &msg->msg_namelen,
 		                  &xfer->overlapped, xfer_completion);
 	}
 
@@ -232,7 +235,7 @@ int mm_socket(int domain, int type, int protocol)
 		return -1;
 
 	s = WSASocketW(domain, type, protocol, NULL, 0,
-	              WSA_FLAG_OVERLAPPED|WSA_FLAG_NO_HANDLE_INHERIT);
+	               WSA_FLAG_OVERLAPPED|WSA_FLAG_NO_HANDLE_INHERIT);
 	if (s == INVALID_SOCKET)
 		return mm_raise_from_w32err("WSAsocket failed");
 
@@ -247,12 +250,12 @@ int mm_socket(int domain, int type, int protocol)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+int mm_bind(int sockfd, const struct sockaddr * addr, socklen_t addrlen)
 {
 	SOCKET s;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (bind(s, addr, addrlen) < 0)
@@ -264,12 +267,12 @@ int mm_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+int mm_getsockname(int sockfd, struct sockaddr * addr, socklen_t * addrlen)
 {
 	SOCKET s;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (getsockname(s, addr, addrlen) < 0)
@@ -282,12 +285,12 @@ int mm_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+int mm_getpeername(int sockfd, struct sockaddr* addr, socklen_t* addrlen)
 {
 	SOCKET s;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (getpeername(s, addr, addrlen) < 0)
@@ -305,7 +308,7 @@ int mm_listen(int sockfd, int backlog)
 	SOCKET s;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (listen(s, backlog) < 0)
@@ -323,7 +326,7 @@ int mm_accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen)
 	int conn_fd;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&listening_sock, sockfd))
+	    || unwrap_socket_from_fd(&listening_sock, sockfd))
 		return -1;
 
 	s = accept(listening_sock, addr, addrlen);
@@ -341,12 +344,12 @@ int mm_accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+int mm_connect(int sockfd, const struct sockaddr* addr, socklen_t addrlen)
 {
 	SOCKET s;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (connect(s, addr, addrlen) < 0)
@@ -359,12 +362,12 @@ int mm_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 /* doc in posix implementation */
 API_EXPORTED
 int mm_setsockopt(int sockfd, int level, int optname,
-                  const void *optval, socklen_t optlen)
+                  const void* optval, socklen_t optlen)
 {
 	SOCKET s;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (setsockopt(s, level, optname, optval, optlen) < 0)
@@ -377,12 +380,12 @@ int mm_setsockopt(int sockfd, int level, int optname,
 /* doc in posix implementation */
 API_EXPORTED
 int mm_getsockopt(int sockfd, int level, int optname,
-                  void *optval, socklen_t* optlen)
+                  void* optval, socklen_t* optlen)
 {
 	SOCKET s;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (getsockopt(s, level, optname, optval, optlen) < 0)
@@ -399,7 +402,7 @@ int mm_shutdown(int sockfd, int how)
 	SOCKET s;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (shutdown(s, how) < 0)
@@ -411,13 +414,13 @@ int mm_shutdown(int sockfd, int how)
 
 /* doc in posix implementation */
 API_EXPORTED
-ssize_t mm_send(int sockfd, const void *buffer, size_t length, int flags)
+ssize_t mm_send(int sockfd, const void* buffer, size_t length, int flags)
 {
 	SOCKET s;
 	ssize_t ret_sz;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	ret_sz = send(s, buffer, length, flags);
@@ -430,13 +433,13 @@ ssize_t mm_send(int sockfd, const void *buffer, size_t length, int flags)
 
 /* doc in posix implementation */
 API_EXPORTED
-ssize_t mm_recv(int sockfd, void *buffer, size_t length, int flags)
+ssize_t mm_recv(int sockfd, void* buffer, size_t length, int flags)
 {
 	SOCKET s;
 	ssize_t ret_sz;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	ret_sz = recv(s, buffer, length, flags);
@@ -449,19 +452,20 @@ ssize_t mm_recv(int sockfd, void *buffer, size_t length, int flags)
 
 /* doc in posix implementation */
 API_EXPORTED
-ssize_t mm_sendmsg(int sockfd, const struct msghdr *msg, int flags)
+ssize_t mm_sendmsg(int sockfd, const struct msghdr* msg, int flags)
 {
 	SOCKET s;
 	struct xfer_data xfer;
 	const char* errmsg;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (submit_send_xfer(&xfer, s, msg, flags)
-	  || wait_operation_xfer(&xfer)) {
-		errmsg = msg->msg_name ? "WsaSendTo() failed" : "WsaSend() failed";
+	    || wait_operation_xfer(&xfer)) {
+		errmsg = msg->msg_name ? "WsaSendTo() failed" :
+		         "WsaSend() failed";
 		return mm_raise_from_w32err(errmsg);
 	}
 
@@ -471,19 +475,20 @@ ssize_t mm_sendmsg(int sockfd, const struct msghdr *msg, int flags)
 
 /* doc in posix implementation */
 API_EXPORTED
-ssize_t mm_recvmsg(int sockfd, struct msghdr *msg, int flags)
+ssize_t mm_recvmsg(int sockfd, struct msghdr* msg, int flags)
 {
 	SOCKET s;
 	struct xfer_data xfer;
 	const char* errmsg;
 
 	if (check_wsa_init()
-	  || unwrap_socket_from_fd(&s, sockfd))
+	    || unwrap_socket_from_fd(&s, sockfd))
 		return -1;
 
 	if (submit_recv_xfer(&xfer, s, msg, flags)
-	  || wait_operation_xfer(&xfer)) {
-		errmsg = msg->msg_name ? "WsaRecvFrom() failed" : "WsaRecv() failed";
+	    || wait_operation_xfer(&xfer)) {
+		errmsg = msg->msg_name ? "WsaRecvFrom() failed" :
+		         "WsaRecv() failed";
 		return mm_raise_from_w32err(errmsg);
 	}
 
@@ -494,7 +499,7 @@ ssize_t mm_recvmsg(int sockfd, struct msghdr *msg, int flags)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_send_multimsg(int sockfd, int vlen, struct mm_sock_multimsg *msgvec,
+int mm_send_multimsg(int sockfd, int vlen, struct mm_sock_multimsg* msgvec,
                      int flags)
 {
 	int i;
@@ -515,8 +520,8 @@ int mm_send_multimsg(int sockfd, int vlen, struct mm_sock_multimsg *msgvec,
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_recv_multimsg(int sockfd, int vlen, struct mm_sock_multimsg *msgvec,
-                     int flags, struct mm_timespec *timeout)
+int mm_recv_multimsg(int sockfd, int vlen, struct mm_sock_multimsg* msgvec,
+                     int flags, struct mm_timespec* timeout)
 {
 	int i;
 	ssize_t ret_sz;
@@ -543,7 +548,7 @@ int mm_recv_multimsg(int sockfd, int vlen, struct mm_sock_multimsg *msgvec,
  * Return: 0 if hints are valid, the error number in case of error.
  */
 static
-int validate_hints(const struct addrinfo *hints, char* errmsg)
+int validate_hints(const struct addrinfo* hints, char* errmsg)
 {
 	int valid, socktype, family;
 
@@ -582,7 +587,7 @@ int validate_hints(const struct addrinfo *hints, char* errmsg)
 
 	if (!valid) {
 		strcpy(errmsg, "requested protocol inconsistent with "
-		               "requested family or socket type");
+		       "requested family or socket type");
 		return EPROTOTYPE;
 	}
 
@@ -592,9 +597,9 @@ int validate_hints(const struct addrinfo *hints, char* errmsg)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_getaddrinfo(const char *node, const char *service,
-                   const struct addrinfo *hints,
-		   struct addrinfo **res)
+int mm_getaddrinfo(const char* node, const char* service,
+                   const struct addrinfo* hints,
+                   struct addrinfo** res)
 {
 	int errnum;
 	DWORD w32err;
@@ -627,9 +632,9 @@ error_exit:
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
-                   char *host, socklen_t hostlen,
-                   char *serv, socklen_t servlen, int flags)
+int mm_getnameinfo(const struct sockaddr* addr, socklen_t addrlen,
+                   char* host, socklen_t hostlen,
+                   char* serv, socklen_t servlen, int flags)
 {
 	int errnum;
 	DWORD w32err;
@@ -657,7 +662,7 @@ int mm_getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
 
 /* doc in posix implementation */
 API_EXPORTED
-void mm_freeaddrinfo(struct addrinfo *res)
+void mm_freeaddrinfo(struct addrinfo* res)
 {
 	freeaddrinfo(res);
 }
@@ -665,7 +670,7 @@ void mm_freeaddrinfo(struct addrinfo *res)
 
 /* doc in posix implementation */
 API_EXPORTED
-int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)
+int mm_poll(struct mm_pollfd* fds, int nfds, int timeout_ms)
 {
 	int i, rv, flags;
 	int all_negative;
@@ -684,15 +689,16 @@ int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)
 	rv = 0;
 	all_negative = 1;
 	flags = mm_error_set_flags(MM_ERROR_SET, MM_ERROR_IGNORE);
-	for (i = 0 ; i < nfds ; i++) {
+	for (i = 0; i < nfds; i++) {
 		s = INVALID_SOCKET;
 		if (fds[i].fd >= 0) {
 			unwrap_socket_from_fd(&s, fds[i].fd);
 			all_negative = 0;
 		}
 
-		wfds[i] = (struct pollfd) { .fd = s, .events = fds[i].events };
+		wfds[i] = (struct pollfd) {.fd = s, .events = fds[i].events};
 	}
+
 	mm_error_set_flags(flags, MM_ERROR_IGNORE);
 
 	/* WSAPoll() does not wait on invalid sockets.
@@ -708,7 +714,7 @@ int mm_poll(struct mm_pollfd *fds, int nfds, int timeout_ms)
 		goto exit;
 	}
 
-	for (i = 0 ; i < nfds ; i++) {
+	for (i = 0; i < nfds; i++) {
 		if (fds[i].fd < 0)
 			fds[i].revents = 0;
 		else

@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef LOCK_REFEREE_PROTO_H
 #define LOCK_REFEREE_PROTO_H
 
@@ -24,7 +24,7 @@ enum {
 
 #define WAITCLK_FLAG_MONOTONIC         (MM_THR_PSHARED << 1)
 #define WAITCLK_FLAG_REALTIME          (MM_THR_PSHARED << 2)
-#define WAITCLK_MASK	(WAITCLK_FLAG_MONOTONIC | WAITCLK_FLAG_REALTIME)
+#define WAITCLK_MASK    (WAITCLK_FLAG_MONOTONIC | WAITCLK_FLAG_REALTIME)
 
 #define SRV_TIMEOUT_MS          200
 
@@ -91,11 +91,11 @@ HANDLE create_srv_first_pipe(void)
 	DWORD open_mode, pipe_mode;
 
 	open_mode = PIPE_ACCESS_DUPLEX
-	          | FILE_FLAG_OVERLAPPED
-	          | FILE_FLAG_FIRST_PIPE_INSTANCE;
+	            | FILE_FLAG_OVERLAPPED
+	            | FILE_FLAG_FIRST_PIPE_INSTANCE;
 
 	pipe_mode = PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE
-	          | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS;
+	            | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS;
 
 	hnd = CreateNamedPipe(referee_pipename, open_mode, pipe_mode,
 	                      PIPE_UNLIMITED_INSTANCES, MM_PAGESZ, MM_PAGESZ,
@@ -109,4 +109,4 @@ HANDLE create_srv_first_pipe(void)
 void* lockserver_thread_routine(void* arg);
 #endif
 
-#endif
+#endif /* ifndef LOCK_REFEREE_PROTO_H */

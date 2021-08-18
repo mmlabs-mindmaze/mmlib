@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef CLOCK_WIN32_H
 #define CLOCK_WIN32_H
 
@@ -16,4 +16,4 @@ void getres_monotonic_w32(struct mm_timespec* res);
 void getres_thread_w32(struct mm_timespec* res);
 void getres_process_w32(struct mm_timespec* res);
 
-#endif
+#endif /* ifndef CLOCK_WIN32_H */

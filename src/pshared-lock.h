@@ -1,6 +1,6 @@
 /*
-   @mindmaze_header@
-*/
+ * @mindmaze_header@
+ */
 #ifndef PSHARED_LOCK_H
 #define PSHARED_LOCK_H
 
@@ -39,7 +39,7 @@ struct shared_lock {
  * struct lock_timeout - data indicating a timeout for a lock
  * @clk_flags:	flag indicating the clock type to use for timeout. Must be
  *              one of the WAITCLK_FLAG_* flag value
- * @ts:         absolute time of the timeout, clock base is specified by @clk_flags
+ * @ts:         absolute time of the timeout, @clk_flags specifies clock base
  */
 struct lock_timeout {
 	int clk_flags;
@@ -49,9 +49,11 @@ struct lock_timeout {
 void deinit_lock_referee_connection(struct lockref_connection* conn);
 struct robust_data* pshared_get_robust_data(struct lockref_connection* conn);
 int64_t pshared_init_lock(struct lockref_connection* conn);
-int pshared_wait_on_lock(struct lockref_connection* conn, struct shared_lock lock,
-                         int64_t wakeup_val, const struct lock_timeout* timeout);
+int pshared_wait_on_lock(struct lockref_connection* conn,
+                         struct shared_lock lock,
+                         int64_t wakeup_val,
+                         const struct lock_timeout* timeout);
 void pshared_wake_lock(struct lockref_connection* conn, struct shared_lock lock,
                        int64_t val, int num_wakeup);
 
-#endif
+#endif /* ifndef PSHARED_LOCK_H */
