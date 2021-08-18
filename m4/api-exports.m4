@@ -6,7 +6,7 @@
 AC_DEFUN([AC_DEF_API_EXPORT_ATTRS],
 [AC_REQUIRE([AC_CANONICAL_HOST])
 case $host in
-	*win32* | *mingw32* | *cygwin* | *windows*)
+	*win32* | *mingw* | *cygwin* | *windows*)
 		os_support=win32
 		;;
 	*)
