@@ -101,7 +101,7 @@ int _run_function(thread_proc_id * id, intptr_t (*fn)(void*),
 		break;
 
 	default:
-		ck_assert_msg(0, "invalid mode : %s", fn_name, run_mode);
+		ck_abort_msg("invalid mode (%i) with %s", run_mode, fn_name);
 	}
 
 	return 0;

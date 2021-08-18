@@ -128,8 +128,7 @@ void* test_handle_client(void * arg)
 	if (mm_read(tmpfd, line, sizeof(line)) < 0
 	   || strncmp(line, "client message in shared object\n",
 	              sizeof("client message in shared object\n") - 1)) {
-		ck_abort_msg(stderr,
-		             "server failed to read the message written by the "
+		ck_abort_msg("server failed to read the message written by the "
 		             "client in the shared file");
 		goto cleanup;
 	}
