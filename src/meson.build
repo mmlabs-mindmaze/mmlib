@@ -64,6 +64,7 @@ if host_machine.system() == 'windows'
         'pshared-lock.h',
         'shm-win32.c',
         'socket-win32.c',
+        'socket-win32.h',
         'startup-win32.c',
         'thread-win32.c',
         'time-win32.c',

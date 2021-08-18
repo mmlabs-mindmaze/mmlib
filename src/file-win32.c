@@ -10,6 +10,7 @@
 #include "mmlib.h"
 #include "file-internal.h"
 #include "local-ipc-win32.h"
+#include "socket-win32.h"
 #include "utils-win32.h"
 #include "volume-win32.h"
 #include "mmlog.h"
@@ -271,6 +272,30 @@ ssize_t ipcdgram_write(int fd, const void* buf, size_t nbyte)
 }
 
 
+static
+ssize_t socket_read(int fd, void* buf, size_t nbyte)
+{
+	HANDLE hnd;
+
+	if (unwrap_handle_from_fd(&hnd, fd))
+		return -1;
+
+	return sock_hnd_read(hnd, buf, nbyte);
+}
+
+
+static
+ssize_t socket_write(int fd, const void* buf, size_t nbyte)
+{
+	HANDLE hnd;
+
+	if (unwrap_handle_from_fd(&hnd, fd))
+		return -1;
+
+	return sock_hnd_write(hnd, buf, nbyte);
+}
+
+
 /**
  * msvcrt_read() - perform a read operation using MSVCRT implementation
  * @fd:         file descriptor to read
@@ -397,7 +422,7 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 		break;
 
 	case FD_TYPE_SOCKET:
-		rsz = mm_recv(fd, buf, nbyte, 0);
+		rsz = socket_read(fd, buf, nbyte);
 		break;
 
 	case FD_TYPE_IPCDGRAM:
@@ -440,7 +465,7 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 		break;
 
 	case FD_TYPE_SOCKET:
-		rsz = mm_send(fd, buf, nbyte, 0);
+		rsz = socket_write(fd, buf, nbyte);
 		break;
 
 	case FD_TYPE_IPCDGRAM:
