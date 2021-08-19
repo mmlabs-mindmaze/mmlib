@@ -98,11 +98,42 @@ enum {
 #define FD_FIRST_FLAG   (FD_TYPE_MASK+1)
 #define FD_FLAG_APPEND  (FD_FIRST_FLAG << 0)
 #define FD_FLAG_ISATTY  (FD_FIRST_FLAG << 1)
+#define FD_FLAG_TEXT    (FD_FIRST_FLAG << 2)
+#define FD_FLAG_CARRY   (FD_FIRST_FLAG << 3)
+
+#define FD_CARRY_POS    24
+#define FD_CARRY_MASK   (0xFF << FD_CARRY_POS)
+
 
 int get_fd_info_checked(int fd);
 int get_fd_info(int fd);
 void set_fd_info(int fd, int info);
 void close_all_known_fds(void);
+
+
+static inline
+int fd_info_set_carry_char(int info, char ch)
+{
+	info &= ~FD_CARRY_MASK;
+	info |= ((int)ch) << FD_CARRY_POS;
+	info |= FD_FLAG_CARRY;
+
+	return info;
+}
+
+
+static inline
+char fd_info_get_carry_char(int info)
+{
+	return (info >> FD_CARRY_POS) & 0xFF;
+}
+
+
+static inline
+int fd_info_drop_carry(int info)
+{
+	return info & ~FD_FLAG_CARRY;
+}
 
 
 static inline

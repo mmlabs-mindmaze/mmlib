@@ -121,7 +121,7 @@ ssize_t console_read(HANDLE hnd, char* buf, size_t nbyte)
 	DWORD nchar16_read;
 	size_t nchar16;
 	char16_t* buf16;
-	int i, len, rsz = -1;
+	int rsz = -1;
 
 	// Allocate supplementary buffer to hold UTF-16 data from console
 	nchar16 = nbyte / sizeof(char16_t);
@@ -134,22 +134,11 @@ ssize_t console_read(HANDLE hnd, char* buf, size_t nbyte)
 	}
 
 	// Convert in console data in UTF-8
-	len = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
+	rsz = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
 	                          buf16, nchar16_read, buf, nbyte,
 	                          NULL, NULL);
-	if (len < 0) {
+	if (rsz < 0)
 		mm_raise_from_w32err("Invalid UTF-8 buffer");
-		goto exit;
-	}
-
-	// Convert CRLF into LF
-	rsz = 0;
-	for (i = 0; i < len; i++) {
-		if ((i != 0) && (buf[i-1] == '\r') && (buf[i] == '\n'))
-			continue;
-
-		buf[rsz++] = buf[i];
-	}
 
 exit:
 	mm_freea(buf16);
@@ -170,27 +159,16 @@ static
 ssize_t console_write(HANDLE hnd, const char* buf, size_t nbyte)
 {
 	DWORD nchar16_written;
-	int i, len_crlf, nchar16, nchar;
-	char* buf_crlf = NULL;
+	int nchar16;
 	char16_t* buf16 = NULL;
 	ssize_t rsz = -1;
 
 	// Allocate temporary buffers
-	buf_crlf = mm_malloca(2*nbyte);
 	buf16 = mm_malloca(2*nbyte*sizeof(*buf16));
 
-	// Convert LF into CRLF and get size of crlf transformed string
-	nchar = nbyte;
-	for (i = 0, len_crlf = 0; i < nchar; i++) {
-		if (buf[i] == '\n')
-			buf_crlf[len_crlf++] = '\r';
-
-		buf_crlf[len_crlf++] = buf[i];
-	}
-
-	// Convert UTF-8 (with crlf) into UTF-16
+	// Convert UTF-8 into UTF-16
 	nchar16 = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-	                              buf_crlf, len_crlf, buf16, 2*nbyte);
+	                              buf, nbyte, buf16, 2*nbyte);
 	if (nchar16 < 0) {
 		mm_raise_from_w32err("Invalid UTF-8 buffer");
 		goto exit;
@@ -208,22 +186,14 @@ ssize_t console_write(HANDLE hnd, const char* buf, size_t nbyte)
 	                          buf16, nchar16_written, NULL, -1,
 	                          NULL, NULL);
 
-	// Remove from count the inserted CR in each CRLF. This way, we really
-	// have the size of the part of @buf which has been written
-	for (i = 1; i < nchar16; i++) {
-		if (buf16[i-1] == L'\r' && buf16[i] == L'\n')
-			rsz--;
-	}
-
 exit:
 	mm_freea(buf16);
-	mm_freea(buf_crlf);
 	return rsz;
 }
 
 
 /**
- * hnd_write() - perform a write operation on handle
+ * hnd_write_binary() - perform a binary write operation on handle
  * @hnd:        handle on which to write
  * @fd_info:    file desriptor mmlib info
  * @buf:        buffer to hold the data to write
@@ -233,7 +203,7 @@ exit:
  * and error state is set accordingly.
  */
 static
-ssize_t hnd_write(HANDLE hnd, int fd_info, const void* buf, size_t nbyte)
+ssize_t hnd_write_binary(HANDLE hnd, int fd_info, const void* buf, size_t nbyte)
 {
 	switch (fd_info & FD_TYPE_MASK) {
 
@@ -257,7 +227,72 @@ ssize_t hnd_write(HANDLE hnd, int fd_info, const void* buf, size_t nbyte)
 
 
 /**
- * hnd_read() - perform a read operation on handle
+ * hnd_write_binary() - perform a binary write operation on handle
+ * @hnd:        handle on which to write
+ * @fd_info:    file desriptor mmlib info
+ * @buf:        buffer to hold the data to write
+ * @nbyte:      number of byte to write
+ *
+ * Return: number of byte written in case of success. Otherwise -1 is returned
+ * and error state is set accordingly.
+ */
+static
+ssize_t hnd_write_text(HANDLE hnd, int fd_info, const char* buf, size_t sz)
+{
+	char* buf_crlf = NULL;
+	int i, len_crlf;
+	ssize_t rsz;
+
+	buf_crlf = mm_malloca(2*sz);
+	if (!buf_crlf)
+		return -1;
+
+	// Copy buf to buf_crlf with LF -> CRLF expansion
+	for (i = 0, len_crlf = 0; i < (int)sz; i++) {
+		if (buf[i] == '\n')
+			buf_crlf[len_crlf++] = '\r';
+
+		buf_crlf[len_crlf++] = buf[i];
+	}
+
+	rsz = hnd_write_binary(hnd, fd_info, buf_crlf, len_crlf);
+
+	// Remove from count the inserted CR in each CRLF. This way, we really
+	// have the size of the part of @buf which has been written
+	for (i = 1; i < len_crlf; i++) {
+		if (buf_crlf[i-1] == '\r' && buf_crlf[i] == '\n')
+			rsz--;
+	}
+
+	mm_freea(buf_crlf);
+	return rsz;
+}
+
+
+/**
+ * hnd_write() - perform a generic write operation on handle
+ * @hnd:        handle on which to write
+ * @fd_info:    file desriptor info
+ * @buf:        buffer to hold the data to write
+ * @sz:         number of byte to write
+ *
+ * This write operation switch between text or binary mode depending on content pointed to by @pinfo.
+ *
+ * Return: number of byte written in case of success. Otherwise -1 is returned
+ * and error state is set accordingly.
+ */
+static
+ssize_t hnd_write(HANDLE hnd, int fd_info, const void* buf, size_t sz)
+{
+	if ((fd_info & FD_FLAG_TEXT))
+		return hnd_write_text(hnd, fd_info, buf, sz);
+
+	return hnd_write_binary(hnd, fd_info, buf, sz);
+}
+
+
+/**
+ * hnd_read_binary() - perform a binary read operation on handle
  * @hnd:        handle on which to read
  * @fd_info:    file desriptor mmlib info
  * @buf:        buffer to hold the data to read
@@ -267,7 +302,7 @@ ssize_t hnd_write(HANDLE hnd, int fd_info, const void* buf, size_t nbyte)
  * and error state is set accordingly.
  */
 static
-ssize_t hnd_read(HANDLE hnd, int fd_info, void* buf, size_t nbyte)
+ssize_t hnd_read_binary(HANDLE hnd, int fd_info, void* buf, size_t nbyte)
 {
 	switch (fd_info & FD_TYPE_MASK) {
 
@@ -287,6 +322,68 @@ ssize_t hnd_read(HANDLE hnd, int fd_info, void* buf, size_t nbyte)
 	default:
 		abort();
 	}
+}
+
+
+static
+ssize_t conv_crlf_to_lf(int* pinfo, char* buf, ssize_t rsz, size_t maxsz)
+{
+	int fd_info = *pinfo;
+	char prev_ch, curr_ch;
+	char* dst = buf;
+	const char* src = buf;
+	const char* src_end = src + rsz;
+
+	// Beginning of CRLF -> LF depends whether a CR is carried.
+	if (fd_info & FD_FLAG_CARRY) {
+		prev_ch = fd_info_get_carry_char(fd_info);
+		*pinfo = fd_info = fd_info_drop_carry(fd_info);
+	} else {
+		prev_ch = *src++;
+	}
+
+	// Perform CRLF -> LF conversion
+	for (; src < src_end; prev_ch = curr_ch, src++) {
+		curr_ch = *src;
+		if ((prev_ch == '\r') && (curr_ch == '\n'))
+			continue;
+
+		*dst++ = prev_ch;
+	}
+
+	if ((prev_ch == '\r') || (dst == buf + maxsz))
+		*pinfo = fd_info_set_carry_char(fd_info, prev_ch);
+	else
+		*dst++ = prev_ch;
+
+	return dst - buf;
+}
+
+
+/**
+ * hnd_read() - perform a generic read operation on handle
+ * @hnd:        handle on which to read
+ * @fd_info:    file desriptor mmlib info
+ * @buf:        buffer to hold the data to read
+ * @nbyte:      number of byte to read
+ *
+ * Return: number of byte written in case of success. Otherwise -1 is returned
+ * and error state is set accordingly.
+ */
+static
+ssize_t hnd_read(HANDLE hnd, int* restrict pinfo, void* buf, size_t nbyte)
+{
+	int fd_info = *pinfo;
+	ssize_t rsz;
+
+	rsz = hnd_read_binary(hnd, fd_info, buf, nbyte);
+	if (rsz <= 0)
+		return rsz;
+
+	if (fd_info & FD_FLAG_TEXT)
+		rsz = conv_crlf_to_lf(pinfo, buf, rsz, nbyte);
+
+	return rsz;
 }
 
 
@@ -410,7 +507,7 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 	if ((fd_info & FD_TYPE_MASK) == FD_TYPE_MSVCRT)
 		return msvcrt_read(fd, buf, nbyte);
 
-	return hnd_read(hnd, fd_info, buf, nbyte);
+	return hnd_read(hnd, &fd_info, buf, nbyte);
 }
 
 
