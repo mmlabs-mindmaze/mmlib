@@ -776,7 +776,7 @@ int guess_fd_info(int fd)
 
 	info = FD_TYPE_MSVCRT;
 	if ((type == FILE_TYPE_CHAR) && GetConsoleMode(hnd, &mode))
-		info = FD_TYPE_CONSOLE | FD_FLAG_ISATTY;
+		info = FD_TYPE_CONSOLE | FD_FLAG_TEXT | FD_FLAG_ISATTY;
 	else if ((type == FILE_TYPE_PIPE) && is_cygpty_pipe(hnd))
 		info = FD_TYPE_PIPE | FD_FLAG_ISATTY;
 
