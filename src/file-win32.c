@@ -100,16 +100,6 @@ ssize_t mmlib_write(HANDLE hnd, int fd_info, const void* buf, size_t nbyte)
 {
 	DWORD written_sz;
 
-	// If file is opened in append mode, we must reset file pointer to
-	// the end.
-	if (fd_info & FD_FLAG_APPEND) {
-		if (!SetFilePointer(hnd, 0, NULL, FILE_END)) {
-			mm_raise_from_w32err("handle is opened in append mode "
-			                     "but can't seek file end");
-			return -1;
-		}
-	}
-
 	if (!WriteFile(hnd, buf, nbyte, &written_sz, NULL))
 		return mm_raise_from_w32err("WriteFile() failed");
 
@@ -441,6 +431,16 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 
 	if ((fd_info & FD_TYPE_MASK) == FD_TYPE_MSVCRT)
 		return msvcrt_write(fd, buf, nbyte);
+
+	// If file is opened in append mode, we must reset file pointer to
+	// the end.
+	if (fd_info & FD_FLAG_APPEND) {
+		if (!SetFilePointer(hnd, 0, NULL, FILE_END)) {
+			mm_raise_from_w32err("handle is opened in append mode "
+			                     "but can't seek file end");
+			return -1;
+		}
+	}
 
 	return hnd_write(hnd, fd_info, buf, nbyte);
 }
