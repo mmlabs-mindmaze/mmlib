@@ -86,7 +86,6 @@ const char16_t* get_caller_string_sid_u16(void);
 
 enum {
 	FD_TYPE_UNKNOWN = 0,
-	FD_TYPE_MSVCRT,
 	FD_TYPE_NORMAL,
 	FD_TYPE_PIPE,
 	FD_TYPE_CONSOLE,

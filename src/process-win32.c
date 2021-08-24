@@ -383,8 +383,11 @@ unsigned char convert_fdinfo_to_crtflags(int fdinfo)
 
 	crtflags = FOPEN;
 
-	if ((fd_type != FD_TYPE_MSVCRT) && (fd_type != FD_TYPE_NORMAL))
-		crtflags |= FPIPE;
+	switch (fd_type) {
+	case FD_TYPE_PIPE:      crtflags |= FPIPE; break;
+	case FD_TYPE_CONSOLE:   crtflags |= FDEV; break;
+	default: break;
+	}
 
 	if (fdinfo & FD_FLAG_APPEND)
 		crtflags |= FAPPEND;
