@@ -387,55 +387,6 @@ ssize_t hnd_read(HANDLE hnd, int* restrict pinfo, void* buf, size_t nbyte)
 }
 
 
-/**
- * msvcrt_read() - perform a read operation using MSVCRT implementation
- * @fd:         file descriptor to read
- * @buf:        buffer to hold the data to read
- * @nbyte:      number of byte to read
- *
- * Same as _read() from MSVCRT, excepting that error state is set in case of
- * error.
- *
- * Return: number of byte read in case of success. Otherwise -1 is returned and
- * error state is set accordingly
- */
-static
-ssize_t msvcrt_read(int fd, void* buf, size_t nbyte)
-{
-	ssize_t rsz;
-
-	rsz = _read(fd, buf, nbyte);
-	if (rsz < 0)
-		return mm_raise_from_errno("_read(%i, ...) failed", fd);
-
-	return rsz;
-}
-
-
-/**
- * msvcrt_write() - perform a write operation using MSVCRT implementation
- * @fd:         file descriptor to write
- * @buf:        buffer to hold the data to write
- * @nbyte:      number of byte to write
- *
- * Same as _write() from MSVCRT, excepting that error state is set in case of
- * error.
- *
- * Return: number of byte written in case of success. Otherwise -1 is returned
- * and error state is set accordingly.
- */
-static
-ssize_t msvcrt_write(int fd, const void* buf, size_t nbyte)
-{
-	ssize_t rsz;
-
-	rsz = _write(fd, buf, nbyte);
-	if (rsz < 0)
-		return mm_raise_from_errno("_write(%i, ...) failed", fd);
-
-	return rsz;
-}
-
 /* doc in posix implementation */
 API_EXPORTED
 int mm_open(const char* path, int oflag, int mode)
@@ -504,9 +455,6 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 	if (fd_info < 0)
 		return mm_raise_error(EBADF, "Invalid file descriptor: %i", fd);
 
-	if ((fd_info & FD_TYPE_MASK) == FD_TYPE_MSVCRT)
-		return msvcrt_read(fd, buf, nbyte);
-
 	return hnd_read(hnd, &fd_info, buf, nbyte);
 }
 
@@ -524,9 +472,6 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 	fd_info = get_fd_info_checked(fd);
 	if (fd_info < 0)
 		return mm_raise_error(EBADF, "Invalid file descriptor: %i", fd);
-
-	if ((fd_info & FD_TYPE_MASK) == FD_TYPE_MSVCRT)
-		return msvcrt_write(fd, buf, nbyte);
 
 	// If file is opened in append mode, we must reset file pointer to
 	// the end.

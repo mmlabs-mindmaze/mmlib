@@ -774,11 +774,17 @@ int guess_fd_info(int fd)
 
 	type = GetFileType(hnd);
 
-	info = FD_TYPE_MSVCRT;
-	if ((type == FILE_TYPE_CHAR) && GetConsoleMode(hnd, &mode))
+	info = FD_TYPE_NORMAL;
+	if ((type == FILE_TYPE_CHAR) && GetConsoleMode(hnd, &mode)) {
 		info = FD_TYPE_CONSOLE | FD_FLAG_TEXT | FD_FLAG_ISATTY;
-	else if ((type == FILE_TYPE_PIPE) && is_cygpty_pipe(hnd))
-		info = FD_TYPE_PIPE | FD_FLAG_ISATTY;
+		goto exit;
+	} else if (type == FILE_TYPE_PIPE) {
+		info = FD_TYPE_PIPE;
+		if (is_cygpty_pipe(hnd)) {
+			info |= FD_FLAG_ISATTY;
+			goto exit;
+		}
+	}
 
 	// Detect whether the file is in text mode
 	tmode = _setmode(fd, _O_BINARY);
@@ -788,6 +794,7 @@ int guess_fd_info(int fd)
 			info |= FD_FLAG_TEXT;
 	}
 
+exit:
 	set_fd_info(fd, info);
 	return info;
 }
