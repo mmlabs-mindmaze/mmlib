@@ -761,7 +761,7 @@ int is_cygpty_pipe(HANDLE hnd)
  * Return: a FD_TYPE_* constant different from FD_TYPE_UNKNOWN in case of
  * success, -1 in case of failure.
  */
-static
+static NOINLINE
 int guess_fd_info(int fd)
 {
 	int info, tmode;
