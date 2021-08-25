@@ -1066,17 +1066,13 @@ int mm_thr_cond_init(mm_thr_cond_t * _cond, int flags)
 }
 
 
-/* doc in posix implementation */
-API_EXPORTED
-int mm_thr_once(mm_thr_once_t* once, void (* once_routine)(void))
+static NOINLINE
+int once_run_init(mm_thr_once_t* once, void (* once_routine)(void))
 {
 	static SRWLOCK once_global_lock = SRWLOCK_INIT;
 	static int global_lock_recursion_level = 0;
 	static DWORD global_lock_owner = 0;
 	DWORD tid;
-
-	if (LIKELY(*once != MM_THR_ONCE_INIT))
-		return 0;
 
 	// Acquire lock allowing recursion
 	tid = get_tid();
@@ -1098,6 +1094,17 @@ int mm_thr_once(mm_thr_once_t* once, void (* once_routine)(void))
 		global_lock_owner = 0;
 		ReleaseSRWLockExclusive(&once_global_lock);
 	}
+
+	return 0;
+}
+
+
+/* doc in posix implementation */
+API_EXPORTED
+int mm_thr_once(mm_thr_once_t* once, void (* once_routine)(void))
+{
+	if (UNLIKELY(*once == MM_THR_ONCE_INIT))
+		once_run_init(once, once_routine);
 
 	return 0;
 }
