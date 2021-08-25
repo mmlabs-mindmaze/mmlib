@@ -75,7 +75,7 @@ ssize_t mmlib_read(HANDLE hnd, void* buf, size_t nbyte)
 		if (GetLastError() == ERROR_BROKEN_PIPE)
 			return 0;
 
-		return mm_raise_from_w32err("ReadFile() failed");
+		return -1;
 	}
 
 	return read_sz;
@@ -100,7 +100,7 @@ ssize_t mmlib_write(HANDLE hnd, const void* buf, size_t nbyte)
 	DWORD written_sz;
 
 	if (!WriteFile(hnd, buf, nbyte, &written_sz, NULL))
-		return mm_raise_from_w32err("WriteFile() failed");
+		return -1;
 
 	return written_sz;
 }
@@ -128,18 +128,13 @@ ssize_t console_read(HANDLE hnd, char* buf, size_t nbyte)
 	buf16 = mm_malloca(nchar16*sizeof(char16_t));
 
 	// Read console input in UTF-16
-	if (!ReadConsoleW(hnd, buf16, nchar16, &nchar16_read, NULL)) {
-		mm_raise_from_w32err("Cannot read from console");
+	if (!ReadConsoleW(hnd, buf16, nchar16, &nchar16_read, NULL))
 		goto exit;
-	}
 
 	// Convert in console data in UTF-8
 	rsz = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
 	                          buf16, nchar16_read, buf, nbyte,
 	                          NULL, NULL);
-	if (rsz < 0)
-		mm_raise_from_w32err("Invalid UTF-8 buffer");
-
 exit:
 	mm_freea(buf16);
 	return rsz;
@@ -169,16 +164,12 @@ ssize_t console_write(HANDLE hnd, const char* buf, size_t nbyte)
 	// Convert UTF-8 into UTF-16
 	nchar16 = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
 	                              buf, nbyte, buf16, 2*nbyte);
-	if (nchar16 < 0) {
-		mm_raise_from_w32err("Invalid UTF-8 buffer");
+	if (nchar16 < 0)
 		goto exit;
-	}
 
 	// Write the UTF-16 sequence to console
-	if (!WriteConsoleW(hnd, buf16, nchar16, &nchar16_written, NULL)) {
-		mm_raise_from_w32err("Cannot write to console");
+	if (!WriteConsoleW(hnd, buf16, nchar16, &nchar16_written, NULL))
 		goto exit;
-	}
 
 	// Convert the number of UTF-16 code unit written into number of bytes
 	// in the original UTF-8 sequence
@@ -447,6 +438,7 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 {
 	HANDLE hnd;
 	int fd_info;
+	ssize_t rsz;
 
 	if (unwrap_handle_from_fd(&hnd, fd))
 		return -1;
@@ -455,7 +447,11 @@ ssize_t mm_read(int fd, void* buf, size_t nbyte)
 	if (fd_info < 0)
 		return mm_raise_error(EBADF, "Invalid file descriptor: %i", fd);
 
-	return hnd_read(hnd, &fd_info, buf, nbyte);
+	rsz = hnd_read(hnd, &fd_info, buf, nbyte);
+	if (rsz < 0)
+		mm_raise_from_w32err("reading from fd=%i failed", fd);
+
+	return rsz;
 }
 
 
@@ -465,6 +461,7 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 {
 	HANDLE hnd;
 	int fd_info;
+	ssize_t rsz;
 
 	if (unwrap_handle_from_fd(&hnd, fd))
 		return -1;
@@ -483,7 +480,11 @@ ssize_t mm_write(int fd, const void* buf, size_t nbyte)
 		}
 	}
 
-	return hnd_write(hnd, fd_info, buf, nbyte);
+	rsz = hnd_write(hnd, fd_info, buf, nbyte);
+	if (rsz < 0)
+		mm_raise_from_w32err("writing to fd=%i failed", fd);
+
+	return rsz;
 }
 
 
