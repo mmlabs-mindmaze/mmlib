@@ -439,7 +439,7 @@ ssize_t ipc_hnd_write(HANDLE hpipe, const void* buf, size_t nbyte)
 		return -1;
 
 	if (!WriteFile(hpipe, msg_data, (DWORD)len, &send_sz, NULL))
-		return mm_raise_from_w32err("WriteFile failed");
+		return -1;
 
 	return send_sz - hdr_sz;
 }
@@ -472,7 +472,7 @@ ssize_t ipc_hnd_read(HANDLE hpipe, void* buf, size_t nbyte)
 	uintptr_t msg_data[MAX_DATA_SIZE];
 
 	if (!ReadFile(hpipe, msg_data, sizeof(msg_data), &recv_sz, NULL))
-		return mm_raise_from_w32err("ReadFile failed");
+		return -1;
 
 	return deserialize_msg(recv_sz, msg_data, &ipcmsg);
 }
