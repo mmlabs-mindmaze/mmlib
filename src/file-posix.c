@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -26,7 +27,9 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <libgen.h>
-
+#if HAVE_LINUX_FS_H
+#  include <linux/fs.h>
+#endif
 
 /**
  * mm_open() - Open file
@@ -1083,6 +1086,7 @@ int clone_fd_try_cow(int fd_in, int fd_out)
 			errno = prev_errno;
 			return clone_fd_fallback(fd_in, fd_out);
 		}
+
 		return mm_raise_from_errno("copy_file_range failed");
 	}
 
@@ -1092,16 +1096,23 @@ int clone_fd_try_cow(int fd_in, int fd_out)
 	return written ? 0 : clone_fd_fallback(fd_in, fd_out);
 #else
 	return clone_fd_fallback(fd_in, fd_out);
-#endif
+#endif /* if HAVE_COPY_FILE_RANGE */
 }
 
 
 static
 int clone_fd_force_cow(int fd_in, int fd_out)
 {
+#ifdef FICLONE
+	if (ioctl(fd_in, FICLONE, fd_out))
+		return mm_raise_from_errno("Failed to clone file desc");
+
+	return 0;
+#else
 	(void)fd_in;
 	(void)fd_out;
 	return mm_raise_error(ENOTSUP, "COW is not supported on platform");
+#endif
 }
 
 
