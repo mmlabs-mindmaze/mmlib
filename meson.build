@@ -73,6 +73,9 @@ endforeach
 if cc.has_header_symbol('unistd.h', 'copy_file_range', args:'-D_GNU_SOURCE')
     config.set('HAVE_COPY_FILE_RANGE', 1)
 endif
+if cc.check_header('linux/fs.h')
+    config.set('HAVE_LINUX_FS_H', 1)
+endif
 
 
 configuration_inc = include_directories('.', 'src')
