@@ -86,7 +86,7 @@ MM_CHECK_LIB([localtime64_s], [], LOCALTIME_S, [AC_DEFINE([HAS_LOCALTIME_S], [1]
 MM_CHECK_LIB([shm_open], [rt], SHM)
 MM_CHECK_LIB([dlopen], [dl], DL, [AC_DEFINE([HAVE_DLOPEN], [1], [define if dlopen() is available])])
 
-AC_CHECK_HEADERS([alloca.h])
+AC_CHECK_HEADERS([alloca.h linux/fs.h])
 
 AC_DEF_API_EXPORT_ATTRS
 AC_SET_HOSTSYSTEM
