@@ -18,6 +18,11 @@
 
 #define FILE_SHARE_ALL FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE
 
+// Not defined in mingw's system header
+#ifndef ERROR_DIRECTORY_NOT_SUPPORTED
+#  define ERROR_DIRECTORY_NOT_SUPPORTED 0x150
+#endif /* ERROR_DIRECTORY_NOT_SUPPORTED */
+
 
 struct w32_create_file_options {
 	DWORD access_mode;
