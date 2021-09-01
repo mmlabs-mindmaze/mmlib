@@ -7,6 +7,7 @@
 
 #include <check.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "mmlib.h"
 #include "mmsysio.h"
@@ -15,23 +16,39 @@
 #define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"/lock-referee.exe"
 
 static
+void flush_stdout(void)
+{
+	fflush(stdout);
+}
+
+
+static
 Suite* api_suite(void)
 {
-	Suite *s = suite_create("API");
+	Suite *s;
+	int i;
+	TCase* tc[] = {
+		create_allocation_tcase(),
+		create_time_tcase(),
+		create_thread_tcase(),
+		create_file_tcase(),
+		create_socket_tcase(),
+		create_ipc_tcase(),
+		create_dir_tcase(),
+		create_shm_tcase(),
+		create_dlfcn_tcase(),
+		create_process_tcase(),
+		create_argparse_tcase(),
+		create_utils_tcase(),
+		create_advanced_file_tcase(),
+	};
 
-	suite_add_tcase(s, create_allocation_tcase());
-	suite_add_tcase(s, create_time_tcase());
-	suite_add_tcase(s, create_thread_tcase());
-	suite_add_tcase(s, create_file_tcase());
-	suite_add_tcase(s, create_socket_tcase());
-	suite_add_tcase(s, create_ipc_tcase());
-	suite_add_tcase(s, create_dir_tcase());
-	suite_add_tcase(s, create_shm_tcase());
-	suite_add_tcase(s, create_dlfcn_tcase());
-	suite_add_tcase(s, create_process_tcase());
-	suite_add_tcase(s, create_argparse_tcase());
-	suite_add_tcase(s, create_utils_tcase());
-	suite_add_tcase(s, create_advanced_file_tcase());
+	s = suite_create("API");
+
+	for (i = 0; i < MM_NELEM(tc); i++) {
+		tcase_add_checked_fixture(tc[i], flush_stdout, flush_stdout);
+		suite_add_tcase(s, tc[i]);
+	}
 
 	return s;
 }
