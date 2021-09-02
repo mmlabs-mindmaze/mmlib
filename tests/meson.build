@@ -1,8 +1,8 @@
 unittest_args = [
     '-DCHECK_SUPPORT_TAP=1',
-    '-DSRCDIR="' + meson.source_root() + '"',
+    '-DSRCDIR="' + meson.project_source_root() + '"',
     '-DBUILDDIR="' + meson.current_build_dir() + '"',
-    '-DTOP_BUILDDIR="' + meson.build_root() + '"',
+    '-DTOP_BUILDDIR="' + meson.project_build_root() + '"',
     '-DLT_OBJDIR="."',
 ]
 
