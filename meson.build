@@ -1,5 +1,5 @@
 project('mmlib', 'c',
-        version: '1.2.2',
+        version: run_command(find_program('read_version.py')).stdout().strip(),
         license: 'apache2',
         meson_version: '>= 0.56',
         default_options: [
