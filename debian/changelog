@@ -1,5 +1,7 @@
-mmlib (1.3.0) UNRELEASED; urgency=medium
+mmlib (1.3.0) unstable; urgency=medium
 
+  * Add mm_copy().
+  * Fix cyg_pty detection in recent MSYS2.
   * update debian packaging:
     - compat 13
     - add bindnow hardening
@@ -8,7 +10,7 @@ mmlib (1.3.0) UNRELEASED; urgency=medium
   * Install html doc and examples in mmlib-doc: they were previously in
     libmmlib-dev.
 
- -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Sun, 12 Sep 2021 22:48:53 +0200
+ -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Mon, 13 Sep 2021 12:18:39 +0200
 
 mmlib (1.2.2) unstable; urgency=medium
 
