@@ -38,6 +38,8 @@ static struct file_info init_setup_files[] = {
 	{.path = u8"fdgrye",    .mode = 0,                .sz = 1065000},
 };
 
+#define NUM_FILE_CASE   MM_NELEM(init_setup_files)
+
 
 static
 void gen_rand_data(char* buff, size_t len)
@@ -171,144 +173,125 @@ exit:
 
 START_TEST(path_stat)
 {
-	int i;
 	struct mm_stat st;
-	const struct file_info* info;
+	const struct file_info* info = &init_setup_files[_i];
 
-	for (i = 0; i < MM_NELEM(init_setup_files); i++) {
-		info = &init_setup_files[i];
+	ck_assert(mm_stat(info->path, &st, 0) == 0);
 
-		ck_assert(mm_stat(info->path, &st, 0) == 0);
-
-		ck_assert_int_eq(st.size, info->sz);
-		ck_assert_int_le(llabs(st.ctime - info->ctime), 1);
-		ck_assert_int_eq(st.nlink, 1);
-		ck_assert(S_ISREG(st.mode));
-		ck_assert_int_eq((st.mode & 0777), info->mode);
-	}
+	ck_assert_int_eq(st.size, info->sz);
+	ck_assert_int_le(llabs(st.ctime - info->ctime), 1);
+	ck_assert_int_eq(st.nlink, 1);
+	ck_assert(S_ISREG(st.mode));
+	ck_assert_int_eq((st.mode & 0777), info->mode);
 }
 END_TEST
 
 
 START_TEST(fd_stat)
 {
-	int i, fd;
+	int fd;
 	struct mm_stat st;
-	const struct file_info* info;
+	const struct file_info* info = &init_setup_files[_i];
 
-	for (i = 0; i < MM_NELEM(init_setup_files); i++) {
-		info = &init_setup_files[i];
+	// Skip file that could not be open
+	if (!(info->mode & S_IRUSR))
+		return;
 
-		// Skip file that could not be open
-		if (!(info->mode & S_IRUSR))
-			continue;
+	fd = mm_open(info->path, O_RDONLY, 0);
+	ck_assert(fd >= 0);
 
-		fd = mm_open(info->path, O_RDONLY, 0);
-		ck_assert(fd >= 0);
+	ck_assert(mm_fstat(fd, &st) == 0);
+	mm_close(fd);
 
-		ck_assert(mm_fstat(fd, &st) == 0);
-		mm_close(fd);
-
-		ck_assert_int_eq(st.size, info->sz);
-		ck_assert_int_le(llabs(st.ctime - info->ctime), 1);
-		ck_assert_int_eq(st.nlink, 1);
-		ck_assert(S_ISREG(st.mode));
-	}
+	ck_assert_int_eq(st.size, info->sz);
+	ck_assert_int_le(llabs(st.ctime - info->ctime), 1);
+	ck_assert_int_eq(st.nlink, 1);
+	ck_assert(S_ISREG(st.mode));
 }
 END_TEST
 
 
 START_TEST(hard_link)
 {
-	int i;
 	struct mm_stat st, st_ln;
-	const struct file_info* info;
+	const struct file_info* info = &init_setup_files[_i];
 
-	for (i = 0; i < MM_NELEM(init_setup_files); i++) {
-		info = &init_setup_files[i];
+	// Check number of link is initially 1
+	ck_assert(mm_stat(info->path, &st, 0) == 0);
+	ck_assert_int_eq(st.nlink, 1);
 
-		// Check number of link is initially 1
-		ck_assert(mm_stat(info->path, &st, 0) == 0);
-		ck_assert_int_eq(st.nlink, 1);
+	// Make link and check content is identical
+	ck_assert(mm_link(info->path, LINKNAME) == 0);
 
-		// Make link and check content is identical
-		ck_assert(mm_link(info->path, LINKNAME) == 0);
+	// Skip test if file could not be open
+	if (info->mode & S_IRUSR)
+		ck_assert(are_files_same(info->path, LINKNAME) == true);
 
-		// Skip test if file could not be open
-		if (info->mode & S_IRUSR)
-			ck_assert(are_files_same(info->path, LINKNAME) == true);
+	ck_assert(mm_stat(info->path, &st, 0) == 0);
+	ck_assert(mm_stat(LINKNAME, &st_ln, 0) == 0);
 
-		ck_assert(mm_stat(info->path, &st, 0) == 0);
-		ck_assert(mm_stat(LINKNAME, &st_ln, 0) == 0);
+	ck_assert_int_eq(st.nlink, 2);
 
-		ck_assert_int_eq(st.nlink, 2);
+	// Compate stat data (must be identical)
+	ck_assert_int_eq(st.dev, st_ln.dev);
+	ck_assert(mm_ino_equal(st.ino, st_ln.ino));
+	ck_assert_int_eq(st.size, st_ln.size);
+	ck_assert_int_eq(st.ctime, st_ln.ctime);
+	ck_assert_int_eq(st.nlink, st_ln.nlink);
+	ck_assert_int_eq(st.mode, st_ln.mode);
 
-		// Compate stat data (must be identical)
-		ck_assert_int_eq(st.dev, st_ln.dev);
-		ck_assert(mm_ino_equal(st.ino, st_ln.ino));
-		ck_assert_int_eq(st.size, st_ln.size);
-		ck_assert_int_eq(st.ctime, st_ln.ctime);
-		ck_assert_int_eq(st.nlink, st_ln.nlink);
-		ck_assert_int_eq(st.mode, st_ln.mode);
-
-		ck_assert(mm_unlink(LINKNAME) == 0);
-		ck_assert(mm_stat(info->path, &st, 0) == 0);
-		ck_assert_int_eq(st.nlink, 1);
-	}
+	ck_assert(mm_unlink(LINKNAME) == 0);
+	ck_assert(mm_stat(info->path, &st, 0) == 0);
+	ck_assert_int_eq(st.nlink, 1);
 }
 END_TEST
 
 START_TEST(symbolic_link)
 {
-	int i;
 	char target[128];
 	struct mm_stat st, st_ln;
-	const struct file_info* info;
+	const struct file_info* info = &init_setup_files[_i];
 
-	for (i = 0; i < MM_NELEM(init_setup_files); i++) {
-		info = &init_setup_files[i];
+	// Make link and check content is identical
+	ck_assert(mm_symlink(info->path, LINKNAME) == 0);
 
-		// Make link and check content is identical
-		ck_assert(mm_symlink(info->path, LINKNAME) == 0);
+	// Skip test if file could not be open
+	if (info->mode & S_IRUSR)
+		ck_assert(are_files_same(info->path, LINKNAME) == true);
 
-		// Skip test if file could not be open
-		if (info->mode & S_IRUSR)
-			ck_assert(are_files_same(info->path, LINKNAME) == true);
+	ck_assert(mm_stat(LINKNAME, &st_ln, MM_NOFOLLOW) == 0);
+	ck_assert(S_ISLNK(st_ln.mode));
+	ck_assert_int_eq(st_ln.size, strlen(info->path)+1);
 
-		ck_assert(mm_stat(LINKNAME, &st_ln, MM_NOFOLLOW) == 0);
-		ck_assert(S_ISLNK(st_ln.mode));
-		ck_assert_int_eq(st_ln.size, strlen(info->path)+1);
+	// Check that value of symlink is the one expected
+	ck_assert(mm_readlink(LINKNAME, target, sizeof(target)) == 0);
+	ck_assert(strcmp(target, info->path) == 0);
 
-		// Check that value of symlink is the one expected
-		ck_assert(mm_readlink(LINKNAME, target, sizeof(target)) == 0);
-		ck_assert(strcmp(target, info->path) == 0);
+	// Check behavior of mm_readlink() if buffer too small
+	ck_assert(mm_readlink(LINKNAME, target, 3) == -1);
+	ck_assert_int_eq(mm_get_lasterror_number(), EOVERFLOW);
 
-		// Check behavior of mm_readlink() if buffer too small
-		ck_assert(mm_readlink(LINKNAME, target, 3) == -1);
-		ck_assert_int_eq(mm_get_lasterror_number(), EOVERFLOW);
+	// Check that symlink do not increase link number of
+	// original file
+	ck_assert(mm_stat(info->path, &st, 0) == 0);
+	ck_assert_int_eq(st.nlink, 1);
 
-		// Check that symlink do not increase link number of
-		// original file
-		ck_assert(mm_stat(info->path, &st, 0) == 0);
-		ck_assert_int_eq(st.nlink, 1);
+	// Check that symlink and original file are indeed
+	// different files on filesystem
+	ck_assert(!mm_ino_equal(st.ino, st_ln.ino));
 
-		// Check that symlink and original file are indeed
-		// different files on filesystem
-		ck_assert(!mm_ino_equal(st.ino, st_ln.ino));
+	// Compare stat data of pointed file (must be identical)
+	ck_assert(mm_stat(LINKNAME, &st_ln, 0) == 0);
+	ck_assert_int_eq(st.dev, st_ln.dev);
+	ck_assert(mm_ino_equal(st.ino, st_ln.ino));
+	ck_assert_int_eq(st.size, st_ln.size);
+	ck_assert_int_eq(st.ctime, st_ln.ctime);
+	ck_assert_int_eq(st.nlink, st_ln.nlink);
+	ck_assert_int_eq(st.mode, st_ln.mode);
 
-		// Compare stat data of pointed file (must be identical)
-		ck_assert(mm_stat(LINKNAME, &st_ln, 0) == 0);
-		ck_assert_int_eq(st.dev, st_ln.dev);
-		ck_assert(mm_ino_equal(st.ino, st_ln.ino));
-		ck_assert_int_eq(st.size, st_ln.size);
-		ck_assert_int_eq(st.ctime, st_ln.ctime);
-		ck_assert_int_eq(st.nlink, st_ln.nlink);
-		ck_assert_int_eq(st.mode, st_ln.mode);
-
-		ck_assert(mm_unlink(LINKNAME) == 0);
-		ck_assert(mm_stat(info->path, &st, 0) == 0);
-		ck_assert_int_eq(st.nlink, 1);
-	}
+	ck_assert(mm_unlink(LINKNAME) == 0);
+	ck_assert(mm_stat(info->path, &st, 0) == 0);
+	ck_assert_int_eq(st.nlink, 1);
 }
 END_TEST
 
@@ -397,39 +380,34 @@ END_TEST
 
 START_TEST(copy_file)
 {
-	int i;
 	struct mm_stat st, st_cp;
-	const struct file_info* info;
+	const struct file_info* info = &init_setup_files[_i];
 
-	for (i = 0; i < MM_NELEM(init_setup_files); i++) {
-		info = &init_setup_files[i];
+	// Check number of link is initially 1
+	ck_assert(mm_stat(info->path, &st, 0) == 0);
+	ck_assert_int_eq(st.nlink, 1);
 
-		// Check number of link is initially 1
-		ck_assert(mm_stat(info->path, &st, 0) == 0);
-		ck_assert_int_eq(st.nlink, 1);
-
-		// Skip test if file could not be open
-		if (!(info->mode & S_IRUSR)) {
-			ck_assert(mm_copy(info->path, TEST_FILE, 0, 0666));
-			ck_assert(mm_get_lasterror_number() == EACCES);
-			continue;
-		}
-
-		// Make file copy
-		ck_assert(mm_copy(info->path, TEST_FILE, 0, 0666) == 0);
-		ck_assert(are_files_same(info->path, TEST_FILE) == true);
-
-		ck_assert(mm_stat(info->path, &st, 0) == 0);
-		ck_assert(mm_stat(TEST_FILE, &st_cp, 0) == 0);
-
-		// Compare stat data (ino must be different)
-		ck_assert_int_eq(st.dev, st_cp.dev);
-		ck_assert(!mm_ino_equal(st.ino, st_cp.ino));
-		ck_assert_int_eq(st_cp.nlink, 1);
-		ck_assert_int_eq(st.nlink, 1);
-
-		ck_assert(mm_unlink(TEST_FILE) == 0);
+	// Skip test if file could not be open
+	if (!(info->mode & S_IRUSR)) {
+		ck_assert(mm_copy(info->path, TEST_FILE, 0, 0666));
+		ck_assert(mm_get_lasterror_number() == EACCES);
+		return;
 	}
+
+	// Make file copy
+	ck_assert(mm_copy(info->path, TEST_FILE, 0, 0666) == 0);
+	ck_assert(are_files_same(info->path, TEST_FILE) == true);
+
+	ck_assert(mm_stat(info->path, &st, 0) == 0);
+	ck_assert(mm_stat(TEST_FILE, &st_cp, 0) == 0);
+
+	// Compare stat data (ino must be different)
+	ck_assert_int_eq(st.dev, st_cp.dev);
+	ck_assert(!mm_ino_equal(st.ino, st_cp.ino));
+	ck_assert_int_eq(st_cp.nlink, 1);
+	ck_assert_int_eq(st.nlink, 1);
+
+	ck_assert(mm_unlink(TEST_FILE) == 0);
 }
 END_TEST
 
@@ -499,31 +477,32 @@ START_TEST(copy_fail)
 END_TEST
 
 
-START_TEST(check_access)
+START_TEST(check_access_not_exist)
 {
-	int i, exp_rv;
-	const struct file_info* info;
-
 	ck_assert_int_eq(mm_check_access("does-not-exist", F_OK), ENOENT);
+}
+END_TEST
 
-	for (i = 0; i < MM_NELEM(init_setup_files); i++) {
-		info = &init_setup_files[i];
 
-		// File must exist
-		ck_assert_int_eq(mm_check_access(info->path, F_OK), 0);
+START_TEST(check_access_mode)
+{
+	int exp_rv;
+	const struct file_info* info = &init_setup_files[_i];
 
-		// Test read access
-		exp_rv = (info->mode & S_IRUSR) ? 0 : EACCES;
-		ck_assert_int_eq(mm_check_access(info->path, R_OK), exp_rv);
+	// File must exist
+	ck_assert_int_eq(mm_check_access(info->path, F_OK), 0);
 
-		// Test write access
-		exp_rv = (info->mode & S_IWUSR) ? 0 : EACCES;
-		ck_assert_int_eq(mm_check_access(info->path, W_OK), exp_rv);
+	// Test read access
+	exp_rv = (info->mode & S_IRUSR) ? 0 : EACCES;
+	ck_assert_int_eq(mm_check_access(info->path, R_OK), exp_rv);
 
-		// Test execute access
-		exp_rv = (info->mode & S_IXUSR) ? 0 : EACCES;
-		ck_assert_int_eq(mm_check_access(info->path, X_OK), exp_rv);
-	}
+	// Test write access
+	exp_rv = (info->mode & S_IWUSR) ? 0 : EACCES;
+	ck_assert_int_eq(mm_check_access(info->path, W_OK), exp_rv);
+
+	// Test execute access
+	exp_rv = (info->mode & S_IXUSR) ? 0 : EACCES;
+	ck_assert_int_eq(mm_check_access(info->path, X_OK), exp_rv);
 }
 END_TEST
 
@@ -717,14 +696,15 @@ TCase* create_file_tcase(void)
 
 	tcase_add_unchecked_fixture(tc, init_testdir, cleanup_testdir);
 
-	tcase_add_test(tc, path_stat);
-	tcase_add_test(tc, fd_stat);
-	tcase_add_test(tc, check_access);
-	tcase_add_test(tc, hard_link);
-	tcase_add_test(tc, symbolic_link);
+	tcase_add_loop_test(tc, path_stat, 0, NUM_FILE_CASE);
+	tcase_add_loop_test(tc, fd_stat, 0, NUM_FILE_CASE);
+	tcase_add_test(tc, check_access_not_exist);
+	tcase_add_loop_test(tc, check_access_mode, 0, NUM_FILE_CASE);
+	tcase_add_loop_test(tc, hard_link, 0, NUM_FILE_CASE);
+	tcase_add_loop_test(tc, symbolic_link, 0, NUM_FILE_CASE);
 	tcase_add_test(tc, dir_symbolic_link);
 	tcase_add_test(tc, dangling_symlink);
-	tcase_add_test(tc, copy_file);
+	tcase_add_loop_test(tc, copy_file, 0, NUM_FILE_CASE);
 	tcase_add_test(tc, copy_symlink);
 	tcase_add_test(tc, copy_fail);
 	tcase_add_test(tc, unlink_before_close);
