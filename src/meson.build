@@ -138,8 +138,8 @@ endif # windows
 # * PATCH version when you make backwards-compatible bug fixes.
 
 major = '1'
-minor = '0'
-patch = '1'
+minor = '1'
+patch = '0'
 version = major + '.' + minor + '.' + patch
 
 mmlib_static = static_library('mmlib-static',
