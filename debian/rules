@@ -4,6 +4,7 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+export DEB_BUILD_MAINT_OPTIONS=hardening=+bindnow
 ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	export DEB_CFLAGS_MAINT_APPEND=-O3
 endif
@@ -13,9 +14,6 @@ export DEB_LDFLAGS_MAINT_APPEND=-Wl,-Bsymbolic-functions
 	dh  $@ --with sphinxdoc --buildsystem=meson
 
 override_dh_autoreconf:
-
-override_dh_strip:
-	dh_strip --dbgsym-migration='libmmlib0-dbg (<< 0.3.4+next)'
 
 override_dh_compress:
 	dh_compress --exclude=examples

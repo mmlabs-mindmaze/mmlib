@@ -1,4 +1,5 @@
 libmmlib.so.1 libmmlib1 #MINVER#
+* Build-Depends-Package: libmmlib-dev
  MMLIB_1.0@MMLIB_1.0 1.2.0
  _mm_freea_on_heap@MMLIB_1.0 1.2.0
  _mm_malloca_on_heap@MMLIB_1.0 1.2.0

@@ -1,14 +1,15 @@
 Source: mmlib
 Section: libs
-Priority: extra
+Priority: optional
 Maintainer: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
-Build-Depends: debhelper (>= 10),
+Build-Depends: debhelper-compat (= 13),
  meson, gettext, check,
  python3-sphinx, python3-sphinx-rtd-theme, python3-sphinx-linuxdoc
-Standards-Version: 3.9.8
-Vcs-Git: https://intranet.mindmaze.ch/bitbucket/scm/mmlab/mmlib.git
-Vcs-browser:  https://intranet.mindmaze.ch/bitbucket/scm/mmlab/mmlib.git
-Homepage: http://intranet.mindmaze.ch
+Rules-Requires-Root: no
+Standards-Version: 4.5.1
+Vcs-Git: https://review.gerrithub.io/mmlabs-mindmaze/mmlib
+Vcs-Browser: https://github.com/mmlabs-mindmaze/mmlib
+Homepage: https://github.com/mmlabs-mindmaze/mmlib
 
 Package: libmmlib1
 Architecture: any
@@ -39,6 +40,7 @@ Description: mmlib library (Development files)
  use mmlib. The manpages and examples are shipped in this package.
 
 Package: mmlib-l10n
+Section: localization
 Architecture: all
 Multi-Arch: foreign
 Pre-Depends: ${misc:Pre-Depends}
