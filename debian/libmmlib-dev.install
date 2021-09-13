@@ -2,5 +2,3 @@
 /usr/lib/*/libmmlib.so
 /usr/lib/*/pkgconfig
 /usr/share/man/man3/*
-/usr/share/doc/mmlib/html/
-usr/share/doc/mmlib/examples/*

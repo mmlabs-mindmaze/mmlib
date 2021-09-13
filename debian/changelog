@@ -5,6 +5,8 @@ mmlib (1.3.0) UNRELEASED; urgency=medium
     - add bindnow hardening
     - fix section and priority
     - add build-depends in symbols
+  * Install html doc and examples in mmlib-doc: they were previously in
+    libmmlib-dev.
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Sun, 12 Sep 2021 22:48:53 +0200
 
