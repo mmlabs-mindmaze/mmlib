@@ -13,5 +13,7 @@ export DEB_LDFLAGS_MAINT_APPEND=-Wl,-Bsymbolic-functions
 %:
 	dh  $@ --with sphinxdoc --buildsystem=meson
 
+override_dh_autoreconf:
+
 override_dh_compress:
 	dh_compress --exclude=examples
