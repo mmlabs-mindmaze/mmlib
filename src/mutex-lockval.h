@@ -117,8 +117,8 @@ bool is_thread_mtx_waiterlist_owner(int64_t lockval, DWORD tid)
  *
  * If an owner of a robust mutex terminates while holding the mutex, the
  * mutex becomes inconsistent and the next thread that acquires the mutex
- * lock shall be notified of it. This helper allows to identify this from
- * its lock value @lockval
+ * lock shall be notified of it. This helper allows one to identify this from
+ * its lock value @lockval.
  *
  * Return: true if previous owner has died with the mutex locked, or in
  * other word, the mutex is in inconsistent state. false otherwise.
@@ -137,7 +137,7 @@ bool is_mtx_ownerdead(int64_t lockval)
  * If a robust mutex is in inconsistent and the owning thead unlock it
  * without a recover it, ie calling to mmthr_mtx_consistent() before
  * mm_thr_mutex_unlock(), the mutex is marked permanently unusable. This helper
- * allows to identify this state from the mutex lock value @lockval.
+ * allows one to identify this state from the mutex lock value @lockval.
  *
  * Return: true if mutex was inconsistent and previous owner did not recover
  * it before unlocking. false otherwise.

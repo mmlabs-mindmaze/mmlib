@@ -176,12 +176,12 @@ struct error_info* get_thread_last_error(void)
  * @flags:                the flags to add
  * @mask:                 mask applied on the flags
  *
- * This function allows to modify the behavior when an error is raised with
- * mm_raise_error() and similar function. Normally when an error is raised,
- * the usual behavior is to set the error and its details in a thread local
+ * This function allows one to modify the behavior when an error is raised with
+ * mm_raise_error() and similar function. Normally when an error is raised, the
+ * usual behavior is to set the error and its details in a thread local
  * variable (error state) and to log it. The aspect of this behavior can be
- * modified depending on @mask which must be an OR-combination of the
- * following flags :
+ * modified depending on @mask which must be an OR-combination of the following
+ * flags :
  *
  * MM_ERROR_IGNORE
  *   error are silently ignored... Thread error state will not be changed

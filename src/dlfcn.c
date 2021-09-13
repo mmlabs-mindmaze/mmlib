@@ -193,7 +193,7 @@ const char* mm_dl_fileext(void)
  * MM_LD_APPEND_EXT
  *   If set, mm_dlopen() append automatically the usual file extension
  *   of a shared library (OS dependent) to @path and load this file instead.
- *   This flag allows to write code that is fully platform independent.
+ *   This flag allows one to write code that is fully platform independent.
  *
  * Return: In case of success, mm_dlopen() return a non-NULL handle.
  * Otherwise NULL is returned and error state is set accordingly.

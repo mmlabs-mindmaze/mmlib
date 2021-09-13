@@ -712,12 +712,12 @@ int64_t mm_profile_get_data(int measure_point, int type)
  * Additionally it provides a ways to change the type of timer used for
  * measure.
  *
- * The @flags arguments allows to change the behavior of the reset.  If the
+ * The @flags arguments allows one to change the behavior of the reset. If the
  * PROF_RESET_CPUCLOCK flag is set, it will use a timer based on CPU's
- * instruction counter. This timer has a very fine granularity (of the order
- * of very few nanoseconds) but it does not take measure time spent on
- * sleeping while waiting certain event (disk io, mutex/cond, etc...). This
- * timer indicates the processing power spent on tasks.
+ * instruction counter. This timer has a very fine granularity (of the order of
+ * very few nanoseconds) but it does not take measure time spent on sleeping
+ * while waiting certain event (disk io, mutex/cond, etc...). This timer
+ * indicates the processing power spent on tasks.
  *
  * Alternatively if PROF_RESET_CPUCLOCK is not set, it will use a timer
  * based on wall clock. This timer has bigger granularity (order of hundred

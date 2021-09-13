@@ -321,7 +321,7 @@ void drop_child_from_children_list(mm_pid_t pid)
  * use of CRT to handle fd allocation and closing (with _open_osfhandle(),
  * _get_osfhandle(), _close()...). It is done by adding an extra array in the
  * data passed in &STARTUPINFO.lpReserved2. This extra array will be
- * interpreted by mmlib at startup. This mechanism also allows to cooperate
+ * interpreted by mmlib at startup. This mechanism also allows one to cooperate
  * well with piece of code in the same process that do not use mmlib to create
  * its file descriptors. The number of FD to be passed is indeed specified by
  * the first field of &STARTUPINFO.lpReserved2: any data after the array of

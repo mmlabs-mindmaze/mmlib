@@ -291,10 +291,10 @@ int _get_startup_argv_mode(void);
  * implementation in the CRT init bits but can be overridden by any function of
  * this name that would appear first in the linking order, ie, any function in
  * object file or linked libraries. Please note that new version on mingw64-crt
- * (used by mingw and clang) allows to use ucrt instead of msvcrt, however it
- * is done in a way that the wrapper around urtbase.dll define _getmainargs()
- * so that the CRT init bits remain the same, so the previous case is still
- * applicable for them.
+ * (used by mingw and clang) allows one to use ucrt instead of msvcrt, however
+ * it is done in a way that the wrapper around urtbase.dll define
+ * _getmainargs() so that the CRT init bits remain the same, so the previous
+ * case is still applicable for them.
  *
  * NOTE: Do not use it directly in user code. This function is exported for the
  * sole purpose of overriding the function used in mingw64 CRT init code

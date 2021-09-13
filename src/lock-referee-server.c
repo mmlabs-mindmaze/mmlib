@@ -465,8 +465,8 @@ void lock_report_cleanup_job_done(struct lock* lock)
  *
  * Notify @lock that the thread whose ID was @thread_id and which has been
  * detected as dead was in relation with the lock. The lock can then create or
- * update a cleanup job to submit later to a thread client which will allows to
- * undo the possible change the dead has made to the shared lock.
+ * update a cleanup job to submit later to a thread client which will allows
+ * one to undo the possible change the dead has made to the shared lock.
  */
 static
 void lock_report_dead(struct lock* lock, int is_waiter, DWORD thread_id)
