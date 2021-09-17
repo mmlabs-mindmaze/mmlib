@@ -1146,6 +1146,7 @@ int clone_srcfd(int fd_in, const char* dst, int flags, int mode)
 {
 	int fd_out = -1;
 	int rv = -1;
+	int saved_errno;
 
 	fd_out = mm_open(dst, O_WRONLY|O_CREAT|O_EXCL, mode);
 	if (fd_out == -1)
@@ -1162,6 +1163,12 @@ int clone_srcfd(int fd_in, const char* dst, int flags, int mode)
 
 	default:
 		rv = clone_fd_try_cow(fd_in, fd_out);
+	}
+
+	if (rv) {
+		saved_errno = errno;
+		unlink(dst);
+		errno = saved_errno;
 	}
 
 	mm_close(fd_out);
