@@ -78,4 +78,4 @@ api_compat_test = run_target('api-compat-test',
         ]
 )
 
-meson.add_dist_script('copyright_autoheader')
+meson.add_dist_script('expand_headers')

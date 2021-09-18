@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Call copyright-header to expand the copyright statement in each source file.
+# The script is not called directly using meson.add_dist_script() because this
+# would make copyright-header mandatory when configuring the project.
+copyright-autoheader
