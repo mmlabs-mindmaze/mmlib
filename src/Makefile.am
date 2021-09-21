@@ -147,12 +147,12 @@ endif #OS_TYPE_WIN32
 # check all the source files for correct coding style
 .PHONY: checkstyle
 checkstyle: ../tools/uncrustify.cfg
-	cd $(srcdir) && uncrustify -c ../tools/uncrustify.cfg -l C --check \
+	cd $(srcdir) && uncrustify -c ../tools/uncrustify.cfg -l C -q --check \
 		$(libmmlib_internal_wrapper_la_SOURCES)
 
 .PHONY: fixstyle
 fixstyle: ../tools/uncrustify.cfg
-	cd $(srcdir) && uncrustify -c ../tools/uncrustify.cfg -l C --replace --no-backup \
+	cd $(srcdir) && uncrustify -c ../tools/uncrustify.cfg -l C -q --replace --no-backup \
 		$(libmmlib_internal_wrapper_la_SOURCES)
 
 .PHONY: spelling

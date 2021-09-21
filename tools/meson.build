@@ -52,6 +52,7 @@ if uncrustify.found()
         command : [
             uncrustify,
             '-l', 'c',
+            '-q',
             '-c', uncrustify_config,
             '--check',
             all_lib_c_sources, all_doc_c_sources
@@ -61,6 +62,7 @@ if uncrustify.found()
         command : [
             uncrustify,
             '-l', 'c',
+            '-q',
             '-c', uncrustify_config,
             '--replace',
             '--no-backup',
