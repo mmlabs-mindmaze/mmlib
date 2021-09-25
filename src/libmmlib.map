@@ -60,6 +60,7 @@ MMLIB_1.0 {
 		mm_fstat;
 		mm_fsync;
 		mm_ftruncate;
+		mm_futimens;
 		mm_get_basedir;
 		mm_get_environ;
 		mm_get_lasterror_desc;
@@ -122,6 +123,7 @@ MMLIB_1.0 {
 		mm_unlink;
 		mm_unmap;
 		mm_unsetenv;
+		mm_utimens;
 		mm_wait_process;
 		mm_write;
 		mm_arg_complete_path;
