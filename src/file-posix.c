@@ -667,6 +667,79 @@ int mm_stat(const char* path, struct mm_stat* buf, int flags)
 
 
 /**
+ * mm_futimebs() - set file access and modification times of an opened file
+ * @fd:         file descriptor of an open file whose times must be changed
+ * @ts:         array of 2 timestamps (access and modification time). If NULL,
+ *              both time are set to current time.
+ *
+ * This set the access and modification times of a file associated with the
+ * file description @fd to the values of the @ts argument. The file's relevant
+ * timestamp is set to the greatest value supported by the file system that is
+ * not greater than the specified time.
+ *
+ * The @ts argument is an array of two timespec structures. The first array
+ * member @ts[0] represents the date and time of last access, and the second
+ * member @ts[1] represents the date and time of last modification. The times
+ * in the mmm_timespec structure are measured in seconds and nanoseconds since
+ * the Epoch.
+ *
+ * If the tv_nsec field of a mm_timespec structure has the special value
+ * UTIME_NOW, the file's relevant timestamp is set to the greatest value
+ * supported by the file system that is not greater than the current time. If
+ * the tv_nsec field has the special value UTIME_OMIT, the file's relevant
+ * timestamp is not changed. In either case, the tv_sec field shall be ignored.
+ *
+ * If the @ts argument is a null pointer, both the access and modification
+ * timestamps are set to the greatest value supported by the file system that
+ * is not greater than the current time.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set.
+ */
+API_EXPORTED
+int mm_futimens(int fd, const struct mm_timespec ts[2])
+{
+	if (futimens(fd, (const struct timespec*)ts))
+		return mm_raise_from_errno("futimens(%i) failed", fd);
+
+	return 0;
+}
+
+
+/**
+ * mm_utimens() - set file access and modification times
+ * @path:       path to file whose times must be changed
+ * @ts:         array of 2 timestamps (access and modification time). If NULL,
+ *              both time are set to current time.
+ * @flags       0 or MM_NOFOLLOW
+ *
+ * This does the same as mm_futimes excepting that file is refered through its
+ * file path while with mm_futimens() it must be refered though a file
+ * descriptor.
+ *
+ * See documentation of mm_futimens() for the documentation of @ts argument.
+ *
+ * If @flags is 0, the time are set to the target if @path refers to a symlink.
+ * Otherwise, if MM_NOFOLLOW is set in @flags, the times of the symlink itself
+ * are set.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set.
+ */
+API_EXPORTED
+int mm_utimens(const char* path, const struct mm_timespec ts[2], int flags)
+{
+	int uflags = 0;
+
+	if (flags & MM_NOFOLLOW)
+		uflags |= AT_SYMLINK_NOFOLLOW;
+
+	if (utimensat(AT_FDCWD, path, (const struct timespec*)ts, uflags))
+		return mm_raise_from_errno("utimensat(%s) failed", path);
+
+	return 0;
+}
+
+
+/**
  * mm_readlink() - read value of a symbolic link
  * @path:       pathname of symbolic link
  * @buf:        buffer receiving the value
