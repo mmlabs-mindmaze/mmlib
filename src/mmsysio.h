@@ -219,10 +219,10 @@ extern "C" {
  *              For symbolic links, the length in bytes of the UTF-8
  *              pathname contained in the symbolic link (including null
  *              termination).
- * @blksize:    Currently unused
- * @nblocks:     Currently unused
- * @mtime:       time of last modification
- * @ctime:       time of last status change
+ * @atime:      time of last access
+ * @nblocks:    Currently unused
+ * @mtime:      time of last modification
+ * @ctime:      time of last status change
  */
 struct mm_stat {
 	mm_dev_t dev;
@@ -232,7 +232,7 @@ struct mm_stat {
 	uid_t uid;
 	gid_t gid;
 	mm_off_t size;
-	size_t blksize;
+	time_t atime;
 	size_t nblocks;
 	time_t mtime;
 	time_t ctime;

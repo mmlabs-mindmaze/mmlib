@@ -1573,6 +1573,7 @@ int get_stat_from_handle(HANDLE hnd, struct mm_stat* buf)
 		buf->size += info.nFileSizeLow;
 	}
 
+	buf->atime = filetime_to_time(info.ftLastAccessTime);
 	buf->ctime = filetime_to_time(info.ftCreationTime);
 	buf->mtime = filetime_to_time(info.ftLastWriteTime);
 	buf->dev = id_info.VolumeSerialNumber;
