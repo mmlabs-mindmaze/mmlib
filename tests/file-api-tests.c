@@ -655,6 +655,178 @@ START_TEST(rename_empty_directory)
 END_TEST
 
 
+START_TEST(file_times)
+{
+	const char* afile = init_setup_files[0].path;
+	const struct mm_timespec ts1 = {.tv_sec = 1234567890, .tv_nsec = 321};
+	const struct mm_timespec ts2 = {.tv_sec = 1239999890, .tv_nsec = 111};
+	const struct mm_timespec ts3 = {.tv_sec = 2239999890, .tv_nsec = 444};
+	struct mm_timespec ts[2];
+	struct mm_stat buf;
+
+	ts[0] = ts1;
+	ts[1] = ts2;
+	ck_assert(mm_utimens(afile, ts, 0) == 0);
+	mm_stat(afile, &buf, 0);
+	ck_assert_int_eq(buf.atime, ts1.tv_sec);
+	ck_assert_int_eq(buf.mtime, ts2.tv_sec);
+
+	ts[0] = ts3;
+	ts[1] = (struct mm_timespec) {.tv_nsec = UTIME_OMIT, .tv_sec = 1};
+	ck_assert(mm_utimens(afile, ts, 0) == 0);
+	mm_stat(afile, &buf, 0);
+	ck_assert_int_eq(buf.atime, ts3.tv_sec);
+	ck_assert_int_eq(buf.mtime, ts2.tv_sec);
+
+	ts[0] = (struct mm_timespec) {.tv_nsec = UTIME_OMIT, .tv_sec = 1};
+	ts[1] = ts1;
+	ck_assert(mm_utimens(afile, ts, 0) == 0);
+	mm_stat(afile, &buf, 0);
+	ck_assert_int_eq(buf.atime, ts3.tv_sec);
+	ck_assert_int_eq(buf.mtime, ts1.tv_sec);
+}
+END_TEST
+
+
+START_TEST(file_times_now)
+{
+	const char* afile = init_setup_files[0].path;
+	const struct mm_timespec ts1 = {.tv_sec = 1234567890, .tv_nsec = 321};
+	const struct mm_timespec ts2 = {.tv_sec = 1239999890, .tv_nsec = 111};
+	const struct mm_timespec ts3 = {.tv_sec = 2239999890, .tv_nsec = 444};
+	struct mm_timespec ts[2];
+	struct mm_stat buf;
+	struct mm_timespec tmin, tmax;
+
+	ts[0] = ts1;
+	ts[1] = ts2;
+	ck_assert(mm_utimens(afile, ts, 0) == 0);
+	mm_stat(afile, &buf, 0);
+	ck_assert_int_eq(buf.atime, ts1.tv_sec);
+	ck_assert_int_eq(buf.mtime, ts2.tv_sec);
+
+	ts[0] = ts3;
+	ts[1] = (struct mm_timespec) {.tv_nsec = UTIME_NOW, .tv_sec = 1};
+	mm_gettime(MM_CLK_REALTIME, &tmin);
+	ck_assert(mm_utimens(afile, ts, 0) == 0);
+	mm_gettime(MM_CLK_REALTIME, &tmax);
+	mm_stat(afile, &buf, 0);
+	ck_assert_int_eq(buf.atime, ts3.tv_sec);
+	ck_assert_int_ge(buf.mtime, tmin.tv_sec);
+	ck_assert_int_le(buf.mtime, tmax.tv_sec);
+
+	ts[0] = (struct mm_timespec) {.tv_nsec = UTIME_NOW, .tv_sec = 1};
+	ts[1] = ts1;
+	mm_gettime(MM_CLK_REALTIME, &tmin);
+	ck_assert(mm_utimens(afile, ts, 0) == 0);
+	mm_gettime(MM_CLK_REALTIME, &tmax);
+	mm_stat(afile, &buf, 0);
+	ck_assert_int_ge(buf.atime, tmin.tv_sec);
+	ck_assert_int_le(buf.atime, tmax.tv_sec);
+	ck_assert_int_eq(buf.mtime, ts1.tv_sec);
+
+	ts[0] = ts1;
+	ts[1] = ts2;
+	ck_assert(mm_utimens(afile, ts, 0) == 0);
+	mm_gettime(MM_CLK_REALTIME, &tmin);
+	ck_assert(mm_utimens(afile, NULL, 0) == 0);
+	mm_gettime(MM_CLK_REALTIME, &tmax);
+	mm_stat(afile, &buf, 0);
+	ck_assert_int_ge(buf.atime, tmin.tv_sec);
+	ck_assert_int_le(buf.atime, tmax.tv_sec);
+	ck_assert_int_eq(buf.mtime, buf.atime);
+}
+END_TEST
+
+
+START_TEST(file_fd_times)
+{
+	const struct mm_timespec ts1 = {.tv_sec = 1234567890, .tv_nsec = 321};
+	const struct mm_timespec ts2 = {.tv_sec = 1239999890, .tv_nsec = 111};
+	const struct mm_timespec ts3 = {.tv_sec = 2239999890, .tv_nsec = 444};
+	struct mm_timespec ts[2];
+	struct mm_stat buf;
+	int fd = mm_open(init_setup_files[0].path, O_RDONLY, 0);
+
+	ts[0] = ts1;
+	ts[1] = ts2;
+	ck_assert(mm_futimens(fd, ts) == 0);
+	mm_fstat(fd, &buf);
+	ck_assert_int_eq(buf.atime, ts1.tv_sec);
+	ck_assert_int_eq(buf.mtime, ts2.tv_sec);
+
+	ts[0] = ts3;
+	ts[1] = (struct mm_timespec) {.tv_nsec = UTIME_OMIT, .tv_sec = 1};
+	ck_assert(mm_futimens(fd, ts) == 0);
+	mm_fstat(fd, &buf);
+	ck_assert_int_eq(buf.atime, ts3.tv_sec);
+	ck_assert_int_eq(buf.mtime, ts2.tv_sec);
+
+	ts[0] = (struct mm_timespec) {.tv_nsec = UTIME_OMIT, .tv_sec = 1};
+	ts[1] = ts1;
+	ck_assert(mm_futimens(fd, ts) == 0);
+	mm_fstat(fd, &buf);
+	ck_assert_int_eq(buf.atime, ts3.tv_sec);
+	ck_assert_int_eq(buf.mtime, ts1.tv_sec);
+
+	mm_close(fd);
+}
+END_TEST
+
+
+START_TEST(file_fd_times_now)
+{
+	const struct mm_timespec ts1 = {.tv_sec = 1234567890, .tv_nsec = 321};
+	const struct mm_timespec ts2 = {.tv_sec = 1239999890, .tv_nsec = 111};
+	const struct mm_timespec ts3 = {.tv_sec = 2239999890, .tv_nsec = 444};
+	struct mm_timespec ts[2];
+	struct mm_stat buf;
+	struct mm_timespec tmin, tmax;
+	int fd = mm_open(init_setup_files[0].path, O_RDONLY, 0);
+
+	ts[0] = ts1;
+	ts[1] = ts2;
+	ck_assert(mm_futimens(fd, ts) == 0);
+	mm_fstat(fd, &buf);
+	ck_assert_int_eq(buf.atime, ts1.tv_sec);
+	ck_assert_int_eq(buf.mtime, ts2.tv_sec);
+
+	ts[0] = ts3;
+	ts[1] = (struct mm_timespec) {.tv_nsec = UTIME_NOW, .tv_sec = 1};
+	mm_gettime(MM_CLK_REALTIME, &tmin);
+	ck_assert(mm_futimens(fd, ts) == 0);
+	mm_gettime(MM_CLK_REALTIME, &tmax);
+	mm_fstat(fd, &buf);
+	ck_assert_int_eq(buf.atime, ts3.tv_sec);
+	ck_assert_int_ge(buf.mtime, tmin.tv_sec);
+	ck_assert_int_le(buf.mtime, tmax.tv_sec);
+
+	ts[0] = (struct mm_timespec) {.tv_nsec = UTIME_NOW, .tv_sec = 1};
+	ts[1] = ts1;
+	mm_gettime(MM_CLK_REALTIME, &tmin);
+	ck_assert(mm_futimens(fd, ts) == 0);
+	mm_gettime(MM_CLK_REALTIME, &tmax);
+	mm_fstat(fd, &buf);
+	ck_assert_int_ge(buf.atime, tmin.tv_sec);
+	ck_assert_int_le(buf.atime, tmax.tv_sec);
+	ck_assert_int_eq(buf.mtime, ts1.tv_sec);
+
+	ts[0] = ts1;
+	ts[1] = ts2;
+	ck_assert(mm_futimens(fd, ts) == 0);
+	mm_gettime(MM_CLK_REALTIME, &tmin);
+	ck_assert(mm_futimens(fd, NULL) == 0);
+	mm_gettime(MM_CLK_REALTIME, &tmax);
+	mm_fstat(fd, &buf);
+	ck_assert_int_ge(buf.atime, tmin.tv_sec);
+	ck_assert_int_le(buf.atime, tmax.tv_sec);
+	ck_assert_int_eq(buf.mtime, buf.atime);
+
+	mm_close(fd);
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -712,6 +884,10 @@ TCase* create_file_tcase(void)
 	tcase_add_test(tc, read_closed_pipe);
 	tcase_add_test(tc, rename_simple_file);
 	tcase_add_test(tc, rename_empty_directory);
+	tcase_add_test(tc, file_times);
+	tcase_add_test(tc, file_times_now);
+	tcase_add_test(tc, file_fd_times);
+	tcase_add_test(tc, file_fd_times_now);
 
 	return tc;
 }

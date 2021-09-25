@@ -294,6 +294,22 @@ time_t filetime_to_time(FILETIME ft)
 }
 
 
+static inline
+FILETIME timespec_to_filetime(struct mm_timespec ts)
+{
+	ULARGE_INTEGER time_int;
+
+	time_int.QuadPart = ((LONGLONG)ts.tv_sec) * 10000000;
+	time_int.QuadPart += (ts.tv_nsec / 100);
+	time_int.QuadPart += FT_EPOCH;
+
+	return (FILETIME) {
+		.dwLowDateTime = time_int.LowPart,
+		.dwHighDateTime = time_int.HighPart,
+	};
+}
+
+
 /**************************************************************************
  *                                                                        *
  *                         thread related utils                           *

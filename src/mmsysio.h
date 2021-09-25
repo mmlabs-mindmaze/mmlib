@@ -188,6 +188,9 @@ extern "C" {
 #define R_OK 0x04
 #endif
 
+#define UTIME_NOW       (-1L)
+#define UTIME_OMIT      (-2L)
+
 #endif /* _WIN32 */
 
 /* file types returned when scanning a directory */
@@ -248,6 +251,9 @@ MMLIB_API mm_off_t mm_seek(int fd, mm_off_t offset, int whence);
 MMLIB_API int mm_ftruncate(int fd, mm_off_t length);
 MMLIB_API int mm_fstat(int fd, struct mm_stat* buf);
 MMLIB_API int mm_stat(const char* path, struct mm_stat* buf, int flags);
+MMLIB_API int mm_futimens(int fd, const struct mm_timespec ts[2]);
+MMLIB_API int mm_utimens(const char* path,
+                         const struct mm_timespec ts[2], int flags);
 MMLIB_API int mm_check_access(const char* path, int amode);
 MMLIB_API int mm_isatty(int fd);
 

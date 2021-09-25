@@ -1620,6 +1620,78 @@ int mm_fstat(int fd, struct mm_stat* buf)
 }
 
 
+static
+int hnd_utimens(HANDLE hnd, const struct mm_timespec ts[2])
+{
+	FILETIME aft;
+	FILETIME mft;
+	FILETIME now;
+
+	if (!ts || ts[0].tv_nsec == UTIME_NOW || ts[1].tv_nsec == UTIME_NOW)
+		GetSystemTimePreciseAsFileTime(&now);
+
+	// Set access filetime
+	if (!ts || ts[0].tv_nsec == UTIME_NOW)
+		aft = now;
+	else if (ts[0].tv_nsec == UTIME_OMIT)
+		aft = (FILETIME) {0};
+	else
+		aft = timespec_to_filetime(ts[0]);
+
+	// Set modification filetime
+	if (!ts || ts[1].tv_nsec == UTIME_NOW)
+		mft = now;
+	else if (ts[0].tv_nsec == UTIME_OMIT)
+		mft = (FILETIME) {0};
+	else
+		mft = timespec_to_filetime(ts[1]);
+
+	return SetFileTime(hnd, NULL, &aft, &mft) ? 0 : -1;
+}
+
+
+/* doc in posix implementation */
+API_EXPORTED
+int mm_futimens(int fd, const struct mm_timespec ts[2])
+{
+	HANDLE hnd;
+	int rv;
+
+	if (unwrap_handle_from_fd(&hnd, fd))
+		return -1;
+
+	rv = hnd_utimens(hnd, ts);
+	if (rv)
+		mm_raise_from_w32err("Cannot change times of fd %i", fd);
+
+	return rv;
+}
+
+
+/* doc in posix implementation */
+API_EXPORTED
+int mm_utimens(const char* path, const struct mm_timespec ts[2], int flags)
+{
+	HANDLE hnd;
+	int rv;
+
+	if (flags & ~MM_NOFOLLOW)
+		return mm_raise_error(EINVAL, "invalid flags (0x%08x)", flags);
+
+	hnd = open_handle(path, FILE_WRITE_ATTRIBUTES,
+	                  OPEN_EXISTING, NULL, flags);
+	if (hnd == INVALID_HANDLE_VALUE)
+		return mm_raise_from_w32err("Cannot open %s", path);
+
+	rv = hnd_utimens(hnd, ts);
+	if (rv)
+		mm_raise_from_w32err("Cannot change times of %s", path);
+
+	CloseHandle(hnd);
+	return rv;
+}
+
+
 /* doc in posix implementation */
 API_EXPORTED
 int mm_readlink(const char* path, char* buf, size_t bufsize)
