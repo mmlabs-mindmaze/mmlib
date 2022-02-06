@@ -1354,7 +1354,7 @@ int mm_arg_parse(const struct mm_arg_parser* parser, int argc, char* argv[])
 			return early_stop_parsing(parser, r);
 	}
 
-	return index;
+	return index > argc ? argc : index;
 }
 
 /**
