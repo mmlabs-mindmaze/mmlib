@@ -19,6 +19,7 @@ sharedlib:
   mm_close: 1.2.0
   mm_closedir: 1.2.0
   mm_connect: 1.2.0
+  mm_copy: 1.3.0
   mm_create_sockclient: 1.2.0
   mm_dirname: 1.2.0
   mm_dl_fileext: 1.2.0
@@ -33,6 +34,7 @@ sharedlib:
   mm_fstat: 1.2.0
   mm_fsync: 1.2.0
   mm_ftruncate: 1.2.0
+  mm_futimens: 1.4.0
   mm_get_basedir: 1.2.0
   mm_get_environ: 1.2.0
   mm_get_lasterror_desc: 1.2.0
@@ -102,7 +104,7 @@ sharedlib:
   mm_shutdown: 1.2.0
   mm_socket: 1.2.0
   mm_spawn: 1.2.0
-  mm_stat: 1.2.0
+  mm_stat: 1.4.0
   mm_strerror: 1.2.0
   mm_strerror_r: 1.2.0
   mm_symlink: 1.2.0
@@ -129,6 +131,7 @@ sharedlib:
   mm_unlink: 1.2.0
   mm_unmap: 1.2.0
   mm_unsetenv: 1.2.0
+  mm_utimens: 1.4.0
   mm_wait_process: 1.2.0
   mm_write: 1.2.0
 

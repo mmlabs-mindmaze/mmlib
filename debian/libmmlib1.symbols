@@ -34,6 +34,7 @@ libmmlib.so.1 libmmlib1 #MINVER#
  mm_fstat@MMLIB_1.0 1.2.0
  mm_fsync@MMLIB_1.0 1.2.0
  mm_ftruncate@MMLIB_1.0 1.2.0
+ mm_futimens@MMLIB_1.0 1.4.0
  mm_get_basedir@MMLIB_1.0 1.2.0
  mm_get_environ@MMLIB_1.0 1.2.0
  mm_get_lasterror_desc@MMLIB_1.0 1.2.0
@@ -103,7 +104,7 @@ libmmlib.so.1 libmmlib1 #MINVER#
  mm_shutdown@MMLIB_1.0 1.2.0
  mm_socket@MMLIB_1.0 1.2.0
  mm_spawn@MMLIB_1.0 1.2.0
- mm_stat@MMLIB_1.0 1.2.0
+ mm_stat@MMLIB_1.0 1.4.0
  mm_strerror@MMLIB_1.0 1.2.0
  mm_strerror_r@MMLIB_1.0 1.2.0
  mm_symlink@MMLIB_1.0 1.2.0
@@ -130,5 +131,6 @@ libmmlib.so.1 libmmlib1 #MINVER#
  mm_unlink@MMLIB_1.0 1.2.0
  mm_unmap@MMLIB_1.0 1.2.0
  mm_unsetenv@MMLIB_1.0 1.2.0
+ mm_utimens@MMLIB_1.0 1.4.0
  mm_wait_process@MMLIB_1.0 1.2.0
  mm_write@MMLIB_1.0 1.2.0

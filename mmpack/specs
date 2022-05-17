@@ -1,5 +1,5 @@
 name: mmlib
-version: 1.3.0
+version: 1.4.0
 maintainer: nicolas.bourdaud@gmail.com
 url: https://github.com/mmlabs-mindmaze/mmlib
 licenses: [ Apache-2.0 ]
