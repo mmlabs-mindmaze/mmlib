@@ -1,3 +1,10 @@
+mmlib (1.4.0) unstable; urgency=medium
+
+  * Repurpose blksize field of mm_stat to expose atime.
+  * Add mm_futimens() and mm_utimens()
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Tue, 17 May 2022 08:23:53 +0200
+
 mmlib (1.3.0) unstable; urgency=medium
 
   * Add mm_copy().

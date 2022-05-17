@@ -9,7 +9,7 @@
 # - If any interfaces have been removed since the last public release, then
 # set age to 0.
 
-m4_define([lib_current],2)
+m4_define([lib_current],3)
 m4_define([lib_revision],0)
 m4_define([lib_age],1)
 
