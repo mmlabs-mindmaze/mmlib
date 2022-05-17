@@ -712,8 +712,8 @@ int mm_futimens(int fd, const struct mm_timespec ts[2])
  *              both time are set to current time.
  * @flags       0 or MM_NOFOLLOW
  *
- * This does the same as mm_futimes excepting that file is refered through its
- * file path while with mm_futimens() it must be refered though a file
+ * This does the same as mm_futimens() excepting that file is referred through
+ * its file path while with mm_futimens() it must be referred though a file
  * descriptor.
  *
  * See documentation of mm_futimens() for the documentation of @ts argument.
