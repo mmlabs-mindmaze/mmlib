@@ -16,3 +16,5 @@ headers:
 owner_remap:
   - pattern: .*@mindmaze.(ch|com)
     name: MindMaze Holding SA
+  - pattern: .*@alice-bob.com
+    name: Alice & Bob SAS
