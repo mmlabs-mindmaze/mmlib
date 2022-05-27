@@ -1,3 +1,9 @@
+mmlib (1.4.1) unstable; urgency=medium
+
+  * Fix meson script for gettext.
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Sat, 28 May 2022 00:01:20 +0200
+
 mmlib (1.4.0) unstable; urgency=medium
 
   * Repurpose blksize field of mm_stat to expose atime.
