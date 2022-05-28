@@ -1346,12 +1346,7 @@ MM_DIR* mm_opendir(const char* path)
 
 error:
 	mm_raise_from_errno("opendir(%s) failed", path);
-	if (d != NULL) {
-		free(d->dirname);
-		free(d->dirent);
-	}
-
-	free(d);
+	mm_closedir(d);
 	return NULL;
 }
 
@@ -1362,7 +1357,9 @@ void mm_closedir(MM_DIR* dir)
 	if (dir == NULL)
 		return;
 
-	FindClose(dir->hdir);
+	if (dir->hdir != INVALID_HANDLE_VALUE)
+		FindClose(dir->hdir);
+
 	free(dir->dirent);
 	free(dir);
 }
