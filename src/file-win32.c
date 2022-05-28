@@ -1652,7 +1652,7 @@ API_EXPORTED
 int mm_futimens(int fd, const struct mm_timespec ts[2])
 {
 	HANDLE hnd, hnd_new;
-	int rv;
+	int rv = -1;
 
 	if (unwrap_handle_from_fd(&hnd, fd))
 		return -1;
