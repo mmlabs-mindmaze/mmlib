@@ -11,7 +11,7 @@
 
 m4_define([lib_current],3)
 m4_define([lib_revision],0)
-m4_define([lib_age],1)
+m4_define([lib_age],2)
 
 # Setup autoconf
 AC_INIT(mmlib,m4_normalize(m4_include([VERSION])),[nicolas.bourdaud@gmail.com])
