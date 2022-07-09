@@ -513,6 +513,7 @@ void print_option(const struct mm_arg_opt* opt, FILE* stream)
 	char* desc;
 	int len, desc_len;
 	int type = mm_arg_opt_get_type(opt);
+	int reqflags = opt->flags & MM_OPT_REQMASK;
 	bool is_positive;
 
 	opt_desc = opt->desc ? opt->desc : "";
@@ -530,7 +531,7 @@ void print_option(const struct mm_arg_opt* opt, FILE* stream)
 	}
 
 	// Append value type specification if not string type
-	if (type != MM_OPT_STR) {
+	if (type != MM_OPT_STR && reqflags != MM_OPT_NOVAL) {
 		is_positive = (type == MM_OPT_UINT || type == MM_OPT_ULLONG);
 		sprintf(type_doc, "%s%s must be a%s integer.",
 		        desc_len ? " " : "", value_name,
