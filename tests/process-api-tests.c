@@ -499,6 +499,25 @@ START_TEST(wait_twice)
 END_TEST
 
 
+START_TEST(wait_status)
+{
+	int status;
+	mm_pid_t pid;
+	char script[32];
+	char* cmd[] = {"sh", "-c", script, NULL};
+
+	sprintf(script, "exit %i", _i);
+
+	ck_assert(mm_spawn(&pid, cmd[0], 0, NULL, 0, cmd, NULL) == 0);
+	ck_assert(mm_wait_process(pid, &status) == 0);
+
+	// Check process is exited and exit code is the one expected
+	ck_assert(status & MM_WSTATUS_EXITED);
+	ck_assert((status & MM_WSTATUS_CODEMASK) == _i);
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                       process test suite setup                         *
@@ -520,6 +539,7 @@ TCase* create_process_tcase(void)
 	tcase_add_loop_test(tc, spawn_daemon_error, 0, MM_NELEM(error_cases));
 	tcase_add_loop_test(tc, spawn_invalid_args, 0, MM_NELEM(inval_cases));
 	tcase_add_test(tc, wait_twice);
+	tcase_add_loop_test(tc, wait_status, 0, 127);
 
 #ifndef _WIN32
 	tcase_add_loop_test(tc, spawn_error_limits, 0, NUM_ERRLIMITS_CASES);
