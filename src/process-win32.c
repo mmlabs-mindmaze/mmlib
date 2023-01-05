@@ -995,7 +995,7 @@ int translate_exitcode_in_status(DWORD exitcode)
 
 	// Normal exit case
 	if (exitcode < 0xC0000000) {
-		status = exitcode & ~MM_WSTATUS_CODEMASK;
+		status = exitcode & MM_WSTATUS_CODEMASK;
 		status |= MM_WSTATUS_EXITED;
 		return status;
 	}
