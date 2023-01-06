@@ -6,9 +6,31 @@
 #endif
 
 #include <mmsysio.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#if defined(_MSC_VER)
+#  define raise_sigill  __ud2
+#else
+#  define raise_sigill  __builtin_trap
+#endif
+
+
+static
+void raise_sigfpe(void)
+{
+#ifdef _WIN32
+	RaiseException(EXCEPTION_FLT_DIVIDE_BY_ZERO, 0, 0, NULL);
+#else
+	raise(SIGFPE);
+#endif
+}
 
 
 static
@@ -33,6 +55,23 @@ int check_open_files(int argc, char* argv[])
 }
 
 
+static
+int check_signal(int signum)
+{
+	union {int* iptr; intptr_t v;} val = {.v = 0};
+
+	switch (signum) {
+	case SIGABRT: abort();
+	case SIGSEGV: printf("%i", *val.iptr); break; // Must raise segfault
+	case SIGFPE:  raise_sigfpe(); break;
+	case SIGILL:  raise_sigill(); break;
+	default:      raise(signum);
+	}
+
+	return EXIT_FAILURE;
+}
+
+
 int main(int argc, char* argv[])
 {
 	if (argc < 2) {
@@ -45,6 +84,9 @@ int main(int argc, char* argv[])
 
 	if (strcmp(argv[1], "check-exit") == 0)
 		return atoi(argv[2]);
+
+	if (strcmp(argv[1], "check-signal") == 0)
+		return check_signal(atoi(argv[2]));
 
 	fprintf(stderr, "child-proc: invalid argument: %s\n", argv[1]);
 	return EXIT_FAILURE;
