@@ -7,6 +7,7 @@
 
 #include <check.h>
 
+#include <signal.h>
 #include <stdio.h>
 #include <strings.h>
 
@@ -521,6 +522,36 @@ START_TEST(wait_exit)
 END_TEST
 
 
+static
+const int wait_signal_cases[] = {
+	SIGTERM,
+	SIGSEGV,
+	SIGILL,
+	SIGFPE,
+	SIGINT,
+	SIGABRT,
+};
+
+START_TEST(wait_signal)
+{
+	int status;
+	mm_pid_t pid;
+	char script[32];
+	char* cmd[] = {"sh", "-c", script, NULL};
+	int signum = wait_signal_cases[_i];
+
+	sprintf(script, "kill -%i $$", signum);
+
+	ck_assert(mm_spawn(&pid, cmd[0], 0, NULL, 0, cmd, NULL) == 0);
+	ck_assert(mm_wait_process(pid, &status) == 0);
+
+	// Check process is exited and exit code is the one expected
+	ck_assert(status & MM_WSTATUS_SIGNALED);
+	ck_assert_int_eq(status & MM_WSTATUS_CODEMASK, signum);
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                       process test suite setup                         *
@@ -543,6 +574,7 @@ TCase* create_process_tcase(void)
 	tcase_add_loop_test(tc, spawn_invalid_args, 0, MM_NELEM(inval_cases));
 	tcase_add_test(tc, wait_twice);
 	tcase_add_loop_test(tc, wait_exit, 0, MM_NELEM(exit_code_cases));
+	tcase_add_loop_test(tc, wait_signal, 0, MM_NELEM(wait_signal_cases));
 
 #ifndef _WIN32
 	tcase_add_loop_test(tc, spawn_error_limits, 0, NUM_ERRLIMITS_CASES);
