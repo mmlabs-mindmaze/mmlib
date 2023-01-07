@@ -10,7 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-int main(int argc, char* argv[])
+
+static
+int check_open_files(int argc, char* argv[])
 {
 	int i;
 	int num_fd;
@@ -28,4 +30,22 @@ int main(int argc, char* argv[])
 	}
 
 	return 0;
+}
+
+
+int main(int argc, char* argv[])
+{
+	if (argc < 2) {
+		fprintf(stderr, "child-proc: Missing argument\n");
+		return EXIT_FAILURE;
+	}
+
+	if (strcmp(argv[1], "check-open-files") == 0)
+		return check_open_files(argc, argv);
+
+	if (strcmp(argv[1], "check-exit") == 0)
+		return atoi(argv[2]);
+
+	fprintf(stderr, "child-proc: invalid argument: %s\n", argv[1]);
+	return EXIT_FAILURE;
 }

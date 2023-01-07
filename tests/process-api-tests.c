@@ -99,8 +99,7 @@ struct process_test_data* create_process_test_data(const char* file)
 {
 	int i, child_last_fd, pipe_fds[2];
 	char name[32];
-	const char* argv[] = {"opt1", "another opt2", "Whi opt3",
-	                      MM_STRINGIFY(NUM_FILE)};
+	const char* argv[] = {"check-open-files", MM_STRINGIFY(NUM_FILE)};
 	struct process_test_data* data;
 
 	data = malloc(sizeof(*data));
@@ -505,11 +504,11 @@ START_TEST(wait_exit)
 {
 	int status;
 	mm_pid_t pid;
-	char script[32];
-	char* cmd[] = {"sh", "-c", script, NULL};
+	char arg[32];
+	char* cmd[] = {CHILDPROC_BINPATH, "check-exit", arg, NULL};
 	int expected_code = exit_code_cases[_i];
 
-	sprintf(script, "exit %i", expected_code);
+	sprintf(arg, "%i", expected_code);
 
 	ck_assert(mm_spawn(&pid, cmd[0], 0, NULL, 0, cmd, NULL) == 0);
 	ck_assert(mm_wait_process(pid, &status) == 0);
