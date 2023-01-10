@@ -1,3 +1,10 @@
+mmlib (1.4.2) unstable; urgency=medium
+
+  * No display in help of value type of argparse option when it does accept
+    value.
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Tue, 10 Jan 2023 06:36:55 +0100
+
 mmlib (1.4.1) unstable; urgency=medium
 
   * Fix meson script for gettext.
