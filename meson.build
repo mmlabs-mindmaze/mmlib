@@ -129,9 +129,10 @@ endif
 
 subdir('tools')
 
+#################### Summary #################################
 # print the status of the auto-detect features
-message('Configuration summary')
-message('=====================')
-message('* Tests : @0@'.format(tests_state))
-message('* Doc building : @0@'.format(docs_state))
-message('* NLS usage : @0@'.format(nls_state))
+summary({
+  'tests': tests_state,
+  'doc build': docs_state,
+  'nls usage': nls_state,
+}, section: 'Configuration')
