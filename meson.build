@@ -114,7 +114,7 @@ if sphinxbuild.found() and not get_option('docs').disabled()
     # (introduced in 0.51.0)
     # change this when possible
     python3 = import('python').find_installation('python3', required : true)
-    check_linuxdoc = run_command(python3, '-c', '"import linuxdoc"')
+    check_linuxdoc = run_command(python3, '-c', 'import linuxdoc')
 
     if check_linuxdoc.returncode() != 0 and get_option('docs') == 'enabled'
         error('python3 module "linuxdoc" is required to build documentation')
