@@ -7,6 +7,7 @@
 
 #include "mmsysio.h"
 #include "mmerrno.h"
+#include "utils-posix.h"
 
 #include <sys/mman.h>
 #include <pthread.h>
@@ -431,7 +432,7 @@ int mm_shm_open(const char* name, int oflag, int mode)
 {
 	int fd;
 
-	fd = shm_open(name, oflag, mode);
+	fd = shm_open(name, oflag, filter_default(mode));
 	if (fd == -1)
 		return mm_raise_from_errno("shm_open(%s, ...) failed", name);
 

@@ -15,6 +15,7 @@
 #include "mmpredefs.h"
 #include "mmsysio.h"
 #include "file-internal.h"
+#include "utils-posix.h"
 
 #include <stdio.h>
 #include <sys/stat.h>
@@ -93,7 +94,7 @@ int mm_open(const char* path, int oflag, int mode)
 	// Make file opened by mm_open automatically non inheritable
 	oflag |= O_CLOEXEC;
 
-	fd = open(path, oflag, mode);
+	fd = open(path, oflag, filter_default(mode));
 	if (fd < 0)
 		return mm_raise_from_errno("open(%s, %08x) failed", path,
 		                           oflag);
