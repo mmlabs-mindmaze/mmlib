@@ -9,6 +9,7 @@ install_man(files('mm_log_debug.3',
     'mm_tic.3',
     'mm_toc.3',
     'mm_toc_label.3',
+    'mmlib_perm_modes.7',
 ))
 
 pshared_parent_doc_example_sources = files(

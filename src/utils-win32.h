@@ -78,7 +78,7 @@ struct local_secdesc {
 
 
 int local_secdesc_init_from_handle(struct local_secdesc* lsd, HANDLE hnd);
-int local_secdesc_init_from_mode(struct local_secdesc* lsd, mode_t mode);
+int local_secdesc_init_from_mode(struct local_secdesc* lsd, int mode);
 void local_secdesc_deinit(struct local_secdesc* lsd);
 mode_t local_secdesc_get_mode(struct local_secdesc* lsd);
 const char16_t* get_caller_string_sid_u16(void);
