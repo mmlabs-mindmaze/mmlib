@@ -1,0 +1,38 @@
+.\"@mindmaze_header@
+.TH MMLIB_PERM_MODES 7 2023 "" "mmlib library manual"
+.SH NAME
+mmlib_perm_modes - Constant for file permissions in mmlib library
+.SH DESCRIPTION
+The mmlib file permission constant allows to specify the initial permission
+when a file, directory or shared memory area is created.
+.PP
+These constants are employed in the following functions:
+.BR mm_open (3),
+.BR mm_mkdir (3),
+.BR mm_shm_open (3)
+.SH VALUES
+.TS
+center box tab(@);
+cB | cB
+l | l.
+Name@Description
+_
+S_IRWXU@Read, write, execute/search by owner.
+S_IRUSR@Read permission, owner.
+S_IWUSR@Write permission, owner.
+S_IXUSR@Execute/search permission, owner.
+_
+S_IRWXG@Read, write, execute/search by group.
+S_IRGRP@Read permission, group.
+S_IWGRP@Write permission, group.
+S_IXGRP@Execute/search permission, group.
+_
+S_IRWXO@Read, write, execute/search by others.
+S_IROTH@Read permission, others.
+S_IWOTH@Write permission, others.
+S_IXOTH@Execute/search permission, others.
+.TE
+.SH SEE ALSO
+.BR mm_open (3),
+.BR mm_mkdir (3),
+.BR mm_shm_open (3)
