@@ -64,9 +64,9 @@ sharedlib:
   mm_log: 1.2.0
   mm_log_set_maxlvl: 1.2.0
   mm_mapfile: 1.2.0
-  mm_mkdir: 1.2.0
+  mm_mkdir: CURRENT
   mm_nanosleep: 1.2.0
-  mm_open: 1.2.0
+  mm_open: CURRENT
   mm_opendir: 1.2.0
   mm_path_from_basedir: 1.2.0
   mm_pipe: 1.2.0
@@ -99,7 +99,7 @@ sharedlib:
   mm_set_errorstate: 1.2.0
   mm_setenv: 1.2.0
   mm_setsockopt: 1.2.0
-  mm_shm_open: 1.2.0
+  mm_shm_open: CURRENT
   mm_shm_unlink: 1.2.0
   mm_shutdown: 1.2.0
   mm_socket: 1.2.0
