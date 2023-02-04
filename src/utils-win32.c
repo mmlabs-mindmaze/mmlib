@@ -385,7 +385,7 @@ int local_secdesc_resize(struct local_secdesc* lsd, size_t size)
  * origin of error.
  */
 LOCAL_SYMBOL
-int local_secdesc_init_from_mode(struct local_secdesc* lsd, mode_t mode)
+int local_secdesc_init_from_mode(struct local_secdesc* lsd, int mode)
 {
 	PACL acl = NULL;
 	SECURITY_DESCRIPTOR abs_sd;
@@ -396,6 +396,11 @@ int local_secdesc_init_from_mode(struct local_secdesc* lsd, mode_t mode)
 
 	// Initial local secdesc functional field
 	lsd->sd = NULL;
+
+	// If default mode flags is specified, only NULL security descriptor
+	// will be returned, hence default descriptor will be used.
+	if (mode & MODE_DEF)
+		return 0;
 
 	// Get SID values
 	if (get_caller_sids(&owner.sid, &group.sid))
