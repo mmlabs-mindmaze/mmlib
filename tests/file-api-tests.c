@@ -827,6 +827,28 @@ START_TEST(file_fd_times_now)
 END_TEST
 
 
+START_TEST(create_defperm_mode)
+{
+	int fd;
+
+	mm_mkdir("def_perm_dir", MODE_XDEF, 0);
+
+	fd = mm_open("def_perm_dir/rwfile", O_CREAT|O_WRONLY, MODE_DEF);
+	mm_close(fd);
+	ck_assert_int_eq(mm_check_access("def_perm_dir/rwfile", R_OK), 0);
+	ck_assert_int_eq(mm_check_access("def_perm_dir/rwfile", W_OK), 0);
+
+	fd = mm_open("def_perm_dir/execfile", O_CREAT|O_WRONLY, MODE_XDEF);
+	mm_close(fd);
+	ck_assert_int_eq(mm_check_access("def_perm_dir/execfile", R_OK), 0);
+	ck_assert_int_eq(mm_check_access("def_perm_dir/execfile", W_OK), 0);
+	ck_assert_int_eq(mm_check_access("def_perm_dir/execfile", X_OK), 0);
+
+	mm_remove("def_perm_dir", MM_DT_ANY|MM_RECURSIVE);
+}
+END_TEST
+
+
 /**************************************************************************
  *                                                                        *
  *                          Test suite setup                              *
@@ -888,6 +910,7 @@ TCase* create_file_tcase(void)
 	tcase_add_test(tc, file_times_now);
 	tcase_add_test(tc, file_fd_times);
 	tcase_add_test(tc, file_fd_times_now);
+	tcase_add_test(tc, create_defperm_mode);
 
 	return tc;
 }
