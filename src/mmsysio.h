@@ -193,6 +193,10 @@ extern "C" {
 
 #endif /* _WIN32 */
 
+#define MODE_DEF        (1 << 16)
+#define MODE_EXEC       (1 << 17)
+#define MODE_XDEF       (MODE_DEF | MODE_EXEC)
+
 /* file types returned when scanning a directory */
 #define MM_DT_UNKNOWN 0
 #define MM_DT_FIFO (1 << 1)
