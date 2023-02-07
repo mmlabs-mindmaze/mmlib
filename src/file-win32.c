@@ -1909,9 +1909,9 @@ exit:
 
 
 LOCAL_SYMBOL
-int internal_mkdir(const char* path, int mode)
+int internal_mkdir(const char* path, int mode, int report_recursive)
 {
-	int rv, path_u16_len;
+	int err, rv, path_u16_len;
 	char16_t* path_u16;
 
 	(void) mode;  // permission management is not supported on windows
@@ -1927,6 +1927,14 @@ int internal_mkdir(const char* path, int mode)
 	conv_utf8_to_utf16(path_u16, path_u16_len, path);
 
 	rv = _wmkdir(path_u16);
+	if (rv < 0 && report_recursive) {
+		err = errno;
+		rv = (err == EEXIST || err == ENOENT) ? err : -1;
+	}
+
+	if (rv < 0)
+		mm_raise_from_errno("Failed to make dir %s", path);
+
 	mm_freea(path_u16);
 	return rv;
 }
