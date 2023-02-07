@@ -1286,11 +1286,26 @@ int copy_internal(const char* src, const char* dst, int flags, int mode)
  * internal_mkdir() - create the directory
  * @path:       path to directory to create
  * @mode:       permissions the folder must be created with
+ * @report_recursive: if non zero, report already existing @path or missing
+ *              component in return value.
  *
- * Return: 0 in case of success, -1 otherwise with appropriate errno.
+ * Return: 0 in case of success, ENOENT if a component of @path does not exist,
+ * EEXIST if @path already exist, or -1 in case of error with error state set
+ * accordingly.
  */
 LOCAL_SYMBOL
-int internal_mkdir(const char* path, int mode)
+int internal_mkdir(const char* path, int mode, int report_recursive)
 {
-	return mkdir(path, mode);
+	int err, rv;
+
+	rv = mkdir(path, mode);
+	if (rv < 0 && report_recursive) {
+		err = errno;
+		rv = (err == EEXIST || err == ENOENT) ? err : -1;
+	}
+
+	if (rv < 0)
+		mm_raise_from_errno("Failed to make dir %s", path);
+
+	return rv;
 }
