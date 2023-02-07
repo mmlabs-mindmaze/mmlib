@@ -32,6 +32,7 @@ int is_wildcard_directory(const char * name)
 
 
 int copy_internal(const char* src, const char* dst, int flags, int mode);
+int internal_mkdir(const char* path, int mode);
 
 
 #endif /* FILE_INTERNAL_H */
