@@ -1280,3 +1280,17 @@ int copy_internal(const char* src, const char* dst, int flags, int mode)
 	mm_close(fd_in);
 	return rv;
 }
+
+
+/**
+ * internal_mkdir() - create the directory
+ * @path:       path to directory to create
+ * @mode:       permissions the folder must be created with
+ *
+ * Return: 0 in case of success, -1 otherwise with appropriate errno.
+ */
+LOCAL_SYMBOL
+int internal_mkdir(const char* path, int mode)
+{
+	return mkdir(path, mode);
+}

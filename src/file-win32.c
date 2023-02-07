@@ -1906,3 +1906,27 @@ exit:
 
 	return rv;
 }
+
+
+LOCAL_SYMBOL
+int internal_mkdir(const char* path, int mode)
+{
+	int rv, path_u16_len;
+	char16_t* path_u16;
+
+	(void) mode;  // permission management is not supported on windows
+
+	path_u16_len = get_utf16_buffer_len_from_utf8(path);
+	if (path_u16_len < 0)
+		return mm_raise_from_w32err("Invalid UTF-8 path");
+
+	path_u16 = mm_malloca(path_u16_len * sizeof(*path_u16));
+	if (path_u16 == NULL)
+		return mm_raise_from_w32err("Failed to alloc required memory!");
+
+	conv_utf8_to_utf16(path_u16, path_u16_len, path);
+
+	rv = _wmkdir(path_u16);
+	mm_freea(path_u16);
+	return rv;
+}
