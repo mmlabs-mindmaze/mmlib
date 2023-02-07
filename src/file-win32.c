@@ -1911,30 +1911,44 @@ exit:
 LOCAL_SYMBOL
 int internal_mkdir(const char* path, int mode, int report_recursive)
 {
-	int err, rv, path_u16_len;
+	int rv, path_u16_len;
 	char16_t* path_u16;
+	struct local_secdesc lsd;
+	SECURITY_ATTRIBUTES sec = {.nLength = sizeof(SECURITY_ATTRIBUTES)};
 
-	(void) mode;  // permission management is not supported on windows
+	if (local_secdesc_init_from_mode(&lsd, mode))
+		return mm_raise_from_w32err("can't create security descriptor");
 
 	path_u16_len = get_utf16_buffer_len_from_utf8(path);
-	if (path_u16_len < 0)
-		return mm_raise_from_w32err("Invalid UTF-8 path");
+	if (path_u16_len < 0) {
+		rv = mm_raise_from_w32err("Invalid UTF-8 path");
+		goto exit;
+	}
 
 	path_u16 = mm_malloca(path_u16_len * sizeof(*path_u16));
-	if (path_u16 == NULL)
-		return mm_raise_from_w32err("Failed to alloc required memory!");
+	if (path_u16 == NULL) {
+		rv = mm_raise_from_w32err("Failed to alloc required memory!");
+		goto exit;
+	}
 
 	conv_utf8_to_utf16(path_u16, path_u16_len, path);
 
-	rv = _wmkdir(path_u16);
-	if (rv < 0 && report_recursive) {
-		err = errno;
-		rv = (err == EEXIST || err == ENOENT) ? err : -1;
+	rv = 0;
+	sec.lpSecurityDescriptor = lsd.sd;
+	if (!CreateDirectoryW(path_u16, &sec)) {
+		rv = -1;
+		if (report_recursive) {
+			switch (GetLastError()) {
+			case ERROR_ALREADY_EXISTS: rv = EEXIST; break;
+			case ERROR_PATH_NOT_FOUND: rv = ENOENT; break;
+			}
+		}
 	}
-
 	if (rv < 0)
-		mm_raise_from_errno("Failed to make dir %s", path);
+		mm_raise_from_w32err("Failed to make dir %s", path);
 
+exit:
 	mm_freea(path_u16);
+	local_secdesc_deinit(&lsd);
 	return rv;
 }
