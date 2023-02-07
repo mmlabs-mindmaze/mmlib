@@ -1926,7 +1926,10 @@ int internal_mkdir(const char* path, int mode)
 
 	conv_utf8_to_utf16(path_u16, path_u16_len, path);
 
-	rv = _wmkdir(path_u16);
+	rv = 0;
+	if (_wmkdir(path_u16))
+		rv = (errno == EEXIST && exists_ok) ? 0 : -1;
+
 	mm_freea(path_u16);
 	return rv;
 }

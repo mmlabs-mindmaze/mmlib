@@ -176,10 +176,8 @@ int mm_mkdir_rec(char* path, int mode)
 	int rv;
 	int len, len_orig;
 
-	rv = internal_mkdir(path, mode);
-	if (errno == EEXIST)
-		return 0;
-	else if (rv == 0 || errno != ENOENT)
+	rv = internal_mkdir(path, mode, 1);
+	if (rv && errno != ENOENT)
 		return rv;
 
 	/* prevent recursion: dirname(".") == "." */
@@ -197,7 +195,7 @@ int mm_mkdir_rec(char* path, int mode)
 	if (rv != 0)
 		return -1;
 
-	return internal_mkdir(path, mode);
+	return internal_mkdir(path, mode, 0);
 }
 
 
@@ -226,16 +224,11 @@ int mm_mkdir(const char* path, int mode, int flags)
 	int rv, len;
 	char * tmp_path;
 
-	rv = internal_mkdir(path, mode);
+	rv = internal_mkdir(path, mode, flags & MM_RECURSIVE);
 
 	if (flags & MM_RECURSIVE && rv != 0) {
-		// when recursive, do not raise an error when dir already
-		// present
-		if (errno == EEXIST)
-			return 0;
-		else if (errno != ENOENT)
+		if (errno != ENOENT)
 			return mm_raise_from_errno("mkdir(%s) failed", path);
-
 
 		len = strlen(path);
 		tmp_path = mm_malloca(len + 1);

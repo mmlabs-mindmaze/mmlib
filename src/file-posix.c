@@ -1286,11 +1286,15 @@ int copy_internal(const char* src, const char* dst, int flags, int mode)
  * internal_mkdir() - create the directory
  * @path:       path to directory to create
  * @mode:       permissions the folder must be created with
+ * @exists_ok:  if non-zer, no error returned if @path exists
  *
  * Return: 0 in case of success, -1 otherwise with appropriate errno.
  */
 LOCAL_SYMBOL
-int internal_mkdir(const char* path, int mode)
+int internal_mkdir(const char* path, int mode, int exists_ok)
 {
-	return mkdir(path, mode);
+	if (mkdir(path, mode))
+		return (errno == EEXIST && exists_ok) ? 0 : -1;
+
+	return 0;
 }
