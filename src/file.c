@@ -6,6 +6,7 @@
 #endif
 
 #include "mmlib.h"
+#include "mmlog.h"
 #include "mmerrno.h"
 #include "mmsysio.h"
 #include "file-internal.h"
@@ -170,34 +171,47 @@ char* internal_dirname(char * path)
 }
 
 
+/**
+ * mkdir_rec() - create directory recursively
+ * @path:       path of directory to create
+ * @mode:       permission to use to create the folder
+ *
+ * NOTE: although @path will be restored to its value, it needs to be writable.
+ *
+ * Return: 0 in case of success, -1 otherwise with error state set accordingly.
+ */
 static
-int mm_mkdir_rec(char* path, int mode)
+int mkdir_rec(char* path, int mode)
 {
 	int rv;
 	int len, len_orig;
 
-	rv = internal_mkdir(path, mode);
-	if (errno == EEXIST)
-		return 0;
-	else if (rv == 0 || errno != ENOENT)
-		return rv;
+	rv = internal_mkdir(path, mode, 1);
+	switch (rv) {
+	case 0:
+	case EEXIST:    return 0;
+	case ENOENT:    break;
+	default:        return -1;
+	}
 
 	/* prevent recursion: dirname(".") == "." */
 	if (is_wildcard_directory(path))
 		return 0;
 
 	len_orig = strlen(path);
-	rv = mm_mkdir_rec(internal_dirname(path), mode);
+	rv = mkdir_rec(internal_dirname(path), mode);
 
 	/* restore the dir separators removed by internal_dirname() */
 	len = strlen(path);
 	while (len < len_orig && path[len] == '\0')
 		path[len++] = '/';
 
-	if (rv != 0)
+	if (rv != 0) {
+		mm_log_error("Failed to make dir %s", path);
 		return -1;
+	}
 
-	return internal_mkdir(path, mode);
+	return internal_mkdir(path, mode, 0);
 }
 
 
@@ -226,26 +240,15 @@ int mm_mkdir(const char* path, int mode, int flags)
 	int rv, len;
 	char * tmp_path;
 
-	rv = internal_mkdir(path, mode);
-
-	if (flags & MM_RECURSIVE && rv != 0) {
-		// when recursive, do not raise an error when dir already
-		// present
-		if (errno == EEXIST)
-			return 0;
-		else if (errno != ENOENT)
-			return mm_raise_from_errno("mkdir(%s) failed", path);
-
-
+	if (flags & MM_RECURSIVE) {
 		len = strlen(path);
 		tmp_path = mm_malloca(len + 1);
 		strcpy(tmp_path, path);
-		rv = mm_mkdir_rec(tmp_path, mode);
+		rv = mkdir_rec(tmp_path, mode);
 		mm_freea(tmp_path);
+	} else {
+		rv = internal_mkdir(path, mode, 0);
 	}
-
-	if (rv != 0)
-		mm_raise_from_errno("mkdir(%s) failed", path);
 
 	return rv;
 }
