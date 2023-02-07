@@ -1280,3 +1280,10 @@ int copy_internal(const char* src, const char* dst, int flags, int mode)
 	mm_close(fd_in);
 	return rv;
 }
+
+
+LOCAL_SYMBOL
+int internal_mkdir(const char* path, int mode)
+{
+	return mkdir(path, mode);
+}
