@@ -175,6 +175,32 @@ extern "C" {
 #define S_IRWXU (S_IRUSR|S_IWUSR|S_IXUSR)
 #endif
 
+#ifndef S_IRGRP
+#define S_IRGRP 040
+#endif
+#ifndef S_IWGRP
+#define S_IWGRP 020
+#endif
+#ifndef S_IXGRP
+#define S_IXGRP 010
+#endif
+#ifndef S_IRWXG
+#define S_IRWXG (S_IRGRP|S_IWGRP|S_IXGRP)
+#endif
+
+#ifndef S_IROTH
+#define S_IROTH 04
+#endif
+#ifndef S_IWOTH
+#define S_IWOTH 02
+#endif
+#ifndef S_IXOTH
+#define S_IXOTH 01
+#endif
+#ifndef S_IRWXO
+#define S_IRWXO (S_IROTH|S_IWOTH|S_IXOTH)
+#endif
+
 #ifndef F_OK
 #define F_OK 0x00
 #endif
