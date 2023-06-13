@@ -232,7 +232,7 @@ ssize_t hnd_write_text(HANDLE hnd, int fd_info, const char* buf, size_t sz)
 {
 	char* buf_crlf = NULL;
 	int i, len_crlf;
-	ssize_t rsz;
+	ssize_t rsz, rsz_crlf;
 
 	buf_crlf = mm_malloca(2*sz);
 	if (!buf_crlf)
@@ -246,11 +246,11 @@ ssize_t hnd_write_text(HANDLE hnd, int fd_info, const char* buf, size_t sz)
 		buf_crlf[len_crlf++] = buf[i];
 	}
 
-	rsz = hnd_write_binary(hnd, fd_info, buf_crlf, len_crlf);
+	rsz = rsz_crlf = hnd_write_binary(hnd, fd_info, buf_crlf, len_crlf);
 
 	// Remove from count the inserted CR in each CRLF. This way, we really
 	// have the size of the part of @buf which has been written
-	for (i = 1; i < len_crlf; i++) {
+	for (i = 1; i < rsz_crlf; i++) {
 		if (buf_crlf[i-1] == '\r' && buf_crlf[i] == '\n')
 			rsz--;
 	}
