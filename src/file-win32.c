@@ -174,7 +174,7 @@ ssize_t console_write(HANDLE hnd, const char* buf, size_t nbyte)
 	// Convert the number of UTF-16 code unit written into number of bytes
 	// in the original UTF-8 sequence
 	rsz = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
-	                          buf16, nchar16_written, NULL, -1,
+	                          buf16, nchar16_written, NULL, 0,
 	                          NULL, NULL);
 
 exit:
