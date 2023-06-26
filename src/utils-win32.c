@@ -596,6 +596,7 @@ int get_errcode_from_w32err(DWORD w32err)
 	case ERROR_NOT_SAME_DEVICE:     return EXDEV;
 	case WSASYSNOTREADY:
 	case ERROR_DIRECTORY_NOT_SUPPORTED: return EISDIR;
+	case ERROR_DISK_FULL:           return ENOSPC;
 	case ERROR_NOT_SUPPORTED:       return ENOTSUP;
 	case WSAENETDOWN:               return ENETDOWN;
 	case WSAENETUNREACH:            return ENETUNREACH;
