@@ -1016,7 +1016,7 @@ START_TEST(getaddrinfo_error)
 	ck_assert(mm_getaddrinfo("localhost", "joke", &hints, &res) == -1);
 	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENOTFOUND);
 
-	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_socktype = SOCK_RAW;
 	ck_assert(mm_getaddrinfo("localhost", "ssh", &hints, &res) == -1);
 	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENOTFOUND);
 	hints.ai_socktype = 0;
