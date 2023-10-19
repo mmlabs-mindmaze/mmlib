@@ -985,7 +985,10 @@ void assert_addrinfo(struct addrinfo* rp, int exp_socktype, short exp_port)
 START_TEST(getaddrinfo_valid)
 {
 	struct addrinfo *rp, *res = NULL;
-	struct addrinfo hints = {.ai_family = AF_UNSPEC};
+	struct addrinfo hints = {
+		.ai_family = AF_UNSPEC,
+		.ai_socktype = SOCK_STREAM
+	};
 
 	ck_assert(mm_getaddrinfo("localhost", "ssh", &hints, &res) == 0);
 	for (rp = res; rp != NULL; rp = rp->ai_next)
