@@ -985,7 +985,10 @@ void assert_addrinfo(struct addrinfo* rp, int exp_socktype, short exp_port)
 START_TEST(getaddrinfo_valid)
 {
 	struct addrinfo *rp, *res = NULL;
-	struct addrinfo hints = {.ai_family = AF_UNSPEC};
+	struct addrinfo hints = {
+		.ai_family = AF_UNSPEC,
+		.ai_socktype = SOCK_STREAM
+	};
 
 	ck_assert(mm_getaddrinfo("localhost", "ssh", &hints, &res) == 0);
 	for (rp = res; rp != NULL; rp = rp->ai_next)
@@ -1013,7 +1016,7 @@ START_TEST(getaddrinfo_error)
 	ck_assert(mm_getaddrinfo("localhost", "joke", &hints, &res) == -1);
 	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENOTFOUND);
 
-	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_socktype = SOCK_RAW;
 	ck_assert(mm_getaddrinfo("localhost", "ssh", &hints, &res) == -1);
 	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENOTFOUND);
 	hints.ai_socktype = 0;
