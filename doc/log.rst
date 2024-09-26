@@ -8,4 +8,5 @@ Log utilities
 .. kernel-doc:: /src/log.c
     :module: error
     :no-header:
+    :headers: mmlog.h
     :export:
