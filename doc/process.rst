@@ -5,8 +5,10 @@ Process and shared objects
     :no-header:
     :module: process
     :export:
+    :headers: mmsysio.h
 
 .. kernel-doc:: /src/shm-posix.c
     :no-header:
     :module: process
+    :headers: mmsysio.h
     :export:
