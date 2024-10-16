@@ -33,6 +33,7 @@ import linuxdoc
 
 extensions = [
     'sphinx.ext.todo',
+    'linuxdoc.headers',         # Implementation of the 'headers' reST-directive
     'linuxdoc.rstFlatTable',    # Implementation of the 'flat-table' reST-directive.
     'linuxdoc.rstKernelDoc',    # Implementation of the 'kernel-doc' reST-directive.
     'linuxdoc.kernel_include',  # Implementation of the 'kernel-include' reST-directive.

@@ -3,6 +3,8 @@ Time
 
 functions
 ---------
+.. headers:: mmtime.h
+
 .. kernel-doc:: /src/mmtime.h
     :module: time
 
