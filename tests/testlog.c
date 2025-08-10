@@ -10,6 +10,14 @@
 #include <setjmp.h>
 #include <signal.h>
 
+// Workaround sigsetjmp missing on Win32 platforms
+#if defined (_WIN32)
+#  define sigjmp_buf jmp_buf
+#  define sigsetjmp(env, savesigs)  setjmp(env)
+#  define siglongjmp  longjmp
+#endif
+
+
 static
 void logged_func(void)
 {
@@ -21,20 +29,20 @@ void logged_func(void)
 
 // Stolen from here:
 // https://stackoverflow.com/questions/8934879/how-to-handle-sigabrt-signal
-jmp_buf env;
+sigjmp_buf env;
 
 static
 void on_sigabrt (int signum)
 {
 	(void)signum;
-	longjmp (env, 1);
+	siglongjmp(env, 1);
 }
 
 // Returns 1 if the function does not abort
 static
 int try_and_catch_abort (void (*func)(void))
 {
-	if (setjmp (env) == 0) {
+	if (sigsetjmp(env, 1) == 0) {
 		signal(SIGABRT, &on_sigabrt);
 		(*func)();
 		return 1;
