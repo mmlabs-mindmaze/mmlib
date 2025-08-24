@@ -1,0 +1,51 @@
+name: run-ci-on-changes
+on:
+  push:
+    branch: ci
+
+jobs:
+  ci-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install debian dependencies
+        run: sudo apt-get -y install meson check gettext sphinx-doc
+      - id: runtest
+        uses: ./.github/actions/checkout-build-test
+        with:
+          repo: ${{ github.repository }}
+          ref: ${{ github.ref }}
+  ci-windows:
+    defaults:
+      run:
+        shell: msys2 {0}
+    runs-on: windows-latest
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: git
+          pacboy: gcc meson check
+      - id: runtest
+        uses: ./.github/actions/checkout-build-test
+        with:
+          repo: ${{ github.repository }}
+          ref: ${{ github.ref }}
+  publish-result:
+    runs-on: ubuntu-latest
+    needs: [ci-linux, ci-windows]
+    steps:
+      - name: install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_GERRITHUB_KEY }}
+          name: id_rsa # optional
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+          if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
+      - name: send ci result
+        run: |
+          commit=$(git rev-parse HEAD)
+          if [[ needs.ci-linux.runtest.result = "success" -a needs.ci-windows.runtest.result = "success" ]]; then label=+1; else label=-1; fi
+          ssh -p 29418 mmlabs-foss-ci@review.gerrithub.io gerrit review --verified $label --json --notify NONE $commit <<EOF
+          {'message':'Build results:\n\tlinux: ${{ needs.ci-linux.runtest.result }}\n\twindows: ${{ needs.ci-windows.runtest.result }}'}
+          EOF
