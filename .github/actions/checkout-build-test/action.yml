@@ -1,0 +1,26 @@
+name: 'build tests'
+description: 'Checkout repo, configure, build and run tests'
+inputs:
+  repo:
+    required: true
+  ref:
+    required: true
+outputs:
+  result:
+    outcome: ${{ steps.tests.outcome }}
+runs:
+  using: "composite"
+  steps:
+    - name: checkout code
+      uses: actions/checkout@v5
+      with:
+        repository: ${{ inputs.repo }}
+        ref: ${{ inputs.ref }}
+    - name: build
+      id: tests
+      run: |
+        mkdir build
+        cd build
+        meson setup --prefix=$HOME/local
+        ninja
+        meson test
