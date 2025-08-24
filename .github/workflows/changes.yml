@@ -1,0 +1,63 @@
+name: run-ci-on-changes
+on:
+  push:
+    branch: ci
+
+jobs:
+  ci-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install debian dependencies
+        run: sudo apt-get -y install meson check gettext sphinx-doc
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
+      - name: build
+        id: runtest
+        run: |
+          mkdir build
+          cd build
+          meson setup --prefix=$HOME/local
+          ninja
+          meson test
+  ci-windows:
+    defaults:
+      run:
+        shell: msys2 {0}
+    runs-on: windows-latest
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: git
+          pacboy: gcc meson check
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
+      - name: build
+        id: runtest
+        run: |
+          mkdir build
+          cd build
+          meson setup --prefix=$HOME/local
+          ninja
+          meson test
+  publish-result:
+    runs-on: ubuntu-latest
+    needs: [ci-linux, ci-windows]
+    steps:
+      - name: install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_GERRITHUB_KEY }}
+          name: id_rsa # optional
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+          if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
+      - name: send ci result
+        run: |
+          commit=${{ github.sha }}
+          if [[ ${{ needs.ci-linux.steps.runtest.outcome }} = "success" -a ${{ needs.ci-windows.steps.runtest.outcome }} = "success" ]]; then label=+1; else label=-1; fi
+          ssh -p 29418 mmlabs-foss-ci@review.gerrithub.io gerrit review --verified $label --json --notify NONE $commit <<EOF
+          {'message':'Build results:\n\tlinux: ${{ needs.ci-linux.steps.runtest.outcome }}\n\twindows: ${{ needs.ci-windows.steps.runtest.outcome }}'}
+          EOF
