@@ -1017,7 +1017,7 @@ START_TEST(getaddrinfo_error)
 	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENOTFOUND);
 
 	hints.ai_socktype = SOCK_DGRAM;
-	ck_assert(mm_getaddrinfo("localhost", "ssh", &hints, &res) == -1);
+	ck_assert(mm_getaddrinfo("localhost", "login", &hints, &res) == -1);
 	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENOTFOUND);
 	hints.ai_socktype = 0;
 
@@ -1106,7 +1106,7 @@ static const struct {
 #else
 	{"socks://localhost", SOCK_STREAM, 1080},
 #endif
-	{"ntp://localhost", SOCK_DGRAM, 123},
+	{"biff://localhost", SOCK_DGRAM, 512},
 	{"tcp://localhost:" MM_STRINGIFY(PORT), SOCK_STREAM, PORT},
 	{"udp://localhost:" MM_STRINGIFY(PORT), SOCK_DGRAM, PORT},
 };
@@ -1162,7 +1162,7 @@ START_TEST(create_invalid_sockclient)
 	ck_assert(mm_create_sockclient("dummy://localhost") == -1);
 	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENOTFOUND);
 
-	ck_assert(mm_create_sockclient("ssh://localhost:10") == -1);
+	ck_assert(mm_create_sockclient("login://localhost:10") == -1);
 	ck_assert_int_eq(mm_get_lasterror_number(), ECONNREFUSED);
 
 	ck_assert(mm_create_sockclient("tcp://localhost") == -1);
