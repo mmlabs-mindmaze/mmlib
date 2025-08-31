@@ -1010,8 +1010,10 @@ START_TEST(getaddrinfo_error)
 	struct addrinfo *res = NULL;
 	struct addrinfo hints = {.ai_family = AF_INET};
 
-	ck_assert(mm_getaddrinfo("notanhost.localdomain", "ssh", &hints, &res) == -1);
-	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENONAME);
+	if (!strcmp(mm_getenv("MMLIB_DISABLE_DNSREQ_IN_TESTS", "no"), "yes")) {
+		ck_assert(mm_getaddrinfo("notanhost.localdomain", "ssh", &hints, &res) == -1);
+		ck_assert_int_eq(mm_get_lasterror_number(), MM_ENONAME);
+	}
 
 	ck_assert(mm_getaddrinfo("localhost", "joke", &hints, &res) == -1);
 	ck_assert_int_eq(mm_get_lasterror_number(), MM_ENOTFOUND);
