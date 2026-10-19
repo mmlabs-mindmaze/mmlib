@@ -317,7 +317,7 @@ int mm_create_sockclient(const char* uri)
 	char service[16];
 	char* host;
 	int port = -1;
-	int num_field, retval;
+	int num_field, retval = -1;
 	struct addrinfo hints = {
 		.ai_family = AF_UNSPEC,
 	};
@@ -335,7 +335,7 @@ int mm_create_sockclient(const char* uri)
 		mm_raise_error(EINVAL, "uri \"%s\" does not follow "
 		               "service://host or service://host:port "
 		               "format", uri);
-		return -1;
+		goto exit;
 	}
 
 	// Force socket type from service name if tcp:// or udp://.
@@ -346,7 +346,7 @@ int mm_create_sockclient(const char* uri)
 		if (port < 0) {
 			mm_raise_error(EINVAL, "port must be specified "
 			               "with %s", service);
-			return -1;
+			goto exit;
 		}
 
 		sprintf(service, "%i", port);
@@ -356,6 +356,7 @@ int mm_create_sockclient(const char* uri)
 
 	retval = create_connected_socket(service, host, port, &hints);
 
+exit:
 	mm_freea(host);
 	return retval;
 }
