@@ -330,7 +330,7 @@ int mm_create_sockclient(const char* uri)
 	if (!host)
 		return -1;
 
-	num_field = sscanf(uri, "%[a-z]://%[^/:]:%i", service, host, &port);
+	num_field = sscanf(uri, "%15[a-z]://%[^/:]:%i", service, host, &port);
 	if (num_field < 2) {
 		mm_raise_error(EINVAL, "uri \"%s\" does not follow "
 		               "service://host or service://host:port "
