@@ -843,7 +843,8 @@ int mm_remove_rec(int dirfd, int flags, int rec_lvl)
 
 		if (type == MM_DT_DIR) {
 			/* remove the inside of the folder */
-			newdirfd = openat(dirfd, dp->d_name, O_CLOEXEC, 0);
+			newdirfd = openat(dirfd, dp->d_name,
+                                          O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC, 0);
 			if (newdirfd == -1) {
 				if (flags & MM_FAILONERROR)
 					goto exit;
@@ -909,7 +910,7 @@ int mm_remove(const char* path, int flags)
 
 	/* recusivly try to empty the folder */
 	if (flags & MM_RECURSIVE && type == MM_DT_DIR) {
-		if ((dirfd = mm_open(path, O_DIRECTORY, 0)) == -1) {
+		if ((dirfd = mm_open(path, O_NOFOLLOW | O_DIRECTORY, 0)) == -1) {
 			return mm_raise_from_errno("recursive mm_remove(%s) failed: "
 			                           "cannot open directory",
 			                           path);
