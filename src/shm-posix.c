@@ -363,6 +363,8 @@ int mm_unmap(void* addr)
 }
 
 
+
+
 /**
  * mm_anon_shm() - Creates an anonymous memory object
  *
@@ -377,11 +379,15 @@ int mm_unmap(void* addr)
 API_EXPORTED
 int mm_anon_shm(void)
 {
-	static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
 	int fd;
 	char name[32];
 
 	sprintf(name, "/mmlib-shm-%u", getpid());
+
+# if HAVE_MEMFD_CREATE
+	fd = memfd_create(name, MFD_CLOEXEC);
+#else
+	static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
 
 	pthread_mutex_lock(&mtx);
 	fd = shm_open(name, O_RDWR|O_CREAT|O_EXCL, 0);
@@ -389,6 +395,7 @@ int mm_anon_shm(void)
 		shm_unlink(name);
 
 	pthread_mutex_unlock(&mtx);
+#endif
 
 	if (fd == -1)
 		return mm_raise_from_errno("anon_shm() failed");
