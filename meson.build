@@ -76,6 +76,9 @@ endif
 if cc.check_header('linux/fs.h')
     config.set('HAVE_LINUX_FS_H', 1)
 endif
+if cc.has_header_symbol('sys/mman.h', 'memfd_create', args:'-D_GNU_SOURCE')
+    config.set('HAVE_MEMFD_CREATE', 1)
+endif
 
 
 configuration_inc = include_directories('.', 'src')
