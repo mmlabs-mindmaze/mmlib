@@ -1,7 +1,7 @@
 project('mmlib', 'c',
-        version: run_command(find_program('read_version.py')).stdout().strip(),
+        version: files('VERSION'),
         license: 'apache2',
-        meson_version: '>= 0.56',
+        meson_version: '>= 0.57',
         default_options: [
             'c_std=c11',
             'warning_level=3',
