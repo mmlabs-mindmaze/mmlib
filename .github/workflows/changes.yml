@@ -64,5 +64,5 @@ jobs:
           workflow_run_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           if [ "${{ needs.ci-linux.outputs.result }}" = "success" -a "${{ needs.ci-windows.outputs.result }}" = "success" ]; then label=+1; else label=-1; fi
           ssh -p 29418 mmlabs-foss-ci@review.gerrithub.io gerrit review --json --notify NONE $commit <<EOF
-          {'message':'Build results [workflow run]($workflow_run_url):\n\tlinux: ${{ needs.ci-linux.outputs.result }}\n\twindows: ${{ needs.ci-windows.outputs.result }}', 'Verified': '$label'}
+          {'message':'Build results [workflow run]($workflow_run_url):\n\tlinux: ${{ needs.ci-linux.outputs.result }}\n\twindows: ${{ needs.ci-windows.outputs.result }}', 'labels': {'Verified': '$label'}}
           EOF
