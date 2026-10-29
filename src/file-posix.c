@@ -1230,7 +1230,7 @@ int clone_srcfd(int fd_in, const char* dst, int flags, int mode)
 	if (fd_out == -1)
 		return -1;
 
-	switch (flags & (MM_NOCOW & MM_FORCECOW)) {
+	switch (flags & (MM_NOCOW | MM_FORCECOW)) {
 	case MM_FORCECOW:
 		rv = clone_fd_force_cow(fd_in, fd_out);
 		break;
