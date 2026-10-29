@@ -243,6 +243,9 @@ int mm_mkdir(const char* path, int mode, int flags)
 	if (flags & MM_RECURSIVE) {
 		len = strlen(path);
 		tmp_path = mm_malloca(len + 1);
+		if (!tmp_path)
+			return -1;
+
 		strcpy(tmp_path, path);
 		rv = mm_mkdir_rec(tmp_path, mode);
 		mm_freea(tmp_path);
