@@ -1842,7 +1842,7 @@ int clone_src_hnd(HANDLE hnd_src, const char* dst, int flags, int mode)
 	if (hnd_dst == INVALID_HANDLE_VALUE)
 		return -1;
 
-	switch (flags & (MM_NOCOW & MM_FORCECOW)) {
+	switch (flags & (MM_NOCOW | MM_FORCECOW)) {
 	case MM_FORCECOW:
 		rv = clone_hnd_force_cow(hnd_src, hnd_dst);
 		break;
