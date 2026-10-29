@@ -112,13 +112,11 @@ int mm_setenv(const char* name, const char* value, int action)
 	rv = setenv(name, value, action);
 
 exit:
-	mm_freea(new_value);
-
 	if (rv != 0)
-		return mm_raise_from_errno("setenv(%s, %s) failed", name,
-		                           value);
-	else
-		return 0;
+		mm_raise_from_errno("setenv(%s, %s) failed", name, value);
+
+	mm_freea(new_value);
+	return rv;
 }
 
 
