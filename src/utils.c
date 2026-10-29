@@ -83,7 +83,7 @@ const char* mm_getenv(const char* name, const char* default_value)
 API_EXPORTED
 int mm_setenv(const char* name, const char* value, int action)
 {
-	int rv;
+	int rv = -1;
 	const char * old_value;
 	char * new_value = NULL;
 
@@ -95,6 +95,9 @@ int mm_setenv(const char* name, const char* value, int action)
 		if (old_value != NULL) {
 			new_value = mm_malloca(strlen(value) + 1
 			                       + strlen(old_value));
+			if (!new_value)
+				goto exit;
+
 			if (action == MM_ENV_PREPEND)
 				sprintf(new_value, "%s%s%s", value,
 				        MM_ENV_DELIM, old_value);
@@ -107,6 +110,8 @@ int mm_setenv(const char* name, const char* value, int action)
 	}
 
 	rv = setenv(name, value, action);
+
+exit:
 	mm_freea(new_value);
 
 	if (rv != 0)
