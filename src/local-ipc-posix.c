@@ -201,7 +201,7 @@ ssize_t mm_ipc_sendmsg(int fd, const struct mm_ipc_msg* msg)
 		dgram.msg_controllen = cmsg->cmsg_len;
 	}
 
-	rsz = sendmsg(fd, &dgram, 0);
+	rsz = sendmsg(fd, &dgram, MSG_NOSIGNAL);
 	if (rsz < 0)
 		mm_raise_from_errno("Failed to receive datagram");
 
