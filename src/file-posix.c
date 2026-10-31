@@ -808,6 +808,9 @@ int get_file_type(int dirfd, const char* path)
  * Since this is a recursive removal, we should not stop when we encounter
  * a forbidden file or folder. This except if the @flag contains MM_FAILONERROR.
  *
+ * NOTE: Contrary to most code in the codebase, this function closes a resource
+ * passed in argument (@dirfd).
+ *
  * Return: 0 on success, -1 on error
  */
 static
@@ -821,8 +824,10 @@ int mm_remove_rec(int dirfd, int flags, int rec_lvl)
 	int unlink_flag;
 
 	exit_value = -1;
-	if (UNLIKELY(rec_lvl < 0))
+	if (UNLIKELY(rec_lvl < 0)) {
+		close(dirfd);
 		return mm_raise_error(EOVERFLOW, "Too many levels of recurion");
+	}
 
 	if ((dir = fdopendir(dirfd)) == NULL) {
 		close(dirfd);
