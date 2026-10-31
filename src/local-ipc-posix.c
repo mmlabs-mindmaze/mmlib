@@ -254,6 +254,7 @@ ssize_t mm_ipc_recvmsg(int fd, struct mm_ipc_msg* msg)
 	}
 
 	msg->flags = dgram.msg_flags & (MSG_TRUNC | MSG_CTRUNC);
+	msg->num_fds = 0;
 
 	// Read ancillary data of the datagram and get file descriptor that
 	// might be sent along the datagram
