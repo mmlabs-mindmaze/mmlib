@@ -49,6 +49,7 @@ jobs:
           meson test
   publish-result:
     runs-on: ubuntu-latest
+    if: always()
     needs: [ci-linux, ci-windows]
     steps:
       - name: install SSH key
