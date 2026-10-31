@@ -13,6 +13,10 @@
 #include "mmsysio.h"
 #include "api-testcases.h"
 
+#if defined(_WIN32)
+#  include "pshared-lock.h"
+#endif
+
 #define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"/lock-referee.exe"
 
 static
@@ -63,7 +67,7 @@ int main(void)
 	mm_chdir(BUILDDIR);
 
 #if defined(_WIN32)
-	mm_setenv("MMLIB_LOCKREF_BIN", TEST_LOCK_REFEREE_SERVER_BIN, MM_ENV_OVERWRITE);
+	mmlib_private_set_lockserver_path(TEST_LOCK_REFEREE_SERVER_BIN);
 	mm_setenv("PATH", TOP_BUILDDIR"/src/"LT_OBJDIR, MM_ENV_PREPEND);
 #endif
 

@@ -43,18 +43,42 @@ void try_spawn_lockserver(void)
 #else //!LOCKSERVER_IN_MMLIB_DLL
 
 
+// Path to lock server. This can be adjusted for test through private API.
+static const char* lock_server_binpath = LOCK_REFEREE_SERVER_BIN;
+
+
+/**
+ * mmlib_private_set_lockserver_path() - set lock server path
+ * @path:       pointer to string holding the path or NULL
+ *
+ * This updates the path of the lockserver executable to run when it need to be
+ * spawn. This fonction is not thread safe and the pointed string must remain
+ * allocated until it is updated.
+ *
+ * PRIVATE API:
+ * This function is only for the tests of mmlib. It is not declared in any
+ * exported header.
+ */
+API_EXPORTED
+void mmlib_private_set_lockserver_path(const char* path)
+{
+	// If NULL, reset to default value
+	if (!path)
+		path = LOCK_REFEREE_SERVER_BIN;
+
+	lock_server_binpath = binpath;
+}
+
+
 static
 void spawn_lock_server(HANDLE pipe)
 {
 	STARTUPINFOEX info = {.StartupInfo = {.cb = sizeof(info)}};
 	LPPROC_THREAD_ATTRIBUTE_LIST attrlist = NULL;
 	SIZE_T attrlist_bufsize;
-	const char* binpath;
+	const char* binpath = lock_server_binpath;
 	char* cmdline = NULL;
 	PROCESS_INFORMATION proc_info;
-
-	// Determine the path of the referee server
-	binpath = mm_getenv("MMLIB_LOCKREF_BIN", LOCK_REFEREE_SERVER_BIN);
 
 	// cmdline is formatted with "binpath 0x<hnd_val>"
 	cmdline = mm_malloca(strlen(binpath) + 1 + 2 + 16 + 1);

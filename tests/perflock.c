@@ -15,7 +15,10 @@
 #include "mmprofile.h"
 #include "mmthread.h"
 
-#define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"/lock-referee.exe"
+#if _WIN32
+#  include "pshared-lock.h"
+#  define TEST_LOCK_REFEREE_SERVER_BIN    TOP_BUILDDIR"/src/"LT_OBJDIR"/lock-referee.exe"
+#endif
 
 /*************************************************************************
  *                                                                       *
@@ -141,7 +144,7 @@ int run_perf_lock_uncontended(int flags)
 int main(int argc, char* argv[])
 {
 #if _WIN32
-	mm_setenv("MMLIB_LOCKREF_BIN", TEST_LOCK_REFEREE_SERVER_BIN, 1);
+	mmlib_private_set_lockserver_path(TEST_LOCK_REFEREE_SERVER_BIN);
 	setbuf(stdout, NULL);
 #endif
 	if (argc > 1)

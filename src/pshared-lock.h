@@ -56,4 +56,6 @@ int pshared_wait_on_lock(struct lockref_connection* conn,
 void pshared_wake_lock(struct lockref_connection* conn, struct shared_lock lock,
                        int64_t val, int num_wakeup);
 
+void mmlib_private_set_lockserver_path(const char* binpath);
+
 #endif /* ifndef PSHARED_LOCK_H */
