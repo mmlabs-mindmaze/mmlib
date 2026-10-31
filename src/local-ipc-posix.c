@@ -5,6 +5,7 @@
 # include <config.h>
 #endif
 
+#include "mmlib.h"
 #include "mmsysio.h"
 #include "mmerrno.h"
 
@@ -178,19 +179,24 @@ int mm_ipc_connect(const char* addr)
 API_EXPORTED
 ssize_t mm_ipc_sendmsg(int fd, const struct mm_ipc_msg* msg)
 {
-	ssize_t rsz;
+	ssize_t rsz, cbuf_len;
 	struct msghdr dgram = {
 		.msg_iov = msg->iov,
 		.msg_iovlen = msg->num_iov,
 	};
 	size_t fd_array_len = msg->num_fds*sizeof(int);
-	char cbuf[CMSG_SPACE(fd_array_len)];
+	char* cbuf;
+
+	cbuf_len = CMSG_SPACE(fd_array_len);
+	cbuf = mm_malloca(cbuf_len);
+	if (!cbuf)
+		return -1;
 
 	if (msg->num_fds > 0) {
 		struct cmsghdr * cmsg;
 
 		dgram.msg_control = cbuf;
-		dgram.msg_controllen = sizeof(cbuf);
+		dgram.msg_controllen = cbuf_len;
 
 		cmsg = CMSG_FIRSTHDR(&dgram);
 		cmsg->cmsg_level = SOL_SOCKET;
@@ -205,6 +211,7 @@ ssize_t mm_ipc_sendmsg(int fd, const struct mm_ipc_msg* msg)
 	if (rsz < 0)
 		mm_raise_from_errno("Failed to receive datagram");
 
+	mm_freea(cbuf);
 	return rsz;
 }
 
