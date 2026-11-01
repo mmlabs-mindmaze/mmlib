@@ -161,12 +161,13 @@ HANDLE dup_handle_for_pipeclient(HANDLE hpipe, HANDLE src_hnd)
 	ULONG pid;
 
 	// Get PID of the other end of the named pipe
-	GetNamedPipeClientProcessId(hpipe, &pid);
+	if (!GetNamedPipeClientProcessId(hpipe, &pid))
+		return INVALID_HANDLE_VALUE;
 
 	// Get process handle of source and destination for handle passing
 	src_proc = GetCurrentProcess();
 	dst_proc = OpenProcess(PROCESS_DUP_HANDLE, FALSE, pid);
-	if (dst_proc == INVALID_HANDLE_VALUE)
+	if (dst_proc == NULL)
 		return INVALID_HANDLE_VALUE;
 
 	if (!DuplicateHandle(src_proc, src_hnd, dst_proc, &dst_hnd,
