@@ -411,7 +411,6 @@ int spawn_daemon(const struct startproc_opts* opts)
 		report_to_parent_and_exit(report_fd);
 	}
 
-	umask(0);
 	setsid();
 
 	// Do second fork
