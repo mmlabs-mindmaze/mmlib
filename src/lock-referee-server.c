@@ -1167,6 +1167,7 @@ HANDLE thread_client_add_robust_data(struct thread_client* tc, int num_keys)
 	// according to the size of mapped robust_data
 	keylocked_max = (data_len - sizeof(*tc->robust_data))/sizeof(tc->robust_data->locked_keys[0]);
 	tc->robust_data->num_locked_max = keylocked_max;
+	tc->num_locked_max = keylocked_max;  // copy out of the reach of client
 
 	// Generate a file mapping handle usable by client
 	client_hmap = dup_handle_for_pipeclient(tc->pipe, hmap);
@@ -1204,7 +1205,7 @@ void  thread_client_cleanup_robust_data(struct thread_client* tc)
 	tid = rdata->thread_id;
 
 	// Cleanup all mutex that dead is owning
-	for (i = 0; i < rdata->num_locked; i++) {
+	for (i = 0; i < rdata->num_locked && i < tc->num_locked_max; i++) {
 		key =  tc->robust_data->locked_keys[i];
 		lock = lockref_server_get_lock(&server, key, true);
 		lock_report_dead(lock, 0, tid);
