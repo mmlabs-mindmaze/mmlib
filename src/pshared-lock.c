@@ -40,6 +40,12 @@ void try_spawn_lockserver(void)
 	mm_once(&lockserver_once, spawn_lockserver_thread);
 }
 
+// No op if lockserver is inside DLL
+API_EXPORTED
+void mmlib_private_set_lockserver_path(const char*)
+{
+}
+
 #else //!LOCKSERVER_IN_MMLIB_DLL
 
 
