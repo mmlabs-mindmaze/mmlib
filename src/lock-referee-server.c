@@ -935,6 +935,9 @@ void thread_client_handle_req_cleanup_done(struct thread_client* tc)
 	num_wakeup = tc->msg_read.cleanup.num_wakeup;
 
 	lock = lockref_server_get_lock(&server, key, false);
+	if (!lock)
+		return;
+
 	lock_report_cleanup_job_done(lock);
 	lock_wake_waiters(lock, num_wakeup, 1);
 }
