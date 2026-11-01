@@ -76,7 +76,7 @@ int mm_socket(int domain, int type, int protocol)
 {
 	int fd;
 
-	fd = socket(domain, type, protocol);
+	fd = socket(domain, type | SOCK_CLOEXEC, protocol);
 	if (fd < 0)
 		return mm_raise_from_errno("socket(%i, %i, %i) failed",
 		                           domain, type, protocol);
@@ -205,7 +205,7 @@ int mm_accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen)
 {
 	int fd;
 
-	fd = accept(sockfd, addr, addrlen);
+	fd = accept4(sockfd, addr, addrlen, SOCK_CLOEXEC);
 	if (fd < 0)
 		return mm_raise_from_errno("accept() failed");
 

@@ -5,6 +5,10 @@
 # include <config.h>
 #endif
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include "mmlib.h"
 #include "mmsysio.h"
 #include "mmerrno.h"
@@ -112,7 +116,7 @@ int mm_ipc_srv_accept(struct mm_ipc_srv* srv)
 {
 	int fd;
 
-	fd = accept(srv->listenfd, NULL, NULL);
+	fd = accept4(srv->listenfd, NULL, NULL, SOCK_CLOEXEC);
 	if (fd == -1) {
 		mm_raise_from_errno("Failed to accept connection");
 		return -1;
@@ -148,7 +152,7 @@ int mm_ipc_connect(const char* addr)
 	len = strnlen(addr, sizeof(address.sun_path) - 1);
 	memcpy(address.sun_path + 1, addr, len);
 
-	if ((fd = socket(AF_UNIX, SOCK_SEQPACKET, 0)) < 0
+	if ((fd = socket(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0)) < 0
 	    || connect(fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
 		mm_raise_from_errno("Failed to connect to local IPC server");
 		mm_close(fd);
@@ -305,7 +309,7 @@ int mm_ipc_connected_pair(int fds[2])
 {
 	int rv;
 
-	rv = socketpair(AF_UNIX, SOCK_SEQPACKET, 0, fds);
+	rv = socketpair(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0, fds);
 	if (rv != 0) {
 		mm_raise_from_errno("Failed to connect to local IPC server");
 		return -1;
