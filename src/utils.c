@@ -94,7 +94,7 @@ int mm_setenv(const char* name, const char* value, int action)
 		old_value = mm_getenv(name, NULL);
 		if (old_value != NULL) {
 			new_value = mm_malloca(strlen(value) + 1
-			                       + strlen(old_value));
+			                       + strlen(old_value) + 1);
 			if (!new_value)
 				goto exit;
 
