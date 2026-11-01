@@ -213,7 +213,7 @@ ssize_t mm_ipc_sendmsg(int fd, const struct mm_ipc_msg* msg)
 
 	rsz = sendmsg(fd, &dgram, MSG_NOSIGNAL);
 	if (rsz < 0)
-		mm_raise_from_errno("Failed to receive datagram");
+		mm_raise_from_errno("Failed to send datagram");
 
 	mm_freea(cbuf);
 	return rsz;
