@@ -144,8 +144,10 @@ int remap_file_descriptors(int num_map, const struct mm_remap_fd* fd_map)
 		child_fd = fd_map[i].child_fd;
 		parent_fd = fd_map[i].parent_fd;
 
-		if (parent_fd == -1)
+		if (parent_fd == -1) {
 			set_fd_cloexec(child_fd, 1);
+			continue;
+		}
 
 		// If parend and child have same fd, we need to unset
 		// CLOEXEC directly because dup2() will leave fd untouch in
