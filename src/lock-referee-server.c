@@ -560,7 +560,7 @@ int search_key_index(const struct lock* locks, int len, int64_t key)
 static
 struct lock* lock_array_get_lock(struct lock_array* lk_arr, int64_t key, bool create)
 {
-	int index, len;
+	int index, len, new_num_max;
 	struct lock* locks = lk_arr->sorted_array;
 
 	index = search_key_index(locks, lk_arr->num_used, key);
@@ -574,12 +574,13 @@ struct lock* lock_array_get_lock(struct lock_array* lk_arr, int64_t key, bool cr
 
 		// Resize lock array if there is no space to add one
 		if (UNLIKELY(lk_arr->num_used+1 > lk_arr->num_max)) {
-			lk_arr->num_max *= 2;
-			locks = realloc(locks, lk_arr->num_max*sizeof(*locks));
+			new_num_max = lk_arr->num_max * 2;
+			locks = realloc(locks, new_num_max*sizeof(*locks));
 			if (!locks)
 				return NULL;
 
 			lk_arr->sorted_array = locks;
+			lk_arr->num_max = new_num_max;
 		}
 
 		// Actually insert the new lock and initialize it
