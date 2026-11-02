@@ -75,6 +75,7 @@ struct lock {
 	int64_t max_wakeup_val;
 	int nwaiter;
 	struct queue waiters_queue;
+	struct thread_client* job_runner;
 	struct mutex_cleanup_job* job;
 	HANDLE job_mapping_hnd;
 };
@@ -436,6 +437,7 @@ void lock_start_or_remove_cleanup_job(struct lock* lock)
 	if (lock->waiters_queue.first) {
 		lock->job->in_progress = 1;
 		tc = GET_TC_FROM_LOCK_NODE(lock->waiters_queue.first);
+		lock->job_runner = tc;
 		thread_client_do_cleanup_job(tc, lock->job_mapping_hnd);
 	}
 }
@@ -455,6 +457,7 @@ void lock_report_cleanup_job_done(struct lock* lock)
 {
 	struct mutex_cleanup_job* job = lock->job;
 
+	lock->job_runner = NULL;
 	job->in_progress = 0;
 }
 
@@ -936,7 +939,7 @@ void thread_client_handle_req_cleanup_done(struct thread_client* tc)
 	num_wakeup = tc->msg_read.cleanup.num_wakeup;
 
 	lock = lockref_server_get_lock(&server, key, false);
-	if (!lock)
+	if (!lock || !lock->job || lock->job_runner != tc)
 		return;
 
 	lock_report_cleanup_job_done(lock);
