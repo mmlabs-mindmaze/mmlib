@@ -378,7 +378,7 @@ int lock_create_cleanup_job(struct lock* lock)
 
 	hnd = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
 	                        PAGE_READWRITE, 0, MM_PAGESZ, NULL);
-	if (hnd == INVALID_HANDLE_VALUE)
+	if (hnd == NULL)
 		return -1;
 
 	// Map into memory
@@ -1162,7 +1162,7 @@ HANDLE thread_client_add_robust_data(struct thread_client* tc, int num_keys)
 	// Create a file mapping backed by the system paging file
 	data_len = get_robust_data_size(num_keys);
 	hmap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, data_len, NULL);
-	if (hmap == INVALID_HANDLE_VALUE)
+	if (hmap == NULL)
 		goto exit;
 
 	// Map into memory
