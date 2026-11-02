@@ -586,10 +586,10 @@ struct lock* lock_array_get_lock(struct lock_array* lk_arr, int64_t key, bool cr
 		}
 
 		// Actually insert the new lock and initialize it
-		lk_arr->num_used++;
 		len = lk_arr->num_used - index;
 		memmove(locks+index+1, locks+index, len*sizeof(*locks));
 		lock_init(&locks[index], key);
+		lk_arr->num_used++;
 	}
 
 	return locks + index;
