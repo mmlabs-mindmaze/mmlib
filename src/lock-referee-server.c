@@ -871,6 +871,7 @@ void thread_client_handle_req_wait(struct thread_client* tc)
 	// immediatemely, the lock has been waken up is advance and the thread
 	// client is not waiting, thus must not be added to the timeout list
 	tc->wakeup_val = val;
+	tc->waiting_lock_key = key;
 	lock = lockref_server_get_lock(&server, key, true);
 	is_waiting = lock_add_waiter(lock, tc);
 	if (!is_waiting)
