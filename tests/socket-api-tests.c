@@ -1111,6 +1111,7 @@ static const struct {
 	{"socks://localhost", SOCK_STREAM, 1080}, // TCP only service
 #endif
 	{"biff://localhost", SOCK_DGRAM, 512}, // UDP only service
+	{"biff://localhost:8192", SOCK_DGRAM, 8192}, // UDP only service
 	{"tcp://localhost:" MM_STRINGIFY(PORT), SOCK_STREAM, PORT},
 	{"udp://localhost:" MM_STRINGIFY(PORT), SOCK_DGRAM, PORT},
 };

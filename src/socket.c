@@ -270,10 +270,10 @@ int create_connected_socket(const char* service, const char * host, int port,
 		if (port > 0) {
 			if (family == AF_INET6) {
 				addrin6 = (struct sockaddr_in6*)ai->ai_addr;
-				addrin6->sin6_port = port;
+				addrin6->sin6_port = htons(port);
 			} else if (family == AF_INET) {
 				addrin = (struct sockaddr_in*)ai->ai_addr;
-				addrin->sin_port = port;
+				addrin->sin_port = htons(port);
 			}
 		}
 
