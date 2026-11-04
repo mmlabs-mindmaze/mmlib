@@ -9,6 +9,7 @@
 #include "utils-win32.h"
 #include <stdlib.h>
 #include <string.h>
+#include <synchapi.h>
 #include <uchar.h>
 #include <errno.h>
 
@@ -33,12 +34,14 @@ struct envstr {
 
 /**
  * struct envcache - structure holding all encountered UTF-8 env strings
+ * @srwlock:    rw lock protecting @array access
  * @max_arrlen: allocated number of element in @array
  * @arrlen:     number of element used in @array
  * @array:      buffer of environment strings
  * @envp:       cache of NULL terminated array to environment strings
  */
 struct envcache {
+	SRWLOCK srwlock;
 	int max_arrlen;
 	int arrlen;
 	struct envstr* array;
@@ -198,18 +201,20 @@ static
 struct envstr* envcache_find_entry(struct envcache* cache, const char* name)
 {
 	int i, namelen;
+	struct envstr* entry;
 
 	namelen = strlen(name);
 
-	for (i = 0; i < cache->arrlen; i++) {
+	entry = NULL;
+	for (i = 0; i < cache->arrlen && !entry; i++) {
 		if (namelen != cache->array[i].namelen)
 			continue;
 
 		if (!memcmp(cache->array[i].str, name, namelen))
-			return &cache->array[i];
+			entry = &cache->array[i];
 	}
 
-	return NULL;
+	return entry;
 }
 
 
@@ -227,15 +232,18 @@ struct envstr* envcache_create_entry(struct envcache* cache, const char* name)
 	int max_arrlen;
 	struct envstr * entry, * array;
 
+	AcquireSRWLockExclusive(&cache->srwlock);
+
 	array = cache->array;
 	max_arrlen = cache->max_arrlen;
+	entry = NULL;
 
 	// Resize the array if not large enough to accommodate the new entry
 	if (cache->arrlen+1 > max_arrlen) {
 		max_arrlen = (max_arrlen == 0) ? 32 : max_arrlen*2;
 		array = realloc(array, max_arrlen * sizeof(*array));
 		if (!array)
-			return NULL;
+			goto exit;
 
 		cache->array = array;
 		cache->max_arrlen = max_arrlen;
@@ -245,8 +253,11 @@ struct envstr* envcache_create_entry(struct envcache* cache, const char* name)
 	entry = &array[cache->arrlen++];
 	if (envstr_init(entry, name)) {
 		cache->arrlen--;
-		return NULL;
+		entry = NULL;
 	}
+
+exit:
+	ReleaseSRWLockExclusive(&cache->srwlock);
 
 	return entry;
 }
@@ -338,7 +349,7 @@ char16_t* get_u16env(const char* name_u8)
 
 
 // global UTF-8 environment strings cache
-static struct envcache utf8_env_cache;
+static struct envcache utf8_env_cache = { .srwlock = SRWLOCK_INIT };
 
 // Destructor of the UTF-8 cache. This function is called when the program
 // terminates or the library is unloaded (in case of dynamic load)
@@ -409,8 +420,10 @@ char** get_environ_utf8(void)
 
 	// Update the environment cache with all key=value strings present
 	// in environment
+	AcquireSRWLockExclusive(&cache->srwlock);
 	for (env16 = env_strw; *env16 != L'\0'; env16 += wcslen(env16)+1)
 		update_environment_cache(cache, env16);
+	ReleaseSRWLockExclusive(&cache->srwlock);
 
 	FreeEnvironmentStringsW(env_strw);
 
@@ -438,10 +451,17 @@ char* getenv_utf8(const char* name)
 	char* value;
 	struct envcache* cache = &utf8_env_cache;
 
+	AcquireSRWLockShared(&cache->srwlock);
+
 	// Fast path: if environment is in cache, just return the cached value
 	entry = envcache_find_entry(cache, name);
 	if (entry)
-		return envstr_get_value(entry);
+		value = envstr_get_value(entry);
+
+	ReleaseSRWLockShared(&cache->srwlock);
+
+	if (value)
+		return value;
 
 	// See if the environment exist in CRT, if not, NULL value is
 	// returned
@@ -449,20 +469,25 @@ char* getenv_utf8(const char* name)
 	if (!val_u16)
 		return NULL;
 
+	AcquireSRWLockExclusive(&cache->srwlock);
+
 	// Allocate an entry in the cache
 	entry = envcache_create_entry(cache, name);
 	if (!entry)
-		return NULL;
+		goto exit;
 
 	// Resize the entry value for the required string size after
 	// conversion to UTF-8
 	value_len = get_utf8_buffer_len_from_utf16(val_u16);
 	if (envstr_resize_value(entry, value_len-1))
-		return NULL;
+		goto exit;
 
 	// Perform the actual UTF-16->UTF-8 conversion of the value string
 	value = envstr_get_value(entry);
 	conv_utf16_to_utf8(value, value_len, val_u16);
+
+exit:
+	ReleaseSRWLockExclusive(&cache->srwlock);
 
 	return value;
 }
@@ -507,14 +532,16 @@ int setenv_utf8(const char* name, const char* value, int overwrite)
 		goto exit;
 	}
 
+	AcquireSRWLockExclusive(&cache->srwlock);
+
 	// Find cache entry or allocate if not found
 	if (!(entry = envcache_find_entry(cache, name))
 	    && !(entry = envcache_create_entry(cache, name)))
-		goto exit;
+		goto release;
 
 	// Store the UTF-8 value in the cache
 	if (envstr_set_value(entry, value))
-		goto exit;
+		goto release;
 
 	// Complete UTF-16 with "=value" part and push it in CRT env
 	// (name_u16_len has terminating nul character)
@@ -522,11 +549,12 @@ int setenv_utf8(const char* name, const char* value, int overwrite)
 	conv_utf8_to_utf16(str_u16 + name_u16_len, value_u16_len, value);
 	if (_wputenv(str_u16)) {
 		envcache_remove_entry(cache, entry);
-		goto exit;
+		goto release;
 	}
 
 	retval = 0;
-
+release:
+	ReleaseSRWLockExclusive(&cache->srwlock);
 exit:
 	mm_freea(str_u16);
 	return retval;
@@ -552,8 +580,10 @@ int unsetenv_utf8(const char* name)
 	struct envcache* cache = &utf8_env_cache;
 
 	// Remove matching entry from cache if any
+	AcquireSRWLockExclusive(&cache->srwlock);
 	entry = envcache_find_entry(cache, name);
 	envcache_remove_entry(cache, entry);
+	ReleaseSRWLockExclusive(&cache->srwlock);
 
 	// Estimate the size of components of the environment string in UTF-16
 	// (name_u16_len has terminating nul character)
