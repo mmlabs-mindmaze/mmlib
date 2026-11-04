@@ -21,6 +21,8 @@
 
 #define LOCK_LIST_INITIAL_LEN   128
 
+#define MAX_ROBUST_DATA_SIZE	(10 * MM_PAGESZ)
+
 #define NSEC_IN_MSEC (NS_IN_SEC / MS_IN_SEC)
 
 #define ROUND_UP(x, y) ((((x)+(y)-1) / (y)) * (y))
@@ -202,7 +204,12 @@ size_t get_robust_data_size(int num_keys)
 	// locked_list_size element in locked_keys array, round up to the next
 	// multiple of page size
 	len = sizeof(*data) + num_keys*sizeof(data->locked_keys[0]);
-	return ROUND_UP(len, pagesize);
+	len = ROUND_UP(len, pagesize);
+
+	if (len > MAX_ROBUST_DATA_SIZE)
+		len = MAX_ROBUST_DATA_SIZE;
+
+	return len;
 }
 
 
