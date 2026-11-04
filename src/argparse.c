@@ -446,7 +446,7 @@ void print_synopsis(const struct mm_arg_parser* parser, FILE* stream)
 
 /**
  * set_option_synopsis() - format an option synopsis string
- * @synopsis:   buffer receiving the option string
+ * @synopsis:   buffer receiving the option string (size OPT_SYNOPSIS_MAXLEN)
  * @opt:        option parser
  * @valname:    the value name as it must appear in the synopsis. If NULL
  *              and if option accepts value, the string "VALUE" is used
@@ -1215,7 +1215,8 @@ int validate_options(const struct mm_arg_parser* parser)
 
 		// Validate option key and/or long option name
 		if ((key && !is_valid_short_opt_key(key))
-		    || (lname && !is_valid_long_opt_name(lname, false))) {
+		    || (lname && !is_valid_long_opt_name(lname, false))
+		    || (lname && (strlen(lname) > LONGOPT_NAME_MAXLEN))) {
 			fprintf(stderr, "invalid short or long name for "
 			        "option %s\n", opt->name);
 			return -1;
