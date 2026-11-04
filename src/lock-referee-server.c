@@ -22,6 +22,8 @@
 
 #define LOCK_LIST_INITIAL_LEN   128
 
+#define MAX_ROBUST_DATA_SIZE	MM_PAGESZ
+
 #define NSEC_IN_MSEC (NS_IN_SEC / MS_IN_SEC)
 
 #define ROUND_UP(x, y) ((((x)+(y)-1) / (y)) * (y))
@@ -112,7 +114,7 @@ static void thread_client_process_timeout(struct thread_client* tc);
 static void thread_client_do_cleanup_job(struct thread_client* tc, HANDLE cleanup_mapping_hnd);
 static void thread_client_queue_read(struct thread_client* tc);
 static void thread_client_queue_write(struct thread_client* tc);
-static HANDLE thread_client_add_robust_data(struct thread_client* tc, int locked_list_size);
+static HANDLE thread_client_add_robust_data(struct thread_client* tc);
 static void thread_client_destroy( struct thread_client* tc);
 static struct thread_client* thread_client_create(HANDLE pipe);
 
@@ -180,32 +182,6 @@ HANDLE dup_handle_for_pipeclient(HANDLE hpipe, HANDLE src_hnd)
 	CloseHandle(dst_proc);
 	return dst_hnd;
 }
-
-
-static
-size_t get_robust_data_size(int num_keys)
-{
-	struct robust_data* data;
-	size_t len;
-	static size_t pagesize;
-
-	if (num_keys <= 0)
-		num_keys = 1;
-
-	// Get page size
-	if (!pagesize) {
-		SYSTEM_INFO sysinfo;
-		GetSystemInfo(&sysinfo);
-		pagesize = sysinfo.dwPageSize;
-	}
-
-	// Get the minimal size to map the robust data with at least
-	// locked_list_size element in locked_keys array, round up to the next
-	// multiple of page size
-	len = sizeof(*data) + num_keys*sizeof(data->locked_keys[0]);
-	return ROUND_UP(len, pagesize);
-}
-
 
 
 /**************************************************************************
@@ -909,13 +885,9 @@ void thread_client_handle_req_initlock(struct thread_client* tc)
 static
 void thread_client_handle_req_getrobust(struct thread_client* tc)
 {
-	int num_keys;
 	HANDLE client_hmap;
 
-	// Get parameters from incoming message
-	num_keys = tc->msg_read.getrobust.num_keys;
-
-	client_hmap = thread_client_add_robust_data(tc, num_keys);
+	client_hmap = thread_client_add_robust_data(tc);
 
 	// Send robust data in reply (or report failure)
 	if (client_hmap != INVALID_HANDLE_VALUE) {
@@ -1151,20 +1123,19 @@ void thread_client_do_cleanup_job(struct thread_client* tc, HANDLE cleanup_mappi
 /**
  * thread_client_add_robust_data() - create robust data for a thread client
  * @tc:         thread client whose robust data must be created
- * @num_keys:   minimal number of locked keys that the robust data must support
  *
  * Return: handle to the file mapping of the robust data that must be passed to
  * the thread client. In case of failure, INVALID_HANDLE_VALUE is returned.
  */
 static
-HANDLE thread_client_add_robust_data(struct thread_client* tc, int num_keys)
+HANDLE thread_client_add_robust_data(struct thread_client* tc)
 {
 	size_t data_len, keylocked_max;
 	HANDLE hmap = INVALID_HANDLE_VALUE;
 	HANDLE client_hmap = INVALID_HANDLE_VALUE;
 
 	// Create a file mapping backed by the system paging file
-	data_len = get_robust_data_size(num_keys);
+	data_len = MM_PAGESZ;
 	hmap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, data_len, NULL);
 	if (hmap == NULL)
 		goto exit;
