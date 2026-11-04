@@ -678,6 +678,8 @@ int mm_raise_from_w32err_full(const char* module, const char* func,
 	char errmsg[512];
 
 	len = snprintf(errmsg, sizeof(errmsg), "%s : ", desc);
+	if (len >= sizeof(errmsg))
+		errmsg[sizeof(errmsg)-1] = '\0';
 
 	// Append Win32 error message if space is remaining on string
 	write_w32err_msg(w32err, sizeof(errmsg)-len, errmsg+len);
