@@ -106,6 +106,9 @@ endif
 
 lock_referee_sources = []
 if host_machine.system() == 'windows'
+
+    libbcrypt = cc.find_library('bcrypt', required : true)
+
     if get_option('lock-server-process')
         lock_referee_sources += files(
                 'lock-referee-proto.h',
@@ -122,11 +125,12 @@ if host_machine.system() == 'windows'
                 include_directories : configuration_inc,
                 install : true,
                 install_dir : get_option('libexecdir'),
-                dependencies : [libpowrprof, libadvapi32],
+                dependencies : [libpowrprof, libadvapi32, libbcrypt],
         )
     else
         add_project_arguments('-DLOCKSERVER_IN_MMLIB_DLL=1', language : 'c')
         mmlib_sources += files('lock-referee-server.c')
+        dependencies += libbcrypt
     endif # lock-server-process
 endif # windows
 
