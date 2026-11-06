@@ -126,7 +126,7 @@ if host_machine.system() == 'windows'
                 include_directories : configuration_inc,
                 install : true,
                 install_dir : get_option('libexecdir'),
-                dependencies : [libpowrprof, libadvapi32],
+                dependencies : [libpowrprof, libadvapi32, libbcrypt],
         )
     else
         add_project_arguments('-DLOCKSERVER_IN_MMLIB_DLL=1', language : 'c')
