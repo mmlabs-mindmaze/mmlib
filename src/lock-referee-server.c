@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <aclapi.h>
 #include <accctrl.h>
+#include <bcrypt.h>
 #include <stdbool.h>
 
 #define LOCK_LIST_INITIAL_LEN   128
@@ -132,13 +133,27 @@ int64_t gen_pshared_key(void)
 {
 	static uint32_t last_value = 0;
 	int64_t key;
-	FILETIME curr;
+
+	// If first time, initialize seed of pseudo random serie
+	if (!last_value) {
+		unsigned int seed;
+		FILETIME curr;
+		NTSTATUS res;
+
+		res = BCryptGenRandom(NULL, &seed, sizeof(seed),
+		                      BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+		if (!NT_SUCCESS(res)) {
+			// Fallback on time in case of failure
+			GetSystemTimeAsFileTime(&curr);
+			seed = curr.dwLowDateTime;
+		}
+		srand(seed);
+	}
 
 	key = last_value++;
 	key <<= 32;
 
-	GetSystemTimeAsFileTime(&curr);
-	key |= curr.dwLowDateTime;
+	key |= rand();
 
 	return key;
 }
