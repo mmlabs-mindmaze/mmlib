@@ -151,6 +151,7 @@ if host_machine.system() == 'windows'
                 include_directories : configuration_inc,
                 install : true,
                 install_dir : get_option('libexecdir'),
+                link_with: [librandom],
                 dependencies : [libpowrprof, libadvapi32],
         )
     else
