@@ -10,6 +10,7 @@
 #include "lock-referee-proto.h"
 #include "mmpredefs.h"
 #include "clock-win32.h"
+#include "random-internal.h"
 #include "mmtime.h"
 
 #include <stddef.h>
@@ -132,13 +133,13 @@ int64_t gen_pshared_key(void)
 {
 	static uint32_t last_value = 0;
 	int64_t key;
-	FILETIME curr;
+	uint32_t randkey;
 
 	key = last_value++;
 	key <<= 32;
 
-	GetSystemTimeAsFileTime(&curr);
-	key |= curr.dwLowDateTime;
+	get_random(&randkey, sizeof(randkey));
+	key |= randkey;
 
 	return key;
 }
