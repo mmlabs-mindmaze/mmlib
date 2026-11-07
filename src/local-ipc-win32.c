@@ -323,6 +323,7 @@ ssize_t serialize_msg(HANDLE hpipe, const struct mm_ipc_msg* msg,
 /**
  * read_ancillary_data() - get the fd passed from an ancillary data
  * @data:       ancillary_data that must be read
+ * @data_maxsz: maximum size of @data
  * @msg:        message data that will contain the fd passed
  *
  * Return: size of ancillary data in case of success, -1 otherwise with
@@ -330,14 +331,21 @@ ssize_t serialize_msg(HANDLE hpipe, const struct mm_ipc_msg* msg,
  */
 static
 size_t read_ancillary_data(const struct ancillary_data* data,
+                           size_t data_maxsz,
                            struct mm_ipc_msg* msg)
 {
-	int i;
+	int i, num_fds, num_fds_max;
 	HANDLE hnd;
 	int fd_info;
 
+	// Limit num_fds read to prevent out of bound read
+	num_fds_max = (data_maxsz - sizeof(*data)) / sizeof(data->array[0]);
+	num_fds = data->num_fds_max;
+	if (num_fds > num_fds_max)
+		num_fds = num_fds_max;
+
 	// Wrap handles in the ancillary data of datagram
-	for (i = 0; i < data->num_fds && i < msg->num_fds_max; i++) {
+	for (i = 0; i < num_fds && i < msg->num_fds_max; i++) {
 		hnd = data->array[i].hnd;
 		fd_info = data->array[i].fd_info;
 		if (wrap_handle_into_fd(hnd, &msg->fds[i], fd_info))
@@ -347,7 +355,7 @@ size_t read_ancillary_data(const struct ancillary_data* data,
 	msg->num_fds = i;
 
 	// Close handle that could not be wrapped
-	for (; i < data->num_fds; i++)
+	for (; i < num_fds; i++)
 		CloseHandle(data->array[i].hnd);
 
 	if (msg->num_fds < data->num_fds)
@@ -379,7 +387,7 @@ ssize_t deserialize_msg(size_t buff_sz,
 
 	// Read passed file descriptor data and set buff pointer passed to
 	// this ancillary data
-	len = read_ancillary_data(msg_data, msg);
+	len = read_ancillary_data(msg_data, buff_sz, msg);
 	buff = msg_data;
 	buff += len;
 	buff_sz -= len;
