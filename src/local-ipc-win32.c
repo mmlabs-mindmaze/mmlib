@@ -13,6 +13,7 @@
 
 #include <windows.h>
 #include <io.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -320,21 +321,43 @@ ssize_t serialize_msg(HANDLE hpipe, const struct mm_ipc_msg* msg,
 }
 
 
+static
+bool is_ancillary_valid(const struct ancillary_data* data, size_t maxsz)
+{
+	int i, num_fds_max;
+
+	if ((maxsz < sizeof(*data)) || (data->num_fds < 0))
+		return false;
+
+	num_fds_max = (maxsz - sizeof(*data)) / sizeof(data->array[0]);
+	if (data->num_fds > num_fds_max)
+		return false;
+
+	return true;
+}
+
+
 /**
  * read_ancillary_data() - get the fd passed from an ancillary data
  * @data:       ancillary_data that must be read
+ * @data_maxsz: maximum size of @data
  * @msg:        message data that will contain the fd passed
  *
  * Return: size of ancillary data in case of success, -1 otherwise with
  * error state set accordingly
  */
 static
-size_t read_ancillary_data(const struct ancillary_data* data,
-                           struct mm_ipc_msg* msg)
+ssize_t read_ancillary_data(const struct ancillary_data* data,
+                            size_t data_maxsz,
+                            struct mm_ipc_msg* msg)
 {
 	int i;
 	HANDLE hnd;
 	int fd_info;
+
+	// Ensure num_fds read will not lead to out of bound read
+	if (!is_ancillary_valid(data, data_maxsz))
+		return mm_raise_error(EBADMSG, "Corrupted message");
 
 	// Wrap handles in the ancillary data of datagram
 	for (i = 0; i < data->num_fds && i < msg->num_fds_max; i++) {
@@ -372,6 +395,7 @@ ssize_t deserialize_msg(size_t buff_sz,
 {
 	const char* buff;
 	size_t len, msg_sz;
+	ssize_t ancillary_len;
 	int i, truncated;
 
 	// Reset flags
@@ -379,10 +403,13 @@ ssize_t deserialize_msg(size_t buff_sz,
 
 	// Read passed file descriptor data and set buff pointer passed to
 	// this ancillary data
-	len = read_ancillary_data(msg_data, msg);
+	ancillary_len = read_ancillary_data(msg_data, buff_sz, msg);
+	if (ancillary_len < 0)
+		return -1;
+
 	buff = msg_data;
-	buff += len;
-	buff_sz -= len;
+	buff += ancillary_len;
+	buff_sz -= ancillary_len;
 
 	truncated = 0;
 	msg_sz = buff_sz;
