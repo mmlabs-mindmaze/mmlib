@@ -33,6 +33,7 @@ mmlib_sources = files(
         'random-internal.h',
         'profile.c',
         'socket.c',
+        'shm-internal.h',
         'time.c',
         'utils.c',
 )
