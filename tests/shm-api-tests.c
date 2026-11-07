@@ -17,7 +17,7 @@
 #include "mmpredefs.h"
 #include "mmsysio.h"
 
-#define TEST_SHM "test-shm-name"
+#define TEST_SHM "/test-shm-name"
 #define TEST_FILE "test-file-name"
 
 
@@ -72,6 +72,30 @@ START_TEST(shm_open_test)
 	mm_close(fd);
 }
 END_TEST
+
+
+START_TEST(invalid_shm_name_test)
+{
+	const char* invalid_names[] = {
+		"somename", "/a/name", "/.", "/..", "/a\\name", "/a:name"
+	};
+	const char* name;
+	int i;
+
+	for (i = 0; i < MM_NELEM(invalid_names); i++) {
+		name = invalid_names[i];
+
+		if (mm_shm_open(name, O_CREAT, 0) != -1
+		    || mm_get_lasterror_number() != EINVAL)
+			ck_abort_msg("mm_shm_open(%s) is not refused", name);
+
+		if (mm_shm_unlink(name) != -1
+		    || mm_get_lasterror_number() != EINVAL)
+			ck_abort_msg("mm_shm_unlink(%s) is not refused", name);
+	}
+}
+END_TEST
+
 
 START_TEST(mm_mapfile_test_simple)
 {
@@ -231,6 +255,7 @@ TCase* create_shm_tcase(void)
 	tcase_add_checked_fixture(tc, NULL, test_teardown);
 
 	tcase_add_test(tc, shm_open_test);
+	tcase_add_test(tc, invalid_shm_name_test);
 	tcase_add_test(tc, mm_mapfile_test_simple);
 	tcase_add_test(tc, mm_mapfile_test_smaller);
 	tcase_add_test(tc, mm_mapfile_test_larger);
