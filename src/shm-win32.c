@@ -15,6 +15,7 @@
 #include <direct.h>
 #include <fcntl.h>
 #include "utils-win32.h"
+#include "shm_internal.h"
 
 
 /**
@@ -127,8 +128,8 @@ int mm_unmap(void* addr)
  *                                                                        *
  **************************************************************************/
 #define MAX_ATTEMPT     32
-#define MAX_NAME        256
 #define SHMROOT_PATH_MAXLEN     512
+#define SHM_PATH_MAXLEN		(MM_SHM_NAME_MAXLEN + SHMROOT_PATH_MAXLEN + 8)
 
 
 /**
@@ -169,7 +170,7 @@ int mm_anon_shm(void)
 	int i, fd;
 	LARGE_INTEGER count;
 	unsigned int randval;
-	char filename[SHMROOT_PATH_MAXLEN + MAX_NAME + 8];
+	char filename[SHM_PATH_MAXLEN];
 
 	for (i = 0; i < MAX_ATTEMPT; i++) {
 		// Generate random data filename
@@ -202,7 +203,10 @@ int mm_anon_shm(void)
 API_EXPORTED
 int mm_shm_open(const char* name, int oflag, int mode)
 {
-	char filename[SHMROOT_PATH_MAXLEN + MAX_NAME + 8];
+	char filename[SHMROOT_PATH_MAXLEN + MAX_SHM_NAME + 8];
+
+	if (!is_shm_name_valid(name))
+		return mm_raise_error(EINVAL, "invalid name: %s", name);
 
 	sprintf(filename, "%s/%s", get_shm_path(), name);
 
@@ -214,7 +218,10 @@ int mm_shm_open(const char* name, int oflag, int mode)
 API_EXPORTED
 int mm_shm_unlink(const char* name)
 {
-	char filename[SHMROOT_PATH_MAXLEN + MAX_NAME + 8];
+	char filename[SHMROOT_PATH_MAXLEN + MAX_SHM_NAME + 8];
+
+	if (!is_shm_name_valid(name))
+		return mm_raise_error(EINVAL, "invalid name: %s", name);
 
 	sprintf(filename, "%s/%s", get_shm_path(), name);
 
