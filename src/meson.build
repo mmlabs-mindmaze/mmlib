@@ -34,6 +34,7 @@ mmlib_sources = files(
         'prng.c',
         'profile.c',
         'socket.c',
+        'shm-internal.h',
         'time.c',
         'utils.c',
 )
