@@ -30,6 +30,7 @@ mmlib_sources = files(
         'mmthread.h',
         'mmtime.h',
         'nls-internals.h',
+        'random-internal.h',
         'profile.c',
         'socket.c',
         'time.c',
@@ -62,6 +63,7 @@ if host_machine.system() == 'windows'
         'process-win32.c',
         'pshared-lock.c',
         'pshared-lock.h',
+        'random-win32.c',
         'shm-win32.c',
         'socket-win32.c',
         'socket-win32.h',
@@ -76,17 +78,19 @@ if host_machine.system() == 'windows'
 
     libpowrprof = cc.find_library('powrprof', required : true)
     libws2_32 = cc.find_library('ws2_32', required : true)
+    libbcrypt = cc.find_library('bcrypt', required : true)
 
     cflags += [
         '-DMMLIB_API=API_EXPORTED',
         '-D__USE_MINGW_ANSI_STDIO=1',
     ]
-    dependencies += [libpowrprof, libws2_32]
+    dependencies += [libpowrprof, libws2_32, libbcrypt]
 else
     mmlib_sources += files(
         'file-posix.c',
         'local-ipc-posix.c',
         'process-posix.c',
+        'random-posix.c',
         'shm-posix.c',
         'socket-posix.c',
         'thread-posix.c',
