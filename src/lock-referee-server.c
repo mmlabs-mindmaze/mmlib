@@ -1360,7 +1360,7 @@ int init_pipe_security_attrs(SECURITY_ATTRIBUTES* sec_attr)
 		ea[i].grfAccessMode = SET_ACCESS;
 		ea[i].grfAccessPermissions = GENERIC_READ | FILE_WRITE_DATA;
 		ea[i].grfInheritance = NO_INHERITANCE;
-		ea[i].Trustee.TrusteeForm = TRUSTEE_IS_SID;
+		ea[i].Trustee.TrusteeForm = TRUSTEE_IS_NAME;
 	}
 
 	// Everyone can create and use a client endpoint of pipe
