@@ -12,6 +12,35 @@ public_headers = files(
 )
 install_headers(public_headers)
 
+#######################################
+# librandom
+#######################################
+librandom_files = files(
+        'random-internal.h',
+)
+librandom_deps = []
+
+if host_machine.system() == 'windows'
+    librandom_files += files(
+        'random-win32.c',
+    )
+    libbcrypt = cc.find_library('bcrypt', required : true)
+    librandom_deps += [libbcrypt]
+else
+    librandom_files += files(
+        'random-posix.c',
+    )
+endif
+
+librandom = static_library('librandom',
+    librandom_files,
+    include_directories : configuration_inc,
+    dependencies: librandom_deps,
+)
+
+#######################################
+# mmlib
+#######################################
 mmlib_sources = files(
         'alloc.c',
         'argparse.c',
@@ -147,6 +176,7 @@ mmlib_static = static_library('mmlib-static',
         c_args : cflags,
         install : false,
         include_directories : configuration_inc,
+        link_with: [librandom],
         dependencies : [dependencies],
 )
 mmlib = shared_library('mmlib',
@@ -157,6 +187,7 @@ mmlib = shared_library('mmlib',
         install : true,
         version : version,
         include_directories : configuration_inc,
+        link_with: [librandom],
         dependencies : [dependencies],
 )
 import('pkgconfig').generate(mmlib)
