@@ -379,6 +379,8 @@ MMLIB_API int mm_wait_process(mm_pid_t pid, int* status);
 #define MM_MAP_RDWR (MM_MAP_READ | MM_MAP_WRITE)
 #define MM_MAP_PRIVATE 0x00000000
 
+#define MM_SHM_NAME_MAXLEN      255
+
 
 MMLIB_API void* mm_mapfile(int fd, mm_off_t offset, size_t len, int mflags);
 MMLIB_API int mm_unmap(void* addr);

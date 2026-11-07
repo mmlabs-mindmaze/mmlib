@@ -32,6 +32,7 @@ mmlib_sources = files(
         'nls-internals.h',
         'profile.c',
         'socket.c',
+        'shm-internal.h',
         'time.c',
         'utils.c',
 )
