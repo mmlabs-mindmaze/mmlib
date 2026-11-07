@@ -810,7 +810,7 @@ exit:
 }
 
 // https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/setmaxstdio
-#define MAX_FD  2048
+#define MAX_FD  8192
 
 
 static unsigned char fd_infos[MAX_FD] = {0};
