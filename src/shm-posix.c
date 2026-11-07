@@ -13,6 +13,7 @@
 #include "mmsysio.h"
 #include "mmerrno.h"
 #include "utils-posix.h"
+#include "shm-internal.h"
 
 #include <sys/mman.h>
 #include <pthread.h>
@@ -417,9 +418,10 @@ int mm_anon_shm(void)
  *
  * This function establishes a connection between a shared memory object and
  * a file descriptor. The @name argument points to a string naming a shared
- * memory object. If successful, the file descriptor for the shared memory
- * object is the lowest numbered file descriptor not currently open for that
- * process.
+ * memory object. It must not contain any slash, bashslash or dot characters
+ * and its length must be less than MM_SHM_NAME_MAXLEN. If successful, the file
+ * descriptor for the shared memory object is the lowest numbered file
+ * descriptor not currently open for that process.
  *
  * The file status flags and file access modes of the open file description
  * are according to the value of @oflag. It must contains the exactly one of
@@ -443,6 +445,9 @@ API_EXPORTED
 int mm_shm_open(const char* name, int oflag, int mode)
 {
 	int fd;
+
+	if (!is_shm_name_valid(name))
+		return mm_raise_error(EINVAL, "invalid name: %s", name);
 
 	fd = shm_open(name, oflag, filter_mode_flags(mode));
 	if (fd == -1)
@@ -468,6 +473,9 @@ int mm_shm_open(const char* name, int oflag, int mode)
 API_EXPORTED
 int mm_shm_unlink(const char* name)
 {
+	if (!is_shm_name_valid(name))
+		return mm_raise_error(EINVAL, "invalid name: %s", name);
+
 	if (shm_unlink(name))
 		return mm_raise_from_errno("shm_unlink(%s) failed", name);
 
