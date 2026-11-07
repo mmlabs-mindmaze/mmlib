@@ -80,6 +80,7 @@ shared_module('dynlib-test',
 test_internals_sources = files(
         'internals-testcases.h',
         'log-internals.c',
+        'random-internals.c',
         'testinternals.c',
 )
 if host_machine.system() == 'windows'
