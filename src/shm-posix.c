@@ -13,14 +13,18 @@
 #include "mmsysio.h"
 #include "mmerrno.h"
 #include "utils-posix.h"
+#include "random-internal.h"
 #include "shm-internal.h"
 
+#include <inttypes.h>
+#include <limits.h>
 #include <sys/mman.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -386,9 +390,11 @@ API_EXPORTED
 int mm_anon_shm(void)
 {
 	int fd;
-	char name[32];
+	char name[NAME_MAX];
+	uint64_t randkey;
 
-	sprintf(name, "/mmlib-shm-%u", getpid());
+	get_random(&randkey, sizeof(randkey));
+	sprintf(name, "/mmlib-shm-%"PRIu64, randkey);
 
 #if HAVE_MEMFD_CREATE
 	fd = memfd_create(name, MFD_CLOEXEC);
