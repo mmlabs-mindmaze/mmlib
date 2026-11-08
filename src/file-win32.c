@@ -1912,7 +1912,7 @@ LOCAL_SYMBOL
 int internal_mkdir(const char* path, int mode, int report_recursive)
 {
 	int rv, path_u16_len;
-	char16_t* path_u16;
+	char16_t* path_u16 = NULL;
 	struct local_secdesc lsd;
 	SECURITY_ATTRIBUTES sec = {.nLength = sizeof(SECURITY_ATTRIBUTES)};
 
