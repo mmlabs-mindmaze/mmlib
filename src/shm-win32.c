@@ -11,12 +11,14 @@
 
 #include <windows.h>
 #include <io.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <direct.h>
 #include <fcntl.h>
 #include "utils-win32.h"
 #include "shm-internal.h"
+#include "random-internal.h"
 
 
 /**
@@ -169,15 +171,14 @@ int mm_anon_shm(void)
 {
 	HANDLE hnd;
 	int i, fd;
-	LARGE_INTEGER count;
-	unsigned int randval;
+	uint64_t randval;
 	char filename[SHM_PATH_MAXLEN];
 
 	for (i = 0; i < MAX_ATTEMPT; i++) {
 		// Generate random data filename
-		QueryPerformanceCounter(&count);
-		randval = (unsigned int)count.LowPart;
-		sprintf(filename, "%s/mmlib-shm-%u", get_shm_path(), randval);
+		get_random(&randval, sizeof(randval));
+		sprintf(filename, "%s/mmlib-shm-%"PRIu64, get_shm_path(), randval);
+
 		// Try open the file
 		hnd = CreateFile(filename, GENERIC_READ|GENERIC_WRITE,
 		                 0, NULL, CREATE_ALWAYS,
