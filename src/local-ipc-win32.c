@@ -58,7 +58,7 @@ struct mm_ipc_srv* mm_ipc_srv_create(const char* addr)
 	char pipe_name[MAX_PIPENAME];
 	struct mm_ipc_srv* srv;
 
-	if (strlen(addr) > (MAX_PIPENAME - strlen(PIPE_PREFIX))) {
+	if (strlen(addr) > (MAX_PIPENAME - strlen(PIPE_PREFIX) - 1)) {
 		mm_raise_error(ENAMETOOLONG, "server name too long");
 		return NULL;
 	}
@@ -484,7 +484,7 @@ int mm_ipc_connected_pair(int fds[2])
 {
 	DWORD open_mode = PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE;
 	DWORD pipe_mode = PIPE_TYPE_MESSAGE | PIPE_REJECT_REMOTE_CLIENTS;
-	char name[MAX_PIPENAME];
+	char name[MAX_PIPENAME] = {0};
 	int srv_fd, client_fd;
 	HANDLE hsrv, hclient;
 	struct mm_timespec ts;
@@ -496,7 +496,7 @@ int mm_ipc_connected_pair(int fds[2])
 	do {
 		// generate a name based on thread ID and current time
 		gettimespec_monotonic_w32(&ts);
-		snprintf(name, sizeof(name), PIPE_PREFIX "anon-%lu%lx%lx",
+		snprintf(name, sizeof(name), PIPE_PREFIX "anon-%x%lx%lx",
 		         get_tid(), (long)ts.tv_sec, (long)ts.tv_nsec);
 
 		hsrv = CreateNamedPipe(name, open_mode, pipe_mode,
