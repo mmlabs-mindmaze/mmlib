@@ -104,8 +104,6 @@ tests_state = 'disabled'
 libcheck = dependency('check', required : get_option('tests'))
 if libcheck.found() and not get_option('tests').disabled()
     tests_state = 'enabled'
-
-    cc.check_header('check.h')
     subdir('tests')
 endif
 

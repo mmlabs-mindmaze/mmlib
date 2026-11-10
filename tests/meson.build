@@ -58,6 +58,7 @@ executable('tests-child-proc',
         export_dynamic : true,
         include_directories : configuration_inc,
         link_with : mmlib,
+        dependencies: [libcheck],
 )
 
 perflock_sources = files('perflock.c')
