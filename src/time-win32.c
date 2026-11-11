@@ -9,6 +9,7 @@
 #include "mmtime.h"
 #include "mmerrno.h"
 #include "clock-win32.h"
+#include "utils-win32.h"
 
 #include <windows.h>
 #include <time.h>
@@ -90,20 +91,6 @@ int mm_getres(clockid_t clock_id, struct mm_timespec* res)
  *                                                                        *
  **************************************************************************/
 
-static HANDLE timer_hnd;
-
-MM_CONSTRUCTOR(timer)
-{
-	timer_hnd = CreateWaitableTimer(NULL, TRUE, NULL);
-}
-
-
-MM_DESTRUCTOR(timer)
-{
-	CloseHandle(timer_hnd);
-}
-
-
 static CALLBACK
 void timer_apc_completion(void* data, DWORD timer_low, DWORD timer_high)
 {
@@ -116,10 +103,16 @@ void timer_apc_completion(void* data, DWORD timer_low, DWORD timer_high)
 
 
 static
-void relative_microsleep(int64_t delta_ns)
+int relative_microsleep(int64_t delta_ns)
 {
 	int64_t ft_i64;
 	int done;
+	HANDLE timer_hnd;
+	BOOL success;
+
+	timer_hnd = get_thread_timer_hnd();
+	if (timer_hnd == NULL)
+		return mm_raise_from_w32err("Unable to create timer");
 
 	// ft_i64 must be negative to request a relative wait in
 	// SetWaitableTimer()
@@ -127,13 +120,17 @@ void relative_microsleep(int64_t delta_ns)
 
 	// Set deadline of waitable timer
 	done = 0;
-	SetWaitableTimer(timer_hnd, (LARGE_INTEGER*)&ft_i64, 0,
-	                 timer_apc_completion, &done, FALSE);
+	success = SetWaitableTimer(timer_hnd, (LARGE_INTEGER*)&ft_i64, 0,
+	                           timer_apc_completion, &done, FALSE);
+	if (!success)
+		return mm_raise_from_w32err("Failed to wait on timer");
 
 	// Do sleep until timer APC completion is executed
 	do {
 		SleepEx(INFINITE, TRUE);
 	} while (done == 0);
+
+	return 0;
 }
 
 
@@ -157,7 +154,8 @@ int mm_nanosleep(clockid_t clock_id, const struct mm_timespec* target)
 		if (delta_ns <= 0)
 			break;
 
-		relative_microsleep(delta_ns);
+		if (relative_microsleep(delta_ns))
+			return -1;
 	}
 
 	return 0;
