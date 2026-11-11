@@ -380,5 +380,8 @@ void* tls_get_value(DWORD index)
 	return TlsGetValue(index);
 }
 
+
+HANDLE get_thread_timer_hnd(void);
+
 #endif /* ifndef UTILS_WIN32_H */
 
