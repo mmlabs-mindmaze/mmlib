@@ -77,6 +77,7 @@ struct thread_local_data {
 	struct lockref_connection lockref;
 	struct error_info last_error;
 	struct mm_thread* thread;
+	HANDLE timer_hnd;
 };
 
 
@@ -200,6 +201,9 @@ void thread_local_data_on_exit(void)
 	// Close connection of the thread with lock server if any.
 	deinit_lock_referee_connection(&data->lockref);
 
+	if (data->timer_hnd != NULL)
+		CloseHandle(data->timer_hnd);
+
 	safe_free(data);
 }
 
@@ -258,6 +262,30 @@ LOCAL_SYMBOL
 struct error_info* get_thread_last_error(void)
 {
 	return &(get_thread_local_data()->last_error);
+}
+
+
+/**
+ * get_thread_timer_hnd() - get thread-local waitable timer
+ *
+ * Returns: handle to waitable timer in case of success, NULL otherwise.
+ */
+LOCAL_SYMBOL
+HANDLE get_thread_timer_hnd(void)
+{
+	HANDLE hnd;
+	struct thread_local_data* data = get_thread_local_data();
+
+	hnd = data->timer_hnd;
+	if (hnd != NULL)
+		return hnd;
+
+	hnd = CreateWaitableTimerEx(NULL, NULL,
+                                    CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
+                                    TIMER_MODIFY_STATE | SYNCHRONIZE);
+
+	data->timer_hnd = hnd;
+	return hnd;
 }
 
 
