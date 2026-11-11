@@ -504,6 +504,9 @@ int pshared_mtx_lock(struct mm_thr_mutex_pshared* mutex)
 	lockref = get_thread_lockref_data();
 	robust_data = pshared_get_robust_data(lockref);
 
+	if (robust_data->num_locked == robust_data->num_locked_max)
+		return EAGAIN;
+
 	start_mtx_operation(mutex->pshared_key, robust_data);
 
 	// Assume initially that no other thread are waiting. If it is not the
@@ -566,6 +569,9 @@ int pshared_mtx_trylock(struct mm_thr_mutex_pshared * mutex)
 	bool locked;
 
 	robust_data = pshared_get_robust_data(get_thread_lockref_data());
+
+	if (robust_data->num_locked == robust_data->num_locked_max)
+		return EAGAIN;
 
 	start_mtx_operation(mutex->pshared_key, robust_data);
 
