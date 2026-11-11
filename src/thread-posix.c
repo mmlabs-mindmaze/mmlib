@@ -108,6 +108,10 @@ int mm_thr_mutex_init(mm_thr_mutex_t* mutex, int flags)
  * 0
  *   The mutex has been successfully locked by the calling thread
  *
+ * EAGAIN
+ *   The mutex is a robust mutex and the system resources available for robust
+ *   mutexes owned would be exceeded.
+ *
  * EOWNERDEAD
  *   The mutex is a robust mutex and the previous owning thread terminated
  *   while holding the mutex lock. The mutex lock is acquired by the calling
@@ -150,6 +154,10 @@ int mm_thr_mutex_lock(mm_thr_mutex_t* mutex)
  *
  * 0
  *   The mutex has been locked by the calling thread
+ *
+ * EAGAIN
+ *   The mutex is a robust mutex and the system resources available for robust
+ *   mutexes owned would be exceeded.
  *
  * EOWNERDEAD
  *   The mutex is a robust mutex and the previous owning thread terminated
