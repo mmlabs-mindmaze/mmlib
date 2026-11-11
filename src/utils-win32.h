@@ -392,5 +392,8 @@ void* tls_get_value(DWORD index)
 	return tls_exp_slots[index - NUM_TLS_SLOTS];
 }
 
+
+HANDLE get_thread_timer_hnd(void);
+
 #endif /* ifndef UTILS_WIN32_H */
 
