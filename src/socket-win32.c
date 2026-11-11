@@ -40,15 +40,18 @@ void winsock_deinit(void)
 	WSACleanup();
 }
 
+static int wsa_init_retval;
 
 static
 void winsock_init(void)
 {
 	WSADATA wsa;
+	int rv = 0;
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsa))
-		mm_raise_from_w32err("WSAStartup() failed");
+		rv = mm_raise_from_w32err("WSAStartup() failed");
 
+	wsa_init_retval = rv;
 	atexit(winsock_deinit);
 }
 
@@ -60,7 +63,7 @@ int check_wsa_init(void)
 
 	mm_thr_once(&wsa_ini_once, winsock_init);
 
-	return 0;
+	return wsa_init_retval;
 }
 
 
