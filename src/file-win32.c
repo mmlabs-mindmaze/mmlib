@@ -1373,7 +1373,11 @@ void mm_rewinddir(MM_DIR* dir)
 		return;
 	}
 
-	FindClose(dir->hdir);
+	if (dir->hdir != INVALID_HANDLE_VALUE) {
+		FindClose(dir->hdir);
+		dir->hdir = INVALID_HANDLE_VALUE;
+	}
+	dir->find_first_done = 0;
 	win32_find_file(dir);
 }
 
