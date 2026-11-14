@@ -330,28 +330,14 @@ FILETIME timespec_to_filetime(struct mm_timespec ts)
 static inline
 DWORD get_tid(void)
 {
-	DWORD tid;
-#if defined (__x86_64) || defined (_M_X64)
-	tid = __readgsdword(0x48);
-#elif defined (__i386__) || defined (_M_IX86)
-	tid = __readfsdword(0x24);
-#else
-	tid = GetCurrentThreadId();
-#endif
-	return tid;
+	return GetCurrentThreadId();
 }
 
 
 static inline
 void* read_teb_address(unsigned long offset)
 {
-#if defined (__x86_64) || defined (_M_X64)
-	return (void*)__readgsqword(offset);
-#elif defined (__i386__) || defined (_M_IX86)
-	return (void*)__readfsdword(offset);
-#else
 	return (((char*)NtCurrentTeb())+offset);
-#endif
 }
 
 #define TEB_OFFSET(member)      (offsetof(struct _TEB, member))
