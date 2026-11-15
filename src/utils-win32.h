@@ -377,19 +377,7 @@ void* read_teb_address(unsigned long offset)
 static inline
 void* tls_get_value(DWORD index)
 {
-	unsigned long offset;
-	void** tls_exp_slots;
-
-	if (index < NUM_TLS_SLOTS) {
-		offset = TEB_OFFSET(TlsSlots) + index*sizeof(PVOID);
-		return read_teb_address(offset);
-	}
-
-	tls_exp_slots = read_teb_address(TEB_OFFSET(TlsExpansionSlots));
-	if (!tls_exp_slots)
-		return NULL;
-
-	return tls_exp_slots[index - NUM_TLS_SLOTS];
+	return TlsGetValue(index);
 }
 
 
