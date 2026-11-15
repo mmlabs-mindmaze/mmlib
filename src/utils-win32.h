@@ -346,9 +346,9 @@ static inline
 void* read_teb_address(unsigned long offset)
 {
 #if defined (__x86_64) || defined (_M_X64)
-	return (void*)__readgsqword(offset);
+	return (void*)__readgsqword(offset + 0x30);
 #elif defined (__i386__) || defined (_M_IX86)
-	return (void*)__readfsdword(offset);
+	return (void*)__readfsdword(offset + 0x18);
 #else
 	return (((char*)NtCurrentTeb())+offset);
 #endif
