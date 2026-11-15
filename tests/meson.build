@@ -85,7 +85,10 @@ test_internals_sources = files(
         'testinternals.c',
 )
 if host_machine.system() == 'windows'
-    test_internals_sources += files('startup-win32-internals.c')
+    test_internals_sources += files(
+        'startup-win32-internals.c',
+        'threadlocal-win32-internals.c',
+    )
 endif
 
 testinternals = executable('testinternals',

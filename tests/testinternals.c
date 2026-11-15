@@ -19,6 +19,7 @@ Suite* internal_suite(void)
 	suite_add_tcase(s, create_case_random_internals());
 #ifdef _WIN32
 	suite_add_tcase(s, create_case_startup_win32_internals());
+	suite_add_tcase(s, create_case_threadlocal_win32_internals());
 #endif
 
 	return s;
