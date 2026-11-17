@@ -279,6 +279,27 @@ void cleanup_mutex_lock(HANDLE hmap,
 }
 
 
+
+static
+int process_lock_request(struct lockref_connection* conn,
+		         struct lockref_req_msg* req,
+			 struct lockref_resp_msg* resp)
+{
+	DWORD rsz;
+	BOOL ret;
+
+	while (1) {
+		ret = TransactNamedPipe(conn->pipe, req, sizeof(*req),
+	        	                &resp, sizeof(*resp), &rsz, NULL);
+		if (!ret)
+	}
+
+	mm_check(rsz == sizeof(*resp));
+	return 0;
+}
+	
+
+
 /**
  * create_robust_data() - request robust data to lock referee server
  * @pipe:       handle to connection pipe to the server
@@ -338,6 +359,10 @@ void init_lock_referee_connection(struct lockref_connection* conn)
 	conn->robust_data = create_robust_data(conn->pipe);
 	conn->is_init = 1;
 }
+
+
+	
+
 
 
 /**
