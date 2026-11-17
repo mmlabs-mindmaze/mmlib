@@ -99,6 +99,7 @@ testinternals = executable('testinternals',
 test('internal tests', testinternals,
      env: ['CK_VERBOSITY=silent'],
      protocol: 'tap',
+     verbose: true,
 )
 
 # create the binary and shared library for the rename and unlink tests
@@ -150,4 +151,5 @@ test('unit api tests', testapi,
      env: ['CK_VERBOSITY=silent'],
      timeout : 300,
      protocol: 'tap',
+     verbose: true,
 )
