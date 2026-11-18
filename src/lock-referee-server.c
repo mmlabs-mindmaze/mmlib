@@ -19,10 +19,24 @@
 #include <aclapi.h>
 #include <accctrl.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #define LOCK_LIST_INITIAL_LEN   128
 
-#define MAX_ROBUST_DATA_SIZE	MM_PAGESZ
+#define MAX_ROBUST_DATA_SIZE    MM_PAGESZ
+#define CLEANUP_JOB_SZ          MM_PAGESZ
+
+#define GET_MAX_FLEXMEMB(sz, T, flex_memb)  \
+	((int)((sz - sizeof(T)) / sizeof(((T*)0)->flex_memb[0])))
+
+#define MAX_KEY_IN_ROBUST_DATA \
+	GET_MAX_FLEXMEMB(MAX_ROBUST_DATA_SIZE, struct robust_data, locked_keys)
+#define MAX_KEY_IN_CLEANUP_JOB \
+	GET_MAX_FLEXMEMB(CLEANUP_JOB_SZ, struct mutex_cleanup_job, deadlist)
+
+// Ensure that cleanup job cannot be overflowed by the handling of a single
+// robust_data (if crafted by a potential attacker)
+static_assert(MAX_KEY_IN_ROBUST_DATA <= MAX_KEY_IN_CLEANUP_JOB);
 
 #define NSEC_IN_MSEC (NS_IN_SEC / MS_IN_SEC)
 
@@ -66,11 +80,13 @@ struct thread_client {
 	int num_locked_max;
 	struct list_node timeout_node;
 	struct mm_timespec wait_timeout;
+	struct list_node dead_node;
 };
 #define GET_TC_FROM_OVERLAPPED_READ(lpo)	((struct thread_client*)(((char*)lpo)-offsetof(struct thread_client, overlapped_read)))
 #define GET_TC_FROM_OVERLAPPED_WRITE(lpo)	((struct thread_client*)(((char*)lpo)-offsetof(struct thread_client, overlapped_write)))
 #define GET_TC_FROM_LOCK_NODE(node)	((struct thread_client*)(((char*)node)-offsetof(struct thread_client, lock_node)))
 #define GET_TC_FROM_TIMEOUT_NODE(node)	((struct thread_client*)(((char*)node)-offsetof(struct thread_client, timeout_node)))
+#define GET_TC_FROM_DEAD_NODE(node)	((struct thread_client*)(((char*)node)-offsetof(struct thread_client, dead_node)))
 
 
 struct lock {
@@ -98,6 +114,7 @@ struct lockref_server {
 	struct lock_array watched_locks;
 	struct list realtime_timeout_list;
 	struct list monotonic_timeout_list;
+	struct list dead_thread_list;
 	int num_thread_client;
 	int quit;
 };
@@ -108,6 +125,7 @@ static struct lockref_server server = {.is_init = 0};
 static struct lock* lockref_server_get_lock(struct lockref_server* srv, int64_t key, bool create);
 static struct list* lockref_server_get_timeout_list(struct lockref_server* srv, int clk_flags);
 static void lockref_server_update_thread_count(struct lockref_server* srv, int adjustment);
+static void lockref_server_add_dead_thread(struct lockref_server* srv, struct thread_client* tc);
 
 static void thread_client_wakeup(struct thread_client* tc, bool timedout);
 static void thread_client_process_timeout(struct thread_client* tc);
@@ -355,7 +373,7 @@ int lock_create_cleanup_job(struct lock* lock)
 	struct mutex_cleanup_job* job;
 
 	hnd = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
-	                        PAGE_READWRITE, 0, MM_PAGESZ, NULL);
+	                        PAGE_READWRITE, 0, CLEANUP_JOB_SZ, NULL);
 	if (hnd == NULL)
 		return -1;
 
@@ -451,7 +469,7 @@ void lock_report_cleanup_job_done(struct lock* lock)
  * one to undo the possible change the dead has made to the shared lock.
  */
 static
-void lock_report_dead(struct lock* lock, int is_waiter, DWORD thread_id)
+int lock_report_dead(struct lock* lock, int is_waiter, DWORD thread_id)
 {
 	struct mutex_cleanup_job* job;
 	int i;
@@ -460,15 +478,20 @@ void lock_report_dead(struct lock* lock, int is_waiter, DWORD thread_id)
 	// before
 	if (!lock->job) {
 		if (lock_create_cleanup_job(lock))
-			return;
+			return -1;
 	}
 
 	job = lock->job;
 
 	// Add the thread to the cleanup job
+	if (job->num_dead >= MAX_KEY_IN_CLEANUP_JOB)
+		return -1;
+
 	i = job->num_dead++;
 	job->deadlist[i].tid = thread_id;
 	job->deadlist[i].is_waiter = is_waiter;
+
+	return 0;
 }
 
 
@@ -1170,9 +1193,11 @@ exit:
  * This function, meant to be called when the thread client is destroy, analyse
  * the robust data (if any) and will notify the lock referenced in it that the
  * thread has been destroyed.
+ *
+ * Returns: 0 in case of success, -1 if
  */
 static
-void  thread_client_cleanup_robust_data(struct thread_client* tc)
+int thread_client_cleanup_robust_data(struct thread_client* tc)
 {
 	int i;
 	struct robust_data* rdata;
@@ -1182,15 +1207,18 @@ void  thread_client_cleanup_robust_data(struct thread_client* tc)
 
 	rdata = tc->robust_data;
 	if (!rdata)
-		return;
+		return 0;
 
 	tid = rdata->thread_id;
 
 	// Cleanup all mutex that dead is owning
 	for (i = 0; i < rdata->num_locked && i < tc->num_locked_max; i++) {
-		key =  tc->robust_data->locked_keys[i];
+		key =  rdata->locked_keys[i];
 		lock = lockref_server_get_lock(&server, key, true);
-		lock_report_dead(lock, 0, tid);
+		if (lock_report_dead(lock, 0, tid))
+			return -1;
+
+		rdata->locked_keys[i] = 0;
 	}
 
 	// Cleanup mutex that dead is attempting to lock
@@ -1202,6 +1230,7 @@ void  thread_client_cleanup_robust_data(struct thread_client* tc)
 
 	UnmapViewOfFile(tc->robust_data);
 	tc->robust_data = NULL;
+	return 0;
 }
 
 
@@ -1440,8 +1469,17 @@ struct list* lockref_server_get_timeout_list(struct lockref_server* srv,
 
 
 static
+void lockref_server_add_dead_thread(struct lockref_server* srv,
+                                    struct thread_client* tc)
+{
+	append_to_queue(&srv->dead_thread_list, &tc->dead_node);
+}
+
+
+static
 void lockref_server_garbage_collection(struct lockref_server* srv)
 {
+	
 	lock_array_drop_unused(&srv->watched_locks);
 	lock_array_update_cleanup_jobs(&srv->watched_locks);
 }
