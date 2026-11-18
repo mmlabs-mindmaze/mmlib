@@ -19,10 +19,24 @@
 #include <aclapi.h>
 #include <accctrl.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #define LOCK_LIST_INITIAL_LEN   128
 
-#define MAX_ROBUST_DATA_SIZE	MM_PAGESZ
+#define MAX_ROBUST_DATA_SIZE    MM_PAGESZ
+#define CLEANUP_JOB_SZ          MM_PAGESZ
+
+#define GET_MAX_FLEXMEMB(sz, T, flex_memb)  \
+	((int)((sz - sizeof(T)) / sizeof(((T*)0)->flex_memb[0])))
+
+#define MAX_KEY_IN_ROBUST_DATA \
+	GET_MAX_FLEXMEMB(MAX_ROBUST_DATA_SIZE, struct robust_data, locked_keys)
+#define MAX_KEY_IN_CLEANUP_JOB \
+	GET_MAX_FLEXMEMB(CLEANUP_JOB_SZ, struct mutex_cleanup_job, deadlist)
+
+// Ensure that cleanup job cannot be overflowed by the handling of a single
+// robust_data (if crafted by a potential attacker)
+static_assert(MAX_KEY_IN_ROBUST_DATA <= MAX_KEY_IN_CLEANUP_JOB);
 
 #define NSEC_IN_MSEC (NS_IN_SEC / MS_IN_SEC)
 
@@ -98,6 +112,7 @@ struct lockref_server {
 	struct lock_array watched_locks;
 	struct list realtime_timeout_list;
 	struct list monotonic_timeout_list;
+	struct list dead_thread_list;
 	int num_thread_client;
 	int quit;
 };
@@ -355,7 +370,7 @@ int lock_create_cleanup_job(struct lock* lock)
 	struct mutex_cleanup_job* job;
 
 	hnd = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
-	                        PAGE_READWRITE, 0, MM_PAGESZ, NULL);
+	                        PAGE_READWRITE, 0, CLEANUP_JOB_SZ, NULL);
 	if (hnd == NULL)
 		return -1;
 
@@ -451,7 +466,7 @@ void lock_report_cleanup_job_done(struct lock* lock)
  * one to undo the possible change the dead has made to the shared lock.
  */
 static
-void lock_report_dead(struct lock* lock, int is_waiter, DWORD thread_id)
+int lock_report_dead(struct lock* lock, int is_waiter, DWORD thread_id)
 {
 	struct mutex_cleanup_job* job;
 	int i;
@@ -460,15 +475,20 @@ void lock_report_dead(struct lock* lock, int is_waiter, DWORD thread_id)
 	// before
 	if (!lock->job) {
 		if (lock_create_cleanup_job(lock))
-			return;
+			return -1;
 	}
 
 	job = lock->job;
 
 	// Add the thread to the cleanup job
+	if (job->num_dead >= MAX_KEY_IN_CLEANUP_JOB)
+		return -1;
+
 	i = job->num_dead++;
 	job->deadlist[i].tid = thread_id;
 	job->deadlist[i].is_waiter = is_waiter;
+
+	return 0;
 }
 
 
@@ -1190,7 +1210,10 @@ void  thread_client_cleanup_robust_data(struct thread_client* tc)
 	for (i = 0; i < rdata->num_locked && i < tc->num_locked_max; i++) {
 		key =  tc->robust_data->locked_keys[i];
 		lock = lockref_server_get_lock(&server, key, true);
-		lock_report_dead(lock, 0, tid);
+		if (lock_report_dead(lock, 0, tid))
+			goto error;
+
+		tc->robust_data->locked_keys[i] = 0;
 	}
 
 	// Cleanup mutex that dead is attempting to lock
@@ -1202,6 +1225,10 @@ void  thread_client_cleanup_robust_data(struct thread_client* tc)
 
 	UnmapViewOfFile(tc->robust_data);
 	tc->robust_data = NULL;
+	return;
+
+error:
+	lockref_server_add_dead_thread(&server, tc);
 }
 
 
